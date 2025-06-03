@@ -29,8 +29,8 @@ def _parallel_constant_finder(
 ) -> list[Union[uuid.UUID, Any]]:
 
     """
-    Determine if a column holds a single value, subject to _equal_nan,
-    _rtol, and _atol. If there is a single value, return the value.
+    Determine if a column holds a constant value, subject to _equal_nan,
+    _rtol, and _atol. If there is a constant value, return the value.
     Otherwise, return a uuid4.
 
     For numerical columns, get the mean of all the values and compare

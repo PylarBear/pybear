@@ -144,46 +144,45 @@ class InterceptManager(
     dataframes, and scipy sparse matrices/arrays. :meth: `transform`
     and :meth: `fit_transform` also accept these containers, but the
     type of output container for these methods can be controlled by
-    the :meth: `set_output` method. The user can set the type of output
-    container regardless of the type of input container. Output containers
-    available via `set_output` are numpy arrays, pandas dataframes, and
-    polars dataframes. When :meth: `set_output` is None, the output
-    container is the same as the input, that is, numpy array, pandas
-    dataframe, or scipy sparse matrix/array.
+    the :meth: `set_output` method. The user can set the type of
+    output container regardless of the type of input container. Output
+    containers available via `set_output` are numpy arrays, pandas
+    dataframes, and polars dataframes. When `set_output` is None, the
+    output container is the same as the input, that is, numpy array,
+    pandas or polars dataframe, or scipy sparse matrix/array.
 
-    The :meth: `partial_fit` method allows for incremental fitting of
-    data. This makes IM suitable for use with packages that do batch-wise
+    The `partial_fit` method allows for incremental fitting of data.
+    This makes IM suitable for use with packages that do batch-wise
     fitting and transforming, such as dask_ml via the Incremental and
     ParallelPostFit wrappers.
 
     There are no safeguards in place to prevent the user from changing
     the :param: `rtol`, :param: `atol`, or :param: `equal_nan` values
-    between calls to :meth: `partial_fit`. These 3 parameters have
-    strong influence over whether IM classifies a column as constant,
-    and therefore is instrumental in dictating what IM learns during
-    fitting. Changes to these parameters between partial fits can
-    drastically change IM's understanding of the constant columns in the
-    data versus what would otherwise be learned under constant settings.
-    pybear recommends against this practice, however, it is not strictly
+    between calls to `partial_fit`. These 3 parameters have strong
+    influence over whether IM classifies a column as constant, and
+    therefore is instrumental in dictating what IM learns during fitting.
+    Changes to these parameters between partial fits can drastically
+    change IM's understanding of the constant columns in the data versus
+    what would otherwise be learned under constant settings. pybear
+    recommends against this practice, however, it is not strictly
     blocked.
 
     When performing multiple batch-wise transformations of data, that
-    is, making sequential calls to :meth: `transform`, it is critical
-    that the same column indices be kept / removed at each call. This
-    issue manifests when :param: `keep` is set to 'random'; the random
-    index to keep must be the same at all calls to :meth: `transform`,
-    and cannot be dynamically randomized within :meth: `transform`. IM
-    handles this by generating a static random index to keep at :term:
-    fit time, and does not change this number during transform time.
-    This number is dynamic with each call to :meth: `partial_fit`, and
-    will likely change at each call. Fits performed after calls
-    to :meth: `transform` will change the random index away from that
-    used in the previous transforms, causing IM to perform entirely
-    different transformations than those previously being done. IM
-    cannot block calls to :meth: `partial_fit` after :meth: `transform`
-    has been called, but pybear strongly discourages this practice
-    because the output will be nonsensical. pybear recommends doing all
-    partial fits consecutively, then doing all transformations
+    is, making sequential calls to `transform`, it is critical that the
+    same column indices be kept / removed at each call. This issue
+    manifests when :param: `keep` is set to 'random'; the random index
+    to keep must be the same at all calls to `transform`, and cannot
+    be dynamically randomized within `transform`. IM handles this by
+    generating a static random column index to keep at :term: fit time,
+    and does not change this number during transform time. This number
+    is dynamic with each call to `partial_fit`, and will likely change
+    at each call. Fits performed after calls to `transform` will change
+    the random index away from that used in the previous transforms,
+    causing IM to perform entirely different transformations than those
+    previously being done. IM cannot block calls to `partial_fit` after
+    `transform` has been called, but pybear strongly discourages this
+    practice because the output will be nonsensical. pybear recommends
+    doing all partial fits consecutively, then doing all transformations
     consecutively.
 
 
@@ -219,11 +218,11 @@ class InterceptManager(
     string:
         A string indicating feature name to keep if a container with
         a header is passed, while deleting all other constant columns.
-        Case sensitive. IM will except if 1) a string is passed that is
-        not an allowed string literal ('first', 'last', 'random', 'none')
-        but a valid container is not passed to :meth: `fit`, 2) a valid
-        container is passed to :meth: `fit` but the given feature name
-        is not valid, 3) the feature name is valid but the column is not
+        Case sensitive. IM will except if 1) a string is passed that
+        is not an allowed string literal ('first', 'last', 'random',
+        'none') but a valid container is not passed to `fit`, 2) a valid
+        container is passed to `fit` but the given feature name is not
+        valid, 3) the feature name is valid but the column is not
         constant.
     callable(X):
         a callable that returns a valid column index when the data is
@@ -241,11 +240,11 @@ class InterceptManager(
         been returned from the callable during :term: transform. IM
         cannot catch if the callable is returning different indices
         for different batches of data within a sequence of calls
-        to :meth: `transform`. When doing multiple batch-wise transforms,
-        it is up to the user to ensure that the callable returns the
-        same index for each call to :meth: `transform`. If the callable
-        returns a different index for any of the batches of data passed
-        in a sequence of transforms then the results will be nonsensical.
+        to `transform`. When doing multiple batch-wise transforms, it
+        is up to the user to ensure that the callable returns the same
+        index for each call to `transform`. If the callable returns a
+        different index for any of the batches of data passed in a
+        sequence of transforms then the results will be nonsensical.
     dictionary[str, Any]:
         dictionary of {feature name:str, constant value:Any}. A column
         of constants is appended to the right end of the data, with the
@@ -335,11 +334,11 @@ class InterceptManager(
         values in the same column, thus making the column non-constant.
         This is in line with the normal numpy handling of nan values.
     rtol:
-        Optional[numbers.Real], default = 1e-5 - The relative difference
+        Optional[numbers.Real], default=1e-5 - The relative difference
         tolerance for equality. Must be a non-boolean, non-negative,
         real number. See numpy.allclose.
     atol:
-        Optional[numbers.Real], default = 1e-8 - The absolute difference
+        Optional[numbers.Real], default=1e-8 - The absolute difference
         tolerance for equality. Must be a non-boolean, non-negative,
         real number. See numpy.allclose.
 
@@ -390,8 +389,9 @@ class InterceptManager(
         all original constant columns are removed and a new column of
         constants is appended to the data. This new column is NOT
         appended to column_mask_. This mask is intended to be applied
-        to data of the same dimension as that seen during fit, and the
-        new column of constants is a feature added after :term: transform.
+        to data of the same dimension as that seen during fit, and
+        the new column of constants is a feature added after :term:
+        transform.
 
 
     Notes
@@ -401,7 +401,7 @@ class InterceptManager(
     dataframes, and scipy sparse matrices/arrays, internally copies are
     extracted from the source data as numpy arrays (see below for more
     detail about how scipy sparse is handled.) After the conversion
-    to  numpy array and prior to calculating the mean and applying
+    to numpy array and prior to calculating the mean and applying
     numpy.allclose, IM identifies any nan-like representations in the
     numpy array and standardizes all of them to numpy.nan. The user
     needs to be wary that whatever is used to indicate 'not-a-number'
@@ -482,8 +482,8 @@ class InterceptManager(
     --------
     numpy.ndarray
     pandas.core.frame.DataFrame
-    scipy.sparse
     polars.DataFrame
+    scipy.sparse
     numpy.allclose
     numpy.isclose
     numpy.unique
@@ -744,11 +744,11 @@ class InterceptManager(
 
 
         # reset – Whether to reset the n_features_in_ attribute. If False,
-        # the input will be checked for consistency with data provided when
-        # reset was last True.
-        # It is recommended to call reset=True in fit and in the first call
-        # to partial_fit. All other methods that validate X should set
-        # reset=False.
+        # the input will be checked for consistency with data provided
+        # when reset was last True.
+        # It is recommended to call reset=True in fit and in the first
+        # call to partial_fit. All other methods that validate X should
+        # set reset=False.
 
         # do not make an assignment! let the function handle it.
         self._check_n_features(
@@ -772,13 +772,14 @@ class InterceptManager(
             self.atol
         )
 
-        # END validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # END validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
 
         # ss sparse that cant be sliced
-        # avoid copies of X, do not mutate X. if X is coo, dia, bsr, it cannot
-        # be sliced. must convert to another ss. so just convert all of them
-        # to csc for faster column slicing. need to change it back later.
+        # avoid copies of X, do not mutate X. if X is coo, dia, bsr, it
+        # cannot be sliced. must convert to another ss. so just convert
+        # all of them to csc for faster column slicing. need to change
+        # it back later.
         if hasattr(X, 'toarray'):
             _og_dtype = type(X)
             X = X.tocsc()
@@ -799,6 +800,9 @@ class InterceptManager(
                     self.atol
                 )
 
+            # Use _merge_constants() to combine constants found in the
+            # current partial fit with those found in previous partial
+            # fits.
             self._constant_columns: ConstantColumnsType = \
                 _merge_constants(
                     getattr(self, '_constant_columns', None),
@@ -809,12 +813,13 @@ class InterceptManager(
 
             del _current_constant_columns
 
-        # Create an instance attribute that specifies the random column index
-        # to keep when 'keep' is 'random'. This value must be static on calls
-        # to :meth: transform (meaning sequential calls to transform get the
-        # same random index every time.) This value is generated and retained
-        # even if :param: 'keep' != 'random', in case :param: 'keep' should be
-        # set to 'random' at any point via set_params().
+        # Create an instance attribute that specifies the random column
+        # index to keep when 'keep' is 'random'. This value must be
+        # static on calls to :meth: transform (meaning sequential calls
+        # to transform get the same random index every time.) This value
+        # is generated and retained even if :param: 'keep' != 'random',
+        # in case :param: 'keep' should be set to 'random' at any point
+        # via set_params().
         if len(self._constant_columns):
             self._rand_idx = int(np.random.choice(list(self._constant_columns)))
         else:
@@ -971,31 +976,32 @@ class InterceptManager(
 
         _val_keep_and_columns(self.keep, None, 'spoof_X')
 
-        # END validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # END validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
         # ss sparse that cant be sliced
-        # if X_inv is coo, dia, bsr, it cannot be sliced. must convert to
-        # another ss. so just convert all of them to csc for faster column
-        # slicing. need to change it back later.
+        # if X_inv is coo, dia, bsr, it cannot be sliced. must convert
+        # to another ss. so just convert all of them to csc for faster
+        # column slicing. need to change it back later.
         if hasattr(X_inv, 'toarray'):
             _og_format = type(X_inv)
             X_inv = X_inv.tocsc()
 
-        # if _keep is a dict ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+        # if _keep is a dict ** * ** * ** * ** * ** * ** * ** * ** * **
         # a column of constants was stacked to the right side of the data.
         # check that 'keep' is valid (may have changed via set_params()),
         # the passed data matches against 'keep', and remove the column
         if isinstance(self.keep, dict):
             X_inv = _remove_intercept(X_inv, self.keep)
-        # END _keep is a dict ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # END _keep is a dict ** * ** * ** * ** * ** * ** * ** * ** * **
 
-        # the number of columns in X_inv must be equal to the number of features
-        # remaining in _column_mask
+        # the number of columns in X_inv must be equal to the number of
+        # features remaining in _column_mask
         if X_inv.shape[1] != np.sum(self._column_mask):
             raise ValueError(
-                f"the number of columns in X_inv must be equal to the number of "
-                f"columns kept in the fitted data after removing constants. "
-                f"\nexpected {np.sum(self._column_mask)}, got {X_inv.shape[1]}."
+                f"the number of columns in X_inv must be equal to the "
+                f"number of columns kept in the fitted data after removing "
+                f"constants. \nexpected {np.sum(self._column_mask)}, got "
+                f"{X_inv.shape[1]}."
             )
 
         X_inv = _inverse_transform(
@@ -1103,11 +1109,11 @@ class InterceptManager(
         # do not make an assignment!
         self._check_feature_names(X_tr, reset=False)
 
-        # END validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # END validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
 
-        # everything below needs to be redone every transform in case 'keep'
-        # was changed via set params after fit
+        # everything below needs to be redone every transform in case
+        # 'keep' was changed via set params after fit
 
         # validation should not have caused X_tr to be different than X
         # when X is scipy sparse. but just to be safe, pass the original
@@ -1140,17 +1146,17 @@ class InterceptManager(
         del out
 
         # ss sparse that cant be sliced
-        # if X is coo, dia, bsr, it cannot be sliced. must convert to another
-        # ss. so just convert all of them to csc for faster column slicing.
-        # need to change it back later.
+        # if X is coo, dia, bsr, it cannot be sliced. must convert to
+        # another ss. so just convert all of them to csc for faster
+        # column slicing. need to change it back later.
         if hasattr(X_tr, 'toarray'):
             _og_format = type(X_tr)
             X_tr = X_tr.tocsc()
 
         X_tr = _transform(X_tr, self._instructions)
 
-        # all scipy sparse were converted to csc right before the _transform
-        # function. change it back to original state.
+        # all scipy sparse were converted to csc right before the
+        # _transform function. change it back to original state.
         if hasattr(X_tr, 'toarray'):
             X_tr = _og_format(X_tr)
             del _og_format

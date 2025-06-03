@@ -53,7 +53,7 @@ def _validation(
     Parameters
     ----------
     _X:
-        {array-like, scipy sparse matrix} of shape (n_samples, n_features)
+        array-like of shape (n_samples, n_features)
     _degree:
         numbers.Integral
     _min_degree:
@@ -79,7 +79,7 @@ def _validation(
         bool
     _n_jobs:
         Union[numbers.Integral, None] - The number of joblib Parallel
-        jobs to use when scanning the data for duplicate columns.
+        jobs to use when scanning for duplicate columns.
     _job_size:
         numbers.Integral - The number of columns to send to a joblib job.
         Must be an integer greater than or equal to 2.

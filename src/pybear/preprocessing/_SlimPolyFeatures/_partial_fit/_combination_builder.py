@@ -34,7 +34,7 @@ def _combination_builder(
         numbers.Integral - the number of features in X.
     _min_degree:
         numbers.Integral - The minimum polynomial degree of the generated
-        features. Polynomial terms with degree below '_min_degree' are
+        features. Polynomial terms with degree below `_min_degree` are
         not included in the final output array.
     _max_degree:
         numbers.Integral - The maximum polynomial degree of the generated
@@ -53,10 +53,10 @@ def _combination_builder(
             tuples of column index combinations to be multiplied
             together for the polynomial expansion.
 
-
     """
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     assert isinstance(n_features_in_, int)
     assert not isinstance(n_features_in_, bool)
@@ -64,23 +64,25 @@ def _combination_builder(
 
     assert isinstance(_min_degree, int)
     assert not isinstance(_min_degree, bool)
-    assert _min_degree >= 1, f"min_degree == 0 shouldnt be getting in here"
+    assert _min_degree >= 1, \
+        f"min_degree == 0 shouldnt be getting in here"
 
     assert isinstance(_max_degree, int)
     assert not isinstance(_max_degree, bool)
-    assert _max_degree >= 2, f"max_degree in [0,1] shouldnt be getting in here"
+    assert _max_degree >= 2, \
+        f"max_degree in [0,1] shouldnt be getting in here"
 
     assert _max_degree >= _min_degree
 
     assert isinstance(_intx_only, bool)
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     _min_degree = max(2, _min_degree)
-    # if _min_degree == 1, then the first order component (the original data)
-    # is handled directly in SPF.transform(). Only need to generate any terms
-    # that are greater than first order.
+    # if _min_degree == 1, then the first order component (the original
+    # data) is handled directly in SPF.transform(). Only need to generate
+    # any terms that are greater than first order.
 
 
     fxn = itertools.combinations if _intx_only else \
@@ -90,8 +92,8 @@ def _combination_builder(
     for _deg in range(_min_degree, _max_degree + 1):
         _combinations.extend(list(fxn(range(n_features_in_), _deg)))
 
-    # this checks the number of features in the output polynomial expansion for
-    # indexability based on the max value allowed by np.intp
+    # this checks the number of features in the output polynomial
+    # expansion for indexability based on the max value allowed by np.intp
     _val_num_combinations(
         n_features_in_,
         _n_poly_combos=len(_combinations),
@@ -100,26 +102,14 @@ def _combination_builder(
         _intx_only=_intx_only
     )
 
-    # _combinations MUST ALWAYS BE asc on degree (shortest combos to longest
-    # combos), then sorted asc on combo idxs. the output should be coming
-    # out of itertools like that, but ensure always sorted in case itertools
-    # ever changes
+    # _combinations MUST ALWAYS BE asc on degree (shortest combos to
+    # longest combos), then sorted asc on combo idxs. the output should
+    # be coming out of itertools like that, but ensure always sorted in
+    # case itertools ever changes
     _combinations = sorted(_combinations, key = lambda x: (len(x), x))
 
 
     return _combinations
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -6,9 +6,10 @@
 
 
 
-from .._type_aliases import InternalXContainer
-
-import joblib
+from .._type_aliases import (
+    CombinationsType,
+    InternalXContainer
+)
 
 import numpy as np
 import pandas as pd
@@ -19,19 +20,17 @@ from .._partial_fit._columns_getter import _columns_getter
 
 
 
-
 def _build_poly(
     _X: InternalXContainer,
-    _active_combos: tuple[tuple[int, ...], ...]
+    _active_combos: CombinationsType
 ) -> ss.csc_array:
 
     """
     Build the polynomial expansion for X as a scipy sparse csc array
     using X and _active_combos. X is passed to _columns_getter and must
     observe the restrictions imposed there. That is, X can be np.ndarray,
-    pd.DataFrame, or any scipy sparse except coo matrix/array, dia
-    matrix/array or bsr matrix/array. X should already be conditioned
-    for this when passed here.
+    pd.DataFrame, pl.DataFrame, or scipy sparse csc matrix/array. X
+    should already be conditioned for this when passed here.
 
     _active_combos is all combinations from the original combinations
     that are not in dropped_poly_duplicates_ or poly_constants_.
@@ -40,11 +39,10 @@ def _build_poly(
     Parameters
     ----------
     _X:
-        {np.ndarray, pd.DataFrame, scipy sparse} of shape (n_samples,
-        n_features) - The data to undergo polynomial expansion.
+        InternalXContainer - The data to undergo polynomial expansion.
     _active_combos:
-        tuple[tuple[int, ...], ...] - the index tuple combinations to be
-        kept in the final polynomial expansion.
+        CombinationsType - the index tuple combinations to be kept in
+        the final polynomial expansion.
 
 
     Return
@@ -57,26 +55,21 @@ def _build_poly(
     """
 
 
-    # validation - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    assert isinstance(_X, (np.ndarray, (pd.core.frame.DataFrame, pl.DataFrame))) or \
-           hasattr(_X, 'toarray'), f"{type(_X)=}"
-
-    assert not isinstance(_X,
-        (ss.coo_matrix, ss.coo_array, ss.dia_matrix,
-        ss.dia_array, ss.bsr_matrix, ss.bsr_array)
+    # validation - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    assert isinstance(_X,
+        (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_array,
+         ss.csc_matrix)
     )
 
     assert isinstance(_active_combos, tuple)
     for _tuple in _active_combos:
         assert isinstance(_tuple, tuple)
         assert all(map(isinstance, _tuple, (int for _ in _tuple)))
-    # END validation - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+    # END validation - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     if not len(_active_combos):
         POLY = ss.csc_array(np.empty((_X.shape[0], 0), dtype=np.float64))
         return POLY
-
 
     POLY = ss.csc_array(np.empty((_X.shape[0], 0))).astype(np.float64)
     for combo in _active_combos:
@@ -103,31 +96,6 @@ def _build_poly(
 
 
     return POLY
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

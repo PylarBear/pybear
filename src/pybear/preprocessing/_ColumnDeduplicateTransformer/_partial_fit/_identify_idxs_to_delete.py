@@ -35,7 +35,7 @@ def _identify_idxs_to_delete(
     """
     Apply the rules given by :param: `keep`, :param: `conflict`,
     and :param: `do_not_drop` to the sets of duplicates
-    in :param: `duplicates`. Produce the :attr: `removed_columns_`
+    in :param: `_duplicates`. Produce the :attr: `removed_columns_`
     dictionary, which has all the deleted column indices as keys and
     the respective kept column as values.
 
@@ -53,15 +53,15 @@ def _identify_idxs_to_delete(
         duplicates.
     _do_not_drop:
         DoNotDropType - A list of columns not to be dropped. If fitting
-        is done on a pandas dataframe that has a header, a list of
-        feature names may be provided. Otherwise, a list of column
-        indices must be provided. If a conflict arises, such as two
-        columns specified in :param: `do_not_drop` are duplicates of
-        each other, the behavior is managed by :param: `conflict`.
+        is done on a container that has a header, a list of feature
+        names may be provided. Otherwise, a list of column indices must
+        be provided. If a conflict arises, such as two columns specified
+        in :param: `do_not_drop` are duplicates of each other, the
+        behavior is managed by :param: `conflict`.
     _columns:
         Union[FeatureNamesInType, None] of shape (n_features,) - if
-        fitting is done on a pandas dataframe that has a header, this
-        is a ndarray of strings, otherwise is None.
+        fitting is done on a container that has a header, this is a
+        ndarray of strings, otherwise is None.
     _conflict:
         ConflictType - Ignored when :param: `do_not_drop` is not passed.
         Instructs CDT how to deal with a conflict between the
@@ -87,9 +87,9 @@ def _identify_idxs_to_delete(
     _rand_idxs:
         tuple[int] - An ordered tuple whose values are a sequence of
         column indices, one index selected from each set of duplicates
-        in :param: `duplicates`. For example, if :attr: `duplicates_` is
-        [[1, 5, 9], [0, 8]], then a possible _rand_idxs might look like
-        (1, 8).
+        in :param: `_duplicates`. For example, if :param: `_duplicates`
+        is [[0, 8], [1, 5, 9]], then a possible _rand_idxs might look
+        like (8, 1).
 
 
     Return
@@ -112,16 +112,15 @@ def _identify_idxs_to_delete(
         assert isinstance(_set, list)
         assert len(_set) >= 2
         assert all(map(isinstance, _set, (int for _ in _set)))
-
+    # -- -- -- --
     # all idxs in duplicates must be unique
     __ = list(itertools.chain(*_duplicates))
     assert len(np.unique(__)) == len(__)
     del __
-
+    # -- -- -- --
     assert isinstance(_keep, str)
     assert _keep.lower() in ['first', 'last', 'random']
-
-
+    # -- -- -- --
     err_msg = "if not None, '_columns' must be a sequence of strings"
     if _columns is not None:
         try:
@@ -132,8 +131,7 @@ def _identify_idxs_to_delete(
             raise AssertionError(err_msg)
 
         assert all(map(isinstance, _columns, (str for _ in _columns))), err_msg
-
-
+    # -- -- -- --
     err_msg = \
         "if not None, 'do_not_drop' must be a sequence of integers or strings"
     if _do_not_drop is not None:
@@ -156,10 +154,10 @@ def _identify_idxs_to_delete(
                 f"if _columns is not passed, _do_not_drop can only be passed "
                 f"as integers"
             )
-
+    # -- -- -- --
     assert isinstance(_conflict, str)
     assert _conflict.lower() in ['raise', 'ignore']
-
+    # -- -- -- --
     err_msg = (
         f"'_rand_idxs' must be a tuple of integers 0 <= idx < X.shape[1], "
         f"and a single idx from each set of duplicates must be represented "

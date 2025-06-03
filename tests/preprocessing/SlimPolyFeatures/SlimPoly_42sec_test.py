@@ -757,12 +757,16 @@ class TestPartialFit:
         assert _X_wip.shape == _X_wip_before.shape
 
         if isinstance(_X_wip, np.ndarray):
+            # if numpy output, is C order
             assert _X_wip.flags['C_CONTIGUOUS'] is True
             assert np.array_equal(_X_wip_before, _X_wip)
+            assert _X_wip.dtype == _X_wip_before.dtype
         elif hasattr(_X_wip, 'columns'):  # DATAFRAMES
             assert _X_wip.equals(_X_wip_before)
+            assert np.array_equal(_X_wip.dtypes, _X_wip_before.dtypes)
         elif hasattr(_X_wip_before, 'toarray'):
             assert np.array_equal(_X_wip.toarray(), _X_wip_before.toarray())
+            assert _X_wip.dtype == _X_wip_before.dtype
         else:
             raise Exception
 
@@ -1063,13 +1067,17 @@ class TestTransform:
 
         if isinstance(_X_wip_before, np.ndarray):
             assert np.array_equal(_X_wip_before, _X_wip, equal_nan=True)
+            # if numpy output, is C order
             assert _X_wip.flags['C_CONTIGUOUS'] is True
+            assert _X_wip.dtype == _X_wip_before.dtype
         elif hasattr(_X_wip_before, 'columns'):    # DATAFRAMES
             assert _X_wip.equals(_X_wip_before)
+            assert np.array_equal(_X_wip.dtypes, _X_wip_before.dtypes)
         elif hasattr(_X_wip_before, 'toarray'):
             assert np.array_equal(
                 _X_wip.toarray(), _X_wip_before.toarray(), equal_nan=True
             )
+            assert _X_wip.dtype == _X_wip_before.dtype
         else:
             raise Exception
 

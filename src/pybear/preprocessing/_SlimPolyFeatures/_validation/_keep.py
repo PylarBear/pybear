@@ -43,10 +43,7 @@ def _val_keep(
     -
         None
 
-
     """
-
-
 
 
     _err_msg = lambda _required: f"'keep' must be one of {', '.join(_required)}"
@@ -58,14 +55,6 @@ def _val_keep(
     if sum([_ == _keep for _ in _required]) != 1:
         raise ValueError(_err_msg(_required))
     del _err_msg, _required
-
-
-
-
-
-
-
-
 
 
 

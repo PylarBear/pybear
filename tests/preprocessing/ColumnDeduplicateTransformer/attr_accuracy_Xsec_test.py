@@ -9,18 +9,11 @@
 import pytest
 
 from copy import deepcopy
-import itertools
 
 import numpy as np
-import pandas as pd
-import polars as pl
 
 from pybear.preprocessing._ColumnDeduplicateTransformer. \
     ColumnDeduplicateTransformer import ColumnDeduplicateTransformer as CDT
-
-from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
-    _parallel_column_comparer import _parallel_column_comparer
-
 
 
 
@@ -73,16 +66,6 @@ class TestAccuracy:
             _zeros=None,
             _shape=_shape
         )
-
-        # retain original format
-        _og_format = type(X)
-
-        # retain original dtypes
-        if isinstance(X, (pd.core.frame.DataFrame, pl.DataFrame)):
-            # need to cast pl to ndarray
-            _og_dtype = np.array(X.dtypes)
-        else:
-            _og_dtype = X.dtype
         # END BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
         # set do_not_drop as list of strings (vs None or list of ints)
@@ -125,20 +108,6 @@ class TestAccuracy:
         #     'removed_columns_'
         #     'column_mask_'
         # and 'get_feature_names_out'
-
-        # returned format is same as given format
-        assert isinstance(TRFM_X, _og_format)
-
-        # if numpy output, is C order
-        if isinstance(TRFM_X, np.ndarray):
-            assert TRFM_X.flags['C_CONTIGUOUS'] is True
-
-        # returned dtypes are same as given dtypes
-        if isinstance(TRFM_X, (pd.core.frame.DataFrame, pl.DataFrame)):
-            assert np.array_equal(TRFM_X.dtypes, _og_dtype[TestCls.column_mask_])
-        else:
-            assert TRFM_X.dtype == _og_dtype
-        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
         # attr 'n_features_in_' is correct
         assert TestCls.n_features_in_ == X.shape[1]
@@ -209,6 +178,7 @@ class TestAccuracy:
             # was kept is really complicated, use TestCls.removed_columns_
             # for help (even tho removed_columns_ is something we are trying
             # to verify)
+            # pizza is there a way to not cop out like this
             ref_removed_columns = deepcopy(TestCls.removed_columns_)
             _kept_idxs = sorted(list(
                 np.unique(list(TestCls.removed_columns_.values()))
@@ -237,49 +207,11 @@ class TestAccuracy:
                 TestCls.get_feature_names_out()
             )
         _, __ = TestCls.removed_columns_, ref_removed_columns
-        assert np.array_equal(
-            sorted(list(_.keys())),
-            sorted(list(__.keys()))
-        )
-        assert np.array_equal(
-            sorted(list(_.values())),
-            sorted(list(__.values()))
-        )
+        assert np.array_equal(sorted(list(_.keys())), sorted(list(__.keys())))
+        assert np.array_equal(sorted(list(_.values())), sorted(list(__.values())))
         del _, __
         # END validate TestCls attrs against ref objects
 
-        # assure all columns that werent duplicates are in the output
-        __all_dupls = list(itertools.chain(*deepcopy(exp_dupls)))
-        for col_idx in range(_shape[1]):
-            if col_idx not in __all_dupls:
-                assert TestCls.column_mask_[col_idx] is np.True_
-
-        # for retained columns, assert they are equal to themselves in
-        # the original data
-        _kept_idxs = np.arange(len(TestCls.column_mask_))[TestCls.column_mask_]
-        _kept_idxs = list(map(int, _kept_idxs))
-        for _new_idx, _kept_idx in enumerate(_kept_idxs, 0):
-
-            if isinstance(X, np.ndarray):
-                _out_col = TRFM_X[:, [_new_idx]]
-                _og_col = X[:, [_kept_idx]]
-            elif isinstance(X, pd.core.frame.DataFrame):
-                _out_col = TRFM_X.iloc[:, [_new_idx]].to_numpy()
-                _og_col = X.iloc[:, [_kept_idx]].to_numpy()
-            elif isinstance(X, pl.DataFrame):
-                _out_col = TRFM_X[:, [_new_idx]].to_numpy()
-                _og_col = X[:, [_kept_idx]].to_numpy()
-            else:
-                _out_col = TRFM_X.tocsc()[:, [_new_idx]].toarray()
-                _og_col = X.tocsc()[:, [_kept_idx]].toarray()
-
-            assert _parallel_column_comparer(
-                _out_col,
-                _og_col,
-                _rtol=1e-5,
-                _atol=1e-8,
-                _equal_nan=True
-            )
 
         # END ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 

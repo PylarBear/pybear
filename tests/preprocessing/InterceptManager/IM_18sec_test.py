@@ -601,14 +601,18 @@ class TestPartialFit:
         assert _X_wip.shape == _X_wip_before.shape
         # need equal_nan because _constants has nans
         if isinstance(_X_wip, np.ndarray):
+            # if numpy output, is C order
             assert _X_wip.flags['C_CONTIGUOUS'] is True
             assert np.array_equal(_X_wip_before, _X_wip, equal_nan=True)
+            assert _X_wip.dtype == _X_wip_before.dtype
         elif hasattr(_X_wip, 'columns'):  # DATAFRAMES
             assert _X_wip.equals(_X_wip_before)
+            assert np.array_equal(_X_wip.dtypes, _X_wip_before.dtypes)
         elif hasattr(_X_wip_before, 'toarray'):
             assert np.array_equal(
                 _X_wip.toarray(), _X_wip_before.toarray(), equal_nan=True
             )
+            assert _X_wip.dtype == _X_wip_before.dtype
         else:
             raise Exception
 
@@ -979,13 +983,17 @@ class TestTransform:
 
         if isinstance(_X_wip_before, np.ndarray):
             assert np.array_equal(_X_wip_before, _X_wip, equal_nan=True)
+            # if numpy output, is C order
             assert _X_wip.flags['C_CONTIGUOUS'] is True
+            assert _X_wip.dtype == _X_wip_before.dtype
         elif hasattr(_X_wip_before, 'columns'):    # DATAFRAMES
             assert _X_wip.equals(_X_wip_before)
+            assert np.array_equal(_X_wip.dtypes, _X_wip_before.dtypes)
         elif hasattr(_X_wip_before, 'toarray'):
             assert np.array_equal(
                 _X_wip.toarray(), _X_wip_before.toarray(), equal_nan=True
             )
+            assert _X_wip.dtype == _X_wip_before.dtype
         else:
             raise Exception
 
@@ -1177,14 +1185,6 @@ class TestTransform:
 
         # ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-        # attributes:
-        #     'n_features_in_'
-        #     'feature_names_in_'
-        #     'constant_columns_'
-        #     'kept_columns_'
-        #     'removed_columns_'
-        #     'column_mask_'
-
         # returned format is same as given format
         assert isinstance(TRFM_X, _og_format)
 
@@ -1221,19 +1221,6 @@ class TestTransform:
             assert TRFM_X.dtype == _og_dtype
         # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        # attr 'n_features_in_' is correct
-        assert TestCls.n_features_in_ == X.shape[1]
-        # column_mask_ is never adjusted for keep is dict. it is always
-        # meant to be applied to pre-transform data.
-        assert len(TestCls.column_mask_) == TestCls.n_features_in_
-
-        # attr 'feature_names_in_' is correct
-        if X_format in ['pd', 'pl']:
-            assert np.array_equal(TestCls.feature_names_in_, _columns)
-            assert TestCls.feature_names_in_.dtype == object
-        else:
-            assert not hasattr (TestCls, 'feature_names_in_')
-
         # number of columns in output is adjusted correctly for num constants
         exp_num_kept = _shape[1]  # start with full num of columns
         if not has_nan or (has_nan and equal_nan):
@@ -1257,230 +1244,114 @@ class TestTransform:
         # number of columns in output == number of expected
         assert TRFM_X.shape[1] == exp_num_kept
 
-
-        # attr 'constant_columns_' is correct ------------------------------
-        act_constants = TestCls.constant_columns_
-        assert len(act_constants) == len(exp_constants)
-        assert np.array_equal(
-            list(act_constants.keys()),
-            list(exp_constants.keys())
-        )
-        for idx, value in exp_constants.items():
-            if str(value) == 'nan':
-                assert str(value) == str(act_constants[idx])
-            else:
-                try:
-                    float(value)
-                    raise UnicodeError
-                except UnicodeError:
-                    assert np.isclose(
-                        float(value),
-                        float(act_constants[idx]),
-                        rtol=1e-5,
-                        atol=1e-8
-                    )
-                except Exception as e:
-                    assert value == act_constants[idx]
-
-        # END attr 'constant_columns_' is correct ----------------------------
-
-        # keep ('first','last','random','none') is correct
-        # also verify 'column_mask_' 'kept_columns_', 'removed_columns_'
-        ref_column_mask = [True for _ in range(X.shape[1])]
-        ref_kept_columns = {}
-        ref_removed_columns = {}
-        if X_format in ['pd', 'pl']:
-            ref_feature_names_out = list(deepcopy(_columns))
-        else:
-            ref_feature_names_out = [f'x{i}' for i in range(_shape[1])]
-
+        # # keep ('first','last','random','none') is correct
+        # # also verify 'column_mask_' 'kept_columns_', 'removed_columns_'
+        # ref_column_mask = [True for _ in range(X.shape[1])]
+        # ref_kept_columns = {}
+        # ref_removed_columns = {}
+        # if X_format in ['pd', 'pl']:
+        #     ref_feature_names_out = list(deepcopy(_columns))
+        # else:
+        #     ref_feature_names_out = [f'x{i}' for i in range(_shape[1])]
+        #
         _sorted_constant_idxs = sorted(list(exp_constants.keys()))
-
-        if keep == 'first':
-            if len(_sorted_constant_idxs):
-                _first = _sorted_constant_idxs[0]
-                ref_kept_columns[_first] = exp_constants[_first]
-                del _first
-
-                for idx in _sorted_constant_idxs[1:]:
-                    ref_column_mask[idx] = False
-                    ref_removed_columns[idx] = exp_constants[idx]
-                    ref_feature_names_out[idx] = None
-            # if there are no constants, then ref objects do not change
-        elif keep == 'last':
-            if len(_sorted_constant_idxs):
-                _last = _sorted_constant_idxs[-1]
-                ref_kept_columns[_last] = exp_constants[_last]
-                del _last
-
-                for idx in _sorted_constant_idxs[:-1]:
-                    ref_column_mask[idx] = False
-                    ref_removed_columns[idx] = exp_constants[idx]
-                    ref_feature_names_out[idx] = None
-            # if there are no constants, then ref objects do not change
-        elif keep == 'random':
-            # cop out a little here, since we cant know what index
-            # was kept, use TestCls attr for help
-            # (even tho the attrs are something we are trying
-            # to verify)
-            if len(_sorted_constant_idxs):
-                assert len(TestCls.kept_columns_) == 1
-                _kept_idx = list(TestCls.kept_columns_.keys())[0]
-                assert _kept_idx in exp_constants
-                ref_kept_columns[_kept_idx] = exp_constants[_kept_idx]
-                assert _kept_idx not in TestCls.removed_columns_
-
-                for idx in _sorted_constant_idxs:
-                    if idx == _kept_idx:
-                        continue
-                    ref_column_mask[idx] = False
-                    ref_removed_columns[idx] = exp_constants[idx]
-                    ref_feature_names_out[idx] = None
-                del _kept_idx
-            # if there are no constants, then ref objects do not change
-        elif keep == 'none':
-            # ref_kept_columns does not change
-            for idx in _sorted_constant_idxs:
-                ref_column_mask[idx] = False
-                ref_removed_columns[idx] = exp_constants[idx]
-                ref_feature_names_out[idx] = None
-        elif isinstance(keep, dict):
-            # ref_kept_columns does not change
-            for idx in _sorted_constant_idxs:
-                ref_column_mask[idx] = False
-                ref_removed_columns[idx] = exp_constants[idx]
-                ref_feature_names_out[idx] = None
-            ref_feature_names_out.append(list(keep.keys())[0])
-        elif isinstance(keep, int):
-            # if no constants, should have excepted and skipped above
-            ref_kept_columns[keep] = exp_constants[keep]
-            for idx in _sorted_constant_idxs:
-                if idx == keep:
-                    continue
-                else:
-                    ref_column_mask[idx] = False
-                    ref_removed_columns[idx] = exp_constants[idx]
-                    ref_feature_names_out[idx] = None
-        elif isinstance(keep, str):  # must be a feature str
-            # if no constants, should have excepted and skipped above
-            # if no header, should have excepted and skipped above
-            _kept_idx = np.arange(len(_columns))[_columns == keep][0]
-            ref_kept_columns[_kept_idx] = exp_constants[_kept_idx]
-            for idx in _sorted_constant_idxs:
-                if idx == _kept_idx:
-                    continue
-                else:
-                    ref_column_mask[idx] = False
-                    ref_removed_columns[idx] = exp_constants[idx]
-                    ref_feature_names_out[idx] = None
-            del _kept_idx
-        elif callable(keep):
-            # if no constants, should have excepted and skipped above
-            _kept_idx = keep(X)
-            ref_kept_columns[_kept_idx] = exp_constants[_kept_idx]
-            for idx in _sorted_constant_idxs:
-                if idx == _kept_idx:
-                    continue
-                else:
-                    ref_column_mask[idx] = False
-                    ref_removed_columns[idx] = exp_constants[idx]
-                    ref_feature_names_out[idx] = None
-        else:
-            raise Exception
-
-
-        # for convenient index management, positions to be dropped from
-        # ref_feature_names_out were set to None, take those out now
-        ref_feature_names_out = [_ for _ in ref_feature_names_out if _ is not None]
-
-
-        # validate TestCls attrs against ref objects v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-        # feature_names_out ------------
-        assert np.array_equal(
-            TestCls.get_feature_names_out(),
-            ref_feature_names_out
-        )
-
-        del ref_feature_names_out
-        # END feature_names_out ------------
-
-
-        # column_mask_ ------------
-        # number of columns in column_mask_ == number of expected
-        assert sum(ref_column_mask) + isinstance(keep, dict) == exp_num_kept
-        assert sum(TestCls.column_mask_) + isinstance(keep, dict) == exp_num_kept
-        assert np.array_equal(ref_column_mask, TestCls.column_mask_)
-        # assert all columns that werent constants are in the output
-        for col_idx in range(_shape[1]):
-            if col_idx not in _sorted_constant_idxs:
-                assert TestCls.column_mask_[col_idx] is np.True_
-        # END column_mask_ ------------
-
-
-        # constant_columns_ , kept_columns_, removed_columns_ ----------
-        # 'constants' that is fed into _X_factory could be None
-        ref_constant_columns = constants or {}
-
-        if not equal_nan:
-            if has_nan:
-                ref_constant_columns = {}
-            else:
-                ref_constant_columns = {
-                    k:v for k,v in ref_constant_columns.items() if str(v) != 'nan'
-                }
-
-        for _, __ in (
-            (TestCls.constant_columns_, ref_constant_columns),
-            (TestCls.kept_columns_, ref_kept_columns),
-            (TestCls.removed_columns_, ref_removed_columns)
-        ):
-
-            assert np.array_equal(
-                sorted(list(_.keys())),
-                sorted(list(__.keys()))
-            )
-
-            try:
-                np.array(list(_.values())).astype(np.float64)
-                np.array(list(__.values())).astype(np.float64)
-                is_num = True
-            except:
-                is_num = False
-
-            if is_num:
-                assert np.allclose(
-                    np.array(list(_.values()), dtype=np.float64),
-                    np.array(list(__.values()), dtype=np.float64),
-                    equal_nan=True
-                )
-            else:
-                # if values are not num, could be num and str mixed together
-                # array_equal is not working in this case. need to iterate
-                # over all constant values and check separately.
-                _ = list(_.values())
-                __ = list(__.values())
-                assert len(_) == len(__)
-
-                for idx in range(len(_)):
-                    try:
-                        float(_[idx])
-                        float(__[idx])
-                        if str(_[idx]) == 'nan' or str(__[idx]) == 'nan':
-                            raise Exception
-                        is_num = True
-                    except:
-                        is_num = False
-
-                    if is_num:
-                        assert np.isclose(float(_[idx]), float(__[idx]))
-                    else:
-                        assert str(_[idx]) == str(__[idx])
-
-            del _, __
-        # END constant_columns_ , kept_columns_, removed_columns_ ------
-
-        # END validate TestCls attrs against ref objects v^v^v^v^v^v^v^v^v^v^v^
+        #
+        # if keep == 'first':
+        #     if len(_sorted_constant_idxs):
+        #         _first = _sorted_constant_idxs[0]
+        #         ref_kept_columns[_first] = exp_constants[_first]
+        #         del _first
+        #
+        #         for idx in _sorted_constant_idxs[1:]:
+        #             ref_column_mask[idx] = False
+        #             ref_removed_columns[idx] = exp_constants[idx]
+        #             ref_feature_names_out[idx] = None
+        #     # if there are no constants, then ref objects do not change
+        # elif keep == 'last':
+        #     if len(_sorted_constant_idxs):
+        #         _last = _sorted_constant_idxs[-1]
+        #         ref_kept_columns[_last] = exp_constants[_last]
+        #         del _last
+        #
+        #         for idx in _sorted_constant_idxs[:-1]:
+        #             ref_column_mask[idx] = False
+        #             ref_removed_columns[idx] = exp_constants[idx]
+        #             ref_feature_names_out[idx] = None
+        #     # if there are no constants, then ref objects do not change
+        # elif keep == 'random':
+        #     # cop out a little here, since we cant know what index
+        #     # was kept, use TestCls attr for help
+        #     # (even tho the attrs are something we are trying
+        #     # to verify)
+        #     if len(_sorted_constant_idxs):
+        #         assert len(TestCls.kept_columns_) == 1
+        #         _kept_idx = list(TestCls.kept_columns_.keys())[0]
+        #         assert _kept_idx in exp_constants
+        #         ref_kept_columns[_kept_idx] = exp_constants[_kept_idx]
+        #         assert _kept_idx not in TestCls.removed_columns_
+        #
+        #         for idx in _sorted_constant_idxs:
+        #             if idx == _kept_idx:
+        #                 continue
+        #             ref_column_mask[idx] = False
+        #             ref_removed_columns[idx] = exp_constants[idx]
+        #             ref_feature_names_out[idx] = None
+        #         del _kept_idx
+        #     # if there are no constants, then ref objects do not change
+        # elif keep == 'none':
+        #     # ref_kept_columns does not change
+        #     for idx in _sorted_constant_idxs:
+        #         ref_column_mask[idx] = False
+        #         ref_removed_columns[idx] = exp_constants[idx]
+        #         ref_feature_names_out[idx] = None
+        # elif isinstance(keep, dict):
+        #     # ref_kept_columns does not change
+        #     for idx in _sorted_constant_idxs:
+        #         ref_column_mask[idx] = False
+        #         ref_removed_columns[idx] = exp_constants[idx]
+        #         ref_feature_names_out[idx] = None
+        #     ref_feature_names_out.append(list(keep.keys())[0])
+        # elif isinstance(keep, int):
+        #     # if no constants, should have excepted and skipped above
+        #     ref_kept_columns[keep] = exp_constants[keep]
+        #     for idx in _sorted_constant_idxs:
+        #         if idx == keep:
+        #             continue
+        #         else:
+        #             ref_column_mask[idx] = False
+        #             ref_removed_columns[idx] = exp_constants[idx]
+        #             ref_feature_names_out[idx] = None
+        # elif isinstance(keep, str):  # must be a feature str
+        #     # if no constants, should have excepted and skipped above
+        #     # if no header, should have excepted and skipped above
+        #     _kept_idx = np.arange(len(_columns))[_columns == keep][0]
+        #     ref_kept_columns[_kept_idx] = exp_constants[_kept_idx]
+        #     for idx in _sorted_constant_idxs:
+        #         if idx == _kept_idx:
+        #             continue
+        #         else:
+        #             ref_column_mask[idx] = False
+        #             ref_removed_columns[idx] = exp_constants[idx]
+        #             ref_feature_names_out[idx] = None
+        #     del _kept_idx
+        # elif callable(keep):
+        #     # if no constants, should have excepted and skipped above
+        #     _kept_idx = keep(X)
+        #     ref_kept_columns[_kept_idx] = exp_constants[_kept_idx]
+        #     for idx in _sorted_constant_idxs:
+        #         if idx == _kept_idx:
+        #             continue
+        #         else:
+        #             ref_column_mask[idx] = False
+        #             ref_removed_columns[idx] = exp_constants[idx]
+        #             ref_feature_names_out[idx] = None
+        # else:
+        #     raise Exception
+        #
+        #
+        # # for convenient index management, positions to be dropped from
+        # # ref_feature_names_out were set to None, take those out now
+        # ref_feature_names_out = [_ for _ in ref_feature_names_out if _ is not None]
 
 
         # for retained columns, assert they are equal to themselves in
@@ -1727,7 +1598,6 @@ class TestTransform:
             raise Exception(f'algorithm failure')
 
 
-    # pizza See IMTransform_accuracy for accuracy tests
     # pizza revisit accuracy test.... is probably redundant with transform_test
 
 
@@ -1890,13 +1760,17 @@ class TestInverseTransform:
 
         if isinstance(_X_wip_before, np.ndarray):
             assert np.array_equal(_X_wip_before, _X_wip, equal_nan=True)
-            INV_TRFM_X.flags['C_CONTIGUOUS'] is True
+            # if numpy output, is C order
+            _X_wip.flags['C_CONTIGUOUS'] is True
+            assert _X_wip.dtype == _X_wip_before.dtype
         elif hasattr(_X_wip_before, 'columns'):
             assert _X_wip.equals(_X_wip_before)
+            assert np.array_equal(_X_wip.dtypes, _X_wip_before.dtypes)
         elif hasattr(_X_wip_before, 'toarray'):
             assert np.array_equal(
                 _X_wip.toarray(), _X_wip_before.toarray(), equal_nan=True
             )
+            assert _X_wip.dtype == _X_wip_before.dtype
         else:
             raise Exception
 

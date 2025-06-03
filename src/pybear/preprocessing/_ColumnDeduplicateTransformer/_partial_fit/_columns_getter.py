@@ -31,19 +31,19 @@ def _columns_getter(
     """
     This supports _find_duplicates. Handles the mechanics of extracting
     one or more columns from the various allowed data container types.
-    Data passed as scipy sparse formats must be indexable. Therefore,
-    coo matrix/array, dia matrix/array, and bsr matrix/array are
-    prohibited. Return extracted column(s) as a numpy array. In the
-    case of scipy sparse, the columns are converted to dense.
+    The container must be numpy ndarray, pandas dataframe, polars
+    dataframe, or scipy csc only. Return extracted column(s) as a numpy
+    array. In the case of scipy sparse, the columns are converted to
+    dense.
 
 
     Parameters
     ----------
     _X:
-        InternalXContainer - The data to extract columns from. _X
-        must be indexable, which excludes scipy coo, dia, and bsr. This
-        module expects _X to be in a valid state when passed, and will
-        not condition it.
+        InternalXContainer - The data to extract columns from. The
+        container must be numpy ndarray, pandas dataframe, polars
+        dataframe, or scipy csc only. This module expects _X to be in
+        a valid state when passed, and will not condition it.
     _col_idxs:
         Union[int, tuple[int, ...]] - the column index / indices to
         extract from _X.

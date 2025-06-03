@@ -783,12 +783,16 @@ class TestPartialFit:
         assert _X_wip.shape == _X_wip_before.shape
 
         if isinstance(_X_wip, np.ndarray):
+            # if numpy output, is C order
             assert _X_wip.flags['C_CONTIGUOUS'] is True
             assert np.array_equal(_X_wip_before, _X_wip)
+            assert _X_wip.dtype == _X_wip_before.dtype
         elif hasattr(_X_wip, 'columns'):  # DATAFRAMES
             assert _X_wip.equals(_X_wip_before)
+            assert np.array_equal(_X_wip.dtypes, _X_wip_before.dtypes)
         elif hasattr(_X_wip_before, 'toarray'):
             assert np.array_equal(_X_wip.toarray(), _X_wip_before.toarray())
+            assert _X_wip.dtype == _X_wip_before.dtype
         else:
             raise Exception
 
@@ -1150,7 +1154,6 @@ class TestTransform:
         except:
             _X_wip_before = _X_wip.clone()
 
-
         _CDT = CDT(**_kwargs).fit(_X_wip)
 
         # verify _X_wip does not mutate in transform() with copy=True
@@ -1163,13 +1166,17 @@ class TestTransform:
 
         if isinstance(_X_wip_before, np.ndarray):
             assert np.array_equal(_X_wip_before, _X_wip, equal_nan=True)
+            # if numpy output, is C order
             assert _X_wip.flags['C_CONTIGUOUS'] is True
+            assert _X_wip.dtype == _X_wip_before.dtype
         elif hasattr(_X_wip_before, 'columns'):    # DATAFRAMES
             assert _X_wip.equals(_X_wip_before)
+            assert np.array_equal(_X_wip.dtypes, _X_wip_before.dtypes)
         elif hasattr(_X_wip_before, 'toarray'):
             assert np.array_equal(
                 _X_wip.toarray(), _X_wip_before.toarray(), equal_nan=True
             )
+            assert _X_wip.dtype == _X_wip_before.dtype
         else:
             raise Exception
 
@@ -1195,7 +1202,7 @@ class TestTransform:
         assert isinstance(equal_nan, bool)
         # END validate the test parameters
 
-        # skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
         if X_dtype not in ['flt', 'int'] and X_format not in ['np', 'pd', 'pl']:
             pytest.skip(reason=f"scipy sparse cant take str")
 
@@ -1207,9 +1214,9 @@ class TestTransform:
                 pytest.skip(
                     reason=f"impossible condition, str dnd and format is not pd"
                 )
-        # END skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # END skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
-        # BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         X = _X_factory(
             _dupl=dupls,
             _has_nan=has_nan,
@@ -1231,7 +1238,7 @@ class TestTransform:
             _og_dtype = np.array(X.dtypes)
         else:
             _og_dtype = X.dtype
-        # END BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # END BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
         # set do_not_drop as list of strings (vs None or list of ints)
         if do_not_drop == 'pd':
@@ -1267,15 +1274,7 @@ class TestTransform:
             exp_dupls = []
 
 
-        # ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
-        # attributes:
-        #     'n_features_in_'
-        #     'feature_names_in_'
-        #     'duplicates_'
-        #     'removed_columns_'
-        #     'column_mask_'
-        # and 'get_feature_names_out'
+        # ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # returned format is same as given format
         assert isinstance(TRFM_X, _og_format)
@@ -1289,115 +1288,6 @@ class TestTransform:
             assert np.array_equal(TRFM_X.dtypes, _og_dtype[TestCls.column_mask_])
         else:
             assert TRFM_X.dtype == _og_dtype
-        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-        # attr 'n_features_in_' is correct
-        assert TestCls.n_features_in_ == X.shape[1]
-
-        # attr 'feature_names_in_' is correct
-        if X_dtype == 'pd':
-            assert np.array_equal(TestCls.feature_names_in_, _columns)
-            assert _columns.dtype == object
-
-        # number of columns in output is adjusted correctly for num duplicates
-        assert sum(TestCls.column_mask_) == \
-               _shape[1] - sum([len(i)-1 for i in exp_dupls])
-
-        # number of columns in output == number of columns in column_mask_
-        assert TRFM_X.shape[1] == sum(TestCls.column_mask_)
-
-        # attr 'duplicates_' is correct
-        if len(exp_dupls) == 0:
-            assert len(TestCls.duplicates_) == 0
-        else:
-            for idx, set in enumerate(exp_dupls):
-                assert np.array_equal(set, exp_dupls[idx])
-
-        # get expected number of kept columns
-        _num_kept = X.shape[1] - sum([len(_)-1 for _ in exp_dupls])
-
-        # keep ('first','last','random') is correct when not muddied by do_not_drop
-        # also verify 'column_mask_' 'removed_columns_' 'get_feature_names_out_'
-        ref_column_mask = [True for _ in range(X.shape[1])]
-        ref_removed_columns = {}
-        ref_feature_names_out = list(deepcopy(_columns))
-        if not _conflict_condition:
-            # in this case, column idxs cannot be overridden by do_not_drop
-            for _set in exp_dupls:
-                if keep == 'first':
-                    for idx in _set[1:]:
-                        ref_column_mask[idx] = False
-                        ref_removed_columns[idx] = _set[0]
-                        ref_feature_names_out[idx] = None
-                elif keep == 'last':
-                    for idx in _set[:-1]:
-                        ref_column_mask[idx] = False
-                        ref_removed_columns[idx] = _set[-1]
-                        ref_feature_names_out[idx] = None
-                elif keep == 'random':
-                    # cop out a little here, since we cant know what index
-                    # was kept, use TestCls.removed_columns_ for help
-                    # (even tho removed_columns_ is something we are trying
-                    # to verify)
-                    ref_removed_columns = deepcopy(TestCls.removed_columns_)
-                    _kept_idxs = sorted(list(
-                        np.unique(list(TestCls.removed_columns_.values()))
-                    ))
-                    assert len(_kept_idxs) == len(exp_dupls)
-                    _dropped_idxs = sorted(list(
-                        np.unique(list(TestCls.removed_columns_.keys()))
-                    ))
-                    for idx in _dropped_idxs:
-                        ref_column_mask[idx] = False
-                        ref_feature_names_out[idx] = None
-
-        elif _conflict_condition and conflict == 'raise':
-            # this should have raised above
-            raise Exception
-        elif _conflict_condition and conflict == 'ignore':
-            # this could get really complicated.
-            # cop out here again, since the logic behind what index
-            # was kept is really complicated, use TestCls.removed_columns_
-            # for help (even tho removed_columns_ is something we are trying
-            # to verify)
-            ref_removed_columns = deepcopy(TestCls.removed_columns_)
-            _kept_idxs = sorted(list(
-                np.unique(list(TestCls.removed_columns_.values()))
-            ))
-            assert len(_kept_idxs) == len(exp_dupls)
-            _dropped_idxs = sorted(list(
-                np.unique(list(TestCls.removed_columns_.keys()))
-            ))
-            for idx in _dropped_idxs:
-                ref_column_mask[idx] = False
-                ref_feature_names_out[idx] = None
-        else:
-            raise Exception
-
-        # for convenient index management, positions to be dropped from
-        # ref_feature_names_out were set to None, take those out now
-        ref_feature_names_out = [_ for _ in ref_feature_names_out if _ is not None]
-
-        # validate TestCls attrs against ref objects
-        assert sum(ref_column_mask) == _num_kept
-        assert np.array_equal(ref_column_mask, TestCls.column_mask_)
-        if X_dtype == 'pd':
-            assert len(TestCls.get_feature_names_out()) == _num_kept
-            assert np.array_equal(
-                ref_feature_names_out,
-                TestCls.get_feature_names_out()
-            )
-        _, __ = TestCls.removed_columns_, ref_removed_columns
-        assert np.array_equal(
-            sorted(list(_.keys())),
-            sorted(list(__.keys()))
-        )
-        assert np.array_equal(
-            sorted(list(_.values())),
-            sorted(list(__.values()))
-        )
-        del _, __
-        # END validate TestCls attrs against ref objects
 
         # assure all columns that werent duplicates are in the output
         __all_dupls = list(itertools.chain(*deepcopy(exp_dupls)))
@@ -1432,7 +1322,7 @@ class TestTransform:
                 _equal_nan=True
             )
 
-        # END ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # END ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     @pytest.mark.parametrize('_equal_nan', (True, False))
@@ -1538,7 +1428,7 @@ class TestTransform:
         elif same_or_diff == '_diff':
             assert TRFM_X.shape[1] == _shape[1]
 
-    # pizza See CDTTransform_accuracy for accuracy tests
+
     # pizza revisit accuracy test.... is probably redundant with transform_test
 
 
@@ -1692,13 +1582,17 @@ class TestInverseTransform:
 
         if isinstance(_X_wip_before, np.ndarray):
             assert np.array_equal(_X_wip_before, _X_wip, equal_nan=True)
+            # if numpy output, is C order
             assert INV_TRFM_X.flags['C_CONTIGUOUS'] is True
+            assert _X_wip.dtype == _X_wip_before.dtype
         elif hasattr(_X_wip_before, 'columns'):
             assert _X_wip.equals(_X_wip_before)
+            assert np.array_equal(_X_wip.dtypes, _X_wip_before.dtypes)
         elif hasattr(_X_wip_before, 'toarray'):
             assert np.array_equal(
                 _X_wip.toarray(), _X_wip_before.toarray(), equal_nan=True
             )
+            assert _X_wip.dtype == _X_wip_before.dtype
         else:
             raise Exception
 

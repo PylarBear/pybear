@@ -9,7 +9,6 @@
 from typing_extensions import Union
 from .._type_aliases import DuplicatesType
 
-from collections import defaultdict
 import itertools
 
 from ....utilities._union_find import union_find
@@ -39,8 +38,8 @@ def _merge_dupls(
         from the previous partial fits. Is None if on the first partial
         fit.
     _current_duplicates:
-        Union[DuplicatesType, None] - the duplicate columns found on the
-        current partial fit.
+        DuplicatesType - the duplicate columns found on the current
+        partial fit.
 
 
     Return
@@ -52,7 +51,7 @@ def _merge_dupls(
     """
 
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     assert isinstance(_previous_duplicates, (list, type(None)))
     if _previous_duplicates is not None:
@@ -65,7 +64,7 @@ def _merge_dupls(
         assert isinstance(_set, list)
         assert all(map(isinstance, _set, (int for _ in _set)))
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     # if _duplicates is None, this is the first pass
@@ -83,12 +82,12 @@ def _merge_dupls(
 
     # compare the newest duplicates against the previously found
     # duplicates. Only a group of 2+ columns that appear together in
-    # a set of dupls in both duplicates can carry forward. make sense?
-    # _duplicates = [[0,1,2], [4,5]]
-    # duplicates_ = [[0, 3], [1,2], [4,5]]
+    # a set of dupls for all partial fits can carry forward. make sense?
+    # _duplicates_1 = [[0,1,2], [4,5]]
+    # _duplicates_2 = [[0, 3], [1,2], [4,5]]
     # only [1,2] and [4,5] carry forward.
 
-    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
     # get the possible combinations of pairs for both duplicates, then
     # find the intersection, to find all pairs of numbers that are in the
     # same subset for both duplicates.
@@ -105,7 +104,7 @@ def _merge_dupls(
 
     del all_old_comb, all_new_comb
 
-    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
     duplicates_ = union_find(_intersection)
 

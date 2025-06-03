@@ -6,10 +6,17 @@
 
 
 
+from .._type_aliases import (
+    PolyDuplicatesType,
+    PolyConstantsType
+)
+
+
+
 def _deconstant_poly_dupls(
-    _poly_duplicates: list[list[tuple[int, ...]]],
-    _poly_constants: dict[tuple[int, ...], any]
-) -> list[list[tuple[int, ...]]]:
+    _poly_duplicates: PolyDuplicatesType,
+    _poly_constants: PolyConstantsType
+) -> PolyDuplicatesType:
 
     """
     Remove any constant combos from the in-process attr _poly_duplicates.
@@ -18,28 +25,27 @@ def _deconstant_poly_dupls(
     Parameters
     ----------
     _poly_duplicates:
-        list[list[tuple[int, ...]] - the in-process version of
-        poly_duplicates_, which holds the groups of column index tuples
-        that create identical columns in the expansion, constant columns
-        included.
+        PolyDuplicatesType - the in-process version of poly_duplicates_,
+        which holds the groups of column index tuples that create
+        identical columns in the expansion, constant columns included.
     _poly_constants:
-        dict[tuple[int, ...], any] - A dictionary whose keys are tuples
-        of indices in the original data that produced a column of
-        constants in the polynomial expansion. The dictionary values are
-        the constant values in those columns.
+        PolyConstantsType - A dictionary whose keys are tuples of indices
+        in the original data that produced a column of constants in the
+        polynomial expansion. The dictionary values are the constant
+        values in those columns.
 
 
     Return
     ------
     -
-        _no_constant_poly_duplicates: list[list[tuple[int, ...]]] -
-        a copy of _poly_duplicates that has constant combos removed, if
-        there were any.
-
+        _no_constant_poly_duplicates: PolyDuplicatesType - a copy of
+        _poly_duplicates that has constant combos removed, if there were
+        any.
 
     """
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     assert isinstance(_poly_duplicates, list)
     assert all(map(isinstance, _poly_duplicates, (list for _ in _poly_duplicates)))
@@ -47,11 +53,10 @@ def _deconstant_poly_dupls(
     assert isinstance(_poly_constants, dict)
     assert all(map(isinstance, _poly_constants, (tuple for _ in _poly_constants)))
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-
-    _no_constant_poly_duplicates = []
+    _no_constant_poly_duplicates: PolyDuplicatesType = []
 
     for _dupl_set in _poly_duplicates:
 
@@ -94,9 +99,6 @@ def _deconstant_poly_dupls(
 
 
     return _no_constant_poly_duplicates
-
-
-
 
 
 

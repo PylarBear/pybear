@@ -7,16 +7,19 @@
 
 
 from typing_extensions import Union
+from .._type_aliases import PolyConstantsType
+
 import numbers
+
 import numpy as np
 
 
 def _merge_constants(
-    _old_constants: Union[dict[tuple[int, ...], any], None],
-    _new_constants: dict[tuple[int, ...], any],
+    _old_constants: Union[PolyConstantsType, None],
+    _new_constants: PolyConstantsType,
     _rtol: numbers.Real,
     _atol: numbers.Real
-) -> dict[tuple[int, ...], any]:
+) -> PolyConstantsType:
 
     """
     Merge the constants found in the current partial fit with those
@@ -29,13 +32,12 @@ def _merge_constants(
     Parameters
     ----------
     _old_constants:
-        Union[dict[tuple[int, ...], any], None] - the column indices of
-        constant columns found in previous partial fits and the values
-        in the columns.
-    _new_constants:
-        dict[tuple[int, ...], any] - the column indices of constant
-        columns found in the current partial fit and the values in the
+        Union[PolyConstantsType, None] - the column indices of constant
+        columns found in previous partial fits and the values in the
         columns.
+    _new_constants:
+        PolyConstantsType - the column indices of constant columns found
+        in the current partial fit and the values in the columns.
     _rtol:
         numbers.Real - The relative difference tolerance for equality.
         Must be a non-boolean, non-negative, real number. See
@@ -49,11 +51,11 @@ def _merge_constants(
     Return
     ------
     -
-        _final_constants: dict[tuple[int, ...], any] - the compiled
-            column indices and values of constant columns found over all
-            partial fits.
+        _final_constants: PolyConstantsType - the compiled column indices
+        and values of constant columns found over all partial fits.
 
     """
+
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     assert isinstance(_old_constants, (dict, type(None)))
@@ -93,7 +95,7 @@ def _merge_constants(
 
         # Constant columns can only stay the same or decrease on later
         # partial fits, never increase.
-        _final_constants = {}
+        _final_constants: PolyConstantsType = {}
 
         for _col_idx_tuple, _value in _old_constants.items():
 
@@ -143,10 +145,6 @@ def _merge_constants(
 
 
         return _final_constants
-
-
-
-
 
 
 

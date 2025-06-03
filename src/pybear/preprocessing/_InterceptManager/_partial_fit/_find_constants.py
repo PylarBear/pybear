@@ -6,6 +6,10 @@
 
 
 
+from typing_extensions import (
+    Any,
+    Union
+)
 from .._type_aliases import (
     InternalXContainer,
     ConstantColumnsType
@@ -32,20 +36,13 @@ def _find_constants(
     _atol: numbers.Real
 ) -> ConstantColumnsType:
 
-    # pizza need to update this...
-    # _merge_constants was taken out and put into IM.partial_fit
-    # _old_constant_columns was taken out of signature
-    # current X contants now returned instead of merged previous/current
-
     """
-    Scan across the columns of _X looking for columns of constants.
-    Use _columns_getter() to pull columns from _X as numpy vectors.
-    Use _parallel_constant_finder() to determine the constancy of a
-    column with respect to rtol, atol, and equal_nan. Render the constant
+    Scan across the columns of _X looking for columns of constants. Use
+    _columns_getter() to pull columns from _X as numpy arrays. Use
+    _parallel_constant_finder() to determine the constancy of a column
+    with respect to rtol, atol, and equal_nan. Render the constant
     columns found as dict[int, Any], with column indices as keys and
-    constants as values. Use _merge_constants() to combine constants
-    found in the current partial fit with those found in previous
-    partial fits.
+    the respective constant values of the columns as values.
 
     
     Parameters
@@ -79,8 +76,8 @@ def _find_constants(
     ------
     -
         _new_constants: ConstantColumnsType - dictionary of the indices
-        of the columns of constants and the values in them across all
-        partial fits.
+        of the columns of constants and the values in them for the
+        current partial fit.
 
     """
 
@@ -114,27 +111,26 @@ def _find_constants(
     # if pulling one column at a time, still with some memory spike but
     # much smaller, and get some economy of scale with the speed of
     # scanning a ndarray chunk.
+
     # number of columns to pull and scan in one pass of the :for: loop
-    _n_cols = 10
-    args = (_equal_nan, _rtol, _atol)
-    out = []
+    _n_cols = 20
+    _pcf_out = []
     for i in range(0, _X.shape[1], _n_cols):
-        out.append(_parallel_constant_finder(
+        _pcf_out.append(_parallel_constant_finder(
             _columns_getter(
                 _X,
                 tuple(range(i, min(i + _n_cols, _X.shape[1])))
             ),
-            *args
+            _equal_nan, _rtol, _atol
         ))
 
-    out = list(itertools.chain(*out))
 
-    # out is list[Union[uuid.uuid4, Any]]
+    _pcf_out:list[Union[uuid.UUID, Any]] = list(itertools.chain(*_pcf_out))
     # the idxs of the list match the idxs of the data
 
-    # convert 'out' to dict[idx, value] for only the columns of constants
-    _new_constants = {}
-    for idx, v in enumerate(out):
+    # convert '_pcf_out' to dict[idx, value] for only the columns of constants
+    _new_constants:dict[int: Any] = {}
+    for idx, v in enumerate(_pcf_out):
         # do this out the long way, to do vectorization everything needs
         # to be converted to np, and the np dtypes mess up the dict keys.
         # _parallel_constant_finder() returns the constant value when
@@ -142,9 +138,9 @@ def _find_constants(
         if not isinstance(v, uuid.UUID):
             _new_constants[idx] = v
 
+    del _pcf_out
 
-    # merge newly found constant columns with those found during
-    # previous partial fits
+
     return _new_constants
 
 

@@ -33,7 +33,7 @@ def _merge_constants(
     _old_constants:
         Union[ConstantColumnsType, None] - the column indices of constant
         columns found in previous partial fits and the values in the
-        columns.
+        columns. None if on the first partial fit.
     _new_constants:
         ConstantColumnsType - the column indices of constant columns
         found in the current partial fit and the values in the columns.
@@ -61,9 +61,11 @@ def _merge_constants(
     assert isinstance(_old_constants, (dict, type(None)))
     if _old_constants and len(_old_constants):
         assert all(map(isinstance, _old_constants, (int for _ in _old_constants)))
+    # -- -- -- -- -- -- -- -- --
     assert isinstance(_new_constants, dict)
     if len(_new_constants):
         assert all(map(isinstance, _new_constants, (int for _ in _new_constants)))
+    # -- -- -- -- -- -- -- -- --
     try:
         float(_rtol)
         float(_atol)

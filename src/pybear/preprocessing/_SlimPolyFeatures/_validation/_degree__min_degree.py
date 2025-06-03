@@ -16,9 +16,8 @@ def _val_degree__min_degree(
 ) -> None:
 
     """
-    'min_degree' must be integer greater than 0, 'max_degree' must be
-    integer greater than 1, and both must fulfill 'min_degree' <=
-    'max_degree'.
+    'min_degree' must be integer >= 1, 'degree' must be integer >= 2,
+    and both must fulfill 'min_degree' <= 'max_degree'.
 
 
     Parameters
@@ -39,7 +38,6 @@ def _val_degree__min_degree(
     ------
     -
         None
-
 
     """
 
@@ -64,12 +62,6 @@ def _val_degree__min_degree(
 
     if _value_error:
         raise ValueError(err_msg)
-
-
-
-
-
-
 
 
 

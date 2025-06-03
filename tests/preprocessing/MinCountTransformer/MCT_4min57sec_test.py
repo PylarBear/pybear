@@ -1769,12 +1769,16 @@ class TestPartialFit:
         assert _X_wip.shape == _X_wip_before.shape
 
         if isinstance(_X_wip, np.ndarray):
+            # if numpy output, is C order
             assert _X_wip.flags['C_CONTIGUOUS'] is True
             assert np.array_equal(_X_wip_before, _X_wip)
+            assert _X_wip.dtype == _X_wip_before.dtype
         elif hasattr(_X_wip, 'columns'):  # DATAFRAMES
             assert _X_wip.equals(_X_wip_before)
+            assert np.array_equal(_X_wip.dtypes, _X_wip_before.dtypes)
         elif hasattr(_X_wip_before, 'toarray'):
             assert np.array_equal(_X_wip.toarray(), _X_wip_before.toarray())
+            assert _X_wip.dtype == _X_wip_before.dtype
         else:
             raise Exception
 
@@ -2245,33 +2249,35 @@ class TestTransform:
             raise Exception
 
         try:
-            _X_wip_before_transform = _X_wip.copy()
+            _X_wip_before = _X_wip.copy()
         except:
-            _X_wip_before_transform = _X_wip.clone()
+            _X_wip_before = _X_wip.clone()
 
-        _MCT = MCT(**_kwargs)
-
-        _MCT.fit(_base_X)  # fit on numpy, not the converted data
-
-        out = _MCT.transform(_X_wip)
+        _MCT = MCT(**_kwargs).fit(_base_X)  # fit on numpy, not the converted data
 
         # verify _X_wip does not mutate in transform()
-        assert isinstance(_X_wip, type(_X_wip_before_transform))
-        assert _X_wip.shape == _X_wip_before_transform.shape
+        TRFM_X = _MCT.transform(_X_wip)
 
-        # if output is numpy, order is C
-        if isinstance(_X_wip, np.ndarray):
+
+        # ASSERTIONS v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+        assert isinstance(_X_wip, type(_X_wip_before))
+        assert _X_wip.shape == _X_wip_before.shape
+
+        if isinstance(_X_wip_before, np.ndarray):
+            assert np.array_equal(_X_wip_before, _X_wip)
+            # if numpy output, is C order
             assert _X_wip.flags['C_CONTIGUOUS'] is True
-
-        if hasattr(_X_wip_before_transform, 'toarray'):
+            assert _X_wip.dtype == _X_wip_before.dtype
+        elif hasattr(_X_wip_before, 'columns'):    # DATAFRAMES
+            assert _X_wip.equals(_X_wip_before)
+            assert np.array_equal(_X_wip.dtypes, _X_wip_before.dtypes)
+        elif hasattr(_X_wip_before, 'toarray'):
             assert np.array_equal(
-                _X_wip.toarray(),
-                _X_wip_before_transform.toarray()
+                _X_wip.toarray(), _X_wip_before.toarray()
             )
-        elif isinstance(_X_wip_before_transform, (pd.core.frame.DataFrame, pl.DataFrame)):
-            assert _X_wip.equals(_X_wip_before_transform)
+            assert _X_wip.dtype == _X_wip_before.dtype
         else:
-            assert np.array_equal(_X_wip_before_transform, _X_wip)
+            raise Exception
 
 
     # TEST TRANSFORM CONDITIONALLY ACCEPT NEW UNIQUES ******************

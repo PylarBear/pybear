@@ -28,7 +28,7 @@ def _remove_intercept(
 ) -> InternalXContainer:
 
     """
-    If 'keep' was a dictionary during fitting/transform then a column
+    If `keep` was a dictionary during fitting/transform, then a column
     of constants was appended to the data after the removal of all
     the other constant columns that were in the data. That column
     needs to be removed first to do an inverse_transform. The core
@@ -39,15 +39,15 @@ def _remove_intercept(
     Parameters
     ----------
     _X_inv:
-        XContainer - Technically at the point where this module is
-        called in IM.inverse_transform X is still X_tr. X_tr is
+        XContainer - Technically, at the point where this module is
+        called in IM.inverse_transform, X is still X_tr. X_tr is
         midstream in the process of becoming X_inv. So although called
         X_inv here, it is technically still X_tr, which is data that has
         been transformed.
     _keep:
         KeepType - The strategy for handling the constant columns. See
         'The keep Parameter' section for a lengthy explanation of the
-        'keep' parameter.
+        `keep` parameter.
 
 
     Returns

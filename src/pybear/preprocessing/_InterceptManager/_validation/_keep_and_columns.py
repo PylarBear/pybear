@@ -89,7 +89,7 @@ def _val_keep_and_columns(
                 f"length is equal to the number of features in the data."
             )
 
-    # END validate types, shapes, of _columns ** * ** * ** * ** * ** * **
+    # END validate types, shapes, of _columns ** * ** * ** * ** * ** *
 
 
 
@@ -117,18 +117,20 @@ def _val_keep_and_columns(
             # _dtype = np.float64 if float(_value) else object
             # _X[_key] = np.full((_X.shape[0],), _value).astype(_dtype)
             warnings.warn(
-                f"\n'keep' dictionary column name '{_name}' is already in the data. "
+                f"\n'keep' dictionary column name '{_name}' is already "
+                f"in the data. "
                 f"\nThere are two possible outcomes:"
-                f"\n1) the original is not constant: the new constant values will "
-                f"\noverwrite in the old column (generally an undesirable outcome), "
-                f"or \n2) the original is constant: the original column will be "
-                f"\nremoved, a new column with the same name will be appended "
-                f"\nwith the new constant values."
+                f"\n1) the original is not constant: the new constant "
+                f"values will \noverwrite in the old column (generally "
+                f"an undesirable outcome), or \n2) the original is "
+                f"constant: the original column will be \nremoved, a new "
+                f"column with the same name will be appended \nwith the "
+                f"new constant values."
             )
 
         _base_msg = (
-            "\nThe only allowed constant values are integers, floats, strings, "
-            "and booleans."
+            "\nThe only allowed constant values are integers, floats, "
+            "strings, and booleans."
         )
 
         try:
@@ -224,12 +226,13 @@ def _val_keep_and_columns(
             del _base_msg, _addon
 
         return  # <====================================================
-    # END validate keep as str ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validate keep as str ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # validate keep as int ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validate keep as int ** * ** * ** * ** * ** * ** * ** * ** * ** *
     try:
         # float(_keep) is taking str like '3840' and converting to float!
-        # the fix was to move 'validate keep as int' after 'validate keep as str'
+        # the fix was to move 'validate keep as int' after 'validate keep
+        # as str'
         float(_keep)
         if _keep != int(_keep):
             raise UnicodeError
@@ -244,7 +247,7 @@ def _val_keep_and_columns(
         raise ValueError(_err_msg)
     except Exception as e:
         pass
-    # END validate keep as int ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validate keep as int ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     # the returns in the if blocks should prevent getting here.

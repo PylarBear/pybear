@@ -29,7 +29,7 @@ def _inverse_transform(
     """
     Revert transformed data back to its original state. IM cannot account
     for any nan-like values that may have been in the original data
-    (unless the column was all nans.).
+    (unless the column was all nans).
 
 
     Parameters
@@ -37,14 +37,13 @@ def _inverse_transform(
     _X:
         array-like of shape (n_samples, n_transformed_features) - A
         transformed data set. Any appended intercept column (via
-        a :param: 'keep' dictionary) needs to be removed before coming
+        a :param: `keep` dictionary) needs to be removed before coming
         into this module. The container must be numpy ndarray, pandas
         dataframe, polars dataframe, or scipy csc only.
     _removed_columns:
         RemovedColumnsType - the keys are the indices of constant columns
-        removed from the original data, indexed by their column location
-        in the original data; the values are the constant value that was
-        in that column.
+        removed from the original data, the respective values are the
+        constant that was in that column.
     _feature_names_in:
         Union[FeatureNamesInType, None] - the feature names found during
         fitting, if X was passed in a container with a header.

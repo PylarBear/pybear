@@ -113,7 +113,7 @@ class ColumnDeduplicateTransformer(
     retained out of a set of duplicates:
     1) :param: `keep`,
     2) :param: `do_not_drop`, and
-    3) :param: `conflict` parameters.
+    3) :param: `conflict`.
 
     The :param: `keep` parameter sets the strategy for keeping a single
     representative from a set of identical columns. It accepts one of
@@ -125,19 +125,20 @@ class ColumnDeduplicateTransformer(
 
     The :param: `do_not_drop` parameter allows the user to indicate
     columns not to be removed from the data. This is to be given as a
-    list-like of integers or strings. If fitting is done on a pandas
-    dataframe that has a header, a list of feature names may be provided;
-    the values within must match exactly the features as named in the
-    dataframe header (case-sensitive.) Otherwise, a list of column
-    indices must be provided. The :param: `do_not_drop` instructions may
-    conflict with the :param: `keep` instructions. If a conflict arises,
-    such as two columns specified in :param: `do_not_drop` are duplicates
-    of each other, the behavior is managed by :param: `conflict`.
+    list-like of integers or strings. If fitting is done with a data
+    container that has a header (such as pandas or polars dataframes),
+    a list of feature names may be provided. The values within must
+    exactly match the features as named in the dataframe header
+    (case-sensitive.) Otherwise, a list of column indices must be
+    provided. The :param: `do_not_drop` instructions may conflict with
+    the :param: `keep` instructions. If a conflict arises, such as two
+    columns specified in :param: `do_not_drop` are duplicates of each
+    other, the behavior is managed by :param: `conflict`.
 
-    The :param: `conflict` parameter accepts two possible values: 'raise'
-    or 'ignore'. :param: `conflict` is ignored when :param: `do_not_drop`
-    is not passed. This parameter instructs CDT how to deal with conflict
-    between the instructions in :param: `keep` and :param: `do_not_drop`.
+    :param: `conflict` is ignored when :param: `do_not_drop` is not
+    passed. Otherwise, :param: `conflict` accepts two possible values:
+    'raise' or 'ignore'. This parameter instructs CDT how to deal with
+    conflict between :param: `keep` and :param: `do_not_drop`.
     A conflict arises when the instruction in :param: `keep` ('first',
     'last', 'random') is applied and a column in :param: `do_not_drop`
     is found to be a member of the columns to be removed. In this case,
@@ -156,24 +157,28 @@ class ColumnDeduplicateTransformer(
         columns. This also causes at least one member of the columns not
         to be dropped to be removed.
 
-    The :meth: `partial_fit`, :meth: `fit`, :meth: `fit_transform`,
-    and :meth: `inverse_transform` methods of CDT accept data as numpy
-    arrays, pandas dataframes, and scipy sparse matrices/arrays. CDT has
-    a :meth: `set_output` method, whereby the user can set the type of
-    output container for :meth: `transform`. :meth: `set_output` can
-    return transformed outputs as numpy arrays, pandas dataframes, or
-    polars dataframes. When :meth: `set_output` is None, the output
-    container is the same as the input, that is, numpy array, pandas
-    dataframe, or scipy sparse matrix/array.
+    The :meth: `partial_fit`, :meth: `fit`, and :meth: `inverse_transform`
+    methods of CDT accept data as numpy arrays, pandas dataframes, polars
+    dataframes, and scipy sparse matrices/arrays. `inverse_transform`
+    always returns output in the same type of container as passed to it.
+    The :meth: `transform` and :meth: `fit_transform` methods can take
+    all the containers listed above but can return output in a variety
+    of containers. CDT has a :meth: `set_output` method, whereby the
+    user can set the type of output container for these two methods
+    regardless of the type of container the data is in when passed.
+    :meth: `set_output` can return transformed outputs as numpy arrays,
+    pandas dataframes, or polars dataframes. When :meth: `set_output` is
+    None, the output container is the same as the input, that is, numpy
+    array, pandas or polars dataframe, or scipy sparse matrix/array.
 
-    The :meth: `partial_fit` method allows for incremental fitting of
-    data. This makes CDT suitable for use with packages that do
-    batch-wise fitting and transforming, such as dask_ml via the
-    Incremental and ParallelPostFit wrappers.
+    The `partial_fit` method allows for incremental fitting of data.
+    This makes CDT suitable for use with packages that do batch-wise
+    fitting and transforming, such as dask_ml via the Incremental and
+    ParallelPostFit wrappers.
 
     There are no safeguards in place to prevent the user from changing
     the :param: `rtol`, :param: `atol`, or :param: `equal_nan` parameters
-    between calls to :meth: `partial_fit`. These 3 parameters have strong
+    between calls to `partial_fit`. These 3 parameters have strong
     influence over whether CDT classifies two columns as equal, and
     therefore are instrumental in dictating what CDT learns during
     fitting. Changes to these parameters between partial fits can
@@ -182,24 +187,23 @@ class ColumnDeduplicateTransformer(
     settings. pybear recommends against this practice, however, it is
     not strictly blocked.
 
-    When performing multiple batch-wise transformations of data, that is,
-    making sequential calls to :meth: `transform`, it is critical that
-    the same column indices be kept / removed at each call. This issue
+    When performing multiple batch-wise transformations of data, that
+    is, making sequential calls to `transform`, it is critical that the
+    same column indices be kept / removed at each call. This issue
     manifests when :param: `keep` is set to 'random'; the random indices
-    to keep must be the same at all calls to :meth: `transform`, and
-    cannot be dynamically randomized within :meth: `transform`. CDT
-    handles this by generating a static list of random indices to keep
-    at fit time, and does not mutate this list during :term: transform
-    time. This list is dynamic with each call to :meth: `partial_fit`,
-    and will likely change at each call. Fits performed after calls
-    to :meth: `transform` will change the random indices away from those
-    used in the previous transforms, causing CDT to perform entirely
-    different transformations than those previously being done. CDT
-    cannot block calls to :meth: `partial_fit` after :meth: `transform`
-    has been called, but pybear strongly discourages this practice
-    because the output will be nonsensical. pybear recommends doing all
-    partial fits consecutively, then doing all transformations
-    consecutively.
+    to keep must be the same at all calls to `transform`, and cannot
+    be dynamically randomized within :meth: `transform`. CDT handles
+    this by generating a static list of random indices to keep at fit
+    time, and does not mutate this list during :term: transform time.
+    This list is dynamic with each call to :meth: `partial_fit`, and
+    will likely change at each call. Fits performed after calls to
+    `transform` will change the random indices away from those used in
+    the previous transforms, causing CDT to perform entirely different
+    transformations than those previously being done. CDT cannot block
+    calls to `partial_fit` after :meth: `transform` has been called,
+    but pybear strongly discourages this practice because the output
+    will be nonsensical. pybear recommends doing all partial fits
+    consecutively, then doing all transformations consecutively.
 
 
     Parameters
@@ -213,11 +217,11 @@ class ColumnDeduplicateTransformer(
     do_not_drop:
         Optional[Union[Sequence[int], Sequence[str], None]],
         default=None -  A list of columns not to be dropped. If fitting
-        is done on a pandas dataframe that has a header, a list of
-        feature names may be provided. Otherwise, a list of column
-        indices must be given. If a conflict arises, such as when two
-        columns specified in :param: `do_not_drop` are duplicates of
-        each other, the behavior is managed by :param: `conflict`.
+        is done with a container that has a header, a list of feature
+        names may be provided. Otherwise, a list of column indices
+        must be given. If a conflict arises, such as when two columns
+        specified in :param: `do_not_drop` are duplicates of each other,
+        the behavior is managed by :param: `conflict`.
     conflict:
         Literal['raise', 'ignore'] - Ignored when :param: `do_not_drop`
         is not passed. Instructs CDT how to deal with a conflict between
@@ -243,6 +247,7 @@ class ColumnDeduplicateTransformer(
     equal_nan:
         bool, default=False - When comparing pairs of columns row by
         row:
+
         If :param: `equal_nan` is True, exclude from comparison any rows
         where one or both of the values is/are nan. If one value is nan,
         this essentially assumes that the nan value would otherwise be
@@ -264,14 +269,15 @@ class ColumnDeduplicateTransformer(
         for equality. Must be a non-boolean, non-negative, real number.
         See numpy.allclose.
     n_jobs:
-        Union[numbers.Integral, None], default=-1 - The number of joblib
-        Parallel jobs to use when comparing columns. The default is to
-        use processes, but can be overridden externally using a joblib
-        parallel_config context manager. The default number of jobs is
-        -1 (all processors). To get maximum speed benefit, pybear
-        recommends using the default setting.
+        Union[numbers.Integral, None], default=None - The number of
+        joblib Parallel jobs to use when comparing columns. The default
+        is to use processes, but can be overridden externally using a
+        joblib parallel_config context manager. The default value for
+        n_jobs is None, which uses the joblib default setting. To get
+        maximum speed benefit, pybear recommends setting this to -1,
+        which means use all processors.
     job_size:
-        Optional[numbers.Integral], default=20 - The number of columns
+        Optional[numbers.Integral], default=50 - The number of columns
         to send to a joblib job. Must be an integer greater than or
         equal to 2. This allows the user to optimize CPU utilization for
         their particular circumstance. Long, thin datasets should use
@@ -292,7 +298,7 @@ class ColumnDeduplicateTransformer(
     feature_names_in_:
         NDArray[str] - The names of the features as seen during fitting.
         Only accessible if X is passed to :meth: `partial_fit`
-        or :meth: `fit` as a pandas dataframe that has a header.
+        or :meth: `fit` in a container that has a header.
 
     duplicates_: list[list[int]] - a list of the groups of identical
         columns, indicated by their zero-based column index positions
@@ -312,34 +318,27 @@ class ColumnDeduplicateTransformer(
     Notes
     -----
     Concerning the handling of nan-like representations. While CDT
-    accepts data in the form of numpy arrays, pandas dataframes, and
-    scipy sparse matrices/arrays, at the time of column comparison both
-    columns of data are converted to numpy arrays (see below for more
-    detail about how scipy sparse is handled.) After the conversion
-    and prior to the comparison, CDT identifies any nan-like
-    representations in both of the numpy arrays and standardizes all of
-    them to numpy.nan. The user needs to be wary that whatever is used
-    to indicate 'not-a-number' in the original data must first survive
-    the conversion to numpy array, then be recognizable by CDT as
-    nan-like, so that CDT can standardize it to numpy.nan. nan-like
-    representations that are recognized by CDT include, at least,
-    numpy.nan, pandas.NA, None (of type None, not string 'None'), and
-    string representations of 'nan' (not case sensitive).
+    accepts data in the form of numpy arrays, pandas dataframes, polars
+    dataframes, and scipy sparse matrices/arrays, at comparison time the
+    columns of data are extracted from the passed data and converted to
+    numpy arrays. After the conversion and prior to the comparison, CDT
+    identifies any nan-like representations in both numpy arrays and
+    standardizes all of them to numpy.nan. The user needs to be wary
+    that whatever is used to indicate 'not-a-number' in the original
+    data must first survive the conversion to numpy array, then be
+    recognizable by CDT as nan-like, so that CDT can standardize it to
+    numpy.nan. nan-like representations that are recognized by CDT
+    include, at least, numpy.nan, pandas.NA, None (of type None, not
+    string 'None'), and string representations of 'nan' (not case
+    sensitive).
 
     Concerning the handling of infinity. CDT has no special handling for
     the various infinity-types, e.g, numpy.inf, -numpy.inf, float('inf'),
     float('-inf'), etc. This is a design decision to not force infinity
-    values to numpy.nan to avoid mutating or making copies of passed
-    data. SPF falls back to the native handling of these values for
-    python and numpy. Specifically, numpy.inf==numpy.inf and
+    values to numpy.nan. SPF falls back to the native handling of these
+    values for python and numpy. Specifically, numpy.inf==numpy.inf and
     float('inf')==float('inf').
 
-    Concerning the handling of scipy sparse arrays. When comparing
-    columns for equality, the columns are not converted to dense numpy
-    arrays. Each column is sliced from the data in sparse form and the
-    'indices' and 'data' attributes of this slice are stacked together.
-    The single vector holding the indices and dense values is used to
-    make equality comparisons.
 
     Type Aliases
 
@@ -365,37 +364,32 @@ class ColumnDeduplicateTransformer(
         ]
 
     KeepType:
-        Union[
-            Literal['first', 'last', 'random', 'none'],
-            dict[str, Any],
-            numbers.Integral,
-            str,
-            Callable[[XContainer], int]
-        ]
+        Literal['first', 'last', 'random']
 
-    ConstantColumnsType:
-        dict[int, Any]
+    DoNotDropType:
+        Union[Sequence[int], Sequence[str], None]
 
-    KeptColumnsType:
-        dict[int, Any]
+    ConflictType:
+        Literal['raise', 'ignore']
+
+    DuplicatesType:
+        list[list[int]]
 
     RemovedColumnsType:
-        dict[int, Any]
+        dict[int, int]
 
     ColumnMaskType:
         npt.NDArray[bool]
 
-    NFeaturesInType:
-        int
-
     FeatureNamesInType:
-        npt.NDArray[object]
+        npt.NDArray[str]
 
 
     See Also
     --------
     numpy.ndarray
     pandas.core.frame.DataFrame
+    polars.DataFrame
     scipy.sparse
     numpy.allclose
     numpy.array_equal
@@ -447,7 +441,7 @@ class ColumnDeduplicateTransformer(
         rtol: Optional[numbers.Real]=1e-5,
         atol: Optional[numbers.Real]=1e-8,
         n_jobs: Optional[Union[numbers.Integral, None]]=None,
-        job_size: Optional[numbers.Integral]=20
+        job_size: Optional[numbers.Integral]=50
     ) -> None:
 
         """Initialize the ColumnDeduplicateTransformer instance."""
@@ -496,8 +490,8 @@ class ColumnDeduplicateTransformer(
 
     def _reset(self) -> Self:
         """
-        Reset the internal data-dependent state of ColumnDeduplicateTransformer.
-        __init__ parameters are not changed.
+        Reset the internal data-dependent state of CDT. __init__
+        parameters are not changed.
         """
 
         if hasattr(self, '_duplicates'):
@@ -577,6 +571,7 @@ class ColumnDeduplicateTransformer(
 
     def get_metadata_routing(self):
         """Get metadata routing is not implemented."""
+
         __ = type(self).__name__
         raise NotImplementedError(
             f"get_metadata_routing is not implemented in {__}"
@@ -635,11 +630,11 @@ class ColumnDeduplicateTransformer(
 
         
         # reset – Whether to reset the n_features_in_ attribute. If False,
-        # the input will be checked for consistency with data provided when
-        # reset was last True.
-        # It is recommended to call reset=True in fit and in the first call
-        # to partial_fit. All other methods that validate X should set
-        # reset=False.
+        # the input will be checked for consistency with data provided
+        # when reset was last True.
+        # It is recommended to call reset=True in fit and in the first
+        # call to partial_fit. All other methods that validate X should
+        # set reset=False.
 
         # do not make an assignment! let the function handle it.
         self._check_n_features(
@@ -671,9 +666,10 @@ class ColumnDeduplicateTransformer(
         # END validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
         # ss sparse that cant be sliced
-        # avoid copies of X, do not mutate X. if X is coo, dia, bsr, it cannot
-        # be sliced. must convert to another ss. so just convert all of them
-        # to csc for faster column slicing. need to change it back later.
+        # avoid copies of X, do not mutate X. if X is coo, dia, bsr, it
+        # cannot be sliced. must convert to another ss. so just convert
+        # all of them to csc for faster column slicing. need to change
+        # it back later.
         if hasattr(X, 'toarray'):
             _og_dtype = type(X)
             X = X.tocsc()
@@ -836,24 +832,24 @@ class ColumnDeduplicateTransformer(
 
         _val_X(X_inv)
 
-        # the number of columns in X must be equal to the number of features
-        # remaining in _column_mask
+        # the number of columns in X must be equal to the number of
+        # features remaining in _column_mask
         if X_inv.shape[1] != np.sum(self._column_mask):
             raise ValueError(
-                f"the number of columns in X must be equal to the number of "
-                f"columns kept from the fitted data after removing duplicates "
-                f"({np.sum(self._column_mask)})"
+                f"the number of columns in X must be equal to the number "
+                f"of columns kept from the fitted data after removing "
+                f"duplicates ({np.sum(self._column_mask)})"
             )
 
-        # dont need to do any other validation here, none of the parameters
-        # that could be changed by set_params are used here
+        # dont need to do any other validation here, none of the
+        # parameters that could be changed by set_params are used here
 
-        # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+        # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
         # ss sparse that cant be sliced
-        # if X_inv is coo, dia, bsr, it cannot be sliced. must convert to
-        # another ss. so just convert all of them to csc for faster column
-        # slicing. need to change it back later.
+        # if X_inv is coo, dia, bsr, it cannot be sliced. must convert
+        # to another ss. so just convert all of them to csc for faster
+        # column slicing. need to change it back later.
         if hasattr(X_inv, 'toarray'):
             _og_format = type(X_inv)
             X_inv = X_inv.tocsc()
@@ -971,10 +967,11 @@ class ColumnDeduplicateTransformer(
 
         self._check_feature_names(X_tr, reset=False)
 
-        # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+        # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-        # redo these here in case set_params() was changed after (partial_)fit
-        # determine the columns to remove based on given parameters.
+        # redo these here in case set_params() was changed after
+        # (partial_)fit determine the columns to remove based on given
+        # parameters.
         self._removed_columns = \
             _identify_idxs_to_delete(
                 self._duplicates,
@@ -990,17 +987,17 @@ class ColumnDeduplicateTransformer(
         # end redo
 
         # ss sparse that cant be sliced
-        # if X is coo, dia, bsr, it cannot be sliced. must convert to another
-        # ss. so just convert all of them to csc for faster column slicing.
-        # need to change it back later.
+        # if X is coo, dia, bsr, it cannot be sliced. must convert to
+        # another ss. so just convert all of them to csc for faster
+        # column slicing. need to change it back later.
         if hasattr(X_tr, 'toarray'):
             _og_format = type(X_tr)
             X_tr = X_tr.tocsc()
 
         X_tr = _transform(X_tr, self._column_mask)
 
-        # all scipy sparse were converted to csc right before the _transform
-        # method. change it back to original state.
+        # all scipy sparse were converted to csc right before the
+        # _transform method. change it back to original state.
         if hasattr(X_tr, 'toarray'):
             X_tr = _og_format(X_tr)
             del _og_format

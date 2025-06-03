@@ -28,8 +28,8 @@ import polars as pl
 
 
 
-# once any ss is inside partial_fit, inv_trfm, or transform it is converted
-# to csc
+# once any ss is inside partial_fit, inv_trfm, or transform it is
+# converted to csc
 InternalXContainer: TypeAlias = Union[
     npt.NDArray,
     pd.DataFrame,
