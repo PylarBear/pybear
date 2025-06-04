@@ -6,17 +6,15 @@
 
 
 
-from pybear.preprocessing._MinCountTransformer._validation._y \
-    import _val_y
+import pytest
 
 import uuid
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
-import dask.array as da
-import dask.dataframe as ddf
 
-import pytest
+from pybear.preprocessing._MinCountTransformer._validation._y \
+    import _val_y
 
 
 
@@ -28,7 +26,7 @@ class TestValY:
     # ) -> None:
 
 
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     # pizza
     # @staticmethod
     # @pytest.fixture(scope='module')
@@ -67,14 +65,6 @@ class TestValY:
         with pytest.raises(TypeError):
             _val_y(ss.coo_array(_y_np))
 
-        with pytest.raises(TypeError):
-            _val_y(da.from_array(_y_np))
-
-        with pytest.raises(TypeError):
-            _val_y(ddf.from_array(_y_np))
-
-        with pytest.raises(TypeError):
-            _val_y(ddf.from_array(ddf.from_array(_y_np[:, 0]).squeeze()))
 
         # numpy_recarray ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
         _dtypes1 = [np.uint8 for _ in range(_shape[1]//2)]
@@ -88,15 +78,15 @@ class TestValY:
         with pytest.raises(TypeError):
             _val_y(Y_NEW)
         del Y_NEW
-        # END numpy_recarray ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        # END numpy_recarray ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
     def test_masked_array_warns(self, _y_np):
 
-        # numpy_masked_array ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        # numpy_masked_array ** ** ** ** ** ** ** ** ** ** ** ** ** **
         with pytest.warns():
             _val_y(np.ma.array(_y_np))
-        # END numpy_masked_array ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        # END numpy_masked_array ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
     def test_accepts_good_y(self, _y_np, _columns):
@@ -109,21 +99,6 @@ class TestValY:
             pd.DataFrame(_y_np, columns=_columns).iloc[0, :].to_frame()
         ) is None
         assert _val_y(pd.Series(_y_np[:, 0])) is None
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

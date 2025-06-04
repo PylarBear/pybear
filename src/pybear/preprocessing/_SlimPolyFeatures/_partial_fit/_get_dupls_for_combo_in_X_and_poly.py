@@ -22,7 +22,7 @@ import scipy.sparse as ss
 from .._partial_fit._parallel_chunk_comparer import _parallel_chunk_comparer
 from .._partial_fit._columns_getter import _columns_getter
 
-# pizza finish this
+
 
 def _get_dupls_for_combo_in_X_and_poly(
     _X: InternalXContainer,
@@ -35,24 +35,19 @@ def _get_dupls_for_combo_in_X_and_poly(
     _job_size: numbers.Integral
 ) -> list[tuple[tuple[int,...], tuple[int, ...]]]:
 
-
     """
-    Scan a polynomial column generated as a product of a combination of
-    columns from X across X itself and POLY, looking for duplicates.
-    There are no duplicates in POLY_CSC (if there are it is an algorithm
-    failure,) but may be in X (which is degenerate but is understood and
-    handled by SPF.)
+    Scan the polynomial columns generated as products of combinations of
+    columns from X across X itself and themselves, looking for duplicates.
 
 
     Parameters
     ----------
     _X:
         InternalXContainer of shape (n_samples, n_features) - the
-        data  to undergo polynomial expansion. _X will be passed to
-        _columns_getter which allows ndarray, pd.DataFrame, and all
-        scipy sparse except coo
-        matrix/array, dia matrix/array, or bsr matrix/array. _X should
-        be conditioned for this when passed here.
+        data to undergo polynomial expansion. _X will be passed to
+        _columns_getter which allows ndarray, pd.DataFrame, pl.DataFrame,
+        scipy sparse csr matrix/array. _X should already be conditioned
+        for this when passed here.
     _poly_combos:
         list[tuple[int, ...]] - the combinations of columns from _X to
         use to build the polynomial columns.
@@ -70,7 +65,7 @@ def _get_dupls_for_combo_in_X_and_poly(
         See numpy.allclose.
     _n_jobs:
         Union[numbers.Integral, None] - The number of joblib Parallel
-        jobs to use when looking for duplicate columns across X and POLY.
+        jobs to use when looking for duplicate columns.
     _job_size:
         numbers.Integral - The number of columns to send to a joblib job.
         Must be an integer greater than or equal to 2.
@@ -79,9 +74,10 @@ def _get_dupls_for_combo_in_X_and_poly(
     Return
     ------
     -
-        _all_dupls: list[bool] - 1D list of tuples, each tuple holding
-        two groups of indices. Each group of indices indicate column
-        indices from _X that produce a duplicate column.
+        _all_dupls: list[tuple[tuple[int,...], tuple[int, ...]]] - 1D
+        list of tuples, each tuple holding two groups of indices. Each
+        group of indices indicate column indices from _X that produce a
+        duplicate column.
 
     """
 
@@ -116,105 +112,141 @@ def _get_dupls_for_combo_in_X_and_poly(
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
+    _job_size = int(_job_size)
+
     args = {'_rtol': _rtol, '_atol': _atol, '_equal_nan': _equal_nan}
 
 
     # convert combos to np for slicing out poly combos
-    _poly_combos = np.array(list(map(tuple, _poly_combos)), dtype=object)
+    _wip_poly_combos = np.array(list(map(tuple, _poly_combos)), dtype=object)
+
     # look for duplicates in X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-    # there can be more than one hit for duplicates in X
+    # there can be more than one hit for duplicates in X in one partial fit
 
     _X_dupls = []
     if _min_degree == 1:
 
-        _asymmetric_combinations = []
-        for i in range(math.ceil(_X.shape[1]/_job_size)):   # _X chunks
-            for j in range(i, math.ceil(len(_poly_combos)/_job_size)):   # _combos chunks
-                _asymmetric_combinations.append((i, j))
+        # get the indices for scanning X ahead of time -- -- -- -- -- --
+        # this just makes the scanning code less messy
+        _n_X_batches = math.ceil(_X.shape[1] / _job_size)
+        _n_poly_batches = math.ceil(len(_wip_poly_combos) / _job_size)
+        _X_batches: list[tuple[tuple[int, ...], ...]] = []
+        _poly_batches: list[tuple[tuple[int, ...], ...]] = []
+
+        # X & poly are asymmetrics, cannot use itertools
+        for i in range(0, _n_X_batches):   # _X chunks
+            for j in range(i, _n_poly_batches):   # _combos chunks
+
+                _X_low = i * _job_size
+                _X_high = min((i + 1) * _job_size, _X.shape[1])
+                _X_batches.append(tuple((k,) for k in range(_X_low, _X_high)))
+
+                _poly_low = j * _job_size
+                _poly_high = min((j + 1) * _job_size, len(_wip_poly_combos))
+                # notice that the batch idxs are slicing _wip_poly_combos
+                # whereas the X batch idxs directly slice the col idxs of X
+                _poly_batches.append(
+                    tuple(list(map(
+                        tuple,
+                        _wip_poly_combos[list(range(_poly_low, _poly_high))]
+                    )))
+                )
+
+        del _n_X_batches, _n_poly_batches, _X_low, _X_high, _poly_low, _poly_high
+        # END get indices for jobs -- -- -- -- -- -- -- -- -- -- -- --
+
 
         if _X.shape[1] < 2 * _job_size:
-            for i, j in _asymmetric_combinations:  # i is X, j is combos
-                _X1_idxs = tuple((k,) for k in range(i * _job_size, min((i + 1) * _job_size, _X.shape[1])))
-                _X2_idxs = tuple(map(tuple, _poly_combos[list(range(j * _job_size, min((j + 1) * _job_size, len(_poly_combos))))]))
+            for _X_idxs, _poly_idxs in zip(_X_batches, _poly_batches):
+
                 _X_dupls.append(
                     _parallel_chunk_comparer(
-                        _chunk1=_columns_getter(_X, _X1_idxs),
-                        _chunk1_X_indices=_X1_idxs,
-                        _chunk2=_columns_getter(_X, _X2_idxs),
-                        _chunk2_X_indices=_X2_idxs,
+                        _chunk1=_columns_getter(_X, _X_idxs),
+                        _chunk1_X_indices=_X_idxs,
+                        _chunk2=_columns_getter(_X, _poly_idxs),
+                        _chunk2_X_indices=_poly_idxs,
                         **args
                     )
                 )
-            del _X1_idxs, _X2_idxs
         else:
             with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
                 _X_dupls = joblib.Parallel(return_as='list')(
                     joblib.delayed(_parallel_chunk_comparer)(
-                        _chunk1=_columns_getter(
-                            _X,
-                            tuple((k,) for k in range(i*_job_size,  min((i+1)*_job_size, _X.shape[1])))
-                        ),
-                        _chunk1_X_indices=tuple((k,) for k in range(i*_job_size,  min((i+1)*_job_size, _X.shape[1]))),
-                        _chunk2=_columns_getter(
-                            _X,
-                            tuple(map(tuple, _poly_combos[list(range(j*_job_size,  min((j+1)*_job_size, len(_poly_combos))))]))
-                        ),
-                        _chunk2_X_indices=tuple(
-                            tuple(map(tuple, _poly_combos[list(range(j*_job_size,  min((j+1)*_job_size, len(_poly_combos))))]))
-                        ),
+                        _chunk1=_columns_getter(_X, _X_idxs),
+                        _chunk1_X_indices=_X_idxs,
+                        _chunk2=_columns_getter(_X, _poly_idxs),
+                        _chunk2_X_indices=_poly_idxs,
                         **args
-                    ) for i, j in _asymmetric_combinations   # i is X, j is combos
+                    ) for _X_idxs, _poly_idxs in zip(_X_batches, _poly_batches)
                 )
+
+        del _X_batches, _poly_batches
 
         _X_dupls = list(itertools.chain(*_X_dupls))
 
-        del _asymmetric_combinations
-
     else:
+        # poly combos are not scanned against X if min_degree > 1
         _X_dupls = []
 
     # END look for duplicates in X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
+
+
     # look for duplicates in POLY v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
-    _symmetric_combinations = list(itertools.combinations_with_replacement(
-        range(math.ceil(len(_poly_combos)/_job_size)),
-        2
-    ))
+    # get the indices for scanning poly ahead of time -- -- -- -- -- --
+    # this just makes the scanning code less messy
+    _n_poly_batches = math.ceil(len(_wip_poly_combos) / _job_size)
+    _poly1_batches: list[tuple[tuple[int, ...], ...]] = []
+    _poly2_batches: list[tuple[tuple[int, ...], ...]] = []
+
+    for m, n in itertools.combinations_with_replacement(
+        list(range(_n_poly_batches)), 2
+    ):
+
+        _poly1_low = m * _job_size
+        _poly1_high = min((m + 1) * _job_size, len(_wip_poly_combos))
+        _poly1_batches.append(
+            tuple(map(
+                tuple, _wip_poly_combos[list(range(_poly1_low, _poly1_high))]
+            ))
+        )
+
+        _poly2_low = n * _job_size
+        _poly2_high = min((n + 1) * _job_size, len(_wip_poly_combos))
+        _poly2_batches.append(
+            tuple(map(
+                tuple, _wip_poly_combos[list(range(_poly2_low, _poly2_high))]
+            ))
+        )
+
+    del _n_poly_batches, _poly1_low, _poly1_high, _poly2_low, _poly2_high
+    # END get indices for jobs -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     _poly_dupls = []
-    if len(_poly_combos) < 2 * _job_size:
-        for i, j in _symmetric_combinations:
-            _X1_idxs = tuple(map(tuple, _poly_combos[list(range(i * _job_size, min((i+1) * _job_size, len(_poly_combos))))]))
-            _X2_idxs = tuple(map(tuple, _poly_combos[list(range(j * _job_size, min((j+1) * _job_size, len(_poly_combos))))]))
+    if len(_wip_poly_combos) < 2 * _job_size:
+        for _poly1_idxs, _poly2_idxs in zip(_poly1_batches, _poly2_batches):
             _poly_dupls.append(_parallel_chunk_comparer(
-                _chunk1=_columns_getter(_X, _X1_idxs),
-                _chunk1_X_indices=_X1_idxs,
-                _chunk2=_columns_getter(_X, _X2_idxs),
-                _chunk2_X_indices=_X2_idxs,
+                _chunk1=_columns_getter(_X, _poly1_idxs),
+                _chunk1_X_indices=_poly1_idxs,
+                _chunk2=_columns_getter(_X, _poly2_idxs),
+                _chunk2_X_indices=_poly2_idxs,
                 **args
                 )
             )
-        del _X1_idxs, _X2_idxs
     else:
         with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
             _poly_dupls = joblib.Parallel(return_as='list')(
                 joblib.delayed(_parallel_chunk_comparer)(
-                    _chunk1=_columns_getter(
-                        _X,
-                        tuple(map(tuple, _poly_combos[list(range(i * _job_size, min((i+1) * _job_size, len(_poly_combos))))]))
-                    ),
-                    _chunk1_X_indices=tuple(map(tuple, _poly_combos[list(range(i * _job_size, min((i+1) * _job_size, len(_poly_combos))))])),
-                    _chunk2=_columns_getter(
-                        _X,
-                        tuple(map(tuple, _poly_combos[list(range(j * _job_size, min((j+1) * _job_size, len(_poly_combos))))]))
-                    ),
-                    _chunk2_X_indices=tuple(map(tuple, _poly_combos[list(range(j * _job_size, min((j+1) * _job_size, len(_poly_combos))))])),
+                    _chunk1=_columns_getter(_X, _poly1_idxs),
+                    _chunk1_X_indices=_poly1_idxs,
+                    _chunk2=_columns_getter(_X, _poly2_idxs),
+                    _chunk2_X_indices=_poly2_idxs,
                     **args
-                ) for i, j in _symmetric_combinations
+                ) for _poly1_idxs, _poly2_idxs in zip(_poly1_batches, _poly2_batches)
             )
 
-    del _symmetric_combinations
+    del _poly1_batches, _poly2_batches
 
     _poly_dupls = list(itertools.chain(*_poly_dupls))
 

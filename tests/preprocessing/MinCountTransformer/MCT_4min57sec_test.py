@@ -430,7 +430,7 @@ class TestCountThresholdMaxRecursionsSetOutputNjobs:
         BAD_VALUE_DICT = {
             'count_threshold': [-2, 1, 100_000_000, 'bad_list_1', 'bad_list_2'],
             'max_recursions': [-1, 0],
-            'set_output': ['dask_array', 'wrong_junk']
+            'set_output': ['torch_tensor', 'wrong_junk']
         }
 
         TestCls = MCT(**_kwargs)
