@@ -6,12 +6,12 @@
 
 
 
-from pybear.preprocessing._MinCountTransformer._make_instructions. \
-    _threshold_listifier import _threshold_listifier
+import pytest
 
 import numpy as np
 
-import pytest
+from pybear.preprocessing._MinCountTransformer._make_instructions. \
+    _threshold_listifier import _threshold_listifier
 
 
 
@@ -20,7 +20,7 @@ class TestThresholdListifier:
 
     # def _threshold_listifier(
     #     _n_features_in: int,
-    #     *_threshold: Union[int, Sequence[int]]
+    #     *_threshold: CountThresholdType
     # ) -> Union[list[int], tuple[list[int], ...]]:
 
 
@@ -45,7 +45,8 @@ class TestThresholdListifier:
         n_features_in = 2
 
         # just catch anything dont worry about Type or Value Error
-        # less than 2
+
+        # less than 2 (only coincidental that n_features_in is also 2 here)
         with pytest.raises(Exception):
             _threshold_listifier(n_features_in, 1)
 
@@ -97,14 +98,13 @@ class TestThresholdListifier:
         else:
             THRESHOLD = []
             for _ in range(n_thresholds):
-                # keep this 'value' thing for array_equal when only 1 group
-                # of thresholds
                 while True:
                     # at least 1 value must be >= 2
                     group = list(np.random.randint(1, 10, n_features_in))
                     if any(map(lambda x: x >= 2, group)):
                         break
                 THRESHOLD.append(group)
+
             out = _threshold_listifier(n_features_in, *THRESHOLD)
 
             if n_thresholds == 1:
@@ -123,12 +123,6 @@ class TestThresholdListifier:
                         (int for _ in set_of_thresholds)
                     ))
                     assert np.array_equal(set_of_thresholds, THRESHOLD[idx])
-
-
-
-
-
-
 
 
 

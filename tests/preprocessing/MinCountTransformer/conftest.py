@@ -84,8 +84,8 @@ def y_np(_shape):
 # MinCountTransformer_test. It also is used to validate that X meets
 # certain rigged conditions for testing MinCountTransformer.
 # Tests for this fixture are in
-# conftest__mmct__12sec_test.py. The fixtures used to run the tests in
-# conftest__mmct__12sec_test.py are at the bottom of this module.
+# conftest__mmct__Xsec_test.py. The fixtures used to run the tests in
+# conftest__mmct__Xsec_test.py are at the bottom of this module.
 
 
 @pytest.fixture(scope='session')
@@ -665,12 +665,6 @@ def _source_len(build_vectors_for_mock_mct_test):
 @pytest.fixture(scope='session')
 def _mmct_test_rows(build_vectors_for_mock_mct_test):
     return build_vectors_for_mock_mct_test[7]
-
-
-
-
-
-
 
 
 

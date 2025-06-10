@@ -12,7 +12,6 @@ from typing import (
     Sequence
 )
 from typing_extensions import (
-    Any,
     TypeAlias,
     Union
 )
@@ -23,17 +22,26 @@ import numbers
 
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 
 
-DataType = Union[numbers.Real, str]
+DataType = Union[numbers.Number, str]
 
-YContainer: TypeAlias = Union[npt.NDArray, pd.DataFrame, pd.Series, None]
+YContainer: TypeAlias = Union[
+    npt.NDArray,
+    pd.DataFrame,
+    pd.Series,
+    pl.DataFrame,
+    pl.Series,
+    None
+]
 
 InternalXContainer: TypeAlias = Union[
     npt.NDArray[DataType],
     pd.DataFrame,
+    pl.DataFrame,
     ss.csc_array,
     ss.csc_matrix
 ]
@@ -46,7 +54,7 @@ OriginalDtypesType: TypeAlias = npt.NDArray[
     Union[Literal['bin_int', 'int', 'float', 'obj']]
 ]
 
-TotalCountsByColumnType: TypeAlias = dict[int, dict[Any, int]]
+TotalCountsByColumnType: TypeAlias = dict[int, dict[DataType, int]]
 
 InstructionsType: TypeAlias = \
     dict[

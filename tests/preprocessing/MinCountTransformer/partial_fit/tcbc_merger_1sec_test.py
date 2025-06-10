@@ -6,21 +6,21 @@
 
 
 
+import pytest
+
+import numpy as np
+import pandas as pd
+
 from pybear.preprocessing._MinCountTransformer._partial_fit._tcbc_merger import \
     _tcbc_merger
 
 from pybear.utilities._nan_masking import nan_mask
 
-import numpy as np
-import pandas as pd
-
-import pytest
-
 
 
 class TestTCBCMergerTest:
 
-    # FIXTURES * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+    # FIXTURES * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
     @staticmethod
     @pytest.fixture(scope='module')
@@ -57,7 +57,8 @@ class TestTCBCMergerTest:
             ('float', {0: 5, 1: 7, np.nan: 4, pd.NA: 2})
         ]
 
-    # END FIXTURES * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+    # END FIXTURES * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
 
     def test_catches_multiple_nan_in_tcbc(self, _tcbc_multiple_nan):
 
@@ -137,50 +138,31 @@ class TestTCBCMergerTest:
 
     def test_correctly_fills_empty_old_tcbc(self, _tcbc_no_nan, _tcbc):
 
-        # no nans - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        # no nans - - - - - - - - - - - - - - - - - - - - - - - - - - -
         _new_unqs_cts_1 = [
-            ('float', _tcbc_no_nan[0]),
-            ('float', _tcbc_no_nan[1])
+            ('float', _tcbc_no_nan[0]), ('float', _tcbc_no_nan[1])
         ]
 
-
         out = _tcbc_merger(
-            _DTYPE_UNQS_CTS_TUPLES=_new_unqs_cts_1,
-            _tcbc={0: {}, 1: {}}
+            _DTYPE_UNQS_CTS_TUPLES=_new_unqs_cts_1, _tcbc={0: {}, 1: {}}
         )
 
         assert out == _tcbc_no_nan
-        # END no nans - - - - - - - - - - - - - - - - - - - - - - - - - -
+        # END no nans - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
         # nans - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         _new_unqs_cts_2 = [
-            ('obj', _tcbc[0]),
-            ('float', _tcbc[1])
+            ('obj', _tcbc[0]), ('float', _tcbc[1])
         ]
 
-
         out = _tcbc_merger(
-            _DTYPE_UNQS_CTS_TUPLES=_new_unqs_cts_2,
-            _tcbc={0: {}, 1: {}}
+            _DTYPE_UNQS_CTS_TUPLES=_new_unqs_cts_2, _tcbc={0: {}, 1: {}}
         )
 
         assert out == _tcbc
 
         # END nans - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

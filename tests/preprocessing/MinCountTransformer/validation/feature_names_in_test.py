@@ -6,19 +6,18 @@
 
 
 
-from pybear.preprocessing._MinCountTransformer._validation._feature_names_in \
-    import _val_feature_names_in
+import pytest
 
 import numpy as np
 
-import pytest
+from pybear.preprocessing._MinCountTransformer._validation._feature_names_in \
+    import _val_feature_names_in
 
 
 
 class TestValFeatureNamesIn:
 
 
-    # validate feature_names_in -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @pytest.mark.parametrize('junk_fni',
         (-2.7, -1, 0, 1, 2.7, True, 'trash', {'a':1}, lambda x: x)
     )
@@ -57,10 +56,6 @@ class TestValFeatureNamesIn:
                     fni,
                     _n_features_in=nfi
                 )
-    # END validate feature_names_in -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-
-
 
 
 

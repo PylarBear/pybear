@@ -11,10 +11,10 @@ from ..._type_aliases import (
     InternalHandleAsBoolType,
     InternalIgnoreColumnsType,
     OriginalDtypesType,
-    TotalCountsByColumnType
+    TotalCountsByColumnType,
+    FeatureNamesInType
 )
 from typing_extensions import Union
-import numpy.typing as npt
 
 from ..._validation._count_threshold import _val_count_threshold
 from ..._validation._ignore_columns_handle_as_bool import \
@@ -38,7 +38,7 @@ def _make_instructions_validation(
     _delete_axis_0: bool,
     _original_dtypes: OriginalDtypesType,
     _n_features_in: int,
-    _feature_names_in: Union[npt.NDArray[object], None],
+    _feature_names_in: Union[FeatureNamesInType, None],
     _total_counts_by_column: TotalCountsByColumnType
 ) -> None:
 
@@ -69,7 +69,7 @@ def _make_instructions_validation(
     _n_features_in:
         int
     _feature_names_in:
-        Union[npt.NDArray[object], None]
+        Union[FeatureNamesInType, None]
     _total_counts_by_column:
         TotalCountsByColumnType
 
@@ -129,8 +129,6 @@ def _make_instructions_validation(
     _val_any_bool(_delete_axis_0, 'delete_axis_0', _can_be_None=False)
 
     _val_total_counts_by_column(_total_counts_by_column)
-
-
 
 
 

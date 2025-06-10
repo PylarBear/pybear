@@ -58,7 +58,8 @@ def _columns_getter(
 
     """
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     assert isinstance(_X,
         (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_array,
          ss.csc_matrix)
@@ -71,7 +72,7 @@ def _columns_getter(
     for _idx in _col_idxs:
         assert isinstance(_idx, int)
         assert _idx in range(_X.shape[1]), f"col idx out of range"
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     _col_idxs = sorted(list(_col_idxs))
 

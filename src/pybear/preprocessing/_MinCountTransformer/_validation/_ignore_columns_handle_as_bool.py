@@ -14,7 +14,8 @@ from typing import (
 from typing_extensions import Union
 from .._type_aliases import (
     IgnoreColumnsType,
-    HandleAsBoolType
+    HandleAsBoolType,
+    FeatureNamesInType
 )
 
 import numbers
@@ -22,7 +23,9 @@ import numbers
 import numpy as np
 
 from .._validation._feature_names_in import _val_feature_names_in
+
 from ...__shared._validation._any_integer import _val_any_integer
+
 from ....utilities._nan_masking import nan_mask_numerical
 
 
@@ -30,11 +33,11 @@ from ....utilities._nan_masking import nan_mask_numerical
 def _val_ignore_columns_handle_as_bool(
     _value: Union[IgnoreColumnsType, HandleAsBoolType],
     _name: Literal['ignore_columns', 'handle_as_bool'],
-    _allowed: Sequence[
-        Union[Literal['callable', 'Sequence[str]', 'Sequence[int]', 'None']],
-    ],
+    _allowed: Sequence[Union[Literal[
+        'callable', 'Sequence[str]', 'Sequence[int]', 'None'
+    ]]],
     _n_features_in: int,
-    _feature_names_in: Optional[Union[Sequence[str], None]]=None
+    _feature_names_in: Optional[Union[FeatureNamesInType, None]]=None
 ) -> None:
 
     """
@@ -65,10 +68,10 @@ def _val_ignore_columns_handle_as_bool(
     _n_features_in:
         int - the number of features in the data.
     _feature_names_in:
-        Optional[Union[Sequence[str], None]]=None - if the MCT instance
-        was fitted on a data-bearing object that had a header (like a
-        pandas dataframe) then this is a 1D list-like of strings.
-        Otherwise, is None.
+        Optional[Union[FeatureNamesInType, None]], default=None - if the
+        MCT instance was fitted on a data-bearing object that had a
+        header (like a pandas or polars dataframe) then this is a 1D
+        list-like of strings. Otherwise, is None.
 
 
     Return
@@ -76,11 +79,11 @@ def _val_ignore_columns_handle_as_bool(
     -
         None
 
-
     """
 
+
     # other validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    # name -- -- -- -- -- -- -- --
+    # name -- -- -- -- -- -- -- -- --
     assert isinstance(_name, str)
     _name = _name.lower()
     assert _name in ['ignore_columns', 'handle_as_bool']
@@ -98,7 +101,6 @@ def _val_ignore_columns_handle_as_bool(
         _addon = f"type {type(_allowed)}"
         iter(_allowed)
         if isinstance(_allowed, (str, dict)):
-            _addon = f"type {type(_allowed)}"
             raise Exception
         if len(np.array(list(_allowed)).shape) != 1:
             _addon = f"{len(np.array(list(_allowed)).shape)}D"
@@ -116,7 +118,7 @@ def _val_ignore_columns_handle_as_bool(
             raise UnicodeError
     except UnicodeError:
         raise ValueError(_err_msg(_addon))
-    except:
+    except Exception as e:
         raise TypeError(_err_msg(_addon))
 
     _allowed = list(map(str, _allowed))
@@ -157,14 +159,13 @@ def _val_ignore_columns_handle_as_bool(
         _addon = f"type {type(_value)}"
         iter(_value)
         if isinstance(_value, (str, dict)):
-            _addon = f"type {type(_value)}"
             raise Exception
         if len(np.array(list(_value)).shape) != 1:
             _addon = f"{len(np.array(list(_value)).shape)}D"
             raise UnicodeError
     except UnicodeError:
         raise ValueError(_err_msg(_addon))
-    except:
+    except Exception as e:
         raise TypeError(_err_msg(_addon))
 
     del _err_msg, _addon
@@ -176,7 +177,7 @@ def _val_ignore_columns_handle_as_bool(
         )
 
 
-    # if list-like, validate contents are all str or all int ** * ** * ** *
+    # if list-like, validate contents are all str or all int ** * ** *
 
     err_msg = (
         f"if '{_name}' is passed as a list-like, it must contain all "
@@ -189,32 +190,26 @@ def _val_ignore_columns_handle_as_bool(
     # column indices when they are actually column headers.
     if len(_value) == 0:
         is_int, is_str, is_empty = False, False, True
-    elif all(map(
-        isinstance, _value, (str for _ in _value)
-    )):
+    elif all(map(isinstance, _value, (str for _ in _value))):
         is_int, is_str, is_empty = False, True, False
-    elif all(map(
-        isinstance, _value, (numbers.Real for _ in _value)
-    )):
+    elif all(map(isinstance, _value, (numbers.Real for _ in _value))):
         # ensure all are integers
-        if any(map(
-            isinstance, _value, (bool for _ in _value)
-        )):
+        if any(map(isinstance, _value, (bool for _ in _value))):
             raise TypeError(err_msg)
         if np.any(nan_mask_numerical(np.array(list(_value), dtype=object))):
-            raise TypeError
+            raise TypeError(err_msg)
         if not all(map(lambda x: int(x)==x, _value)):
             raise TypeError(err_msg)
         _value = sorted(list(map(int, _value)))
         is_int, is_str, is_empty = True, False, False
     else:
         raise TypeError(err_msg)
-    # END if list-like validate contents are all str or all int ** * ** *
+    # END if list-like validate contents are all str or all int ** * **
 
     if len(set(_value)) != len(_value):
         raise ValueError(f"there are duplicate values in {_name}")
 
-    # validate list-like against characteristics of X ** ** ** ** ** ** **
+    # validate list-like against characteristics of X ** ** ** ** ** **
 
     # _feature_names_in is not necessarily available, could be None
 
@@ -266,7 +261,7 @@ def _val_ignore_columns_handle_as_bool(
 
     del is_int, is_str, is_empty
 
-    # END validate list-like against characteristics of X ** ** ** ** ** **
+    # END validate list-like against characteristics of X ** ** ** ** **
 
 
 

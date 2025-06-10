@@ -6,7 +6,6 @@
 
 
 
-from typing import Sequence
 from typing_extensions import Union
 from .._type_aliases import (
     CountThresholdType,
@@ -15,6 +14,7 @@ from .._type_aliases import (
     TotalCountsByColumnType,
     OriginalDtypesType,
     InstructionsType,
+    FeatureNamesInType
 )
 
 from ._validation._make_instructions_validation import _make_instructions_validation
@@ -45,7 +45,7 @@ def _make_instructions(
     _delete_axis_0: bool,
     _original_dtypes: OriginalDtypesType,
     _n_features_in: int,
-    _feature_names_in: Union[Sequence[str], None],
+    _feature_names_in: Union[FeatureNamesInType, None],
     _total_counts_by_column: TotalCountsByColumnType
 ) -> InstructionsType:
 
@@ -55,22 +55,23 @@ def _make_instructions(
     data based on given parameters.
 
     _delete_instr is a dictionary that is keyed by column index and the
-    values are lists. Within the lists is information about operations
-    to perform with respect to values in the column. The following
-    items may be in the list:
-    -- 'INACTIVE' - ignore the column and carry it through for all other
+    values are lists. Within each list is information about operations
+    to perform with respect to the values in the corresponding column.
+    The following items may be in the list:
+    -- 'INACTIVE' - Ignore the column and carry it through for all other
         operations
-    -- individual values (in raw datatype format, not converted to
-        string) indicates to delete the rows on axis 0 that contain that
-        value in that column, including nan-like values
-    -- 'DELETE ALL' - delete all values in the column. this text string
-        is substituted in if MCT finds that all unique values in the
-        column are to be deleted. this saves memory over filling the
-        instruction list with all the unique values, especially for
-        float columns.
+    -- Individual values (in raw datatype format, not converted to
+        string) - Indicates to delete the rows on axis 0 that contain
+        that value in that column, including nan-like values
+    -- 'DELETE ALL' - Delete all values in the column along the 0 axis.
+        This text string is substituted in if MCT finds that all unique
+        values in the column are to be deleted. This saves memory over
+        filling the instruction list with all the unique values,
+        especially for float columns. This instruction in and of itself
+        does not indicate to delete the entire column from axis 1.
     -- 'DELETE COLUMN' - perform any individual row deletions that need
         to take place while the column is still in the data, then delete
-        the column from the data.
+        the column from the data along axis 1.
 
     _total_counts_by_column is a dictionary that is keyed by column index
     and the values are dictionaries. Each inner dictionary is keyed by
@@ -95,7 +96,7 @@ def _make_instructions(
 
     A) if col_idx is inactive, skip.
     column is 'INACTIVE' if:
-       - col_idx in _ignore_columns:
+       - col_idx in _ignore_columns
        - the minimum frequency threshold for the column is 1
        - _total_counts_by_column[col_idx] is empty
        - _ignore_float_columns and is float column
@@ -127,8 +128,8 @@ def _make_instructions(
     Parameters
     ----------
     _count_threshold:
-        Union[int, Sequence[int]] - The threshold that determines whether
-        a value is removed from the data (frequency is below threshold)
+        CountThresholdType - The threshold that determines whether a
+        value is removed from the data (frequency is below threshold)
         or retained (frequency is greater than or equal to threshold.)
 
     _ignore_float_columns:
@@ -144,8 +145,8 @@ def _make_instructions(
         count threshold rules and possible removal.
 
     _ignore_columns:
-        NDArray[int] - A one-dimensional vector of integer index
-        positions. Excludes the indicated features when making
+        InternalIgnoreColumnsType - A one-dimensional vector of integer
+        index positions. Excludes the indicated features when making
         instructions.
 
     _ignore_nan:
@@ -156,9 +157,9 @@ def _make_instructions(
         against :param: 'count_threshold'.
 
     _handle_as_bool:
-        NDArray[int] - A one-dimensional vector of integer index
-        positions. For the indicated features, non-zero values within
-        the feature are treated as if they are the same value.
+        InternalHandleAsBoolType - A one-dimensional vector of integer
+        index positions. For the indicated features, non-zero values
+        within the feature are treated as if they are the same value.
 
     _delete_axis_0:
         bool - Only applies to binary integer features such as those
@@ -180,17 +181,17 @@ def _make_instructions(
         only one value.
 
     _original_dtypes:
-        NDArray[Literal['bin_int', 'int', 'float', 'obj']] - The original
-        datatypes for each column in the dataset as determined by MCT.
-        Values can be 'bin_int', 'int', 'float', or 'obj'.
+        OriginalDtypesType - The original datatypes for each column in
+        the dataset as determined by MCT. Values can be 'bin_int', 'int',
+        'float', or 'obj'.
 
     _n_features_in:
         int - the number of features (columns) in the dataset.
 
     _feature_names_in:
-        Union[Sequence[str], None] - if the data container passed to the
-        first fit had features names this is an ndarray of those feature
-        names. Otherwise, this is None.
+        Union[FeatureNamesInType, None] - if the data container passed
+        to the first fit had features names this is an ndarray of those
+        feature names. Otherwise, this is None.
 
     _total_counts_by_column:
         dict[int, dict[DataType, int]] - a zero-indexed dictionary that
@@ -201,20 +202,14 @@ def _make_instructions(
     Return
     ------
     -
-        _delete_instr: dict[
-            int,
-            Union[
-            Literal['INACTIVE', 'DELETE ALL', 'DELETE COLUMN',
-            DataType
-            ]
-        ] - a dictionary that is keyed by column index and the values
-        are lists. Within the lists is information about operations to
-        perform with respect to values in the column.
-
+        _delete_instr: InstructionsType - a dictionary that is keyed by
+        column index and the values are lists. Within the lists is
+        information about operations to perform with respect to values
+        in each column.
 
     """
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
     _make_instructions_validation(
         _count_threshold,
         _ignore_float_columns,
@@ -229,19 +224,21 @@ def _make_instructions(
         _total_counts_by_column,
     )
 
-    _threshold = _threshold_listifier(
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+
+    _threshold: list[int] = _threshold_listifier(
         _n_features_in,
         _count_threshold
     )
-
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     _delete_instr = {}
     for col_idx, COLUMN_UNQ_CT_DICT in _total_counts_by_column.items():
         # _total_counts_by_column GIVES A DICT OF UNQ & CTS FOR COLUMN;
-        # IF _ignore_nan, nans & THEIR CTS ARE TAKEN OUT BELOW. IF nan IS
-        # IN, THIS COMPLICATES ASSESSMENT OF COLUMN HAS 1 VALUE, IS BINARY, ETC.
+        # IF _ignore_nan, nans & THEIR CTS ARE TAKEN OUT BELOW. IF nan
+        # IS IN, THIS COMPLICATES ASSESSMENT OF COLUMN HAS 1 VALUE, IS
+        # BINARY, ETC.
 
         # find inactive columns
         # need to put something on every pass to keep asc order of keys
@@ -249,7 +246,7 @@ def _make_instructions(
             _delete_instr[col_idx] = ['INACTIVE']
         elif col_idx in _ignore_columns:
             _delete_instr[col_idx] = ['INACTIVE']
-        elif _total_counts_by_column[col_idx] == {}:
+        elif COLUMN_UNQ_CT_DICT == {}:
             _delete_instr[col_idx] = ['INACTIVE']
         elif (_ignore_float_columns and _original_dtypes[col_idx] == 'float'):
             _delete_instr[col_idx] = ['INACTIVE']
@@ -264,7 +261,7 @@ def _make_instructions(
         if _delete_instr[col_idx] == ['INACTIVE']:
             continue
 
-        # vvv MANAGE nan ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # vvv MANAGE nan ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
         # GET OUT nan INFORMATION IF nan IS IN
         if _ignore_nan:
@@ -287,11 +284,19 @@ def _make_instructions(
         # TEMPORARILY REMOVE nan FROM COLUMN_UNQ_CT_DICT, WHETHER IGNORING OR NOT
         COLUMN_UNQ_CT_DICT = {unq: ct for unq, ct in COLUMN_UNQ_CT_DICT.items()
                               if str(unq).lower() != 'nan'}
-        # ^^^ END MANAGE nan ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+        # ^^^ END MANAGE nan ** * ** * ** * ** * ** * ** * ** * ** * **
 
         # populate _delete_instr
 
-        if len(COLUMN_UNQ_CT_DICT) == 1:  # SAME VALUE IN THE WHOLE COLUMN
+        if len(COLUMN_UNQ_CT_DICT) == 0:
+            # if COLUMN_UNQ_CT_DICT is empty here, it is because it was
+            # a column of all nans. just delete the column without
+            # deleting rows, it is a column of constants, and that is
+            # what _one_unique does.
+            _delete_instr[col_idx] = ['DELETE COLUMN']
+
+        elif len(COLUMN_UNQ_CT_DICT) == 1:
+            # SAME VALUE IN THE WHOLE COLUMN, MAYBE WITH SOME nans
 
             _delete_instr[col_idx] = _one_unique(
                 _threshold[col_idx],
@@ -311,7 +316,8 @@ def _make_instructions(
                     _delete_axis_0
                 )
             else:
-                # this could only be accessed by 'obj' column
+                # this could only be accessed by 'obj' or 'float' column
+                # pizza verify that float can get in here
                 _delete_instr[col_idx] = _two_uniques_not_hab(
                     _threshold[col_idx],
                     _nan_key,
@@ -322,7 +328,6 @@ def _make_instructions(
         else:  # 3+ UNIQUES NOT INCLUDING nan
 
             if col_idx in _handle_as_bool:
-
                 _delete_instr[col_idx] = _three_or_more_uniques_hab(
                     _threshold[col_idx],
                     _nan_key,
@@ -348,11 +353,6 @@ def _make_instructions(
 
 
     return _delete_instr
-
-
-
-
-
 
 
 

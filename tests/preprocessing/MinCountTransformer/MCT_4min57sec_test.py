@@ -693,7 +693,7 @@ class TestIgnoreFloatColumnsWorks:
         TestCls = MCT(**_new_kwargs)
 
         # this isnt excepting when using regular X_np (with nans). But
-        # is working with NO_NAN_X.... y?
+        # is working with NO_NAN_X.... why?
         with pytest.raises(ValueError):
             TestCls.fit_transform(FLOAT_ONLY_X, y_np)
 
@@ -2280,9 +2280,29 @@ class TestTransform:
             raise Exception
 
 
+    def test_a_column_of_all_nans(self, _shape):
+
+        _MCT = MCT(
+            count_threshold=3,
+            ignore_float_columns=True,
+            max_recursions=1
+        )
+
+        _X = np.vstack((
+            np.random.uniform(0, 1, (_shape[0], )),
+            np.fromiter((np.nan for i in range(_shape[0])), dtype=np.float64)
+        )).transpose().astype(np.float64)
+
+        out = _MCT.fit_transform(_X)
+
+        # the column of all nans should be dropped because it is a constant
+        # column and leave behind only the column of floats
+        assert np.array_equal(out.ravel(), _X[:, 0])
+
+
     # TEST TRANSFORM CONDITIONALLY ACCEPT NEW UNIQUES ******************
     def test_transform_conditionally_accepts_new_uniques(
-            self, NO_NAN_X, y_np, _kwargs, _mct_cols, x_rows
+        self, NO_NAN_X, y_np, _kwargs, _mct_cols, x_rows
     ):
         _new_kwargs = deepcopy(_kwargs)
         _new_kwargs['count_threshold'] *= 2

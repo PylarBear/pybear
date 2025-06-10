@@ -50,13 +50,10 @@ def _make_row_and_column_masks(
         dict[int, dict[DataType, int]] - dictionary holding the uniques
         and their counts for each column.
     _delete_instr:
-        dict[
-            int,
-            Union[Literal['INACTIVE', 'DELETE ALL', 'DELETE COLUMN'], DataType]
-        ] - a dictionary that is keyed by column index and the values are
-        lists. Within the lists is information about operations to
-        perform with respect to values in the column. The following items
-        may be in the list:
+        InstructionsType - a dictionary that is keyed by column index
+        and the values are lists. Within the lists is information about
+        operations to perform with respect to values in the column. The
+        following items may be in the list:
 
         -'INACTIVE' - ignore the column and carry it through for all
             other operations

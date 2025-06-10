@@ -125,11 +125,10 @@ def _ic_hab_condition(
         ignore_columns and handle_as_bool in Sequence[int] form. all
         indices are >= 0.
 
-
     """
 
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     _val_any_integer(_n_features_in, 'n_features_in', _min=1)
 
@@ -398,74 +397,6 @@ def _ic_hab_condition(
 
 
     return __ignore_columns, __handle_as_bool
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

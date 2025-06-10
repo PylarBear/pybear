@@ -6,12 +6,12 @@
 
 
 
-from pybear.preprocessing._MinCountTransformer._validation._original_dtypes \
-    import _val_original_dtypes
+import pytest
 
 import numpy as np
 
-import pytest
+from pybear.preprocessing._MinCountTransformer._validation._original_dtypes \
+    import _val_original_dtypes
 
 
 
@@ -62,7 +62,7 @@ class TestValOriginalDtypes:
             )
 
 
-    @pytest.mark.parametrize('length', ('short',  'good', 'long'))
+    @pytest.mark.parametrize('length', ('short', 'good', 'long'))
     def test_rejects_bad_length(self, length):
 
         if length == 'short':
@@ -97,17 +97,6 @@ class TestValOriginalDtypes:
         out = _val_original_dtypes(good_og_dtype, _n_features_in=4)
 
         assert out is None
-
-
-
-
-
-
-
-
-
-
-
 
 
 

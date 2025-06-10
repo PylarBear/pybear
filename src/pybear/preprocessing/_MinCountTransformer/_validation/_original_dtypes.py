@@ -21,9 +21,9 @@ def _val_original_dtypes(
 
     """
     Validate that datatypes in the passed '_original_datatypes' container
-    are valid MCT internal datatypes. Allowed values are 'bin_int', 'int',
-    'float', 'obj', case-sensitive. Validate number of entries against
-    the number of features in the data.
+    are valid MCT internal datatypes. Allowed values are 'bin_int',
+    'int', 'float', and 'obj'. Entries are case-sensitive. Validate
+    number of entries against the number of features in the data.
 
 
     Parameters
@@ -41,7 +41,6 @@ def _val_original_dtypes(
     -
         None
 
-
     """
 
 
@@ -50,9 +49,9 @@ def _val_original_dtypes(
     _allowed = ['bin_int', 'int', 'float', 'obj']
 
     _err_msg = (
-        f"'_col_dtypes' must be a 1D vector of values in {', '.join(_allowed)} "
-        f"and the number of entries must equal the number of features in the "
-        f"data."
+        f"'_original_dtypes' must be a 1D vector of values in "
+        f"{', '.join(_allowed)} \nand the number of entries must equal "
+        f"the number of features in the data."
     )
     try:
         iter(_original_dtypes)
@@ -67,9 +66,9 @@ def _val_original_dtypes(
             isinstance, _original_dtypes, (str for _ in _original_dtypes)
         )):
             raise Exception
-        for _ in _original_dtypes:
-            if _ not in _allowed:
-                _addon = f" got '{_}'."
+        for i in _original_dtypes:
+            if i not in _allowed:
+                _addon = f" got '{i}'."
                 raise UnicodeError
     except UnicodeError:
         raise ValueError(_err_msg + _addon)

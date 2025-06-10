@@ -6,12 +6,12 @@
 
 
 
-from pybear.preprocessing._MinCountTransformer._make_instructions. \
-    _validation._make_instructions_validation import _make_instructions_validation
+import pytest
 
 import numpy as np
 
-import pytest
+from pybear.preprocessing._MinCountTransformer._make_instructions. \
+    _validation._make_instructions_validation import _make_instructions_validation
 
 
 

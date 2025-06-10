@@ -6,12 +6,12 @@
 
 
 
-from pybear.preprocessing._MinCountTransformer._validation.\
-    _ign_cols_hab_callable import _val_ign_cols_hab_callable
+import pytest
 
 import numpy as np
 
-import pytest
+from pybear.preprocessing._MinCountTransformer._validation.\
+    _ign_cols_hab_callable import _val_ign_cols_hab_callable
 
 
 
@@ -20,10 +20,10 @@ class TestValIgnColsHabCallable:
 
     # def _val_ign_cols_hab_callable(
     #     _fxn_output: Union[Sequence[str], Sequence[numbers.Integral]],
-    #     _first_fxn_output: Union[Sequence[str], Sequence[numbers.Integral]],
+    #     _first_fxn_output: Union[Sequence[str], Sequence[numbers.Integral], None],
     #     _name: Literal['ignore_columns', 'handle_as_bool'],
     #     _n_features_in: int,
-    #     _feature_names_in: Union[npt.NDArray[str], None]
+    #     _feature_names_in: Union[FeatureNamesInType, None]
     # ) -> None:
 
 
@@ -31,7 +31,7 @@ class TestValIgnColsHabCallable:
 
     # _feature_names_in is validated by _val_feature_names_in, tested elsewhere
 
-    # validate _name -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    # validate _name -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @pytest.mark.parametrize('junk_name',
         (-2.7, -1, 0, 1, 2.7, True, None, [0, 1], (1,), {'a':1}, lambda x: x)
     )
@@ -67,9 +67,9 @@ class TestValIgnColsHabCallable:
             10,
             None
         )
-    # END validate _name -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    # END validate _name -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-    # validate _fxn_output -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    # validate _fxn_output -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @pytest.mark.parametrize('junk_fxn_output',
         (-2.7, -1, 0, 1, 2.7, True, False, None, {'a':1}, lambda x: x)
     )
@@ -115,10 +115,10 @@ class TestValIgnColsHabCallable:
 
         assert out is None
 
-    # END validate _fxn_output -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    # END validate _fxn_output -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
-    # validate _first_fxn_output -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    # validate _first_fxn_output -- -- -- -- -- -- -- -- -- -- -- -- --
     @pytest.mark.parametrize('junk_first_fxn_output',
         (-2.7, -1, 0, 1, 2.7, True, False, {'a':1}, lambda x: x)
     )
@@ -155,7 +155,6 @@ class TestValIgnColsHabCallable:
     def test_accepts_good_first_fxn_output(self, good_first_fxn_output):
 
         # 1D list-like, all int or all str
-
         out = _val_ign_cols_hab_callable(
             good_first_fxn_output,
             good_first_fxn_output,  # must match current output to pass
@@ -224,7 +223,8 @@ class TestValIgnColsHabCallable:
     @pytest.mark.parametrize('_feature_names_in', (None, np.array(list('abcdefgh'))))
     def test_accepts_good(self, _fxn_output, _name, _feature_names_in):
 
-        # the only thing that should fail is passing str output w/o feature_names_in
+        # the only thing that should fail is passing str output w/o
+        # feature_names_in
         # index output works with or without feature_names_in
 
         if all(map(isinstance, _fxn_output, (str for _ in _fxn_output))) \
@@ -289,12 +289,6 @@ class TestValIgnColsHabCallable:
             )
 
             assert out is None
-
-
-
-
-
-
 
 
 

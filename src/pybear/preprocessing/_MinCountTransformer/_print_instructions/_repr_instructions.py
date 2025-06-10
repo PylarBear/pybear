@@ -8,14 +8,19 @@
 
 from typing import Sequence
 from typing_extensions import Union
-from .._type_aliases import InstructionsType, TotalCountsByColumnType
+from .._type_aliases import (
+    InstructionsType,
+    TotalCountsByColumnType
+)
 
 import numbers
+
 import numpy as np
 
 from .._make_instructions._validation._delete_instr import _val_delete_instr
 from .._make_instructions._validation._total_counts_by_column import \
     _val_total_counts_by_column
+
 from .._validation._count_threshold import _val_count_threshold
 from .._validation._feature_names_in import _val_feature_names_in
 
@@ -59,10 +64,8 @@ def _repr_instructions(
     Parameters
     ----------
     _delete_instr:
-        dict[
-            int,
-            list[any, Literal['INACTIVE', 'DELETE ALL', 'DELETE COLUMN']]
-        ] - the instructions for deleting values and columns as generated
+        InstructionsType - the instructions for deleting values and
+        columns as generated
         by _make_instructions() from the uniques / counts in
         _total_counts_by_column and the parameter settings.
     _total_counts_by_column:

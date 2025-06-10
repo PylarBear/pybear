@@ -8,9 +8,9 @@
 
 import pytest
 
-import uuid
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 from pybear.preprocessing._MinCountTransformer._validation._y \
@@ -26,28 +26,6 @@ class TestValY:
     # ) -> None:
 
 
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-    # pizza
-    # @staticmethod
-    # @pytest.fixture(scope='module')
-    # def _shape():
-    #     return (10, 10)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _y_np(_shape):
-        return np.random.randint(0, 10, _shape)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _columns(_shape):
-        return [str(uuid.uuid4())[:5] for _ in range(_shape[1])]
-
-    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
     @pytest.mark.parametrize('junk_y',
         (0, 1, True, 'junk', [1, 2], (1, 2), {1, 2}, {'a': 1}, lambda y: y)
     )
@@ -57,23 +35,22 @@ class TestValY:
             _val_y(junk_y)
 
 
-    def test_rejects_bad_container(self, _y_np, _columns, _shape):
+    def test_rejects_bad_container(self, X_np, y_np, _columns, _shape):
 
         with pytest.raises(TypeError):
-            _val_y(ss.csr_matrix(_y_np))
+            _val_y(ss.csr_matrix(y_np.reshape((-1,1))))
 
         with pytest.raises(TypeError):
-            _val_y(ss.coo_array(_y_np))
+            _val_y(ss.coo_array(y_np.reshape((-1,1))))
 
 
         # numpy_recarray ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-        _dtypes1 = [np.uint8 for _ in range(_shape[1]//2)]
-        _dtypes2 = ['<U1' for _ in range(_shape[1]//2)]
-        _formats = [list(zip(_columns, _dtypes1 + _dtypes2))]
         Y_NEW = np.recarray(
-            (_shape[0],), names=_columns, formats=_formats, buf=_y_np
+            (_shape[0], ),
+            names=list(_columns),
+            formats=[[(_columns[0], np.uint8)]],
+            buf=y_np
         )
-        del _dtypes1, _dtypes2, _formats
 
         with pytest.raises(TypeError):
             _val_y(Y_NEW)
@@ -81,24 +58,27 @@ class TestValY:
         # END numpy_recarray ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
-    def test_masked_array_warns(self, _y_np):
+    def test_masked_array_warns(self, y_np):
 
-        # numpy_masked_array ** ** ** ** ** ** ** ** ** ** ** ** ** **
         with pytest.warns():
-            _val_y(np.ma.array(_y_np))
-        # END numpy_masked_array ** ** ** ** ** ** ** ** ** ** ** ** **
+            _val_y(np.ma.array(y_np))
 
 
-    def test_accepts_good_y(self, _y_np, _columns):
+    def test_accepts_good_y(self, y_np, _columns):
 
         assert _val_y(None) is None
-        assert _val_y(_y_np) is None
-        assert _val_y(_y_np[:, 0].ravel()) is None
-        assert _val_y(pd.DataFrame(_y_np, columns=_columns)) is None
-        assert _val_y(
-            pd.DataFrame(_y_np, columns=_columns).iloc[0, :].to_frame()
-        ) is None
-        assert _val_y(pd.Series(_y_np[:, 0])) is None
+
+        assert _val_y(y_np) is None
+
+        assert _val_y(y_np.reshape((-1, 1))) is None
+
+        assert _val_y(pd.DataFrame(y_np.reshape((-1, 1)), columns=['y'])) is None
+
+        assert _val_y(pd.Series(y_np)) is None
+
+        assert _val_y(pl.from_numpy(y_np.reshape((-1,1)), schema=['y'])) is None
+
+        assert _val_y(pl.from_numpy(y_np.reshape((-1,1)))[:, 0]) is None
 
 
 

@@ -15,6 +15,9 @@ from pybear.preprocessing._MinCountTransformer._partial_fit. \
 
 pytest.skip(reason='pizza needs a lot of work', allow_module_level=True)
 # this is copied straight from CDT
+# need to prove out that parallel_dtype_unqs_cts is aggregated correctly
+
+
 class TestGetDtypesUnqsCts:
 
 
