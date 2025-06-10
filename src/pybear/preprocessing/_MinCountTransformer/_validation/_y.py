@@ -9,8 +9,10 @@
 from .._type_aliases import YContainer
 
 import warnings
+
 import numpy as np
 import pandas as pd
+import polars as pl
 
 
 
@@ -19,21 +21,19 @@ def _val_y(
 ) -> None:
 
     """
-    Validate the target for the data is a valid data container. Numpy
-    ndarrays, pandas dataframes, and pandas series are allowed. This
-    validation is performed for :meth: `partial_fit` and :meth: `fit`
-    even though y is ignored. This validation is also performed
-    for :meth: `transform` and is necessary because y may be passed to
-    transform and be reduced along the sample axis.
+    Validate the target for the data is a valid data container. If y is
+    not passed (i.e is py None) then this validation is bypassed. Numpy
+    ndarrays, pandas dataframes, pandas series, polars dataframes,
+    and polars series are allowed. This validation is only performed
+    for :meth: `transform` and is necessary because y may be reduced
+    along the sample axis.
 
 
     Parameters
     ----------
     _y:
-        Union[numpy.ndarray, pandas.DataFrame, pandas.Series, None] of
-        shape (n_samples, n_features) or (n_samples,). The target for
-        the data. Ignored in :meth: `partial_fit` and :meth: `fit`,
-        optional for :meth: `transform`.
+        Optional array-like of shape (n_samples, n_features) or list-like
+        of shape (n_samples,). The target for the data.
 
 
     Return
@@ -46,12 +46,8 @@ def _val_y(
 
     if not isinstance(
         _y,
-        (
-            type(None),
-            np.ndarray,
-            pd.core.frame.DataFrame,
-            pd.core.series.Series
-        )
+        (type(None), np.ndarray, pd.core.frame.DataFrame, pd.core.series.Series,
+        pl.DataFrame, pl.Series)
     ):
         raise TypeError(f'invalid data container for y, {type(_y)}.')
 

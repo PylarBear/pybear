@@ -6,12 +6,12 @@
 
 
 
-from typing import Sequence
 from typing_extensions import Union
 from .._type_aliases import (
     CountThresholdType,
     IgnoreColumnsType,
-    HandleAsBoolType
+    HandleAsBoolType,
+    FeatureNamesInType
 )
 from ...__shared._type_aliases import XContainer
 
@@ -39,7 +39,7 @@ def _validation(
     _reject_unseen_values: bool,
     _max_recursions: numbers.Integral,
     _n_features_in: int,
-    _feature_names_in: Union[Sequence[str], None]
+    _feature_names_in: Union[FeatureNamesInType, None]
 ) -> None:
 
     """
@@ -71,9 +71,9 @@ def _validation(
     _max_recursions:
         numbers.Integral
     _n_features_in:
-        Union[int, None]
+        int
     _feature_names_in:
-        Union[Sequence[str], None]
+        Union[FeatureNamesInType, None]
 
 
     Return
@@ -87,7 +87,9 @@ def _validation(
 
     _val_X(_X)
 
-    _val_any_integer(_n_features_in, 'n_features_in', _min=1)
+    _val_any_integer(_n_features_in, '_n_features_in', _min=1)
+    if _n_features_in != _X.shape[1]:
+        raise ValueError(f"_n_features_in != _X.shape[1]")
 
     _val_feature_names_in(
         _feature_names_in,
@@ -100,10 +102,13 @@ def _validation(
         _n_features_in
     )
 
-    _val_any_bool(_ignore_float_columns, 'ignore_float_columns', _can_be_None=False)
+    _val_any_bool(
+        _ignore_float_columns, 'ignore_float_columns', _can_be_None=False
+    )
 
     _val_any_bool(
-        _ignore_non_binary_integer_columns, '_ignore_non_binary_integer_columns',
+        _ignore_non_binary_integer_columns,
+        '_ignore_non_binary_integer_columns',
         _can_be_None=False
     )
 

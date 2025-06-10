@@ -6,14 +6,15 @@
 
 
 
-from typing_extensions import Union, Literal
+from typing import Literal
+from typing_extensions import Union
 from .._type_aliases import DataType
 
 
 
 def _one_unique(
     _threshold: int,
-    _nan_key: Union[float, str, Literal[False]],
+    _nan_key: Union[float, Literal[False]],
     _nan_ct: Union[int, Literal[False]],
     _COLUMN_UNQ_CT_DICT: dict[DataType, int],
 ) -> list[Union[Literal['DELETE COLUMN'], DataType]]:
@@ -21,15 +22,12 @@ def _one_unique(
     """
     Make delete instructions for a column with one unique non-nan value.
 
-    WHEN 1 item (NOT INCLUDING nan):
-    - if not ign nan and has nans
-        If not ignoring nan and ct_nan < thresh, delete the nan rows but
-        do not delete the other rows (would delete all rows.) If count of
-        non-nan value is ever below thresh, never delete rows, just delete
-        column.
-    - if ignoring nan or there are no nans
-        Do not delete impacted rows no matter what the dtype was or what
-        kwargs were given, would delete all rows.
+    *** CONSTANT COLUMNS ARE HANDLED DIFFERENTLY THAN OTHER DTYPES ***
+    No matter how many nans are in the column, or whether ignore_nan is
+    True or False, and no matter how many non-nan values are in the
+    column, or if either fall below the threshold, delete the column
+    without deleting any rows. After all, it is just a column of
+    constants with or without some nans mixed in.
 
 
     Parameters
@@ -37,27 +35,30 @@ def _one_unique(
     _threshold:
         int - the threshold value for the selected column
     _nan_key:
-        Union[float, str, Literal[False]] - the nan value found in the
-        data. as of 25_01 all nan-likes are converted to numpy.nan by
-        _columns_getter.
+        Union[float, Literal[False]] - the nan value found in the data.
+        all nan-likes are converted to numpy.nan by _columns_getter.
     _nan_ct:
         Union[int, Literal[False]] - the number of nans found in this
         column.
     _COLUMN_UNQ_CT_DICT:
         dict[DataType, int] - the value from _total_cts_by_column for
         this column which is a dictionary that holds the uniques and
-        their frequencies. cannot be empty.
+        their frequencies. must have 1 non-nan key:value pair in it (any
+        nan key:value pair that may have been it must have already been
+        removed.)
 
 
     Return
     ------
     -
-        _instr_list: list[Union[DataType, Literal['DELETE COLUMN']] -
-        the row and column operation instructions for this column.
+        _instr_list: list[Literal['DELETE COLUMN']] - the row and column
+        operation instructions for this column. Can only be to delete
+        the entire column without deleting rows.
 
     """
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     if 'nan' in list(map(str.lower, map(str, _COLUMN_UNQ_CT_DICT.keys()))):
         raise ValueError(f"nan-like is in _UNQ_CTS_DICT and should not be")
@@ -68,28 +69,16 @@ def _one_unique(
     if (_nan_ct is False) + (_nan_key is False) not in [0, 2]:
         raise ValueError(f"_nan_key is {_nan_key} and _nan_ct is {_nan_ct}")
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    if _nan_ct:
-        # if not ign nan and has nans, it must be the only value in the column
-        _instr_list = ['DELETE COLUMN']
-    elif not _nan_ct:
-        # if ignoring nan or there are no nans
-        _instr_list = ['DELETE COLUMN']
+    # this has been arrived at after several previous iterations where
+    # nan values and/or non-nan like values that were below threshold
+    # also had the corresponding rows deleted.
+    _instr_list = ['DELETE COLUMN']
 
 
     return _instr_list
-
-
-
-
-
-
-
-
-
-
 
 
 

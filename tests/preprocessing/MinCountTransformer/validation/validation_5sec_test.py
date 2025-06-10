@@ -6,12 +6,12 @@
 
 
 
-from pybear.preprocessing._MinCountTransformer._validation._validation \
-    import _validation
+import pytest
 
 import numpy as np
 
-import pytest
+from pybear.preprocessing._MinCountTransformer._validation._validation \
+    import _validation
 
 
 
@@ -34,11 +34,25 @@ class TestMCTValidation:
             _handle_as_bool=None,
             _reject_unseen_values=True,
             _max_recursions=2,
-            _n_features_in=3,
+            _n_features_in=10,
             _feature_names_in=None,
         )
 
 
+        _validation(
+            _X=np.random.randint(0, 10, (10, 10)),
+            _count_threshold=[2 for i in range(10)],
+            _ignore_float_columns=False,
+            _ignore_non_binary_integer_columns=False,
+            _ignore_nan=False,
+            _delete_axis_0=True,
+            _ignore_columns=[0, 2, 4],
+            _handle_as_bool=['f', 'g', 'h'],
+            _reject_unseen_values=False,
+            _max_recursions=1,
+            _n_features_in=10,
+            _feature_names_in=np.array(list('abcdefghij'))
+        )
 
 
 

@@ -6,18 +6,18 @@
 
 
 
-from typing import Optional, Sequence
+from typing import Optional
 from typing_extensions import Union
+from .._type_aliases import FeatureNamesInType
 
 from ...__shared._validation._any_integer import _val_any_integer
 
 
 
 def _val_feature_names_in(
-    _feature_names_in: Union[Sequence[str], None],
+    _feature_names_in: Union[FeatureNamesInType, None],
     _n_features_in: Optional[Union[int, None]]=None
 ) -> None:
-
 
     """
     Validate 'feature_names_in' is None or 1D list-like of strings. If
@@ -28,10 +28,9 @@ def _val_feature_names_in(
     Parameters
     ----------
     _feature_names_in:
-        Union[Sequence[str], None] - if MCT was fit on a data
-        container that had a header (e.g. pandas dataframe) then this is
-        a list-like of those feature names. Otherwise, is None.
-
+        FeatureNamesInType - if MCT was fit on a data container that
+        had a header (e.g. pandas or polars dataframe) then this is a
+        list-like of those feature names. Otherwise, is None.
     _n_features_in:
         Optional[Union[int, None]], default=None - the number of features
         in the data that was fit.
@@ -45,13 +44,15 @@ def _val_feature_names_in(
     """
 
 
-    _val_any_integer(_n_features_in, 'n_features_in', _min=1, _can_be_None=True)
+    _val_any_integer(
+        _n_features_in, '_n_features_in', _min=1, _can_be_None=True
+    )
 
 
     err_msg = (
         f"'_feature_names_in' must be None or a 1D list-like of strings "
-        f"indicating the feature names of a data-bearing object. if "
-        f"list-like and 'n_features_in' is provided, the length must "
+        f"indicating the feature names of a data-bearing object. \nIf "
+        f"list-like and '_n_features_in' is provided, the length must "
         f"equal '_n_features_in'."
     )
 
@@ -69,7 +70,7 @@ def _val_feature_names_in(
         pass
     except MemoryError:
         raise ValueError(err_msg)
-    except:
+    except Exception as e:
         raise TypeError(err_msg)
 
     del err_msg
@@ -80,9 +81,6 @@ def _val_feature_names_in(
                 f"len(_feature_names_in) ({len(_feature_names_in)}) must "
                 f"equal _n_features_in ({_n_features_in})"
             )
-
-
-
 
 
 

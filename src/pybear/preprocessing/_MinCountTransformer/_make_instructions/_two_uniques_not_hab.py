@@ -14,14 +14,12 @@ from .._type_aliases import DataType
 
 def _two_uniques_not_hab(
     _threshold: int,
-    _nan_key: Union[float, str, Literal[False]],
+    _nan_key: Union[float, Literal[False]],
     _nan_ct: Union[int, Literal[False]],
     _COLUMN_UNQ_CT_DICT: dict[DataType, int]
 ) -> list[Union[Literal['DELETE COLUMN'], DataType]]:
 
-
     """
-
     Make delete instructions for a column with two unique non-nan values.
 
     WHEN 2 items (NOT INCLUDING nan):
@@ -65,8 +63,8 @@ def _two_uniques_not_hab(
         _instr_list: list[Union[str, DataType]] - the row and column
         operations for this column.
 
-
     """
+
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -113,10 +111,6 @@ def _two_uniques_not_hab(
 
 
     return _instr_list
-
-
-
-
 
 
 

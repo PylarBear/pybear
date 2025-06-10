@@ -29,13 +29,9 @@ def _val_delete_instr(
     Parameters
     ----------
     _delete_instr:
-        dict[
-            int,
-            list[Union[any, Literal['INACTIVE'], Literal['DELETE COLUMN']]]
-        ] -
-        the recipe for deleting values and columns from the data derived
-        from the unqs_ct_dict and the parameter values passed to the MCT
-        instance.
+        InstructionsType - the recipe for deleting values and columns
+        derived from the unqs_ct_dict, which holds the unique values and
+        their frequencies in data passed to the MCT instance.
     _n_features_in:
         int - the number of features in the data.
 
@@ -51,9 +47,9 @@ def _val_delete_instr(
 
     _err_msg = (
         f"'_delete_instr' must be a dictionary with an entry for each "
-        f"feature in the data. the keys must be the integer column indices "
-        f"of the features and the values must be lists that hold the "
-        f"values to be removed from the data for that column. "
+        f"feature in the data. \nthe keys must be the integer column "
+        f"indices of the features and the values must be lists that hold "
+        f"the values to be removed from the data for that column. "
     )
 
 
@@ -83,7 +79,7 @@ def _val_delete_instr(
                     f"_delete_instr[{col_idx}]"
                 )
 
-            if len([_ for _ in _instr if _ == 'DELETE ALL']) > 1:
+            if len([i for i in _instr if i == 'DELETE ALL']) > 1:
                 raise ValueError(
                     f"'DELETE ALL' is in _delete_instr[{col_idx}] more "
                     f"than once"
@@ -104,7 +100,7 @@ def _val_delete_instr(
                     f"_delete_instr[{col_idx}]"
                 )
 
-            if len([_ for _ in _instr if _ == 'DELETE COLUMN']) > 1:
+            if len([i for i in _instr if i == 'DELETE COLUMN']) > 1:
                 raise ValueError(
                     f"'DELETE COLUMN' is in _delete_instr[{col_idx}] more "
                     f"than once"

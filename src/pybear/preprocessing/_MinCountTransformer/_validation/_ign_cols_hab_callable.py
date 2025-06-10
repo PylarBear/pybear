@@ -6,10 +6,15 @@
 
 
 
-from typing import Sequence, Literal
+from typing import (
+    Literal,
+    Sequence
+)
 from typing_extensions import Union
+from .._type_aliases import FeatureNamesInType
 
 import numbers
+
 import numpy as np
 
 from ....utilities._nan_masking import nan_mask_numerical
@@ -25,7 +30,7 @@ def _val_ign_cols_hab_callable(
     _first_fxn_output: Union[Sequence[str], Sequence[numbers.Integral], None],
     _name: Literal['ignore_columns', 'handle_as_bool'],
     _n_features_in: int,
-    _feature_names_in: Union[Sequence[str], None]
+    _feature_names_in: Union[FeatureNamesInType, None]
 ) -> None:
 
     """
@@ -63,12 +68,12 @@ def _val_ign_cols_hab_callable(
         outputs of the callable equal the first.
     _name:
         Literal['ignore_columns', 'handle_as_bool'] - the name of the
-        parameter for which a callable was passed
+        parameter for which a callable was passed.
     _n_features_in:
-        int - the number of features in the data
+        int - the number of features in the data.
     _feature_names_in:
-        Union[Sequence[str], None] - the feature names of a data-bearing
-        object
+        Union[FeatureNamesInType, None] - the feature names of a
+        data-bearing object.
 
 
     Return
@@ -76,18 +81,14 @@ def _val_ign_cols_hab_callable(
     -
         None
 
-
     """
 
 
-    _val_any_integer(_n_features_in, 'n_features_in', _min=1)
+    _val_any_integer(_n_features_in, '_n_features_in', _min=1)
 
-    _val_feature_names_in(
-        _feature_names_in,
-        _n_features_in
-    )
+    _val_feature_names_in(_feature_names_in, _n_features_in)
 
-    # validate _name ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # validate _name ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     err_msg = f"'_name' must be 'ignore_columns' or 'handle_as_bool'"
     if not isinstance(_name, str):
         raise TypeError(err_msg)
@@ -95,32 +96,32 @@ def _val_ign_cols_hab_callable(
     if _name not in ['ignore_columns', 'handle_as_bool']:
         raise ValueError(err_msg)
     del err_msg
-    # END validate _name ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validate _name ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     err_msg = (
         f"{_name}: when a callable is used, the callable must return a "
-        f"1D list-like containing all integers indicating column indices "
-        f"or all strings indicating column names. "
+        f"\n1D list-like containing all integers indicating column indices "
+        f"\nor all strings indicating column names. "
     )
 
     # do not use the generic validation from _val_ignore_columns_handle_as_bool
     # here. use the special verbiage for callables.
 
-    # pass the most current callable output thru this just in case the output
-    # has mutated into garbage. if after the first pass, we know the first
-    # pass was good, so the output would have changed significantly.
+    # pass the most current callable output thru this just in case the
+    # output has mutated into garbage. if after the first pass, we know the
+    # first pass was good, so the output would have changed significantly.
 
-    # verify is sequence -- -- -- -- -- -- -- -- -- -- -- -- -- --
-    _addon = f"got type {type(_fxn_output)}"
+    # verify is sequence -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    _addon = f"\ngot type {type(_fxn_output)}"
     try:
         iter(_fxn_output)
         if isinstance(_fxn_output, (str, dict)):
             raise Exception
         if len(np.array(list(_fxn_output)).shape) != 1:
-            _addon = f"got {len(np.array(list(_fxn_output)).shape)}D."
+            _addon = f"\ngot {len(np.array(list(_fxn_output)).shape)}D."
             raise Exception
-    except:
+    except Exception as e:
         raise TypeError(err_msg + _addon)
     del _addon
 
@@ -137,22 +138,22 @@ def _val_ign_cols_hab_callable(
     # do not use .astype(np.float64) to check if is num/str!
     # ['0787', '5927', '4060', '2473'] will pass and be treated as
     # column indices when they are actually column headers.
-    elif all(map(isinstance, _fxn_output, (str for _ in _fxn_output))):
+    elif all(map(isinstance, _fxn_output, (str for i in _fxn_output))):
         is_str = True
     elif all(map(
-        isinstance, _fxn_output, (numbers.Real for _ in _fxn_output)
+        isinstance, _fxn_output, (numbers.Real for i in _fxn_output)
     )):
         # ensure all are integers
         if any(map(isinstance, _fxn_output, (bool for _ in _fxn_output))):
-            raise TypeError(err_msg + f"got a boolean.")
+            raise TypeError(err_msg + f"\ngot a boolean.")
         if np.any(nan_mask_numerical(np.array(list(_fxn_output), dtype=object))):
-            raise TypeError(err_msg + f"got a nan-like value.")
+            raise TypeError(err_msg + f"\ngot a nan-like value.")
         if not all(map(lambda x: int(x)==x, _fxn_output)):
-            raise TypeError(err_msg + f"got a non-integer number.")
+            raise TypeError(err_msg + f"\ngot a non-integer number.")
         is_num = True
     else:
-        raise TypeError(err_msg + f"got a non-string/numeric value.")
-    # END if list-like validate contents are all str or all int ** * ** *
+        raise TypeError(err_msg + f"\ngot a non-string/numeric value.")
+    # END if list-like validate contents are all str or all int ** * **
 
     del err_msg
 
@@ -163,13 +164,15 @@ def _val_ign_cols_hab_callable(
     if _first_fxn_output is not None:
         if not np.array_equal(_fxn_output, _first_fxn_output):
             raise ValueError(
-                f"every call to the '{_name}' callable must produce the same "
-                f"output across a series of partial fits or transforms. the "
-                f"current output is different than the first seen output. "
+                f"every call to the '{_name}' callable must produce the "
+                f"same output across a series of partial fits or transforms. "
+                f"\nthe current output is different than the first seen "
+                f"output. "
                 f"\ngot: {_fxn_output}"
                 f"\nexpected: {_first_fxn_output}"
             )
 
+        # notice that we return here when first_fxn_output is available
         return
 
     # v v v all of this should only be accessed on the first partial_fit/transform
@@ -180,17 +183,16 @@ def _val_ign_cols_hab_callable(
         if _feature_names_in is None:
             raise ValueError(
                 f"the '{_name}' callable produced a vector of strings but "
-                f"the features names of the data are not provided. if feature "
-                f"names are not available, then the callable must produce a "
-                f"vector of integers."
+                f"the features names of the data are not provided. \nif "
+                f"feature names are not available, then the callable must "
+                f"produce a vector of integers."
             )
         elif _feature_names_in is not None:   # must be 1D vector of strings
-
             for _feature in _fxn_output:
                 if _feature not in _feature_names_in:
                     raise ValueError(
                         f"the feature name '{_feature}' produced by the "
-                        f"{_name} callable is not in 'feature_names_in'"
+                        f"'{_name}' callable is not in 'feature_names_in'"
                     )
     elif is_num:
         _err_msg = lambda _value: (

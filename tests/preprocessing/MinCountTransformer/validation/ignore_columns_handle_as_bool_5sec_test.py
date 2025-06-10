@@ -6,15 +6,16 @@
 
 
 
-from pybear.preprocessing._MinCountTransformer._validation. \
-    _ignore_columns_handle_as_bool import _val_ignore_columns_handle_as_bool
+import pytest
 
-import uuid
 from copy import deepcopy
+import uuid
+
 import numpy as np
 import pandas as pd
 
-import pytest
+from pybear.preprocessing._MinCountTransformer._validation. \
+    _ignore_columns_handle_as_bool import _val_ignore_columns_handle_as_bool
 
 
 
@@ -23,11 +24,11 @@ class TestValIgnoreColumns:
     # def _val_ignore_columns_handle_as_bool(
     #     _value: Union[IgnoreColumnsType, HandleAsBoolType],
     #     _name: Literal['ignore_columns', 'handle_as_bool'],
-    #     _allowed: Sequence[
-    #         Union[Literal['callable', 'Sequence[str]', 'Sequence[int]', 'None']],
-    #     ],
+    #     _allowed: Sequence[Union[Literal[
+    #         'callable', 'Sequence[str]', 'Sequence[int]', 'None'
+    #     ]]],
     #     _n_features_in: int,
-    #     _feature_names_in: Union[Sequence[str], None]=None
+    #     _feature_names_in: Optional[Union[FeatureNamesInType, None]]=None
     # ) -> None:
 
 
@@ -123,7 +124,7 @@ class TestValIgnoreColumns:
 
     # END _allowed -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-    # END helper param validation ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END helper param validation ** * ** * ** * ** * ** * ** * ** * **
 
 
 
@@ -335,7 +336,7 @@ class TestValIgnoreColumns:
                 feature_names_in
             )
 
-    # END test values in list-like ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END test values in list-like ** * ** * ** * ** * ** * ** * ** * **
 
 
 

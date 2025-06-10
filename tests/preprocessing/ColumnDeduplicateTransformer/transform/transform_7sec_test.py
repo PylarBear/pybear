@@ -106,7 +106,8 @@ class TestTransform:
         # END BUILD_X v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
         # build the column mask for the parameter inputs - - - - - - - - - - -
-        # this would otherwise be done by _identify_idxs_to_delete.... pizza come back... does the file exist anymore?
+        # this would otherwise be done by _identify_idxs_to_delete....
+        # pizza come back... does the file exist anymore?
 
         # when not equal_nan, all columns must be unequal (full mask, all
         # columns are kept) because every column in X gets some nans

@@ -16,8 +16,8 @@ import pytest
 class TestValDeleteInstr:
 
     # def _val_delete_instr(
-    #         _delete_instr: InstructionsType,
-    #         _n_features_in: int
+    #     _delete_instr: InstructionsType,
+    #     _n_features_in: int
     # ) -> None:
 
      # _n_features_in handled by _val_n_features_in

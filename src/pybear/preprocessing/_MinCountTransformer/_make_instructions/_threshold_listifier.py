@@ -6,8 +6,8 @@
 
 
 
-from typing import Sequence
 from typing_extensions import Union
+from .._type_aliases import CountThresholdType
 
 import numbers
 
@@ -17,15 +17,15 @@ from .._validation._count_threshold import _val_count_threshold
 
 def _threshold_listifier(
     _n_features_in: int,
-    *_threshold: Union[numbers.Integral, Sequence[numbers.Integral]]
+    *_threshold: CountThresholdType
 ) -> Union[list[int], tuple[list[int], ...]]:
 
     """
-    Return '_threshold' as list-like(s) of integers with number of entries
-    equaling the number of features in the data. Any number of threshold
-    values can be passed as positional arguments to be converted to a
-    list, if not already a list. This module will return the number of
-    threshold values that are passed to it.
+    Return '_threshold' as list-like(s) of integers with number of
+    entries equaling the number of features in the data. Any number of
+    threshold values can be passed as positional arguments to be
+    converted to a list, if not already a list. This module will return
+    the number of threshold values that are passed to it.
 
 
     Parameters
@@ -33,9 +33,9 @@ def _threshold_listifier(
     _n_features_in:
         int - the number of features in the data.
     *_threshold:
-        Union[numbers.Integral, Sequence[numbers.Integral]] - the
-        threshold value(s) to be converted to list[int]. Any number of
-        threshold values can be passed as positional arguments.
+        CountThresholdType - the threshold value(s) to be converted to
+        list[int]. Any number of threshold values can be passed as
+        positional arguments.
 
 
     Return
@@ -45,30 +45,26 @@ def _threshold_listifier(
         a single list[int] or a tuple of list[int]s that indicate the
         threshold for each feature in the data.
 
-
     """
 
 
-    _threshold_lists = []
+    _threshold_lists: list[list[int]] = []
     for _threshold_entry in _threshold:
 
-        # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
         # _n_features_in is validated by _val_count_threshold
-
         _val_count_threshold(
             _threshold_entry,
             ['int', 'Sequence[int]'],
             _n_features_in
         )
-
-        # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
         if isinstance(_threshold_entry, numbers.Integral):
             _threshold_lists.append(
                 [int(_threshold_entry) for _ in range(_n_features_in)]
             )
         else:
+            # if not int, must be Sequence[int] because of validation
             _threshold_lists.append(list(map(int, _threshold_entry)))
 
 
@@ -76,10 +72,6 @@ def _threshold_listifier(
         return _threshold_lists[0]
     else:
         return tuple(_threshold_lists)
-
-
-
-
 
 
 

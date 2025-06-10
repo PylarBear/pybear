@@ -6,20 +6,21 @@
 
 
 
-from pybear.preprocessing._MinCountTransformer._validation. \
-    _count_threshold import _val_count_threshold
+import pytest
 
 import re
+
 import numpy as np
 
-import pytest
+from pybear.preprocessing._MinCountTransformer._validation. \
+    _count_threshold import _val_count_threshold
 
 
 
 class TestValCountThreshold:
 
 
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     @staticmethod
     @pytest.fixture(scope='module')
@@ -32,11 +33,11 @@ class TestValCountThreshold:
     def err_quip_2():
         return "the length of the sequence also must "
 
-    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     # other validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # dont need to test _val_n_features, handled elsewhere
+    # dont need to test _val_any_integer, handled elsewhere
 
     @pytest.mark.parametrize(f'junk_allowed',
         (-2.7, -1, 0, 1, 2.7, True, None, 'trash', {'a':1}, lambda x: x)
@@ -213,8 +214,6 @@ class TestValCountThreshold:
             )
 
             assert out is None
-
-
 
 
 

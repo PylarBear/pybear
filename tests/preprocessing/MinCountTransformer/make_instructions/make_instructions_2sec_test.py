@@ -15,68 +15,61 @@ from pybear.preprocessing._MinCountTransformer._make_instructions. \
 
 
 
-
-# def _make_instructions(
-#     _count_threshold: int,
-#     _ignore_float_columns: bool,
-#     _ignore_non_binary_integer_columns: bool,
-#     _ignore_columns: np.ndarray[int],
-#     _ignore_nan: bool,
-#     _handle_as_bool: np.ndarray[int],
-#     _delete_axis_0: bool,
-#     _original_dtypes: OriginalDtypesType,
-#     _n_features_in: int,
-#     _feature_names_in: Union[npt.NDArray[object], None],
-#     _total_counts_by_column: TotalCountsByColumnType
-# ) -> InstructionsType:
-
-
-
-
-@pytest.fixture
-def good_tcbc():
-
-    return {
-        0: {'a': 500, 'b': 350, 'c': 100, np.nan: 50},
-        1: {0: 640, 1: 350, np.nan: 10},
-        2: {0: 200, 2.718: 400, 3.141: 300, 6.638: 50, 8.834: 40, np.nan: 10},
-        3: {0: 600, 1: 200, 2: 100, 3: 50, 4: 25, np.nan: 25}
-    }
-
-
-@pytest.fixture
-def good_og_dtypes():
-
-    return np.array(['obj', 'int', 'float', 'int'], dtype='<U5')
-
-
-
-
 class TestMakeInstructions:
 
 
+    # def _make_instructions(
+    #     _count_threshold: CountThresholdType,
+    #     _ignore_float_columns: bool,
+    #     _ignore_non_binary_integer_columns: bool,
+    #     _ignore_columns: InternalIgnoreColumnsType,
+    #     _ignore_nan: bool,
+    #     _handle_as_bool: InternalHandleAsBoolType,
+    #     _delete_axis_0: bool,
+    #     _original_dtypes: OriginalDtypesType,
+    #     _n_features_in: int,
+    #     _feature_names_in: Union[FeatureNamesInType, None],
+    #     _total_counts_by_column: TotalCountsByColumnType
+    # ) -> InstructionsType:
+
+
+    @staticmethod
+    @pytest.fixture
+    def good_tcbc():
+
+        return {
+            0: {'a': 500, 'b': 350, 'c': 100, np.nan: 50},
+            1: {0: 640, 1: 350, np.nan: 10},
+            2: {0: 200, 2.718: 400, 3.141: 300, 6.638: 50, 8.834: 40, np.nan: 10},
+            3: {0: 600, 1: 200, 2: 100, 3: 50, 4: 25, np.nan: 25}
+        }
+
+
+    @staticmethod
+    @pytest.fixture
+    def good_og_dtypes():
+
+        return np.array(['obj', 'int', 'float', 'int'], dtype='<U5')
+
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+
     # all the _validation is handled in individual modules, and tested indiv
+    # _make_instructions_validation(
+    #     _count_threshold,
+    #     _ignore_float_columns,
+    #     _ignore_non_binary_integer_columns,
+    #     _ignore_columns,
+    #     _ignore_nan,
+    #     _handle_as_bool,
+    #     _delete_axis_0,
+    #     _original_dtypes,
+    #     _n_features_in,
+    #     _feature_names_in,
+    #     _total_counts_by_column,
+    # )
 
-    """
-    # _validation
-    _count_threshold, _ignore_columns, _handle_as_bool, _original_dtypes, \
-    _total_counts_by_column, _threshold = \
-        _make_instructions_validation(
-            _count_threshold,
-            _ignore_float_columns,
-            _ignore_non_binary_integer_columns,
-            _ignore_columns,
-            _ignore_nan,
-            _handle_as_bool,
-            _delete_axis_0,
-            _original_dtypes,
-            _n_features_in,
-            _feature_names_in,
-            _total_counts_by_column
-        )
-    """
-
-    # random spot check _validation
+    # random spot check _validation when accessing _make_instructinos
     @pytest.mark.parametrize('junk_value',
         (-1, 0, 1, 2.7, 'junk', np.nan, {1: 2})
     )
@@ -127,8 +120,7 @@ class TestMakeInstructions:
                 _total_counts_by_column=good_tcbc
             )
 
-
-    def test_it_runs(self, good_tcbc, good_og_dtypes):
+        # accepts all good
         _make_instructions(
             _count_threshold=100,
             _ignore_float_columns=True,
@@ -143,12 +135,10 @@ class TestMakeInstructions:
             _total_counts_by_column=good_tcbc
         )
 
+    # END random spot check validation ** * ** * ** * ** * ** * ** * **
 
 
-    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-
+    # TEST EDGE CASES ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     def test_ignore_all_columns_returns_all_inactive(
         self, good_tcbc, good_og_dtypes
     ):
@@ -171,6 +161,7 @@ class TestMakeInstructions:
 
 
     def test_empty_tcbcs_returns_all_inactive(self, good_og_dtypes):
+
         out = _make_instructions(
             _count_threshold=100,
             _ignore_float_columns=True,
@@ -189,6 +180,14 @@ class TestMakeInstructions:
 
 
     def test_ignore_all_floats_returns_all_inactive(self, good_og_dtypes):
+
+        _tcbc = {}
+        for _ in range(4):
+            _tcbc[_] = {
+                np.random.uniform(0, 1): np.random.randint(0, 10)
+                for i in range(10)
+            }
+
         out = _make_instructions(
             _count_threshold=100,
             _ignore_float_columns=True,
@@ -200,7 +199,7 @@ class TestMakeInstructions:
             _original_dtypes=np.array(['float' for _ in good_og_dtypes]),
             _n_features_in=len(good_og_dtypes),
             _feature_names_in=None,
-            _total_counts_by_column={idx:{} for idx in range(len(good_og_dtypes))}
+            _total_counts_by_column=_tcbc
         )
 
         assert out == {idx: ['INACTIVE'] for idx in range(4)}
@@ -232,8 +231,8 @@ class TestMakeInstructions:
         _tcbc = {}
         for _ in range(4):
             _tcbc[_] = {
-                np.random.uniform(0, 1):
-                    np.random.randint(0, 10) for i in range(10)
+                np.random.uniform(0, 1): np.random.randint(0, 10)
+                for i in range(10)
             }
 
         out = _make_instructions(
@@ -250,17 +249,18 @@ class TestMakeInstructions:
             _total_counts_by_column=_tcbc
         )
 
-        for _key in out:
-            assert out[_key][-2] == 'DELETE ALL'
-            assert out[_key][-1] == 'DELETE COLUMN'
+        for _instr in out.values():
+            assert len(_instr) == 2
+            assert _instr[-2] == 'DELETE ALL'
+            assert _instr[-1] == 'DELETE COLUMN'
 
 
     @pytest.mark.parametrize('tcbc',
         (
-        {0: {'a': 500}},
-        {0: {'a': 475, np.nan: 25}},
-        {0: {'a':250, 'b': 200, np.nan: 50}},
-        {0: {'a': 250, 'b': 200, 'c': 25, np.nan: 25}}
+            {0: {'a': 500}},
+            {0: {'a': 475, np.nan: 25}},
+            {0: {'a':250, 'b': 200, np.nan: 50}},
+            {0: {'a': 250, 'b': 200, 'c': 25, np.nan: 25}}
         )
     )
     def test_rejects_str_into_hab(self, tcbc):
@@ -280,12 +280,31 @@ class TestMakeInstructions:
                 _total_counts_by_column=tcbc
             )
 
-    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
+    def test_a_column_of_all_nans(self):
+
+        out = _make_instructions(
+            _count_threshold=5,
+            _ignore_float_columns=False,
+            _ignore_non_binary_integer_columns=False,
+            _ignore_columns=[],
+            _ignore_nan=False,
+            _handle_as_bool=[],
+            _delete_axis_0=False,
+            _original_dtypes=np.array(['float']),
+            _n_features_in=1,
+            _feature_names_in=None,
+            _total_counts_by_column={0: {np.nan: 1194}}
+        )
+
+        assert out == {0: ['DELETE COLUMN']}
+
+    # END TEST EDGE CASES ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     def test_accuracy(self):
 
+        # run of the mill integer data
         out = _make_instructions(
             _count_threshold=5,
             _ignore_float_columns=True,
@@ -303,12 +322,11 @@ class TestMakeInstructions:
             }
         )
 
-        # even tho _delete_axis_0 is True, not 'DELETE ALL' because
-        # it is a constant column, which never has rows deleted.
         assert out == {0: [1, 3], 1: [0, 2, 4]}
 
-        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
+        # a constant column
         out = _make_instructions(
             _count_threshold=5,
             _ignore_float_columns=True,
@@ -327,8 +345,9 @@ class TestMakeInstructions:
         # it is a constant column, which never has rows deleted.
         assert out == {0: ['DELETE COLUMN']}
 
-        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
+        # a column where all but one of the values is deleted
         out = _make_instructions(
             _count_threshold=5,
             _ignore_float_columns=True,
@@ -344,48 +363,6 @@ class TestMakeInstructions:
         )
 
         assert out == {0: ['a', 'c', np.nan, 'DELETE COLUMN']}
-
-        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-        out = _make_instructions(
-            _count_threshold=5,
-            _ignore_float_columns=False,
-            _ignore_non_binary_integer_columns=False,
-            _ignore_columns=[],
-            _ignore_nan=False,
-            _handle_as_bool=[],
-            _delete_axis_0=False,
-            _original_dtypes=np.array(['float']),
-            _n_features_in=1,
-            _feature_names_in=None,
-            _total_counts_by_column={0: {1.969: 3, 2.718: 2, 3.141: 3}}
-        )
-
-        assert out == {0: ['DELETE ALL', 'DELETE COLUMN']}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -6,12 +6,12 @@
 
 
 
-from pybear.preprocessing._MinCountTransformer._make_instructions. \
-    _validation._total_counts_by_column import _val_total_counts_by_column
+import pytest
 
 from copy import deepcopy
 
-import pytest
+from pybear.preprocessing._MinCountTransformer._make_instructions. \
+    _validation._total_counts_by_column import _val_total_counts_by_column
 
 
 
@@ -29,7 +29,7 @@ class TestValTotalCountsByColumns:
 
 
     @pytest.mark.parametrize('_non_dict',
-        (0, 3.14, True, None, 'junk', min, [1,2], (1,2), {1,2}, {'a':1}, lambda x: x)
+        (0, 3.14, True, None, 'junk', min, [1,2], (1,2), {1,2}, lambda x: x)
     )
     def test_type_error_non_dict(self, _non_dict):
 
@@ -37,16 +37,14 @@ class TestValTotalCountsByColumns:
             _val_total_counts_by_column(_non_dict)
 
 
-
     @pytest.mark.parametrize('_junk_outer_key',
         (3.14, None, 'junk', min, (1,2), lambda x: x)
     )
     def test_type_error_non_integer_outer_keys(self, good_tcbc, _junk_outer_key):
 
-        # for some reason, this bools are getting thru TypeError part and being
+        # for some reason, bools are getting thru TypeError part and being
         # caught by ValueError... might have something to do with pytest
         # fixtures. independently verified TypeError does catch bools.
-
 
         for outer_key in good_tcbc:
 
@@ -70,7 +68,6 @@ class TestValTotalCountsByColumns:
                 _val_total_counts_by_column(bad_tcbc)
 
 
-
     @pytest.mark.parametrize('_junk_inner_dict',
         (3.14, True, None, 'junk', min, [1,2], (1,2), lambda x: x)
     )
@@ -86,9 +83,7 @@ class TestValTotalCountsByColumns:
 
 
     @pytest.mark.parametrize('_junk_inner_dict_key', ((1,2,3,4), ('a','b','c')))
-    def test_type_error_inner_key_sequence(
-        self, good_tcbc, _junk_inner_dict_key
-    ):
+    def test_type_error_inner_key_sequence(self, good_tcbc, _junk_inner_dict_key):
 
         for outer_key in good_tcbc:
 
@@ -119,12 +114,8 @@ class TestValTotalCountsByColumns:
                 _val_total_counts_by_column(bad_tcbc)
 
 
-    @pytest.mark.parametrize('_bad_inner_dict_value',
-        (-2, -1)
-    )
-    def test_value_error_bad_inner_values(
-        self, good_tcbc, _bad_inner_dict_value
-    ):
+    @pytest.mark.parametrize('_bad_inner_dict_value', (-2, -1))
+    def test_value_error_bad_inner_values(self, good_tcbc, _bad_inner_dict_value):
 
         for outer_key in good_tcbc:
 
@@ -143,19 +134,6 @@ class TestValTotalCountsByColumns:
     def test_accepts_empty_inner_dicts(self):
         good_tcbc = {0: {'a':25, 'b':10}, 1: {}, 2:{}, 3: {0: 17, 1:28}}
         assert _val_total_counts_by_column(good_tcbc) is None
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
