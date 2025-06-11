@@ -10,15 +10,12 @@ import pytest
 
 import numpy as np
 
-from pybear.preprocessing._MinCountTransformer._partial_fit. \
-    _get_dtypes_unqs_cts import _get_dtypes_unqs_cts
-
-pytest.skip(reason='pizza needs a lot of work', allow_module_level=True)
-# this is copied straight from CDT
-# need to prove out that parallel_dtype_unqs_cts is aggregated correctly
+from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
+    _find_duplicates import _find_duplicates
 
 
-class TestGetDtypesUnqsCts:
+
+class TestFindDuplicates:
 
 
     @staticmethod
@@ -47,11 +44,12 @@ class TestGetDtypesUnqsCts:
 
     @pytest.mark.parametrize('_format',
         (
-         'coo_matrix', 'dia_matrix', 'bsr_matrix',
-         'coo_array', 'dia_array', 'bsr_array'
+            'coo_matrix', 'coo_array', 'dia_matrix', 'dia_array',
+            'bsr_matrix', 'bsr_array', 'csr_matrix', 'csr_array',
+            'lil_matrix', 'lil_array', 'dok_matrix', 'dok_array'
         )
     )
-    def test_blocks_ss_coo_dia_bsr(self, _X_factory, _format, _shape, _dupl1):
+    def test_blocks_ss_not_csc(self, _X_factory, _format, _shape, _dupl1):
 
         _X_wip = _X_factory(
             _dupl=_dupl1,
@@ -59,20 +57,22 @@ class TestGetDtypesUnqsCts:
             _dtype='flt',
             _has_nan=False,
             _columns=None,
-            _zeros=0.25,
+            _zeros=0.75,
             _shape=_shape
         )
 
         with pytest.raises(AssertionError):
-            _get_dtypes_unqs_cts(
+            _find_duplicates(
                 _X_wip,
                 _rtol=1e-5,
                 _atol=1e-8,
-                _equal_nan=True
+                _equal_nan=True,
+                _n_jobs=1,   # leave set a 1 because of confliction
+                _job_size=20
             )
 
 
-    @pytest.mark.parametrize('_dtype', ('flt', 'str', 'obj', 'hybrid'))
+    @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_dupl_set', (1, 2, 3, 4))
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_equal_nan', (True, False))
@@ -83,7 +83,7 @@ class TestGetDtypesUnqsCts:
     ):
 
         # skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- --
-        if _dtype not in ('np', 'pd', 'pl') and _dtype not in ('int', 'flt'):
+        if _format not in ('np', 'pd', 'pl') and _dtype not in ('int', 'flt'):
             pytest.skip(reason=f'scipy sparse cannot take str')
         # END skip impossible conditions -- -- -- -- -- -- -- -- -- --
 
@@ -103,14 +103,15 @@ class TestGetDtypesUnqsCts:
             _format=_format,
             _dtype=_dtype,
             _has_nan=_has_nan,
-            _columns=None,
+            _columns=_columns if _format in ['pd', 'pl'] else None,
             _zeros=0.25,
             _shape=_shape
         )
 
-
-        out = _get_dtypes_unqs_cts(
-            _X_wip, _rtol=1e-5, _atol=1e-8, _equal_nan=_equal_nan
+        # leave n_jobs set at 1 because of confliction
+        out = _find_duplicates(
+            _X_wip, _rtol=1e-5, _atol=1e-8,
+            _equal_nan=_equal_nan, _n_jobs=1, _job_size=20
         )
 
         if (not _equal_nan and _has_nan) or _dupl_set in [2]:
@@ -148,8 +149,9 @@ class TestGetDtypesUnqsCts:
         assert np.sum(_X_wip.toarray()) == 0
 
         # leave set a 1 because of confliction
-        out = _get_dtypes_unqs_cts(
-            _X_wip, _rtol=1e-5, _atol=1e-8, _equal_nan=True
+        out = _find_duplicates(
+            _X_wip, _rtol=1e-5, _atol=1e-8, _equal_nan=True,
+            _n_jobs=1, _job_size=20
         )
 
         assert np.array_equal(out[0], list(range(_shape[1])))

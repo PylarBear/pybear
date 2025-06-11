@@ -6,13 +6,11 @@
 
 
 
-from typing import Literal
-from typing_extensions import Union
 import numpy.typing as npt
 from .._type_aliases import (
-    DataType,
     InternalXContainer,
-    TotalCountsByColumnType
+    TotalCountsByColumnType,
+    InstructionsType
 )
 
 import numpy as np
@@ -25,10 +23,7 @@ from .._partial_fit._columns_getter import _columns_getter
 def _make_row_and_column_masks(
     _X: InternalXContainer,
     _total_counts_by_column: TotalCountsByColumnType,
-    _delete_instr: dict[
-        int,
-        Union[Literal['INACTIVE', 'DELETE ALL', 'DELETE COLUMN'], DataType]
-    ],
+    _delete_instr: InstructionsType,
     _reject_unseen_values: bool
 ) -> tuple[npt.NDArray[bool], npt.NDArray[bool]]:
 
@@ -44,11 +39,10 @@ def _make_row_and_column_masks(
     Parameters
     ----------
     _X:
-        Union[np.ndarray, pd.DataFrame, scipy.sparse] - the data to be
-        transformed.
+        InternalXContainer - the data to be transformed.
     _total_counts_by_column:
-        dict[int, dict[DataType, int]] - dictionary holding the uniques
-        and their counts for each column.
+        TotalCountsByColumnTime - dictionary holding the uniques and
+        their counts for each column.
     _delete_instr:
         InstructionsType - a dictionary that is keyed by column index
         and the values are lists. Within the lists is information about
@@ -76,21 +70,20 @@ def _make_row_and_column_masks(
     Return
     ------
     -
-        tuple[ROW_KEEP_MASK, COLUMN_KEEP_MASK]:
-            tuple[np.ndarray[bool], np.ndarray[bool] - the masks for the
-            rows and columns to keep in binary integer format.
+        tuple[ROW_KEEP_MASK, COLUMN_KEEP_MASK]: tuple[np.ndarray[bool],
+        np.ndarray[bool] - the masks for the rows and columns to keep in
+        binary integer format.
 
     """
 
 
     # MAKE COLUMN DELETE MASK ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    _delete_columns_mask = np.zeros(_X.shape[1], dtype=np.uint32)
+    _delete_columns_mask = np.zeros(_X.shape[1], dtype=np.uint8)
 
     for col_idx, _instr in _delete_instr.items():
         if 'DELETE COLUMN' in _instr:
             _delete_columns_mask[col_idx] += 1
-            _instr = _instr[:-1]
 
     # END MAKE COLUMN DELETE MASK ** * ** * ** * ** * ** * ** * ** * **
 
@@ -111,23 +104,23 @@ def _make_row_and_column_masks(
             else:
                 _ACTIVE_COL_IDXS.append(col_idx)
 
-        # as of 25_05_29 no longer using joblib. even with sending chunks of
-        # X instead of single columns across joblib it still wasnt a
-        # benefit. The cost of serializing the data is not worth it for the
-        # light task of building & summing binary vectors.
+        # no longer using joblib. even with sending chunks of X instead
+        # of single columns across joblib it still wasnt a benefit. The
+        # cost of serializing the data is not worth it for the light
+        # task of building & summing binary vectors.
 
-        # the original attempt at this was passing all col indices in _X to
-        # columns_getter and passing the whole thing as np to _prm. It
-        # turned out that this was creating a brief but huge spike in RAM
-        # because a full copy of the entire _X was being made. so trade off
-        # by pulling smaller chunks of _X and passing to _prm... this gives
-        # the benefit of less calls to _columns_getter & _prm than would be
-        # if pulling one column at a time, still with some memory spike but
-        # much smaller, and get some economy of scale with the speed of
-        # scanning a ndarray chunk.
+        # the original attempt at this was passing all col indices in _X
+        # to columns_getter and passing the whole thing as np to _prm.
+        # It turned out that this was creating a brief but huge spike in
+        # RAM because a full copy of the entire _X was being made. so
+        # trade off by pulling smaller chunks of _X and passing to _prm.
+        # this gives the benefit of less calls to _columns_getter & _prm
+        # than would be if pulling one column at a time, still with some
+        # memory spike but much smaller, and get some economy of scale
+        # with the speed of scanning a ndarray chunk.
         # number of columns to pull and scan in one pass of the :for: loop
         _n_cols = 10
-        _delete_rows_mask = np.zeros(_X.shape[0], dtype=np.uint8)
+        _delete_rows_mask = np.zeros(_X.shape[0], dtype=np.uint32)
         for i in range(0, len(_ACTIVE_COL_IDXS), _n_cols):
 
             _idxs = np.array(_ACTIVE_COL_IDXS)[
@@ -135,7 +128,7 @@ def _make_row_and_column_masks(
             ]
 
             _delete_rows_mask += _parallelized_row_masks(
-                _columns_getter(_X, tuple(_idxs.tolist())),
+                _columns_getter(_X, tuple(map(int, _idxs.tolist()))),
                 {k:v for k,v in _total_counts_by_column.items() if k in _idxs},
                 {k:v for k,v in _delete_instr.items() if k in _idxs},
                 _reject_unseen_values
@@ -143,7 +136,7 @@ def _make_row_and_column_masks(
 
         del _ACTIVE_COL_IDXS
 
-    # END MAKE ROW DELETE MASK ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END MAKE ROW DELETE MASK ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     ROW_KEEP_MASK = np.logical_not(_delete_rows_mask)
@@ -163,6 +156,7 @@ def _make_row_and_column_masks(
     del delete_all_msg
 
     # ^^^ END BUILD ROW_KEEP & COLUMN_KEEP MASKS ** ** ** ** ** ** ** **
+
 
     return ROW_KEEP_MASK, COLUMN_KEEP_MASK
 

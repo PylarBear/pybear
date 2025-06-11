@@ -5,7 +5,9 @@
 #
 
 
+
 import pytest
+
 import numpy as np
 import pandas as pd
 
@@ -141,14 +143,6 @@ class TestTCBCUpdate:
                 multiple_nan_tcbc,         # < ======= in recursion tcbc
                 map_dict
             )
-
-
-
-
-
-
-
-
 
 
 

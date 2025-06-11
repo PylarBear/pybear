@@ -17,12 +17,12 @@ from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit.\
 
 class TestJoblib:
 
-    # as of 25_05_21 all the tests were passing but things in the joblib
+    # all the tests were passing but things in the joblib
     # part should have been failing. apparently all the other tests are
     # using few enough columns that the joblib part isnt engaged. this
     # test is explicitly designed to engage the joblib code.
 
-    # need to have >= _n_cols number of columns to engage joblib
+    # need to have >= 2*_n_cols number of columns to engage joblib
     # just do minor checks for accuracy
 
 

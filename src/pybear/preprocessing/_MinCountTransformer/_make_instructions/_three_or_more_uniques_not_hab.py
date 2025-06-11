@@ -6,7 +6,8 @@
 
 
 
-from typing_extensions import Union, Literal
+from typing import Literal
+from typing_extensions import Union
 from .._type_aliases import DataType
 
 import numpy as np
@@ -22,15 +23,15 @@ def _three_or_more_uniques_not_hab(
 
     """
     Make delete instructions for a column with three or more unique
-    non-nan values.
+    non-nan values that is not handled as bool.
 
-    if not _handle_as_bool, _delete_axis_0 doesnt matter, always delete
+    if not _handle_as_bool, _delete_axis_0 doesnt matter, always delete.
 
     WHEN 3 items (NOT INCLUDING nan):
-    if no nans or ignoring
+    if no nans or ignoring nans
         look over all counts
         any ct below threshold mark to delete rows
-        if one or less non-nan thing left in column, DELETE COLUMN
+        if only 1 or 0 non-nans left in column, DELETE COLUMN
     if not ignoring nans
         look over all counts
         any ct below threshold mark to delete rows
@@ -44,29 +45,28 @@ def _three_or_more_uniques_not_hab(
         int - the minimum frequency threshold for this column
     _nan_key:
         Union[float, str, Literal[False]] - the nan value found in the
-        column in its original dtype. as of 25_01 _columns_getter is
-        converting all nan-like values to numpy.nan.
+        column. _columns_getter converts all nan-like values to numpy.nan.
     _nan_ct:
         Union[int,  Literal[False]] - the number of nan-like value found
         in the column.
     _COLUMN_UNQ_CT_DICT:
         dict[DataType, int] - the value from _total_cts_by_column for
         this column which is a dictionary that holds the uniques and
-        their frequencies. cannot be empty.
+        their frequencies. Must have had nan values removed, and must
+        have at least 3 non-nan unique values.
 
 
     Return
     ------
     -
-        _instr_list:
-            list[Union[Literal['DELETE ALL', 'DELETE COLUMN', DataType]] -
-            the row and columns operations to be performed for this
-            column.
-
+        _instr_list: list[Union[Literal['DELETE ALL', 'DELETE COLUMN',
+        DataType]] - the row and columns operations to be performed for
+        this column.
 
     """
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     if 'nan' in list(map(str.lower, map(str, _COLUMN_UNQ_CT_DICT.keys()))):
         raise ValueError(f"nan-like is in _UNQ_CTS_DICT and should not be")
@@ -77,7 +77,7 @@ def _three_or_more_uniques_not_hab(
     if (_nan_ct is False) + (_nan_key is False) not in [0, 2]:
         raise ValueError(f"_nan_key is {_nan_key} and _nan_ct is {_nan_ct}")
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     # _delete_axis_0 DOES NOT APPLY, MUST DELETE ALONG AXIS 0
@@ -92,7 +92,8 @@ def _three_or_more_uniques_not_hab(
     else:
         # do this the long way, not by slicing numpy vectors which will
         # turn everything to stuff like np.str_('a'), to preserve
-        # the original format of the unqs.
+        # the original format of the unqs. _COLUMN_UNQ_CT_DICT could be
+        # huge.
         for unq, ct in _COLUMN_UNQ_CT_DICT.items():
             if ct < _threshold:
                 _instr_list.append(unq)
@@ -113,13 +114,6 @@ def _three_or_more_uniques_not_hab(
 
 
     return _instr_list
-
-
-
-
-
-
-
 
 
 

@@ -24,15 +24,15 @@ class TestReprInstructions:
     # def _repr_instructions(
     #     _delete_instr: InstructionsType,
     #     _total_counts_by_column: TotalCountsByColumnType,
-    #     _thresholds: Union[numbers.Integral, Sequence[numbers.Integral]],
+    #     _thresholds: CountThresholdType,
     #     _n_features_in: int,
-    #     _feature_names_in: Union[Sequence[str], None],
+    #     _feature_names_in: Union[FeatureNamesInType, None],
     #     _clean_printout: bool,
-    #     _max_char: numbers.Integral = 99
-    # ):
+    #     _max_char: Optional[numbers.Integral] = 99
+    # ) -> list[str]:
 
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     # _n_features_in is validated by _val_delete_instr, which is tested
     # elsewhere.
@@ -156,9 +156,9 @@ class TestReprInstructions:
             _max_char=100
         )
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # v v v v v v v v ACCURACY v v v v v v v v v v v v v v v v v v v v v v
+    # v v v v v v v v ACCURACY v v v v v v v v v v v v v v v v v v v v
 
     # no need to test all the machinery of MCT by actually running it.
     # just make rigged _delete_instr / _tcbc and confirm output.
@@ -450,16 +450,6 @@ class TestReprInstructions:
         assert out[0][_desc_len+1] == ' '
         assert out[0][_desc_len+2] != ' '
         assert out[0].endswith("Delete rows containing a, b, c. ")
-
-
-
-
-
-
-
-
-
-
 
 
 

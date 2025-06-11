@@ -46,12 +46,11 @@ def _original_dtypes_merger(
     Parameters
     ----------
     _col_dtypes:
-        npt.NDArray[Union[Literal['bin_int', 'int', 'float', 'obj']] -
-        the datatypes found by MCT in the data for the current partial
-        fit.
+        OriginalDtypesType - the datatypes found by MCT in the data for
+        the current partial fit.
     _previous_col_dtypes:
-        npt.NDArray[Union[Literal['bin_int', 'int', 'float', 'obj']] -
-        the datatypes found by MCT in data seen in previous partial fits.
+        Union[OriginalDtypesType, None] - the datatypes found by MCT in
+        data seen in previous partial fits.
     _n_features_in:
         int - the number of features in the data.
 
@@ -59,30 +58,22 @@ def _original_dtypes_merger(
     Return
     ------
     -
-        _merged_col_dtypes:
-            NDArray[Union[Literal['bin_int', 'int', 'float', 'obj']] -
-            the datatypes merged based on the hierarchy.
-
+        _merged_col_dtypes: OriginalDtypesType - the datatypes merged
+        based on the hierarchy.
 
     """
 
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     _val_any_integer(_n_features_in, 'n_features_in', _min=1)
 
     if _previous_col_dtypes is not None:
-        _val_original_dtypes(
-            _previous_col_dtypes,
-            _n_features_in
-        )
+        _val_original_dtypes(_previous_col_dtypes, _n_features_in)
 
-    _val_original_dtypes(
-        _col_dtypes,
-        _n_features_in
-    )
+    _val_original_dtypes(_col_dtypes, _n_features_in)
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     if _previous_col_dtypes is None:

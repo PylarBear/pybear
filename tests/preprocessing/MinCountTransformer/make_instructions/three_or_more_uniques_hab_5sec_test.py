@@ -9,6 +9,7 @@
 import pytest
 
 from copy import deepcopy
+
 import numpy as np
 
 from pybear.preprocessing._MinCountTransformer._make_instructions. \
@@ -17,6 +18,7 @@ from pybear.preprocessing._MinCountTransformer._make_instructions. \
 
 
 class TestValidation:
+
 
     @pytest.mark.parametrize('_nan_key', ('NAN', np.nan, 'nan'))
     @pytest.mark.parametrize('_nan_ct', (4, 7))
@@ -61,6 +63,8 @@ class TestValidation:
 
     @pytest.mark.parametrize('_delete_axis_0', (True, False))
     def test_rejects_obj_data(self, _delete_axis_0):
+
+        # this is bounced by map(float, _COLUMN_UNQ_CT_DICT.keys())
         with pytest.raises(ValueError):
             _three_or_more_uniques_hab(
                 _threshold=5,
@@ -213,28 +217,6 @@ class TestThreeOrMoreUniquesHandleAsBool:
 
 
         assert out == _instr_list
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -6,10 +6,7 @@
 
 
 
-from typing_extensions import (
-    Any,
-    Union
-)
+from typing_extensions import Union
 import numpy.typing as npt
 from .._type_aliases import InternalXContainer
 
@@ -25,25 +22,22 @@ from ....utilities._nan_masking import nan_mask
 def _columns_getter(
     _X: InternalXContainer,
     _col_idxs: Union[int, tuple[int, ...]]
-) -> npt.NDArray[Any]:
+) -> npt.NDArray:
 
     """
     This supports _get_dtypes_unqs_cts and _make_row_and_column_masks.
     Handles the mechanics of extracting one or more columns from the
-    various allowed data container types. Data passed as scipy sparse
-    formats must be indexable. Therefore, coo matrix/array,
-    dia matrix/array, and bsr matrix/array are prohibited. Return
-    extracted column(s) as  a numpy array. In the case of scipy sparse,
-    the columns are converted to dense.
+    various allowed data container types. Container must be numpy array,
+    pandas dataframe, polars dataframe, or scipy csc matrix/array.
+    Return extracted column(s) as a numpy array. In the case of scipy
+    sparse, the columns are converted to dense.
 
 
     Parameters
     ----------
     _X:
         InternalXContainer - The data to undergo minimum frequency
-        thresholding. The data container must be indexable. Therefore,
-        scipy sparse coo, dia, and bsr matrix/arrays are not permitted
-        in this module. There is no conditioning of the data here and
+        thresholding. There is no conditioning of the data here and
         this module expects to receive it in suitable form.
     _col_idxs:
         Union[int, tuple[int, ...]] - the column index / indices to
@@ -53,17 +47,15 @@ def _columns_getter(
     Return
     ------
     -
-        _columns: NDArray[Any] - The column(s) from _X corresponding to
-        the given index/indices.
+        _columns: NDArray - The column(s) from _X corresponding to the
+        given index/indices.
 
     """
 
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    assert isinstance(_X,
-        (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_array,
-         ss.csc_matrix)
-    )
+    assert isinstance(_X, (np.ndarray, pd.core.frame.DataFrame,
+        pl.DataFrame, ss.csc_array, ss.csc_matrix))
 
     assert isinstance(_col_idxs, (int, tuple))
     if isinstance(_col_idxs, int):
@@ -82,9 +74,8 @@ def _columns_getter(
         _columns = _X.iloc[:, _col_idxs].to_numpy()
     elif isinstance(_X, pl.DataFrame):
         _columns = _X[:, _col_idxs].to_numpy()
-    elif hasattr(_X, 'toarray'):    # scipy sparse
-        _columns = _X[:, _col_idxs].tocsc().toarray()
-        # .tocsc() is important, dok, at least, doesnt have a .data attr
+    elif isinstance(_X, (ss.csc_array, ss.csc_matrix)):
+        _columns = _X[:, _col_idxs].toarray()
     else:
         try:
             _columns = np.array(_X[:, _col_idxs])

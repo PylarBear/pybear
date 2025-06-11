@@ -6,7 +6,8 @@
 
 
 
-from typing_extensions import Union, Literal
+from typing import Literal
+from typing_extensions import Union
 from .._type_aliases import DataType
 
 
@@ -19,9 +20,7 @@ def _two_uniques_hab(
     _delete_axis_0: bool
 ) -> list[Union[Literal['DELETE COLUMN'], DataType]]:
 
-
     """
-
     Make delete instructions for a column with two unique non-nan values,
     handling values as booleans.
 
@@ -41,8 +40,8 @@ def _two_uniques_hab(
         -- if any class below thresh, DELETE COLUMN
     - if not ign nan and has nans if delete_axis_0 is True
         -- treat nan like any other value
-        -- look at cts for the 3 classes, if any ct < thresh, mark all
-            associated values for deletion
+        -- look at cts for the 3 unqs (incl nan), if any ct < thresh,
+            mark rows for deletion
         -- if any of the non-nan classes below thresh, DELETE COLUMN
     - if not ign nan and has nans if not delete_axis_0
         -- look at cts for the 2 non-nan classes, if any ct < thresh,
@@ -57,15 +56,15 @@ def _two_uniques_hab(
         int - the minimum threshold frequency for this column
     _nan_key:
         Union[float, str, Literal[False]] - the nan value found in the
-        column in its original dtype. as of 25_01, _columns_getter is
-        converting all nan-likes to numpy.nan.
+        column. _columns_getter converts all nan-likes to numpy.nan.
     _nan_ct:
         Union[int, Literal[False]] - the number of nan-like values found
         in the column.
     _COLUMN_UNQ_CT_DICT:
-        dict[DataType, int] - the value from the _total_cts_by_column
-        dict for this column, which is a dictionary that contains the
-        uniques and frequencies. cannot be empty.
+        dict[DataType, int] - the value from _total_cts_by_column for
+        this column, which is a dictionary containing the uniques and
+        their frequencies, less any nan that may have been in it, and
+        must have 2 non-nan uniques.
     _delete_axis_0:
         bool - whether to delete the rows associated with any of the
         values that fall below the minimum frequency.
@@ -74,14 +73,13 @@ def _two_uniques_hab(
     Return
     ------
     -
-        _instr_list: list[Union[Literal['DELETE COLUMN', DataType]] -
-        the row and column operations to be performed for this column.
-
+        _instr_list: list[Union[Literal['DELETE COLUMN'], DataType]] -
+        the row and column operations for this column.
 
     """
 
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     if 'nan' in list(map(str.lower, map(str, _COLUMN_UNQ_CT_DICT.keys()))):
         raise ValueError(f"nan-like is in _UNQ_CTS_DICT and should not be")
@@ -92,7 +90,7 @@ def _two_uniques_hab(
     if (_nan_ct is False) + (_nan_key is False) not in [0, 2]:
         raise ValueError(f"_nan_key is {_nan_key} and _nan_ct is {_nan_ct}")
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     # no nans should be in _COLUMN_UNQ_CT_DICT!
 
@@ -162,10 +160,6 @@ def _two_uniques_hab(
     del total_zeros, total_non_zeros
 
     return _instr_list
-
-
-
-
 
 
 

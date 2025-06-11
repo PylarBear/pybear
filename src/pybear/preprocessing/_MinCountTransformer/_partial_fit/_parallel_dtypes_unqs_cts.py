@@ -30,7 +30,7 @@ def _parallel_dtypes_unqs_cts(
     dtype is object, we need to get the uniques in their given dtype,
     not as str. There are much gymnastics done to handle this issue.
 
-    As of 25_01_25 all nan-likes are cast to np.nan in _columns_getter().
+    All nan-likes are cast to np.nan in _columns_getter().
 
 
     Parameters
@@ -44,11 +44,14 @@ def _parallel_dtypes_unqs_cts(
     -
         list[tuple[str, dict[Any, int]]] - list of tuples, each tuple
         representing one column and holding the MCT-assigned dtype and
-        a dictionary. dtype can be in  ['bin_int', 'int', 'float', 'obj'].
-        The dictionary holds the uniques in the column as
-        keys and the respective frequencies as values.
+        a dictionary. dtype can be in ['bin_int', 'int', 'float', 'obj'].
+        The dictionary holds the uniques in the column as keys and the
+        respective frequencies as values.
 
     """
+
+
+    assert isinstance(_chunk_of_X, np.ndarray)
 
 
     _dtypes_unqs_cts = []
@@ -56,16 +59,18 @@ def _parallel_dtypes_unqs_cts(
 
         _column_of_X = _chunk_of_X[:, _c_idx]    # 1D
 
-        if _column_of_X.dtype == object:
-
-        # remember the nan notes in the docstring, that when object multiple
-        # nans show up in uniques. changing the dtype to str works for
-        # getting only one nan, but this changes any numbers in the obj
-        # column to string also, which persists even when changing the dtype
-        # of the column back to obj, which then populates UNQ_CT_DICT with
-        # str(num). this opens a huge can of worms for making row masks. so
-        # we need to get the uniques in the original dtype, then if object,
-        # remove any extra nans. DO NOT MUTATE _column_of_X DTYPES!
+        if _column_of_X.dtype != object:
+            UNQ_CT_DICT = dict((zip(*np.unique(_column_of_X, return_counts=True))))
+        elif _column_of_X.dtype == object:
+        # remember the nan notes in the docstring, that when object
+        # multiple nans show up in uniques. changing the dtype to str
+        # works for getting only one nan, but this changes any numbers
+        # in the obj column to string also, which persists even when
+        # changing the dtype of the column back to obj, which then
+        # populates UNQ_CT_DICT with str(num). this opens a huge can of
+        # worms for making row masks. so we need to get the uniques in
+        # the original dtype, then if object, remove any extra nans.
+        # DO NOT MUTATE _column_of_X DTYPES!
 
         # but, there is another huge problem here, numpy.unique cant do
         # the mixed dtypes that might be in an 'object' column.
@@ -93,25 +98,22 @@ def _parallel_dtypes_unqs_cts(
 
             UNQS = np.fromiter(UNQ_CT_DICT.keys(), dtype=object)
             CTS = np.fromiter(map(int, UNQ_CT_DICT.values()), dtype=int)
-            # if more than 1 nan, chop out all of them after the first, but
-            # dont forget to put the total of all the nans on the one kept!
+            # if more than 1 nan, chop out all of them after the first,
+            # but dont forget to put the total of all the nans on the
+            # one kept!
             NANS = nan_mask(UNQS).astype(bool)
             if np.sum(NANS) > 1:
                 NAN_IDXS = np.arange(len(UNQS))[NANS]
                 CHOP_NAN_IDXS = NAN_IDXS[1:]
-                CHOP_COUNTS = int(np.sum(CTS[CHOP_NAN_IDXS]))
-                CTS[NAN_IDXS[0]] = (CTS[NAN_IDXS[0]] + CHOP_COUNTS)
-                del NAN_IDXS, CHOP_COUNTS
+                CTS[NAN_IDXS[0]] += int(np.sum(CTS[CHOP_NAN_IDXS]))
+                del NAN_IDXS
                 CHOP_NAN_BOOL = np.ones(len(UNQS)).astype(bool)
                 CHOP_NAN_BOOL[CHOP_NAN_IDXS] = False
                 del CHOP_NAN_IDXS
-                NEW_UNQS = UNQS[CHOP_NAN_BOOL]
-                NEW_CTS = CTS[CHOP_NAN_BOOL]
-                UNQ_CT_DICT = dict((zip(NEW_UNQS, map(int, NEW_CTS))))
-                del NEW_UNQS, NEW_CTS
+                UNQ_CT_DICT = dict((
+                    zip(UNQS[CHOP_NAN_BOOL], map(int, CTS[CHOP_NAN_BOOL]))
+                ))
             del UNQS, CTS, NANS
-        else:
-            UNQ_CT_DICT = dict((zip(*np.unique(_column_of_X, return_counts=True))))
 
 
         UNQ_CT_DICT = dict((zip(
@@ -119,8 +121,8 @@ def _parallel_dtypes_unqs_cts(
             map(int, UNQ_CT_DICT.values())
         )))
 
+        # get the nans out to get the dtype of the remaining
         UNIQUES = np.fromiter(UNQ_CT_DICT.keys(), dtype=_column_of_X.dtype)
-
         UNIQUES_NO_NAN = UNIQUES[np.logical_not(nan_mask(UNIQUES))]
 
         del UNIQUES
@@ -145,7 +147,7 @@ def _parallel_dtypes_unqs_cts(
                     _dtypes_unqs_cts.append(('int', UNQ_CT_DICT))
             else:
                 _dtypes_unqs_cts.append(('float', UNQ_CT_DICT))
-        except:
+        except Exception as e:
             # if is non-num
             _dtypes_unqs_cts.append(('obj', UNQ_CT_DICT))
 

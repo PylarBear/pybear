@@ -6,7 +6,8 @@
 
 
 
-from typing_extensions import Union, Literal
+from typing import Literal
+from typing_extensions import Union
 from .._type_aliases import DataType
 
 
@@ -21,7 +22,7 @@ def _three_or_more_uniques_hab(
 
     """
     Make delete instructions for a column with three or more unique
-    non-nan values.
+    non-nan values that is handled as bool.
 
     Since _handle_as_bool, _delete_axis_0 matters.
 
@@ -35,7 +36,7 @@ def _three_or_more_uniques_hab(
     classify uniques into two classes - 'zero' and 'non-zero'
 
     if no nans or ignoring
-      look at the cts in the 2 classes
+      look at the cts in the 2 classes (bool False & bool True)
       if any below threshold
           if delete_axis_0, mark associated values to delete
           DELETE COLUMN
@@ -59,15 +60,15 @@ def _three_or_more_uniques_hab(
     _threshold:
         int - the minimum frequency threshold for this column
     _nan_key:
-        Union[float, str, Literal[False]] - the nan value in its original
-        dtype. as of 25_01, _columns_getter is converting all nan-likes
-        to numpy.nan.
+        Union[float, str, Literal[False]] - the nan value in the column.
+        _columns_getter converts all nan-likes to numpy.nan.
     _nan_ct:
         Union[int,  Literal[False]] - the frequency of nan in the column
     _COLUMN_UNQ_CT_DICT:
         dict[DataType, int] - the value from _total_cts_by_column for
          this column which is a dictionary that holds the uniques and
-         their frequencies. cannot be empty.
+         their frequencies. must have had nan removed, and must have at
+         least 3 non-nan uniques.
     _delete_axis_0:
         bool - whether to delete along the sample axis if either or both
         of the boolean values fall below the minimum count threshold.
@@ -77,10 +78,10 @@ def _three_or_more_uniques_hab(
     ------
     -
         _instr_list: list[Union[Literal['DELETE COLUMN', DataType]] -
-            the row and column operation instructions for this column.
-
+        the row and column operation instructions for this column.
 
     """
+
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -118,8 +119,10 @@ def _three_or_more_uniques_hab(
             # IF ALL UNQS DELETED THIS SHOULD PUT ALL False IN
             # ROW MASK AND CAUSE EXCEPT DURING transform()
 
-            # need to do this the hard way because numbers
-            # could be str formats. _COLUMN_UNQ_CT_DICT could be huge.
+            # do this the long way, not by slicing numpy vectors which will
+            # turn everything to stuff like np.str_('a'), to preserve
+            # the original format of the unqs. _COLUMN_UNQ_CT_DICT could be
+            # huge.
             for unq in _COLUMN_UNQ_CT_DICT:
 
                 if float(unq) == 0 and total_zeros < _threshold:
@@ -142,8 +145,10 @@ def _three_or_more_uniques_hab(
             # IF ALL UNQS DELETED THIS SHOULD PUT ALL False IN
             # ROW MASK AND CAUSE EXCEPT DURING transform()
 
-            # need to do this the hard way because numbers
-            # could be str formats. _COLUMN_UNQ_CT_DICT could be huge.
+            # do this the long way, not by slicing numpy vectors which will
+            # turn everything to stuff like np.str_('a'), to preserve
+            # the original format of the unqs. _COLUMN_UNQ_CT_DICT could be
+            # huge.
             for unq in _COLUMN_UNQ_CT_DICT:
 
                 if float(unq) == 0 and total_zeros < _threshold:
@@ -172,12 +177,6 @@ def _three_or_more_uniques_hab(
     del total_zeros, total_non_zeros
 
     return _instr_list
-
-
-
-
-
-
 
 
 

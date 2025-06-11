@@ -305,9 +305,11 @@ def _make_instructions(
                 COLUMN_UNQ_CT_DICT
             )
 
-        elif len(COLUMN_UNQ_CT_DICT) == 2:  # BINARY, ANY DTYPE
+        elif len(COLUMN_UNQ_CT_DICT) == 2:
 
-            if _original_dtypes[col_idx] == 'bin_int':
+            if col_idx in _handle_as_bool or _original_dtypes[col_idx] == 'bin_int':
+                # _two_uniques_hab blocks str
+                # when a solid block of non-zero ints/floats, column is deleted
                 _delete_instr[col_idx] = _two_uniques_hab(
                     _threshold[col_idx],
                     _nan_key,
@@ -317,7 +319,6 @@ def _make_instructions(
                 )
             else:
                 # this could only be accessed by 'obj' or 'float' column
-                # pizza verify that float can get in here
                 _delete_instr[col_idx] = _two_uniques_not_hab(
                     _threshold[col_idx],
                     _nan_key,
@@ -328,6 +329,7 @@ def _make_instructions(
         else:  # 3+ UNIQUES NOT INCLUDING nan
 
             if col_idx in _handle_as_bool:
+                # when a solid block of non-zero ints/floats, column is deleted
                 _delete_instr[col_idx] = _three_or_more_uniques_hab(
                     _threshold[col_idx],
                     _nan_key,
