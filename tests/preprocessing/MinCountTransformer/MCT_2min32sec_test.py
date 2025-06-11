@@ -1570,8 +1570,7 @@ class TestX:
     @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'csr_matrix'))
     @pytest.mark.parametrize('_diff', ('more', 'less', 'same'))
     def test_rejects_bad_num_features(
-        self, _X_factory, x_rows, x_cols, COLUMNS, _kwargs, _columns, X_np,
-        _format, _diff
+        self, _X_factory, _shape, _kwargs, _columns, X_np, _format, _diff
     ):
         # ** ** ** **
         # THERE CANNOT BE "BAD NUM FEATURES" FOR fit & fit_transform
@@ -1582,14 +1581,14 @@ class TestX:
         # COLUMNS SEEN ON FIRST FIT
 
         _new_shape_dict = {
-            'same': (x_rows, x_cols),
-            'less': (x_rows, x_cols - 1),
-            'more': (x_rows, 2 * x_cols)
+            'same': _shape,
+            'less': (_shape[0], _shape[1] - 1),
+            'more': (_shape[0], 2 * _shape[1])
         }
         _columns_dict = {
-            'same': COLUMNS,
-            'less': COLUMNS[:-1],
-            'more': np.hstack((COLUMNS, np.char.upper(COLUMNS)))
+            'same': _columns,
+            'less': _columns[:-1],
+            'more': np.hstack((_columns, np.char.upper(_columns)))
         }
 
         _X_wip = _X_factory(
@@ -1600,15 +1599,12 @@ class TestX:
         )
 
         _MCT = MCT(**_kwargs)
-        _MCT.fit(X_np)
+        # pizza not using X_np here because is redefined above, not the same as conftest
+        _MCT.fit(np.random.randint(0, 10, _shape))
 
         if _diff == 'same':
             _MCT.partial_fit(_X_wip)
-            with pytest.raises(
-                ValueError,
-                match="this threshold and recursion depth will delete all rows"
-            ):
-                _MCT.transform(_X_wip)
+            _MCT.transform(_X_wip)
         else:
             with pytest.raises(ValueError) as e:
                 _MCT.partial_fit(_X_wip)

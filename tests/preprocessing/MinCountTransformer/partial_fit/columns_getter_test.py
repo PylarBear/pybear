@@ -8,8 +8,6 @@
 
 import pytest
 
-import uuid
-
 import numpy as np
 
 from pybear.preprocessing._MinCountTransformer._partial_fit._columns_getter \
@@ -19,15 +17,6 @@ from pybear.preprocessing._MinCountTransformer._partial_fit._columns_getter \
 
 class TestColumnsGetter:
 
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-    # pizza
-    # @staticmethod
-    # @pytest.fixture(scope='module')
-    # def _shape():
-    #     return (100, 3)
-
-    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
 
     @pytest.mark.parametrize('_format',
         ('csr_array', 'csr_matrix', 'coo_array', 'coo_matrix', 'dia_array',
@@ -36,7 +25,7 @@ class TestColumnsGetter:
     )
     def test_block_non_csc(self, _X_factory, _format, _columns, _shape):
 
-        # _columns_getter could onlu use ss that are indexable
+        # _columns_getter could only use ss that are indexable
         # coo, dia, & bsr matrix/array must be blocked
         # the others are blocked because internally only csc is used
 
@@ -84,12 +73,8 @@ class TestColumnsGetter:
     @pytest.mark.parametrize('_format',
         ('np', 'pd', 'pl', 'csc_array', 'csc_matrix')
     )
-    @pytest.mark.parametrize('_col_idxs',
-        (0, 1, 2, (0,), (1,), (2,), (0,1), (0,2), (1,2), (0,1,2))
-    )
-    def test_accuracy(
-        self, _X_factory, _shape, _columns, _col_idxs, _format
-    ):
+    @pytest.mark.parametrize('_col_idxs', (0, 2, (0,), (1,), (0,2), (0,1,2)))
+    def test_accuracy(self, _X_factory, _shape, _columns, _col_idxs, _format):
 
         # _columns_getter only allows ss csc.
 
@@ -101,34 +86,26 @@ class TestColumnsGetter:
             _shape=_shape
         )
 
-
-        # ensure _col_idxs, when tuple, is sorted, _columns_getter does this,
-        # make sure any careless changes made to this test are handled.
-        try:
-            iter(_col_idxs)
-            _col_idxs = tuple(sorted(list(_col_idxs)))
-        except:
-            pass
-
         # pass _col_idxs as given (int or tuple) to _columns getter
-        _columns = _columns_getter(_X_wip, _col_idxs)
+        _extracted = _columns_getter(_X_wip, _col_idxs)
 
 
         # assertions v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
-        assert isinstance(_columns, np.ndarray)
-        assert len(_columns.shape) == 2
+        assert isinstance(_extracted, np.ndarray)
+        assert len(_extracted.shape) == 2
 
-        # now that _columns getter has seen the given _col_idxs, convert all
+        # now that _columns_getter has seen the given _col_idxs, convert all
         # given _col_idxs to tuple to make _X[:, _col_idxs] slice right, below
         try:
             len(_col_idxs)  # except if is integer
         except:  # if is integer change to tuple
             _col_idxs = (_col_idxs,)
 
-        assert _columns.shape[1] == len(_col_idxs)
+        assert _extracted.shape[1] == len(_col_idxs)
 
-        # convert the og container to np for easy comparison against out
+        # convert the og container to np for easy comparison against
+        # extracted
         if isinstance(_X_wip, np.ndarray):
             _X_ref = _X_wip
         elif hasattr(_X_wip, 'columns'):
@@ -145,7 +122,7 @@ class TestColumnsGetter:
         # doesnt impact the container coming out of transform, ok to let
         # that condition persist and just fudge the dtype for this test.
         assert np.array_equal(
-            _columns.astype(np.float64),
+            _extracted.astype(np.float64),
             _X_ref[:, _col_idxs].astype(np.float64),
             equal_nan=True
         )

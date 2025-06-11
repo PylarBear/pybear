@@ -15,19 +15,20 @@ from pybear.preprocessing._MinCountTransformer._transform. \
 
 
 
-
 # ROW_KEEP_MASK, COLUMN_KEEP_MASK = _make_row_and_column_masks(
-#     X: np.ndarray[DataType],
+#     _X: InternalXContainer,
 #     _total_counts_by_column: TotalCountsByColumnType,
-#     _delete_instr: dict[int, Union[str, DataType]],
+#     _delete_instr: InstructionsType,
 #     _reject_unseen_values: bool
-#     )
+# ) -> tuple[npt.NDArray[bool], npt.NDArray[bool]]:
 
 
 class TestMakeRowAndColumnMasks:
 
     # accuracy of row masks is tested in test_parallelized_row_masks
 
+
+    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     @staticmethod
     @pytest.fixture
@@ -56,16 +57,6 @@ class TestMakeRowAndColumnMasks:
 
     @staticmethod
     @pytest.fixture
-    def str_column_no_nan(_pool_size, _rows):
-        np.random.seed(14)
-        alpha = 'abcdefghijklmnopqrstuvwxyz'
-
-        pool = list(alpha + alpha.upper())[:_pool_size]
-        return np.random.choice(pool, _rows, replace=True).reshape((-1,1))
-
-
-    @staticmethod
-    @pytest.fixture
     def float_column_nan(float_column_no_nan, _rows, _thresh):
         np.random.seed(14)
         NAN_MASK = np.random.choice(
@@ -75,6 +66,16 @@ class TestMakeRowAndColumnMasks:
         float_column_nan[NAN_MASK, 0] = np.nan
 
         return float_column_nan
+
+
+    @staticmethod
+    @pytest.fixture
+    def str_column_no_nan(_pool_size, _rows):
+        np.random.seed(14)
+        alpha = 'abcdefghijklmnopqrstuvwxyz'
+
+        pool = list(alpha + alpha.upper())[:_pool_size]
+        return np.random.choice(pool, _rows, replace=True).reshape((-1,1))
 
 
     @staticmethod
@@ -98,8 +99,7 @@ class TestMakeRowAndColumnMasks:
             TCBC = {}
             for _idx, _column in enumerate(any_array_of_columns.transpose()):
                 UNIQUES, COUNTS = np.unique(_column, return_counts=True)
-                COUNTS = list(map(int, COUNTS))
-                TCBC[_idx] = dict((zip(UNIQUES, COUNTS)))
+                TCBC[_idx] = dict((zip(UNIQUES, list(map(int, COUNTS)))))
             del UNIQUES, COUNTS
             return TCBC
 
@@ -136,7 +136,7 @@ class TestMakeRowAndColumnMasks:
 
         return foo
 
-    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     @pytest.mark.parametrize('reject_unseen', (True, False))
@@ -149,6 +149,8 @@ class TestMakeRowAndColumnMasks:
             float_column_nan
         )
 
+        _good_test_was_run = 0
+
         for _trial in range(5):
 
             # build tests fixtures ** * ** * ** * ** * ** * ** * ** * **
@@ -159,15 +161,17 @@ class TestMakeRowAndColumnMasks:
             TCBC = good_tcbc(X)
             _good_instr = good_instr(TCBC, _thresh)
             for col_idx in _good_instr:
-                assert len(_good_instr[col_idx]) > 0
-            # END build tests fixtures ** * ** * ** * ** * ** * ** * ** * **
+                assert len(_good_instr[col_idx]) > 0, \
+                    f"if this excepts, it wants to keep all unqs"
+            # END build tests fixtures ** * ** * ** * ** * ** * ** * **
 
-            # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-            # derive expected COLUMN_KEEP_MASK from fixtures. do this
-            # before running _make_row_and_column_masks. if all rows or
-            # columns were to be deleted, _make_row_and_column_masks will
-            # except, wrecking the tests. if these conditions are found in
-            # expected, tests _make_row_and_column_masks raises ValueError.
+            # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+            # derive expected COLUMN_KEEP_MASK and ROW_KEEP_MASK from
+            # fixtures. do this before running _make_row_and_column_masks.
+            # if all rows or columns were to be deleted,
+            # _make_row_and_column_masks will except, wrecking the tests.
+            # if these conditions are found in expected, tests
+            # _make_row_and_column_masks raises ValueError.
 
             exp = np.zeros(X.shape[1], dtype=np.uint8)
 
@@ -189,7 +193,7 @@ class TestMakeRowAndColumnMasks:
                             UNQ_MASK = X[:, col_idx].astype(str) == str(unq)
                         assert np.sum(UNQ_MASK) > 0
 
-                        _DELETE_ROW_MASK[UNQ_MASK] = 1
+                        _DELETE_ROW_MASK += UNQ_MASK
 
                         del UNQ_MASK
 
@@ -203,7 +207,7 @@ class TestMakeRowAndColumnMasks:
                     # KEEP MASK gets a 1
                     exp[col_idx] = 1
 
-            if all(['DELETE COLUMN' in _ for _ in _mock_instr.values()]):
+            if all(['DELETE COLUMN' in j for j in _mock_instr.values()]):
 
                 with pytest.raises(ValueError):
                     _make_row_and_column_masks(
@@ -212,7 +216,7 @@ class TestMakeRowAndColumnMasks:
                         _good_instr,
                         reject_unseen
                     )
-            elif all(_DELETE_ROW_MASK):
+            elif np.all(_DELETE_ROW_MASK):
 
                 with pytest.raises(ValueError):
                     _make_row_and_column_masks(
@@ -223,6 +227,9 @@ class TestMakeRowAndColumnMasks:
                     )
 
             else:
+
+                _good_test_was_run += 1
+
                 ROW_KEEP_MASK, COLUMN_KEEP_MASK = _make_row_and_column_masks(
                     X,
                     TCBC,
@@ -231,8 +238,10 @@ class TestMakeRowAndColumnMasks:
                 )
 
                 assert np.array_equiv(COLUMN_KEEP_MASK, exp.astype(bool))
-            # END ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
+        # ensure a test that actually tests accuracy was run
+        assert _good_test_was_run > 0
+        # END ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     def test_sees_nans(self, _thresh, _rows, good_tcbc, good_instr):
@@ -275,16 +284,15 @@ class TestMakeRowAndColumnMasks:
         assert 2.5 not in KEPT
 
 
-    def test_row_mask_making_handles_no_rows_to_delete(self, _thresh,
-       good_tcbc, good_instr):
+    def test_row_mask_making_handles_no_rows_to_delete(
+        self, _thresh, good_tcbc, good_instr
+    ):
 
-        X1 = np.full((2*_thresh, 10), 3).astype(np.float64)
-        X2 = np.full((2*_thresh, 10), 4).astype(np.float64)
-        X3 = np.full((2*_thresh, 10), 5).astype(np.float64)
-
-        X = np.vstack((X1, X2, X3))
-
-        del X1, X2, X3
+        X = np.vstack((
+            np.full((2*_thresh, 10), 3).astype(np.float64),
+            np.full((2*_thresh, 10), 4).astype(np.float64),
+            np.full((2*_thresh, 10), 5).astype(np.float64)
+        ))
 
         TCBC = good_tcbc(X)
         _good_instr = good_instr(TCBC, _thresh)
@@ -305,11 +313,6 @@ class TestMakeRowAndColumnMasks:
             COLUMN_KEEP_MASK.ravel(),
             np.ones(X.shape[1]).ravel().astype(bool)
         )
-
-
-
-
-
 
 
 

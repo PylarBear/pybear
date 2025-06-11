@@ -27,7 +27,15 @@ import scipy.sparse as ss
 
 
 
-DataType = Union[numbers.Number, str]
+# see __shared XContainer
+
+InternalXContainer: TypeAlias = Union[
+    npt.NDArray,
+    pd.DataFrame,
+    pl.DataFrame,
+    ss.csc_array,
+    ss.csc_matrix
+]
 
 YContainer: TypeAlias = Union[
     npt.NDArray,
@@ -38,14 +46,7 @@ YContainer: TypeAlias = Union[
     None
 ]
 
-InternalXContainer: TypeAlias = Union[
-    npt.NDArray[DataType],
-    pd.DataFrame,
-    pl.DataFrame,
-    ss.csc_array,
-    ss.csc_matrix
-]
-
+DataType:TypeAlias = Union[numbers.Number, str]
 
 CountThresholdType: TypeAlias = \
     Union[numbers.Integral, Sequence[numbers.Integral]]
@@ -56,37 +57,24 @@ OriginalDtypesType: TypeAlias = npt.NDArray[
 
 TotalCountsByColumnType: TypeAlias = dict[int, dict[DataType, int]]
 
-InstructionsType: TypeAlias = \
-    dict[
-        int,
-        list[Union[DataType, Literal['INACTIVE', 'DELETE ALL', 'DELETE COLUMN']]]
-    ]
+InstrLiterals: TypeAlias = Literal['INACTIVE', 'DELETE ALL', 'DELETE COLUMN']
+
+InstructionsType: TypeAlias = dict[int, list[Union[DataType, InstrLiterals]]]
+
+IcHabCallable: TypeAlias = \
+    Callable[[XContainer], Union[Sequence[numbers.Integral], Sequence[str]]]
 
 IgnoreColumnsType: TypeAlias = \
-    Union[
-        None,
-        Sequence[numbers.Integral],
-        npt.NDArray[np.int32],
-        Sequence[str],
-        Callable[[XContainer], Union[Sequence[numbers.Integral], Sequence[str]]]
-    ]
+    Union[None, Sequence[numbers.Integral], Sequence[str], IcHabCallable]
 
 HandleAsBoolType: TypeAlias = \
-    Union[
-        None,
-        Sequence[numbers.Integral],
-        npt.NDArray[np.int32],
-        Sequence[str],
-        Callable[[XContainer], Union[Sequence[numbers.Integral], Sequence[str]]]
-    ]
+    Union[None, Sequence[numbers.Integral], Sequence[str], IcHabCallable]
 
 InternalIgnoreColumnsType: TypeAlias = npt.NDArray[np.int32]
 
 InternalHandleAsBoolType: TypeAlias = npt.NDArray[np.int32]
 
 FeatureNamesInType: TypeAlias = npt.NDArray[object]
-
-
 
 
 

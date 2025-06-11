@@ -6,27 +6,27 @@
 
 
 
-from pybear.preprocessing._MinCountTransformer._partial_fit._original_dtypes_merger \
-    import _original_dtypes_merger
+import pytest
 
 import numpy as np
 
-import pytest
+from pybear.preprocessing._MinCountTransformer._partial_fit._original_dtypes_merger \
+    import _original_dtypes_merger
 
 
 
 class TestOriginalDtypesMerger:
 
 
-    #  def _original_dtypes_merger(
+    # def _original_dtypes_merger(
     #     _col_dtypes: OriginalDtypesType,
-    #     _previous_col_dtypes: Union[OriginalDtypesType, None]
+    #     _previous_col_dtypes: Union[OriginalDtypesType, None],
+    #     _n_features_in: int
     # ) -> OriginalDtypesType:
 
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # joint -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @pytest.mark.parametrize('length_mismatch',
         ((1, 10), (10, 1), (5, 6), (6, 5))
     )
@@ -41,9 +41,7 @@ class TestOriginalDtypesMerger:
                 _n_features_in=length_mismatch[0]
             )
 
-    # END joint -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     _dtypes = ['obj', 'float', 'int', 'bin_int']
@@ -71,6 +69,7 @@ class TestOriginalDtypesMerger:
     def test_accuracy(self):
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # same stays same
         out = _original_dtypes_merger(
             ['obj', 'float', 'int', 'bin_int'],
             ['obj', 'float', 'int', 'bin_int'],
@@ -86,6 +85,7 @@ class TestOriginalDtypesMerger:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # obj & float supercede
         out = _original_dtypes_merger(
             ['float', 'bin_int', 'int', 'bin_int'],
             ['obj', 'float', 'obj', 'float'],
@@ -101,6 +101,7 @@ class TestOriginalDtypesMerger:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # obj & float supercede
         out = _original_dtypes_merger(
             ['bin_int', 'int', 'float', 'obj'],
             ['obj', 'float', 'int', 'bin_int'],
@@ -116,6 +117,7 @@ class TestOriginalDtypesMerger:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # obj supercedes all
         out = _original_dtypes_merger(
             ['obj', 'float', 'obj', 'bin_int'],
             ['bin_int', 'obj', 'int', 'obj'],
@@ -131,6 +133,7 @@ class TestOriginalDtypesMerger:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # int & bin_int superceded
         out = _original_dtypes_merger(
             ['float', 'int', 'float', 'bin_int'],
             ['int', 'bin_int', 'bin_int', 'bin_int'],
@@ -146,6 +149,7 @@ class TestOriginalDtypesMerger:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # int supercedes bin_int
         out = _original_dtypes_merger(
             ['int', 'bin_int', 'int', 'bin_int'],
             ['bin_int', 'int', 'bin_int', 'int'],
@@ -159,14 +163,6 @@ class TestOriginalDtypesMerger:
             ['int', 'int', 'int', 'int']
         )
         # -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-
-
-
-
-
-
-
 
 
 

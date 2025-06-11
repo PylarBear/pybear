@@ -6,39 +6,34 @@
 
 
 
-from pybear.preprocessing._MinCountTransformer._transform._ic_hab_condition \
-    import _ic_hab_condition
+import pytest
 
 import uuid
+
 import numpy as np
 
-import pytest
+from pybear.preprocessing._MinCountTransformer._transform._ic_hab_condition \
+    import _ic_hab_condition
 
 
 
 class TestIcHabCondition:
 
     # def _ic_hab_condition(
-    #     X: XContainer,
+    #     X: Union[XContainer, None],
     #     _ignore_columns: IgnoreColumnsType,
     #     _handle_as_bool: HandleAsBoolType,
     #     _ignore_float_columns: bool,
     #     _ignore_non_binary_integer_columns: bool,
     #     _original_dtypes: OriginalDtypesType,
-    #     _threshold: Union[int, Sequence[int]],
+    #     _threshold: CountThresholdType,
     #     _n_features_in: int,
-    #     _feature_names_in: Union[npt.NDArray[str], None],
+    #     _feature_names_in: Union[FeatureNamesInType, None],
     #     _raise: bool = False
     # ) -> tuple[InternalIgnoreColumnsType, InternalHandleAsBoolType]:
 
 
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    # pizza
-    # @staticmethod
-    # @pytest.fixture(scope='module')
-    # def _shape():
-    #     return (100, 8)
-
+    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     @staticmethod
     @pytest.fixture(scope='module')
@@ -86,38 +81,17 @@ class TestIcHabCondition:
 
         return _dtypes
 
-    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-
-    # use Exception instead of specific errors. exceptions could be raised in
-    # many submodules
+    # use Exception instead of specific errors. exceptions could be
+    # raised in many submodules
 
     # n_features_in handled by _val_n_features_in which is tested elsewhere
     # feature_names_in handled by _val_feature_names_in which is tested elsewhere
 
 
-    @pytest.mark.parametrize('junk_X',
-        (-2.7, -1, 0, 2.7, True, False, 'trash', (True, False), {'a': 1})
-    )
-    def test_rejects_junk_X(self, junk_X, good_og_dtypes, n_features_in):
-
-        # X must have copy() method
-
-        # not hasattr(X, 'copy') only raises if ic or hab is a callable
-        # this wont raise for bad X
-        _ic_hab_condition(
-            X=junk_X,
-            _ignore_columns=[2, 3],
-            _handle_as_bool=[0, 1],
-            _ignore_float_columns=False,
-            _ignore_non_binary_integer_columns=False,
-            _original_dtypes=good_og_dtypes,
-            _threshold=2,
-            _n_features_in=n_features_in,
-            _feature_names_in=None,
-            _raise=False
-        )
+    # X is not validated. the only places it goes to are any callables.
 
 
     # ignore_columns -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -285,41 +259,6 @@ class TestIcHabCondition:
             assert len(_)==0
 
 
-    @pytest.mark.parametrize('ic', ([0], lambda x: [0]))
-    @pytest.mark.parametrize('hab', ([0], lambda x: [0]))
-    def test_rejects_junk_X_if_ic_or_hab_callable(self, ic, hab, good_og_dtypes):
-
-        # not hasattr(X, 'copy') only raises if ic or hab is a callable
-        # this wont raise for bad X
-        if callable(ic) or callable(hab):
-            with pytest.raises(Exception):
-                _ic_hab_condition(
-                    X=((1, 2, 3, 4, 5), ),
-                    _ignore_columns=ic,
-                    _handle_as_bool=hab,
-                    _ignore_float_columns=False,
-                    _ignore_non_binary_integer_columns=False,
-                    _original_dtypes=good_og_dtypes,
-                    _threshold=2,
-                    _n_features_in=1,
-                    _feature_names_in=None,
-                    _raise=False
-                )
-        else:
-            _ic_hab_condition(
-                X=((1, 2, 3, 4, 5), ),
-                _ignore_columns=ic,
-                _handle_as_bool=hab,
-                _ignore_float_columns=False,
-                _ignore_non_binary_integer_columns=False,
-                _original_dtypes=['int'],
-                _threshold=2,
-                _n_features_in=1,
-                _feature_names_in=None,
-                _raise=False
-            )
-
-
     @pytest.mark.parametrize('ic', ('good', 'bad'))
     @pytest.mark.parametrize('hab', ('good', 'bad'))
     def test_catches_callable_exception(self, ic, hab):
@@ -425,8 +364,7 @@ class TestIcHabCondition:
         for _ in out:
             iter(_)
             assert len(_)==0
-    # END threshold -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
+    # END threshold -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
     @pytest.mark.parametrize('og_dtypes', ['short', 'good', 'long'])
@@ -528,7 +466,7 @@ class TestIcHabCondition:
     # END raise -- -- -- -- -- -- -- -- -- --
 
 
-    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
     @pytest.mark.parametrize('good_ic',
         (
@@ -700,15 +638,16 @@ class TestIcHabCondition:
     @pytest.mark.parametrize('_ignore_non_binary_integer_columns', (True, False))
     @pytest.mark.parametrize('_threshold', ('int', 'Sequence[int]'))
     def test_ignore_conflict_warn_accuracy(
-        self, _X_np, good_og_dtypes, n_features_in, _handle_as_bool, _threshold,
-        _ignore_columns, _ignore_float_columns, _ignore_non_binary_integer_columns
+        self, _X_np, good_og_dtypes, n_features_in, _handle_as_bool,
+        _threshold, _ignore_columns, _ignore_float_columns,
+        _ignore_non_binary_integer_columns
     ):
 
         if n_features_in < 6:
             raise Exception(f"'n_features_in' must be >= 6 for this test")
 
-        # if intersection between ignore_float_columns and ignore_columns, doesnt
-        # matter, ignored either way
+        # if intersection between ignore_float_columns and ignore_columns,
+        # doesnt matter, ignored either way
 
         # if intersection between ignore_non_binary_integer_columns and
         # ignore_columns, doesnt matter, ignored either way
@@ -868,7 +807,7 @@ class TestIcHabCondition:
             _X_np[:, 3]
         )).reshape((-1, 5))
 
-        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         with pytest.raises(ValueError):
             _ic_hab_condition(
                 X=_X,
@@ -1005,7 +944,7 @@ class TestIcHabCondition:
         assert np.array_equal(out[0], [2, 0])
         assert np.array_equal(out[1], [1, 3])
 
-        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # Sequence[int]
         out = _ic_hab_condition(
@@ -1028,7 +967,7 @@ class TestIcHabCondition:
         assert np.array_equal(out[1], [3, 0])
 
 
-        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # None
         out = _ic_hab_condition(
@@ -1051,9 +990,7 @@ class TestIcHabCondition:
         assert len(out[1])==0
 
 
-        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
 

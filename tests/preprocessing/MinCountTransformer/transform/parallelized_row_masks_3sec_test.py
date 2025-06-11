@@ -21,20 +21,14 @@ class TestParallelizedRowMasks:
 
 
     # def _parallelized_row_masks(
-    #     _X_CHUNK: npt.NDArray[Any],
+    #     _X_CHUNK: npt.NDArray,
     #     _UNQ_CT_DICT: TotalCountsByColumnType,  (a sub-chunk of the full)
     #     _instr: InstructionsType,   (a sub-chunk of the full)
     #     _reject_unseen_values: bool
-    # ) -> npt.NDArray[np.uint8]:
+    # ) -> npt.NDArray[np.uint32]:
 
 
-    # Fixtures v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-    # pizza
-    # @staticmethod
-    # @pytest.fixture(scope='module')
-    # def _shape():
-    #     return (200, 10)
-
+    # fixtures v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
     @staticmethod
     @pytest.fixture(scope='module')
@@ -107,7 +101,9 @@ class TestParallelizedRowMasks:
         return foo
 
 
-    # dont do hybrid dtype, np.unique in good_unq_ct_dict cant handle it
+    # END fixtures v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+
+
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (True, False))
     def test_accuracy_making_delete_masks(
@@ -122,6 +118,7 @@ class TestParallelizedRowMasks:
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         _X_wip = _X_factory(
+            _format='np',
             _has_nan=_has_nan,
             _dtype=_dtype,
             _zeros=None,
@@ -166,7 +163,6 @@ class TestParallelizedRowMasks:
         assert np.array_equiv(out, chunk_exp)
 
 
-    # dont do hybrid dtype, np.unique in good_unq_ct_dict cant handle it
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (True, False))
     def test_accuracy_reject_unseen(
@@ -187,11 +183,6 @@ class TestParallelizedRowMasks:
             _shape=_shape
         )
 
-        # ensure all nans are np.nan. will except on int dtype
-        try:
-            _X_wip[nan_mask(_X_wip)] = np.nan
-        except:
-            pass
 
         UNQ_CT_DICT = good_unq_ct_dict(_X_wip)
         GOOD_INSTR = good_instr(UNQ_CT_DICT, _thresh)

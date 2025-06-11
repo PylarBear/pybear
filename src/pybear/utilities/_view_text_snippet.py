@@ -51,7 +51,7 @@ def view_text_snippet(
 
     """
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     check_1D_str_sequence(_VECTOR)
@@ -81,7 +81,7 @@ def view_text_snippet(
     del err_msg
     # END span -- -- -- -- -- -- -- -- --
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     _lower = math.floor(_idx - (_span - 1) / 2)

@@ -6,8 +6,8 @@
 
 
 
-from typing_extensions import Union
 from typing import Iterable
+from typing_extensions import Union
 import numpy.typing as npt
 
 from copy import deepcopy
@@ -67,7 +67,8 @@ def feature_name_mapper(
 
     """
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     # feature_names_in -- -- -- -- -- -- -- -- -- -- -- -- --
     try:
@@ -92,7 +93,8 @@ def feature_name_mapper(
         raise TypeError(
             f"if not None, 'feature_names_in' must be a 1D list-like "
             f"containing strings that are the feature names of a "
-            f"data-bearing container. \n'feature_names_in' cannot be empty."
+            f"data-bearing container. \n'feature_names_in' cannot be "
+            f"empty."
         )
     # END feature_names_in -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -118,8 +120,8 @@ def feature_name_mapper(
             raise Exception
     except:
         raise TypeError(
-            f"if not None, 'feature_names' must be a 1D list-like of strings "
-            f"or integers"
+            f"if not None, 'feature_names' must be a 1D list-like of "
+            f"strings or integers"
         )
     # END feature_names -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -130,10 +132,10 @@ def feature_name_mapper(
     # --is a 1D array of integers or strings
     # --cannot be empty
     # --cannot be None
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    # if list-like, validate contents are all str or all int ** * ** * ** *
+    # if list-like, validate contents are all str or all int ** * ** *
 
     err_msg = (f"'feature_names' must contain all integers indicating "
         f"column indices or all strings indicating column names")
@@ -158,7 +160,7 @@ def feature_name_mapper(
             raise TypeError(err_msg)
     else:
         raise TypeError(err_msg)
-    # END if list-like validate contents are all str or all int ** * ** *
+    # END if list-like validate contents are all str or all int ** * **
 
     # we know that
     # --'feature_names_in' is None or a 1D ndarray of strings, len >= 1
@@ -170,10 +172,10 @@ def feature_name_mapper(
         # _feature_names_in is not necessarily available, could be None
         if feature_names_in is None:
             raise ValueError(
-                f"when 'feature_names' is passed with strings, 'feature_names_in' "
-                f"must be a 1D list-like containing strings that are the feature "
-                f"names of a data-bearing container. \n'feature_names_in' cannot "
-                f"be None."
+                f"when 'feature_names' is passed with strings, "
+                f"'feature_names_in' must be a 1D list-like containing "
+                f"strings that are the feature names of a data-bearing "
+                f"container. \n'feature_names_in' cannot be None."
             )
 
         _n_features_in = len(feature_names_in)
@@ -205,10 +207,12 @@ def feature_name_mapper(
     # integers and feature_names_in could still be None
     if feature_names_in is None:
         # without knowing feature_names_in, all we have is an 'indices'
-        # vector with integers that may be all positive, all negative, or a
-        # mix of both, and we cant validate the values. so just return it.
+        # vector with integers that may be all positive, all negative,
+        # or a mix of both, and we cant validate the values. so just
+        # return it.
         return np.array(list(indices), dtype=np.int32)
-    elif feature_names_in is not None:  # must be 1D ndarray of strings, len >= 1
+    elif feature_names_in is not None:
+        # must be 1D ndarray of strings, len >= 1
         _n_features_in = len(feature_names_in)
         if min(indices) < -_n_features_in:
             raise ValueError(

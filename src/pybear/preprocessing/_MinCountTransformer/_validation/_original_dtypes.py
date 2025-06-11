@@ -29,9 +29,8 @@ def _val_original_dtypes(
     Parameters
     ----------
     _original_dtypes:
-        npt.NDArray[Union[Literal['bin_int', int', 'float', 'obj']]] -
-        the datatypes read from the data. must be a 1D list-like with
-        values in 'bin_int', int', 'float', or 'obj'.
+        OriginalDtypesType - the datatypes read from the data. must be a
+        1D list-like with values in 'bin_int', int', 'float', or 'obj'.
     _n_features_in:
         int - the number of features in the data.
 

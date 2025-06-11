@@ -17,7 +17,6 @@ def _tcbc_update(
 ) -> TotalCountsByColumnType:
 
     """
-
     Iterate over self._tcbc (old_tcbc) and compare the counts to the
     corresponding ones in RecursiveCls._tcbc (recursion_tcbc). If
     RecursiveCls's value is lower, put it into self's; if key does not
@@ -41,10 +40,10 @@ def _tcbc_update(
     Parameters
     ----------
     old_tcbc:
-        dict[int, dict[any, int]] - the total_cts_by_column dictionary
+        TotalCountsByColumnType - the total_cts_by_column dictionary
         from self.
     recursion_tcbc:
-        dict[int, dict[any, int]] - the total_cts_by_column dictionary
+        TotalCountsByColumnType - the total_cts_by_column dictionary
         from the recursion instance.
     MAP_DICT:
         dict[int, int] - dictionary mapping a feature's location in
@@ -55,11 +54,11 @@ def _tcbc_update(
     Return
     ------
     -
-        old_tcbc:
-            dict[int, dict[any, int]] - updated with counts from
-            Recursion._tcbc
+        old_tcbc: TotalCountsByColumnType - updated with counts from
+        Recursion._tcbc
 
     """
+
 
     # validation - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # old_tcbc
@@ -76,7 +75,6 @@ def _tcbc_update(
         # dont validate keys (uniques) could be anything
         assert all(map(isinstance, _inner.values(), (int for _ in _inner)))
 
-
     # map_dict
     assert isinstance(MAP_DICT, dict)
     for k, v in MAP_DICT.items():
@@ -89,7 +87,6 @@ def _tcbc_update(
 
         old_col_idx = MAP_DICT[new_col_idx]
 
-
         # if old_tcbc had an empty UNQ_CT_DICT (which it may have, because
         # for ignored <columns, float columns, or bin-int columns>
         # UNQ_CT_DICT is set to {}) then recursion_tcbc UNQ_CT_DICT FOR
@@ -101,10 +98,12 @@ def _tcbc_update(
             )
 
 
+
+        # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
         # manipulation of old_tcbc and recursion tcbc to get the nans out
+        # remove any nans from unqs (should only be 1!), and get the count
 
         # reconstruct old_tcbc[col_idx] in a copy
-        # remove any nans from unqs (should only be 1!), and get the count
         _old_tcbc_nan_symbol = None
         _old_tcbc_nan_ct = 0
         _old_tcbc_col_dict = {}
@@ -121,7 +120,6 @@ def _tcbc_update(
                 _old_tcbc_col_dict[k] = v
 
         # reconstruct recursion_tcbc in a copy
-        # remove any nans from unqs (should only be 1!), and get the count
         _rcr_nan_symbol = None
         _rcr_nan_ct = 0
         _rcr_col_dict = {}
@@ -138,6 +136,7 @@ def _tcbc_update(
                 _rcr_col_dict[k] = v
 
         # END manipulation of old_tcbc and recursion tcbc to get the nans out
+        # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
         # now that nans are out, update self.tcbc (old_tcbc) with the new
         # (lower) values in recursion_tcbc, where applicable
@@ -184,14 +183,14 @@ def _tcbc_update(
             # no nans in either
             pass
 
-
+        # 25_06_11 pizza is this obsolete?
         # there is a problem of columns being identified for deletion in
-        # the recursive class, but that is not being conveyed into old tcbc,
-        # and the 'DELETE COLUMN' instruction is not being made when
-        # make_instructions() is called on the updated old tcbc back in the
-        # outer self when building the column mask in get_support().
-        # It is not sufficient to simply lower the counts in the old tcbc to
-        # the new counts in the recursion.
+        # the recursive class, but that is not being conveyed into old
+        # tcbc, and the 'DELETE COLUMN' instruction is not being made
+        # when make_instructions() is called on the updated old tcbc
+        # back in the outer self when building the column mask in
+        # get_support(). It is not sufficient to simply lower the counts
+        # in the old tcbc to the new counts in the recursion.
 
 
 
@@ -201,11 +200,6 @@ def _tcbc_update(
     del new_col_idx, old_col_idx, unq, ct
 
     return old_tcbc
-
-
-
-
-
 
 
 

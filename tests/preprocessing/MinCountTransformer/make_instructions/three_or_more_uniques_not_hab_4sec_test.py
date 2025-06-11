@@ -6,17 +6,19 @@
 
 
 
-from pybear.preprocessing._MinCountTransformer._make_instructions. \
-    _three_or_more_uniques_not_hab import _three_or_more_uniques_not_hab
+import pytest
 
 from copy import deepcopy
+
 import numpy as np
 
-import pytest
+from pybear.preprocessing._MinCountTransformer._make_instructions. \
+    _three_or_more_uniques_not_hab import _three_or_more_uniques_not_hab
 
 
 
 class TestValidation:
+
 
     @pytest.mark.parametrize('_nan_key', ('NAN', np.nan, 'nan'))
     @pytest.mark.parametrize('_nan_ct', (4, 7))
@@ -108,32 +110,6 @@ class TestThreeOrMoreUniquesNotHandleAsBool:
             _instr_list.append('DELETE COLUMN')
 
         assert out == _instr_list
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

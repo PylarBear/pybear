@@ -20,7 +20,8 @@ from pybear.preprocessing._MinCountTransformer.MinCountTransformer import \
 
 class TestPrintInstructionDoesntMutateFutureResults:
 
-    # pizza this needs to stay, at least as of 25_05_29
+
+    # dont use conftest _shape
     @staticmethod
     @pytest.fixture(scope='module')
     def _shape():
@@ -59,6 +60,7 @@ class TestPrintInstructionDoesntMutateFutureResults:
             _X = np.random.randint(0, _count_threshold-1, _shape)
 
             try:
+                # will except if all rows are deleted
                 TRFM_X = MCT(**_kwargs).fit_transform(_X)
                 assert TRFM_X.shape[0] < _shape[0]
                 break
@@ -87,11 +89,6 @@ class TestPrintInstructionDoesntMutateFutureResults:
         assert np.array_equal(out1, out2)
         assert np.array_equal(out1, out3)
         assert np.array_equal(FIRST_TRFM_X, SECOND_TRFM_X)
-
-
-
-
-
 
 
 

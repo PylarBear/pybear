@@ -18,14 +18,7 @@ from pybear.preprocessing._MinCountTransformer._partial_fit. \
 class TestParallelizedDtypeUnqsCts:
 
 
-    # fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-    # pizza
-    # @staticmethod
-    # @pytest.fixture(scope='module')
-    # def _shape():
-    #     return (100, 10)
-
+    # fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
     @staticmethod
     @pytest.fixture(scope='module')
@@ -71,6 +64,7 @@ class TestParallelizedDtypeUnqsCts:
     @pytest.fixture(scope='module')
     def int_chunk_nan(int_chunk_no_nan, _shape):
 
+        # need to convert to float64 to put nans in
         int_chunk_nan = int_chunk_no_nan.copy().astype(np.float64)
 
         _rows = np.arange(_shape[0])
@@ -102,6 +96,7 @@ class TestParallelizedDtypeUnqsCts:
     @pytest.fixture(scope='module')
     def str_chunk_nan(str_chunk_no_nan, _shape):
 
+        # need to set as <U3 to take 'nan'
         str_chunk_nan = str_chunk_no_nan.copy().astype('<U3')
 
         _rows = np.arange(_shape[0])
@@ -217,6 +212,62 @@ class TestParallelizedDtypeUnqsCts:
                 assert np.allclose(OUT_KEYS, EXP_KEYS, rtol=1e-6)
 
                 assert np.array_equiv(OUT_VALUES, EXP_VALUES)
+
+
+    def test_mixed_dtypes(self):
+
+        # _columns_getter should only ever allow _pduc to see np.nan or
+        # maybe str(np.nan) which is 'nan'
+        _chunk = [
+            [3.14, 1, np.nan, 'a'],
+            [2.718, 3.14, np.nan, np.nan],
+            [1, 2, np.nan, 3],
+            [1, 2, 1, np.nan],
+            ['a', 'b', 'c', 'nan']
+        ]
+
+        # transpose to get the rows above to represent columns
+        _np_chunk = np.array(_chunk, dtype=object).transpose()
+
+        out_dtypes_unq_ct_dicts = _parallel_dtypes_unqs_cts(_np_chunk)
+
+        # too much complication with numpy turning py things into np
+        # things and the nasty repr that comes along with that. instead
+        # of comparing dictionaries directly, do it piecemeal.
+        assert out_dtypes_unq_ct_dicts[0][0] == 'obj'
+        _dict1 = out_dtypes_unq_ct_dicts[0][1]
+        assert _dict1[1] == 1
+        assert _dict1[3.14] == 1
+        assert 'nan' in map(str, _dict1)
+        assert _dict1['a'] == 1
+
+        assert out_dtypes_unq_ct_dicts[1][0] == 'float'
+        _dict2 = out_dtypes_unq_ct_dicts[1][1]
+        assert _dict2[2.718] == 1
+        assert _dict2[3.14] == 1
+        assert 'nan' in map(str, _dict2)
+        _dict2 = dict((zip(map(str, _dict2), map(int, _dict2.values()))))
+        assert _dict2['nan'] == 2
+
+        assert out_dtypes_unq_ct_dicts[2][0] == 'int'
+        _dict3 = out_dtypes_unq_ct_dicts[2][1]
+        assert _dict3[1] == 1
+        assert _dict3[2] == 1
+        assert 'nan' in map(str, _dict3)
+        assert _dict3[3] == 1
+
+        assert out_dtypes_unq_ct_dicts[3][0] == 'bin_int'
+        _dict4 = out_dtypes_unq_ct_dicts[3][1]
+        assert _dict4[1] == 2
+        assert _dict4[2] == 1
+        assert 'nan' in map(str, _dict4)
+
+        assert out_dtypes_unq_ct_dicts[4][0] == 'obj'
+        _dict5 = out_dtypes_unq_ct_dicts[4][1]
+        assert _dict5['a'] == 1
+        assert _dict5['b'] == 1
+        assert _dict5['c'] == 1
+        assert _dict5['nan'] == 1
 
 
 

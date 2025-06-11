@@ -28,8 +28,9 @@ from ._type_aliases import (
 )
 from ..__shared._type_aliases import XContainer
 
-import warnings
 import numbers
+import warnings
+
 import numpy as np
 import pandas as pd
 import polars as pl
@@ -81,8 +82,8 @@ class MinCountTransformer(
     the more frequent events.
 
     Totalling frequencies of unique values happens independently on each
-    feature, not across the entire data set. At fit time, the uniques and
-    their frequencies are generated for every feature, regardless of
+    feature, not across the entire dataset. At fit time, the uniques
+    and their frequencies are generated for every feature, regardless of
     whether the user has made any indications to ignore certain features.
     These results are stored to later find and remove pertinent values
     from data undergoing transform. At transform time, the ignore
@@ -142,8 +143,8 @@ class MinCountTransformer(
 
     MCT also defaults to ignoring non-binary integer columns in the same
     way (:param: `ignore_non_binary_integer_columns` default is True).
-    When set to False, these type of features to be handled as
-    categorical as well.
+    When set to False, these type of features will be handled in the
+    same way as categorical as well.
 
     The :param: `ignore_nan` parameter allows or disallows the counting
     and removal of nan values just like any other discrete value. The
@@ -174,15 +175,15 @@ class MinCountTransformer(
     operations take place for those values because rules were not
     generated for them. This may lead to the transformed data containing
     values that violate the count threshold. When True, any value in
-    data passed to :meth: `transform` not seen during training will raise
+    data passed to `transform` not seen during training will raise
     an exception. By its nature, data passed to :meth: `fit_transform`
-    must see :meth: `fit` before being passed to :meth: `transform`,
-    which makes `reject_unseen_values` is irrelevant in that case.
+    must see :meth: `fit` before being passed to `transform`, which
+    makes `reject_unseen_values` is irrelevant in that case.
 
     The `ignore_columns` and `handle_as_bool` parameters accept:
         1) a single vector of features names if the fit data is passed
-            in a format that contains feature names (e.g., a pandas
-            dataframe)
+            in a format that contains feature names (e.g., a pandas or
+            polars dataframe)
         2) a single vector of indices that indicate feature positions, or
         3) a callable that returns 1) or 2) when passed X.
     If data is passed as a dataframe with strings as column names during
@@ -200,14 +201,14 @@ class MinCountTransformer(
     In that case, the target columns can be identified as ignored or
     handled as boolean by running an appropriate algorithm on X via the
     callable. Additional care must be taken when using callables. The
-    safest use is with :meth: `fit_transform`, however, use is not
-    limited to only that case to allow for use with batch-wise operations
-    like dask Incremental and ParallelPostFit wrappers. Upon every call
-    to :meth: `partial_fit` and :meth: `transform`, the callable is
-    executed on the currently-passed data X, generating column names or
-    indices. In a serialized data processing operation, the callable
-    must generate the same indices for each X seen or the algorithm will
-    return nonsensical results.
+    safest use is with `fit_transform`, however, use is not limited to
+    only that case to allow for use with batch-wise operations like
+    dask Incremental and ParallelPostFit wrappers. Upon every call
+    to :meth: `partial_fit` and `transform`, the callable is executed
+    on the currently-passed data X, generating column names or indices.
+    In a serialized data processing operation, the callable must generate
+    the same indices for each X seen or the algorithm will return
+    nonsensical results.
 
     The `transform` and `fit_transform` methods do nothing beyond
     execute the rules prescribed by applying the count threshold to the
@@ -218,7 +219,7 @@ class MinCountTransformer(
     would have left only one value in the feature during :term: fit, then
     there would be instruction to delete the feature entirely. However,
     proper rules may still induce these and other undesirable effects on
-    unseen data during transform.) In these cases, no furtheraction is
+    unseen data during transform.) In these cases, no further action is
     taken by the transform operation to diagnose or address any such
     conditions. The analyst must take care to discover if such conditions
     exist in the transformed data and address it appropriately.
@@ -236,19 +237,23 @@ class MinCountTransformer(
     associated with those values and remove them. MCT can perform this
     recursive action with a single call by appropriate settings to
     the :param: `max_recursions` parameter. This functionality is only
-    available for :meth: `fit_transform` and not with `partial_fit`,
-    `fit`, and `transform`. This ensures that the recursive functionality
-    is working with the entire set of data so that the rules developed
-    as the recursion proceeds are uniform across all the data.
-    Recursion continues until it is stopped for any of these four reasons:
+    available for `fit_transform` and not with `partial_fit`, `fit`, and
+    `transform`. This ensures that the recursive functionality is
+    working with the entire set of data so that the rules developed as
+    the recursion proceeds are uniform across all the data. Recursion
+    continues until it is stopped for any of these four reasons:
         1) the max_recursions specified by the user is reached (default=1)
-        2) all values in all features in the data set appear at least
+        2) all values in all features in the dataset appear at least
             'count_threshold' number of times
         3) all rows would be deleted
         4) all columns would be deleted
 
     See the "Notes" section for additional discussion of less frequent
     use cases.
+
+    MCT mostly follows the scikit-learn API. It has `partial_fit`, `fit`,
+    `transform`, `fit_transform`, `set_params`, and :meth: `get_params`
+    methods.
 
     MCT has a convenient :meth: `print_instructions` method that allows
     the analyst to view the recipes for deleting values and columns
@@ -260,34 +265,35 @@ class MinCountTransformer(
     for any valid parameter settings. In the fitted state, the analyst
     can experiment with different settings via :meth: `set_params` to
     see the impact on the transformation. See the documentation for
-    the :meth: `print_instructions` method for more information.
+    the `print_instructions` method for more information.
 
     MCT can process X in multiple formats. All MCT 'X' arguments must be
-    2D and can be passed as numpy array, pandas DataFrame, or any
-    scipy sparse matrix/array. All MCT 'y' arguments can be 1 or 2D and
-    can be passed as numpy array, pandas DataFrame, or pandas Series.
+    2D and can be passed as numpy array, pandas DataFrame, polars
+    DataFrame, or any scipy sparse matrix/array. All MCT 'y' arguments
+    (if passed) can be 1 or 2D and can be passed as numpy array, pandas
+    DataFrame, pandas Series, polars DataFrame, or polars Series.
 
 
     Parameters
     ----------
     count_threshold:
-        Optional[Union[int, Sequence[int]]], default=3 -  The threshold
-        that determines whether a value is removed from the data
-        (frequency is below threshold) or retained (frequency is greater
-        than or equal to threshold.) When passed as a single integer, it
-        must be >= 2 and that threshold value is applied to all features.
-        If passed as a 1D vector, it must have the same length as the
-        number of the features in the data and each value is applied to
-        its respective feature. All thresholds must be >= 1, and at least
-        one value must be >= 2. Setting the threshold for a feature to 1
-        is the same as ignoring the feature.
+        CountThresholdType, default=3 -  The threshold that determines
+        whether a value is removed from the data (frequency is below
+        threshold) or retained (frequency is greater than or equal to
+        threshold.) When passed as a single integer, it must be >= 2 and
+        that threshold value is applied to all features. If passed as a
+        1D vector, it must have the same length as the number of the
+        features in the data and each value is applied to its respective
+        feature. All thresholds must be >= 1, and at least one value
+        must be >= 2. Setting the threshold for a feature to 1 is the
+        same as ignoring the feature.
 
     ignore_float_columns:
         Optional[bool], default=True - If True, values and frequencies
         within float features are ignored and the feature is retained
         through transform. If False, the feature is handled as if it is
         categorical and unique values are subject to count threshold
-        rules and possible removal. See the notes section for more
+        rules and possible removal. See the Notes section for more
         discussion about float features.
 
     ignore_non_binary_integer_columns:
@@ -298,17 +304,16 @@ class MinCountTransformer(
         threshold rules and possible removal.
 
     ignore_columns:
-        Optional[Union[Sequence[str], Sequence[int], Callable[X], None]],
-        default=None - Excludes indicated features from the thresholding
-        operation. A one-dimensional vector of integer index positions
-        or feature names (if data formats containing column names were
-        used during fitting.) Also accepts a callable that creates such
-        vectors when passed the data (the 'X' argument). THERE ARE NO
-        PROTECTIONS IN PLACE IF THE CALLABLE GENERATES DIFFERENT
-        PLAUSIBLE OUTPUTS ON DIFFERENT BATCHES IN AN EPOCH OF DATA. IF
-        CONSISTENCY OF IGNORED COLUMNS IS REQUIRED, THEN THE USER MUST
-        ENSURE THAT THE CALLABLE PRODUCES IDENTICAL OUTPUTS FOR EACH
-        BATCH OF DATA WITHIN AN EPOCH.
+        IgnoreColumnsType, default=None - Excludes indicated features
+        from the thresholding operation. A one-dimensional vector of
+        integer index positions or feature names (if data formats
+        containing column names were used during fitting.) Also accepts
+        a callable that creates such vectors when passed the data (the
+        'X' argument). THERE ARE NO PROTECTIONS IN PLACE IF THE CALLABLE
+        GENERATES DIFFERENT PLAUSIBLE OUTPUTS ON DIFFERENT BATCHES IN AN
+        EPOCH OF DATA. IF CONSISTENCY OF IGNORED COLUMNS IS REQUIRED,
+        THEN THE USER MUST ENSURE THAT THE CALLABLE PRODUCES IDENTICAL
+        OUTPUTS FOR EACH BATCH OF DATA WITHIN AN EPOCH.
 
     ignore_nan:
         Optional[bool], default=True - If True, nan-like values are
@@ -320,18 +325,17 @@ class MinCountTransformer(
         values.
 
     handle_as_bool:
-        Optional[Union[Sequence[str], Sequence[int], callable(X), None]],
-        default=None - For the indicated features, non-zero values within
-        the feature are treated as if they are the same value. Accepts a
-        1D vector of integer index positions or feature names (if data
-        formats containing column names were used during fitting.) Also
-        accepts a callable that creates such vectors when passed the
-        data (the 'X' argument). THERE ARE NO PROTECTIONS IN PLACE IF
-        THE CALLABLE GENERATES DIFFERENT PLAUSIBLE OUTPUTS ON DIFFERENT
-        BATCHES IN AN EPOCH OF DATA. IF CONSISTENCY OF COLUMNS TO BE
-        HANDLED AS BOOLEAN IS REQUIRED, THEN THE USER MUST ENSURE
-        THAT THE CALLABLE PRODUCES IDENTICAL OUTPUTS FOR EACH BATCH OF
-        DATA WITHIN AN EPOCH.
+        HandleAsBoolType, default=None - For the indicated features,
+        non-zero values within the feature are treated as if they are
+        the same value. Accepts a 1D vector of integer index positions
+        or feature names (if data formats containing column names were
+        used during fitting.) Also accepts a callable that creates such
+        vectors when passed the data (the 'X' argument). THERE ARE NO
+        PROTECTIONS IN PLACE IF THE CALLABLE GENERATES DIFFERENT
+        PLAUSIBLE OUTPUTS ON DIFFERENT BATCHES IN AN EPOCH OF DATA. IF
+        CONSISTENCY OF COLUMNS TO BE HANDLED AS BOOLEAN IS REQUIRED,
+        THEN THE USER MUST ENSURE THAT THE CALLABLE PRODUCES IDENTICAL
+        OUTPUTS FOR EACH BATCH OF DATA WITHIN AN EPOCH.
 
     delete_axis_0:
         Optional[bool], default=False - Only applies to features
@@ -367,33 +371,31 @@ class MinCountTransformer(
         int - the number of features seen during fit.
 
     feature_names_in_:
-        NDArray[str] of shape (n_features_in_,) - Names of features seen
-        during fit. Defined only when X is passed in a container that
-        has feature names and the feature names are all strings. If
-        accessed when not defined, MCT will raise an AttributeError.
+        FeatureNamesInType of shape (n_features_in_,) - Names of
+        features seen during fit. Defined only when X is passed in a
+        container that has feature names and the feature names are all
+        strings. If accessed when not defined, MCT will raise an
+        AttributeError.
 
     original_dtypes_ :
-        NDArray[Literal['bin_int', 'int', 'float', 'obj']] of shape
-        (n_features_in,) - The datatype assigned by MCT to each feature.
-        nan-like values are ignored while discovering datatypes
-        and the collective datatype of the non-nan values is reported.
+        OriginalDtypesType of shape (n_features_in,) - The datatype
+        assigned by MCT to each feature. nan-like values are ignored
+        while discovering datatypes and the collective datatype of the
+        non-nan values is reported.
 
     total_counts_by_column_:
-        dict[int, dict[Any, int]] - A dictionary of the uniques and their
-        frequencies found in each column of the fitted data. The keys are
-        the zero-based column indices and the values are dictionaries.
+        TotalCountsByColumnType - A dictionary of the uniques and their
+        frequencies found in each column of the fitted data. The keys
+        are the zero-based column indices and the values are dictionaries.
         The inner dictionaries are keyed by the unique values found in
         that respective column and the values are their counts. All
         nan-like values are represented by numpy.nan.
 
     instructions_:
-        dict[
-            int,
-            list[Union['INACTIVE', 'DELETE ALL', 'DELETE COLUMN', Any]]
-        ] - a dictionary that is keyed by column index and the values are
-        lists. Within the lists is information about operations to
-        perform with respect to values in the column. The following items
-        may be in the list:
+        InstructionsType - a dictionary that is keyed by column index
+        and the values are lists. Within the lists is information about
+        operations to perform with respect to values in the column. The
+        following items may be in the list:
 
         -'INACTIVE' - ignore the column and carry it through for all
             other operations
@@ -402,7 +404,8 @@ class MinCountTransformer(
             example axis that contain that value in that column,
             possibly including nan-like values.
 
-        -'DELETE ALL' - delete every value in the column.
+        -'DELETE ALL' - delete every value in the column along the
+            example axis, thereby deleting all data.
 
         -'DELETE COLUMN' - perform any individual row deletions that
             need to take place while the column is still in the data,
@@ -414,14 +417,14 @@ class MinCountTransformer(
     Concerning the handling of nan-like values. MCT can recognize various
     nan-like formats, such as numpy.nan, pandas.NA, str(nan), None, and
     others. When collecting uniques and counts during :term: fit, MCT
-    extracts each column one-by-one and converts it to a numpy 1D vector.
-    Then MCT casts all nan-like values to numpy.nan. The user should be
-    wary that regardless of what type of nan-like values were passed
-    during fit, MCT will report them as all numpy.nan in the attributes
-    `total_counts_by_column_` and `instructions_`. If you are unlucky
-    enough to have multiple types of nan-like values in your data, be a
-    pro and use pybear.utilities.nan_mask to cast them all to the same
-    format. See :param: `ignore_nan`.
+    extracts chunks of columns from the data and converts it to a numpy
+    array. Then MCT casts all nan-like values to numpy.nan. The user
+    should be wary that regardless of what type of nan-like values were
+    passed during fit, MCT will report them as all numpy.nan in the
+    attributes `total_counts_by_column_` and `instructions_`. If you are
+    unlucky enough to have multiple types of nan-like values in your
+    data, be a pro and use pybear.utilities.nan_mask or NanStandardizer
+    to cast them all to the same format. See :param: `ignore_nan`.
 
     Concerning float features. MCT was never really intended to perform
     thresholding on float columns, but there are use cases where float
@@ -434,8 +437,8 @@ class MinCountTransformer(
     For a float column, in most applications every value in the column
     is unique, and the dictionary fills as such. The user is advised that
     a float column with, say, 100,000,000 unique values will generate an
-    equally sized python dictionary, which has immense carrying-cost, and
-    will be a pinch-point for MCT and your RAM.
+    equally sized python dictionary, which has immense carrying-cost,
+    and will be a pinch-point for MCT and your RAM.
 
     The analyst is cautioned that this transformer:
         1) modifies data dimensionality along the example axis, and
@@ -477,7 +480,68 @@ class MinCountTransformer(
     be passed as a single chunk to :meth: `fit_transform`.
 
     Type Aliases
-    pizza dont forget!
+    XContainer:
+        Union[
+            npt.NDArray,
+            pd.DataFrame,
+            pl.DataFrame,
+            ss.csr_matrix,
+            ss.csc_matrix,
+            ss.coo_matrix,
+            ss.dia_matrix,
+            ss.lil_matrix,
+            ss.dok_matrix,
+            ss.bsr_matrix,
+            ss.csr_array,
+            ss.csc_array,
+            ss.coo_array,
+            ss.dia_array,
+            ss.lil_array,
+            ss.dok_array,
+            ss.bsr_array
+        ]
+
+    InternalXContainer:
+        Union[npt.NDArray, pd.DataFrame, pl.DataFrame, ss.csc_array, ss.csc_matrix]
+
+    YContainer:
+        Union[npt.NDArray, pd.DataFrame, pd.Series, pl.DataFrame, pl.Series, None]
+
+    DataType:
+        Union[numbers.Number, str]
+
+    CountThresholdType:
+        Union[numbers.Integral, Sequence[numbers.Integral]]
+
+    OriginalDtypesType:
+        npt.NDArray[Union[Literal['bin_int', 'int', 'float', 'obj']]]
+
+    TotalCountsByColumnType:
+        dict[int, dict[DataType, int]]
+
+    InstrLiterals:
+        Literal['INACTIVE', 'DELETE ALL', 'DELETE COLUMN']
+
+    InstructionsType:
+        dict[int, list[Union[DataType, InstrLiterals]]]
+
+    IcHabCallable:
+        Callable[[XContainer], Union[Sequence[numbers.Integral], Sequence[str]]]
+
+    IgnoreColumnsType:
+        Union[None, Sequence[numbers.Integral], Sequence[str], IcHabCallable]
+
+    HandleAsBoolType:
+        Union[None, Sequence[numbers.Integral], Sequence[str], IcHabCallable]
+
+    InternalIgnoreColumnsType:
+        npt.NDArray[np.int32]
+
+    InternalHandleAsBoolType:
+        npt.NDArray[np.int32]
+
+    FeatureNamesInType:
+        npt.NDArray[object]
 
 
     Examples
@@ -513,10 +577,6 @@ class MinCountTransformer(
 
 
     """
-
-
-    _original_dtypes: OriginalDtypesType
-    _total_counts_by_column: TotalCountsByColumnType
 
 
     def __init__(
@@ -575,15 +635,14 @@ class MinCountTransformer(
         check_is_fitted(self)
 
         return self._make_instructions()
+    # END properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
 
     def __pybear_is_fitted__(self) -> bool:
-
         # must have this because there are no trailing-underscore attrs
         # generated by {partial_}fit(). all the trailing-underscore attrs
         # are accessed via @property.
         return hasattr(self, '_total_counts_by_column')
-    # END properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
 
     def reset(self) -> Self:
@@ -813,7 +872,7 @@ class MinCountTransformer(
 
         del _col_dtypes
 
-        self._total_counts_by_column: dict[int, dict[Any, int]] = \
+        self._total_counts_by_column: dict[int, dict[DataType, int]] = \
             _tcbc_merger(
                 DTYPE_UNQS_CTS_TUPLES,
                 getattr(self, '_total_counts_by_column', {})
@@ -1016,29 +1075,29 @@ class MinCountTransformer(
         *,
         clean_printout: Optional[bool] = True,
         max_char: Optional[numbers.Integral] = 99
-    ):
+    ) -> None:
 
         """
         Display instructions generated for the current fitted state,
         subject to the current settings of the parameters. The printout
         will indicate what values and columns will be deleted, and if
         all columns or all rows will be deleted. Use :meth: `set_params`
-        after finishing fits to change MCTs parameters and see the impact
-        on the transformation.
+        after finishing fits to change MCTs parameters and see the
+        impact on the transformation.
 
         If the instance has multiple recursions (i.e., :param:
-        max_recursions is > 1), parameters cannot be changed via method
-        set_params, but the net effect of the actual transformation that
-        was performed is displayed (remember that multiple recursions
-        can only be accessed through :meth: `fit_transform`). The results
-        are displayed as a single set of instructions, as if to perform
+        `max_recursions` is > 1), parameters cannot be changed via
+        method set_params, but the net effect of all recursions is
+        displayed (remember that multiple recursions can only be
+        accessed through :meth: `fit_transform`). The results are
+        displayed as a single set of instructions, as if to perform
         the cumulative effect of the recursions in a single step.
 
         This print utility can only report the instructions and outcomes
-        that can be directly inferred from the information learned about
-        uniques and counts during fitting. It cannot predict any
-        interaction effects that occur during transform of a dataset that
-        may ultimately cause all rows to be deleted. It also cannot
+        that can be directly inferred from the information learned
+        about uniques and counts during fitting. It cannot predict any
+        interaction effects that occur during transform of a dataset
+        that may ultimately cause all rows to be deleted. It also cannot
         capture the effects of previously unseen values that may be
         passed during transform.
 

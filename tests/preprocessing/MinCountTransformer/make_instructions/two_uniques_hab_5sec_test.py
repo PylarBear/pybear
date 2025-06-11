@@ -9,6 +9,7 @@
 import pytest
 
 from copy import deepcopy
+
 import numpy as np
 
 from pybear.preprocessing._MinCountTransformer._make_instructions. \
@@ -16,8 +17,8 @@ from pybear.preprocessing._MinCountTransformer._make_instructions. \
 
 
 
-
 class TestValidation:
+
 
     @pytest.mark.parametrize('_nan_key', ('NAN', np.nan, 'nan'))
     @pytest.mark.parametrize('_nan_ct', (4, 7))
@@ -61,6 +62,8 @@ class TestValidation:
 
     @pytest.mark.parametrize('_delete_axis_0', (True, False))
     def test_rejects_str_data(self, _delete_axis_0):
+
+        # this is bounced by map(float, _COLUMN_UNQ_CT_DICT.keys())
         with pytest.raises(ValueError):
             _two_uniques_hab(
                 _threshold=5,
@@ -72,6 +75,7 @@ class TestValidation:
 
 
 class TestTwoUniquesHAB:
+
 
     @pytest.mark.parametrize('_threshold', (3, 6, 10))
     @pytest.mark.parametrize('_nan_key', ('NAN', np.nan, 'nan', False))
@@ -205,7 +209,10 @@ class TestTwoUniquesHAB:
     @pytest.mark.parametrize('_nan_key', ('NAN', np.nan, 'nan', False))
     @pytest.mark.parametrize('_nan_ct', (2, 4, 7, False))
     @pytest.mark.parametrize('_dtype, _unq_ct_dict',
-        (('int', {0: 5, 1: 7}), ('int', {0: 7, 1: 5}), ('int', {1: 5, 2: 7}))
+        (
+            ('bin_int', {0: 5, 1: 7}), ('bin_int', {0: 7, 1: 5}),
+            ('bin_int', {1: 5, 2: 7})
+        )
     )
     @pytest.mark.parametrize('_delete_axis_0', (True, False))
     def test_two_uniques_hab_bin_int(self,
@@ -251,7 +258,7 @@ class TestTwoUniquesHAB:
                 for unq, ct in _unq_ct_dict.items():
                     if unq != 0:
                         _instr_list.append(unq)
-        elif not _zero_ct:
+        elif not _non_zero_ct:
             # a column of all zeroes
             _delete_column = True
 
@@ -264,37 +271,10 @@ class TestTwoUniquesHAB:
                     _instr_list.append(_nan_key)
 
 
-
         if _delete_column:
             _instr_list.append('DELETE COLUMN')
 
         assert out == _instr_list
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

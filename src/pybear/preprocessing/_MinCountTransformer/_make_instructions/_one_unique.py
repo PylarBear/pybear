@@ -14,7 +14,7 @@ from .._type_aliases import DataType
 
 def _one_unique(
     _threshold: int,
-    _nan_key: Union[float, Literal[False]],
+    _nan_key: Union[float, str, Literal[False]],
     _nan_ct: Union[int, Literal[False]],
     _COLUMN_UNQ_CT_DICT: dict[DataType, int],
 ) -> list[Union[Literal['DELETE COLUMN'], DataType]]:
@@ -35,8 +35,8 @@ def _one_unique(
     _threshold:
         int - the threshold value for the selected column
     _nan_key:
-        Union[float, Literal[False]] - the nan value found in the data.
-        all nan-likes are converted to numpy.nan by _columns_getter.
+        Union[float, str, Literal[False]] - the nan value found in the
+        data. all nan-likes are converted to numpy.nan by _columns_getter.
     _nan_ct:
         Union[int, Literal[False]] - the number of nans found in this
         column.

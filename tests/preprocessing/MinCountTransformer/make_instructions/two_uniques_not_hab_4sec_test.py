@@ -9,6 +9,7 @@
 import pytest
 
 from copy import deepcopy
+
 import numpy as np
 
 from pybear.preprocessing._MinCountTransformer._make_instructions. \
@@ -102,7 +103,6 @@ class TestTwoUniquesNonInt:
         assert out == _instr_list
 
 
-
 class TestTwoUniquesBinInt:
 
     @pytest.mark.parametrize('_threshold', (3, 6, 10))
@@ -114,6 +114,9 @@ class TestTwoUniquesBinInt:
     def test_two_uniques_bin_int(
         self, _threshold, _nan_key, _nan_ct, _unq_ct_dict
     ):
+
+        # even though bin int is being used to test, in practice they
+        # cannot get into this module
 
         # if one is False, both must be False
         if (_nan_key is False) + (_nan_ct is False) == 1:
@@ -144,33 +147,6 @@ class TestTwoUniquesBinInt:
             _instr_list.append('DELETE COLUMN')
 
         assert out == _instr_list
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

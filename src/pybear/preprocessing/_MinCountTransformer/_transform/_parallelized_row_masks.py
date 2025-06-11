@@ -6,7 +6,6 @@
 
 
 
-from typing_extensions import Any
 import numpy.typing as npt
 from .._type_aliases import (
     TotalCountsByColumnType,
@@ -20,11 +19,11 @@ from ....utilities._nan_masking import nan_mask
 
 
 def _parallelized_row_masks(
-    _X_CHUNK: npt.NDArray[Any],
+    _X_CHUNK: npt.NDArray,
     _UNQ_CT_DICT: TotalCountsByColumnType,
     _instr: InstructionsType,
     _reject_unseen_values: bool
-) -> npt.NDArray[np.uint8]:
+) -> npt.NDArray[np.uint32]:
 
     """
     Create mask indicating row indices to delete for a chunk of columns
@@ -47,8 +46,7 @@ def _parallelized_row_masks(
     Parameters
     ----------
     _X_CHUNK:
-        npt.NDArray[Any] - A block of columns from X. Must be 2D numpy
-        array.
+        npt.NDArray - A block of columns from X. Must be 2D numpy array.
     _UNQ_CT_DICT:
         TotalCountsByColumnType - The _total_counts_by_column entries
         for the column(s) in the chunk.
@@ -65,9 +63,9 @@ def _parallelized_row_masks(
     Return
     ------
     -
-        CHUNK_ROW_MASK: npt.NDArray[int]: A 1D mask of rows to delete
-        from X based on the instructions in _delete_instr for these
-        columns.
+        CHUNK_ROW_MASK: npt.NDArray[np.uint32]: A 1D mask of rows to
+        delete from X based on the instructions in _delete_instr for
+        these columns.
 
     """
 
@@ -88,18 +86,20 @@ def _parallelized_row_masks(
 
     assert isinstance(_reject_unseen_values, bool)
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    # create an empty mask to hold the sum of the mask vectors for all columns
-    CHUNK_ROW_MASK = np.zeros(_X_CHUNK.shape[0], dtype=np.uint8)
+    # create an empty mask to hold the sum of the mask vectors for all
+    # columns
+    CHUNK_ROW_MASK = np.zeros(_X_CHUNK.shape[0], dtype=np.uint32)
 
     # cannot only use the column indices from range(_X_CHUNK.shape[1])!
     # must use the column indices that are in the keys of unq_cts/instr
     # and use the enumerate idx to pull the column from _X_CHUNK
     for _chunk_c_idx, _x_c_idx in enumerate(_UNQ_CT_DICT):
 
-        # create an empty mask to hold the sum of the masks for each unq in the column
+        # create an empty mask to hold the sum of the masks for each unq
+        # in the column
         COLUMN_ROW_MASK = np.zeros(_X_CHUNK.shape[0], dtype=np.uint8)
 
         # reject_unseen_values_mask
@@ -109,19 +109,21 @@ def _parallelized_row_masks(
         # pull one column from the chunk
         _X_COLUMN = _X_CHUNK[:, _chunk_c_idx]
 
-        # this counts how many times 'nan' is a key in one column in UNQ_CT_DICT.
-        # there should be at most one in any column
+        # this counts how many times 'nan' is a key in one column in
+        # UNQ_CT_DICT. there should be at most one in any column
         _nan_ctr = 0
         # cycle thru the uniques that were found for this column in fit
         for unq in _UNQ_CT_DICT[_x_c_idx]:
 
             # create an empty mask for this one unique on this one column.
             # this will get populated with matches in the column and be
-            # used to increment both the COLUMN RUV vector and the COLUMN MASK
+            # used to increment both the COLUMN RUV vector and the COLUMN
+            # MASK
             MASK_ON_X_COLUMN_UNQ = np.zeros(_X_COLUMN.shape[0], dtype=np.uint8)
 
             # the unq in UNQ_CT_DICT is not necessarily in _delete_instr.
-            # if it is, and/or if rejecting unseen, need to retain this vector.
+            # if it is, and/or if rejecting unseen, need to retain this
+            # vector.
             if (unq in _instr[_x_c_idx] or str(unq) in map(str, _instr[_x_c_idx])) \
                     or _reject_unseen_values:
 
@@ -135,14 +137,14 @@ def _parallelized_row_masks(
 
 
             if unq in _instr[_x_c_idx] or str(unq) in map(str, _instr[_x_c_idx]):
-                COLUMN_ROW_MASK += MASK_ON_X_COLUMN_UNQ.astype(np.uint8)
+                COLUMN_ROW_MASK += MASK_ON_X_COLUMN_UNQ
 
             if _reject_unseen_values:
-                RUV_MASK += MASK_ON_X_COLUMN_UNQ.astype(np.uint8)
+                RUV_MASK += MASK_ON_X_COLUMN_UNQ
 
         del _nan_ctr, MASK_ON_X_COLUMN_UNQ
 
-        # 24_10_20, python sum is not working correctly on RUV_MASK when has a
+        # python sum is not working correctly on RUV_MASK when has a
         # np dtype, need to use np sum to get the correct result. Or, could
         # convert RUV_MASK with .astype(int), and py sum works correctly.
         # Could go either way with this fix.
@@ -153,17 +155,18 @@ def _parallelized_row_masks(
         # the value was not seen during fit.
         if _reject_unseen_values and np.sum(RUV_MASK) != _X_COLUMN.shape[0]:
 
-            # build things to display info about unseen values ** * ** * **
+            # build things to display info about unseen values ** * ** *
             _UNSEEN = _X_COLUMN[np.logical_not(RUV_MASK)]
-            orig_dtype = _X_COLUMN.dtype
 
             try:
-                _UNSEEN_UNQS = np.unique(_UNSEEN.astype(np.float64)).astype(orig_dtype)
+                _UNSEEN_UNQS = np.unique(_UNSEEN.astype(np.float64))
             except:
-                _UNSEEN_UNQS = np.unique(_UNSEEN.astype(str)).astype(orig_dtype)
+                _UNSEEN_UNQS = np.unique(_UNSEEN.astype(str))
 
-            del orig_dtype, _UNSEEN
-            # END build things to display info about unseen values ** * **
+            _UNSEEN_UNQS = _UNSEEN_UNQS.astype(_X_COLUMN.dtype)
+
+            del _UNSEEN
+            # END build things to display info about unseen values ** *
 
             if len(_UNSEEN_UNQS) > 10:
                 _UNSEEN_UNQS = f"{_UNSEEN_UNQS[:10]} + others"
@@ -178,10 +181,11 @@ def _parallelized_row_masks(
         except:
             pass
 
-        # COLUMN_ROW_MASK was incremented for each unq hit found in the column.
-        # so right now COLUMN_ROW_MASK shows all the row indices in this
-        # column that will cause a row to be removed from the big X.
-        # increment the CHUNK_ROW_MASK with the hits for this column
+        # COLUMN_ROW_MASK was incremented for each unq hit found in the
+        # column. so right now COLUMN_ROW_MASK shows all the row indices
+        # in this column that will cause a row to be removed from the
+        # big X. increment the CHUNK_ROW_MASK with the hits for this
+        # column.
         CHUNK_ROW_MASK += COLUMN_ROW_MASK
 
         del COLUMN_ROW_MASK

@@ -35,16 +35,17 @@ def _get_dtypes_unqs_cts(
     Parameters
     ----------
     _X:
-        InternalXContainer - The pizza.
+        InternalXContainer - The data. must be numpy array, pandas
+        dataframe, polars dataframe, or scipy csc matrix/array.
 
 
     Returns
     -------
     -
         list[tuple[str, dict[DataType, int]]] - a list of tuples, one
-        tuple for each column in X. Each tuple holds the pybear-assigned
+        tuple for each column in X. Each tuple holds the MCT-assigned
         dtype for the column and a dictionary with the uniques in the
-        column as keys and their respective frequencies as values, and pizza.
+        column as keys and their respective frequencies as values.
 
     """
 
@@ -57,10 +58,10 @@ def _get_dtypes_unqs_cts(
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    # as of 25_05_29 no longer using joblib. even with sending chunks of
-    # X instead of single columns across joblib it still wasnt a
-    # benefit. The cost of serializing the data is not worth it for the
-    # light task of getting uniques from a column.
+    # no longer using joblib. even with sending chunks of X instead of
+    # single columns across joblib it still wasnt a benefit. The cost of
+    # serializing the data is not worth it for the light task of getting
+    # uniques from a column.
 
     # the original attempt at this was passing all col indices in _X to
     # columns_getter and passing the whole thing as np to _pduc. It
@@ -75,9 +76,13 @@ def _get_dtypes_unqs_cts(
     _n_cols = 10
     DTYPE_UNQS_CTS_TUPLES = []
     for i in range(0, _X.shape[1], _n_cols):
-        _idxs = tuple(range(i, min(i + _n_cols, _X.shape[1])))
         DTYPE_UNQS_CTS_TUPLES.append(
-            _parallel_dtypes_unqs_cts(_columns_getter(_X, _idxs))
+            _parallel_dtypes_unqs_cts(
+                _columns_getter(
+                    _X,
+                    tuple(range(i, min(i + _n_cols, _X.shape[1])))
+                )
+            )
         )
 
     DTYPE_UNQS_CTS_TUPLES = list(itertools.chain(*DTYPE_UNQS_CTS_TUPLES))
@@ -89,7 +94,7 @@ def _get_dtypes_unqs_cts(
     ))
 
     # DTYPE_UNQS_CTS_TUPLES is list[tuple[str, dict[DataType, int]]]
-    # the idxs of the list match the idxs of the data
+    # the idxs of the list match the column idxs of the data
 
 
     return DTYPE_UNQS_CTS_TUPLES
