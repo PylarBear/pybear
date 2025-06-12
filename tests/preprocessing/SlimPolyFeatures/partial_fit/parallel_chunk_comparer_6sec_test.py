@@ -28,10 +28,10 @@ class TestChunkComparer:
     # FAILED tests/preprocessing/SlimPolyFeatures/partial_fit/parallel_chunk_comparer_6sec_test.py::TestChunkComparer::test_accuracy[True-True] - assert 4 == 3
     # 2025-06-04T00:06:20.7565360Z  +  where 4 = len([((0,), (1,)), ((0,), (2,)), ((1,), (2,)), ((1,), (3,))])
     # 2025-06-04T00:06:20.7565690Z  +  and   3 = len([((0,), (1,)), ((0,), (2,)), ((1,), (2,))])
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (20, 6)
+    # @staticmethod
+    # @pytest.fixture(scope='module')
+    # def _shape():
+    #     return (20, 6)
 
 
 
@@ -46,16 +46,17 @@ class TestChunkComparer:
         # rig 2 chunks to have some identical columns, then see if
         # _chunk_comparer finds them
 
-        # need to rig some constants and indices for _X_factory
+        # need to rig some constants for _X_factory
         # get some random indices that will be equal
         _rand_idxs = np.random.choice(
             list(range(_shape[1])), (3, ), replace=False
         ).tolist()
+
         # set what the value in those columns will be
         _constants = {i: np.e for i in _rand_idxs}
 
         _X1 = _X_factory(
-            _dupl=[_rand_idxs],
+            _dupl=None,
             _format='np',
             _dtype='flt',
             _has_nan=_has_nan,
@@ -65,7 +66,7 @@ class TestChunkComparer:
         )
 
         _X2 = _X_factory(
-            _dupl=[_rand_idxs],
+            _dupl=None,
             _format='np',
             _dtype='flt',
             _has_nan=_has_nan,

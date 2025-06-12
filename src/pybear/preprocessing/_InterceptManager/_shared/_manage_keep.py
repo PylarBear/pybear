@@ -173,7 +173,7 @@ def _manage_keep(
         if __keep not in _constant_columns:
             raise ValueError(
                 f"'keep' callable has returned an integer column index "
-                f"({_keep}) that is not a column of constants. \nconstant "
+                f"({__keep}) that is not a column of constants. \nconstant "
                 f"columns: {_constant_columns}"
             )
     elif isinstance(_keep, str) and _feature_names_in is not None and \
@@ -187,7 +187,7 @@ def _manage_keep(
         if __keep not in _constant_columns:
             raise ValueError(
                 f"'keep' was passed as '{_keep}' corresponding to column "
-                f"index ({_keep}) which is not a column of constants. "
+                f"index {__keep} which is not a column of constants. "
                 f"\nconstant columns: {_constant_columns}"
             )
     elif _keep in ('first', 'last', 'random', 'none'):

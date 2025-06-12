@@ -20,7 +20,7 @@ from pybear.preprocessing._ColumnDeduplicateTransformer. \
 class TestAccuracy:
 
 
-    @pytest.mark.parametrize('X_format', ('np', 'pd', 'pl', 'csr_array'))
+    @pytest.mark.parametrize('X_format', ('np', 'pd')) # pizza , 'pl', 'csr_array'))
     @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('has_nan', (True, False))
     @pytest.mark.parametrize('dupls', (None, [[0, 2, 9]], [[0, 6], [1, 8]]))

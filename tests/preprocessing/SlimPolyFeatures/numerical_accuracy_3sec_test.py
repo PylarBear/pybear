@@ -26,29 +26,20 @@ def _shape():
     return (9, 3)
 
 
-# that means that this fixture also must stay
-@pytest.fixture(scope='module')
-def _X_np(_X_factory, _shape):
-
-    return _X_factory(
-        _dupl=None,
-        _format='np',
-        _dtype='flt',
-        _has_nan=False,
-        _constants=None,
-        _columns=None,
-        _zeros=None,
-        _shape=_shape
-    )
-
-
 class TestBasicCaseNoDuplsNoConstantsInPoly:
+
 
     @pytest.mark.parametrize('min_degree', (1,2))
     @pytest.mark.parametrize('intx_only', (True, False))
     def test_basic_case(
-        self, _X_np, _columns, _kwargs, _shape, min_degree, intx_only
+        self, _X_factory, _columns, _kwargs, _shape, min_degree, intx_only
     ):
+
+
+        _X_np = _X_factory(
+            _dupl=None, _format='np', _dtype='flt', _has_nan=False,
+            _constants=None, _columns=None, _zeros=None, _shape=_shape
+        )
 
         _new_kwargs = deepcopy(_kwargs)
         _new_kwargs['min_degree'] = min_degree

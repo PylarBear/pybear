@@ -9,6 +9,7 @@
 import pytest
 
 import numpy as np
+
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.linear_model import LogisticRegression
@@ -23,7 +24,7 @@ class TestPipeline:
 
     def test_accuracy_in_pipe_vs_out_of_pipe(
         self, _X_factory, _shape, _kwargs, y_np
-):
+    ):
 
         # this also incidentally tests functionality in a pipe
 
@@ -32,6 +33,8 @@ class TestPipeline:
         # fit the data on the pipeline, get coef_
         # fit the data on the steps severally, compare coef_
 
+        # pizza think on this test.... it seems as tho IM may not be doing
+        # anything?
         _X = _X_factory(
             _dupl=None,
             _format='np',

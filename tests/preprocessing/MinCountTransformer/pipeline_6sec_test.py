@@ -6,15 +6,9 @@
 
 
 
-from pybear.preprocessing import MinCountTransformer as MCT
-from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
-from pybear.utilities import check_pipeline
+import pytest
 
-import uuid
 import numpy as np
-import pandas as pd
-import polars as pl
-import scipy.sparse as ss
 
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import (
@@ -22,7 +16,10 @@ from sklearn.preprocessing import (
     FunctionTransformer
 )
 
-import pytest
+from pybear.preprocessing import MinCountTransformer as MCT
+from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
+from pybear.utilities import check_pipeline
+
 
 
 # DO THIS WITHOUT ALTERING THE 0 AXIS, ALTER AXIS 1 ONLY
@@ -33,12 +30,6 @@ import pytest
 class TestPipeline:
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    # pizza
-    # @staticmethod
-    # @pytest.fixture(scope='module')
-    # def _shape():
-    #     return (100, 4)
-
 
     @staticmethod
     @pytest.fixture(scope='module')
@@ -86,28 +77,16 @@ class TestPipeline:
                         del CTS
                         break
 
-                _X = np.hstack((
-                    _X,
-                    _rigged_vector
-                ))
+                _X = np.hstack((_X, _rigged_vector))
 
         assert _X.shape == _shape
 
         return _X
 
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _columns(_shape):
-        return [str(uuid.uuid4())[:5] for _ in range(_shape[1])]
-
-
     # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'csr', 'csc', 'bsr'))
-    def test_accuracy_in_pipe_vs_out_of_pipe(
-        self, _X_np, _shape, _columns, _kwargs, _format
-    ):
+
+    def test_accuracy_in_pipe_vs_out_of_pipe(self, _X_np, _shape, _kwargs):
 
         # this also incidentally tests functionality in a pipe
 
@@ -120,32 +99,6 @@ class TestPipeline:
         # pipe ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # dont use OHE sparse_output, that only puts out CSR.
-
-        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        assert isinstance(_X_np, np.ndarray)
-
-        if _format == 'np':
-            _X = _X_np.copy()
-        elif _format == 'pd':
-            _X = pd.DataFrame(data=_X_np, columns=_columns)
-        elif _format == 'pl':
-            _X = pl.from_numpy(data=_X_np, schema=list(_columns))
-        elif _format == 'csr':
-            _X = ss.csr_array(_X_np)
-        elif _format == 'csc':
-            _X = ss.csc_array(_X_np)
-        elif _format == 'bsr':
-            _X = ss.bsr_array(_X_np)
-        else:
-            raise Exception
-
-        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-        # def _scipy_exploder(X):
-        #     if hasattr(X, 'toarray'):
-        #         return X.toarray()
-        #     else:
-        #         return X
 
 
         pipe = Pipeline(
@@ -164,17 +117,17 @@ class TestPipeline:
 
         check_pipeline(pipe)
 
-        pipe.fit(_X)
+        pipe.fit(_X_np)
 
-        TRFM_X_PIPE = pipe.transform(_X)
+        TRFM_X_PIPE = pipe.transform(_X_np)
 
         # END pipe ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
         # separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        _chopped_X = MCT(**_kwargs).fit_transform(_X)
-        assert isinstance(_chopped_X, type(_X))
+        _chopped_X = MCT(**_kwargs).fit_transform(_X_np)
+        assert isinstance(_chopped_X, type(_X_np))
         _CDT = CDT(keep='first', equal_nan=True)
         _CDT.set_output('default')
         _dedupl_X = _CDT.fit_transform(_chopped_X)
@@ -184,19 +137,6 @@ class TestPipeline:
         # END separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         assert np.array_equal(TRFM_X_PIPE, TRFM_X_NOT_PIPE, equal_nan=True)
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

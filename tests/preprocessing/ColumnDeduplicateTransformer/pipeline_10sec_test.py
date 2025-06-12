@@ -9,6 +9,7 @@
 import pytest
 
 import numpy as np
+
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.linear_model import LogisticRegression

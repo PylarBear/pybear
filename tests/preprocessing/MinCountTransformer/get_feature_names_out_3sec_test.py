@@ -14,6 +14,8 @@
 
 
 
+import pytest
+
 from typing import Literal
 
 import uuid
@@ -22,8 +24,6 @@ import numpy as np
 import pandas as pd
 import polars as pl
 
-import pytest
-
 from pybear.preprocessing import MinCountTransformer as MCT
 from pybear.base.exceptions import NotFittedError
 from pybear.base._get_feature_names_out import get_feature_names_out
@@ -31,12 +31,6 @@ from pybear.base._get_feature_names_out import get_feature_names_out
 
 
 class Fixtures:
-
-    # pizza
-    # @staticmethod
-    # @pytest.fixture(scope='module')
-    # def _shape():
-    #     return (10, 5)
 
 
     @staticmethod

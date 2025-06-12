@@ -318,7 +318,6 @@ def _make_instructions(
                     _delete_axis_0
                 )
             else:
-                # this could only be accessed by 'obj' or 'float' column
                 _delete_instr[col_idx] = _two_uniques_not_hab(
                     _threshold[col_idx],
                     _nan_key,

@@ -100,7 +100,7 @@ class TestGetDtypesUnqsCts:
 
         # all dtype/unq/ct tupls should be the same
         for _c_idx in range(_shape[1]):
-            assert out[_c_idx][0] == 'bin_int'  # because it is all zeros
+            assert out[_c_idx][0] == 'int'  # because it is all zeros
             assert out[_c_idx][1][0] == _shape[0]
 
 

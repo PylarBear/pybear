@@ -43,9 +43,9 @@
 
 
 
-import numpy as np
-
 import pytest
+
+import numpy as np
 
 from pybear.preprocessing import MinCountTransformer as MCT
 
@@ -71,27 +71,18 @@ class TestAccuracy:
 
         _pool_size = (_shape[0] // (_count_threshold + 1))
 
-        _X_wip = np.random.randint(0, 2, _shape[0]).astype(np.uint8)
         _X_wip = np.vstack((
-            _X_wip,
-            np.random.randint(0, _pool_size, _shape[0])
-        )).astype(np.int32)
-        _X_wip = np.vstack((
-            _X_wip,
-            np.random.uniform(0, 1, _shape[0])
-        )).astype(np.float64)
-        _X_wip = np.vstack((
-            _X_wip,
-            np.random.choice(
-                list(list('abcdefghijklmnop')[:_pool_size]),
-                _shape[0]
-            )
+            np.random.randint(0, 2, _shape[0]).astype(np.uint8),
+            np.random.randint(0, _pool_size, _shape[0]).astype(np.int32),
+            np.random.uniform(0, 1, _shape[0]).astype(np.float64),
+            np.random.choice(list(list('abcdefghijklmnop')[:_pool_size]), _shape[0])
         ))
 
         _X_wip = _X_wip.transpose()
-        _MCT = MCT(**_kwargs)
 
+        _MCT = MCT(**_kwargs)
         _MCT.fit_transform(_X_wip)
+
         n_features_in_ = _MCT.n_features_in_
 
         # original_dtypes -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
