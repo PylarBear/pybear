@@ -20,15 +20,6 @@ from pybear.preprocessing._InterceptManager._partial_fit._find_constants \
 class TestScipySparseSpecial:
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _fc_args():
-        return {
-            '_rtol': 1e-5,
-            '_atol': 1e-8
-        }
-
-
     @pytest.mark.parametrize('_format',
         (
             'csr_array', 'csr_matrix',
@@ -39,9 +30,7 @@ class TestScipySparseSpecial:
             'lil_array', 'lil_matrix'
          )
     )
-    def test_blocks_not_csc(
-        self, _X_factory, _format, _fc_args, _columns, _shape
-    ):
+    def test_blocks_not_csc(self, _X_factory, _format, _columns, _shape):
 
         _X_wip = _X_factory(
             _format=_format, _dtype='flt', _columns=_columns,
@@ -53,13 +42,14 @@ class TestScipySparseSpecial:
             _find_constants(
                 _X_wip,
                 _equal_nan=True,
-                **_fc_args
+                _rtol=1e-5,
+                _atol=1e-8
             )
 
 
     @pytest.mark.parametrize('_format', ('csc_array', 'csc_matrix'))
     @pytest.mark.parametrize('_dtype', ('flt', 'int'))
-    def test_ss_all_zeros(self, _format, _dtype, _shape, _fc_args):
+    def test_ss_all_zeros(self, _format, _dtype, _shape):
 
         # build X
         _X_wip = np.zeros(_shape).astype(np.uint8)
@@ -68,7 +58,8 @@ class TestScipySparseSpecial:
         out: dict[int, Any] = _find_constants(
             _X_wip,
             _equal_nan=True,
-            **_fc_args
+            _rtol=1e-5,
+            _atol=1e-8
         )
 
         assert np.array_equal(list(out.keys()), list(range(_shape[1])))

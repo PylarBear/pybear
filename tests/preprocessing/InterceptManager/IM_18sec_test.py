@@ -10,6 +10,7 @@ import pytest
 
 from copy import deepcopy
 import os
+import random
 import uuid
 
 import numpy as np
@@ -34,39 +35,15 @@ from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
     _parallel_column_comparer import _parallel_column_comparer
 
 
-
-
-
 bypass = False
 
 
-# v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-# FIXTURES
-
-@pytest.fixture(scope='module')
-def _constants(_shape):
-    return {0: 0, _shape[1]-2: np.nan, _shape[1]-1: 1}
-
-
-@pytest.fixture(scope='module')
-def X_np(_X_factory, _constants, _shape):
-    return _X_factory(
-        _has_nan=False,
-        _dtype='flt',
-        _constants=_constants,
-        _shape=_shape
-    )
-
-# END fixtures
-# v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-
-# test input validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+# test input validation ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestInitValidation:
 
 
-    # keep ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # keep ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('junk_keep',
         (np.pi, True, False, None, [1,2], {1,2})
     )
@@ -90,21 +67,31 @@ class TestInitValidation:
 
 
     @pytest.mark.parametrize('good_keep',
-        ('first', 'last', 'random', 'none', 0, {'Intercept': 1},
-         lambda x: 0, 'string')
+        ('first', 'last', 'random', 'none', {'Intercept': 1},
+         'lambda', 'int', 'string')
     )
-    def test_good_keep(self, _columns, _kwargs, good_keep, X_np):
+    def test_good_keep(self, _constants, _columns, _kwargs, good_keep, X_np):
 
-        if good_keep == 'string':
-            good_keep = _columns[0]
+        # get one column of constants from the _constants fixture
+        _rand_good_keep_idx = random.choice(list(_constants))
 
+        if good_keep == 'int':
+            good_keep = _rand_good_keep_idx
+        elif good_keep == 'string':
+            good_keep = _columns[_rand_good_keep_idx]
+        elif good_keep == 'lambda':
+            good_keep = lambda x: _rand_good_keep_idx
+        # else:
+        #     otherwise good_keep is unchanged
+
+        _kwargs['equal_nan'] = True
         _kwargs['keep'] = good_keep
 
         IM(**_kwargs).fit_transform(pd.DataFrame(X_np, columns=_columns))
-    # END keep ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END keep ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-    # equal_nan ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # equal_nan ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('_junk',
         (-1, 0, 1, np.pi, None, 'trash', [1, 2], {1, 2}, {'a': 1}, lambda x: x)
     )
@@ -122,7 +109,7 @@ class TestInitValidation:
         _kwargs['equal_nan'] = _equal_nan
 
         IM(**_kwargs).fit_transform(X_np)
-    # END equal_nan ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END equal_nan ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     # rtol & atol ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -157,9 +144,9 @@ class TestInitValidation:
         _kwargs[_param] = _good
 
         IM(**_kwargs).fit_transform(X_np)
-    # END rtol & atol ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END rtol & atol ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-# END test input validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+# END test input validation ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
@@ -618,10 +605,10 @@ class TestPartialFit:
 
 
     @pytest.mark.parametrize('_keep',
-        ('first', 'last', 'random', 'none', 0, lambda x: 0, {'Intercept':1})
+        ('first', 'last', 'random', 'none', 'int', 'lambda', {'Intercept':1})
     )
     def test_many_partial_fits_equal_one_big_fit(
-        self, _kwargs, _shape, X_np, _keep
+        self, _kwargs, _shape, _constants, X_np, _keep
     ):
 
         # **** **** **** **** **** **** **** **** **** **** **** **** ****
@@ -632,6 +619,15 @@ class TestPartialFit:
 
         # X_np has no nans
 
+        _rand_keep_idx = random.choice(list(_constants))
+        if _keep == 'int':
+            _keep = _rand_keep_idx
+        elif _keep == 'lambda':
+            _keep = lambda x: _rand_keep_idx
+        # else:
+            # _keep is not changed
+
+        _kwargs['equal_nan'] = True
         _kwargs['keep'] = _keep
 
         # ** ** ** ** ** ** ** ** ** ** **
@@ -1523,7 +1519,7 @@ class TestTransform:
         # END skip impossible conditions -- -- -- -- -- -- -- -- -- -- --
 
         # set init params ** * ** * ** * ** * ** * ** * ** * ** * ** *
-        _wip_constants = deepcopy(_constants)   # _constants is module scope!
+        _wip_constants = deepcopy(_constants)
 
         if _kwargs['equal_nan'] is False:
             _wip_constants = {
@@ -1531,7 +1527,7 @@ class TestTransform:
             }
 
         keep = {
-            'string': _columns[0], 'dict': {'Bias': np.e},
+            'string': _columns[list(_wip_constants.keys())[0]], 'dict': {'Bias': np.e},
             'callable': lambda x: list(_wip_constants.keys())[0],
             'int': list(_wip_constants.keys())[0]
         }.get(keep, keep)   # if keep not in dict, keep does not change

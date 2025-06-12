@@ -72,102 +72,189 @@ class MinCountTransformer(
 ):
 
     """
-    Remove examples and/or features that contain values whose frequencies
-    within their respective feature fall below the specified count
-    threshold.
+    Remove examples that contain values whose frequencies within their
+    respective feature fall below the specified count threshold.
 
     MinCountTransformer (MCT) is useful in cases where interest is only
-    in the events (values) that happen most frequently, removing
+    in the events (values) that happen most frequently. MCT removes
     infrequent occurrences that may distort relationships that govern
     the more frequent events.
 
-    Totalling frequencies of unique values happens independently on each
-    feature, not across the entire dataset. At fit time, the uniques
-    and their frequencies are generated for every feature, regardless of
-    whether the user has made any indications to ignore certain features.
-    These results are stored to later find and remove pertinent values
-    from data undergoing transform. At transform time, the ignore
-    policies are applied and for the remaining features the frequencies
-    found during fit are compared against the count threshold to
-    determine which values are to be removed. Values are removed by
-    deleting the entire example (row) or feature (column) that contains
-    it.
+    MCT follows the scikit-learn API. It has `partial_fit`, `fit`,
+    `transform`, `fit_transform`, `set_params`, and `get_params` methods.
+    The methods that accept X and y arguments can accomodate several
+    types of containers. All MCT 'X' arguments must be 2D and can be
+    passed as numpy array, pandas DataFrame, polars DataFrame, or any
+    scipy sparse matrix/array. All MCT 'y' arguments (if passed) can be
+    1 or 2D and can be passed as numpy array, pandas DataFrame, pandas
+    Series, polars DataFrame, or polars Series.
 
-    For all cases except binary integer features (string, float, and
-    non-binary integer features), the entire example is removed from the
-    dataset when the frequency of a value within is below the count
-    threshold. This by nature also removes values in other features that
-    were not necessarily below the threshold. For features of these
-    datatypes, the example will always be deleted, and the feature will
-    not be deleted for simply containing a value whose frequency is below
-    the count threshold, unless only one unique value remains. See below
-    for rules regarding removal of a feature.
+    At fit time, frequencies of unique values are totalled independently
+    on each feature, not across the entire dataset. The uniques and
+    their frequencies are generated for every feature, regardless of
+    whether the user has made any indications to ignore some of them.
+    These results are stored within MCT to be used in conjunction with
+    the threshold(s) during transform. At transform time, the ignore
+    policies are applied and for those features that are not ignored the
+    frequencies found during fit are compared against the count threshold
+    to determine which values are to be removed. MCT formulates a recipe
+    for how to act on the data, such as "in this particular feature
+    remove values x, y, and z" and so on and so forth for all the
+    features that are not ignored. Values are removed by deleting the
+    example (row) or feature (column) that contains it from the entire
+    dataset. The way in which MCT removes the infrequent values depends
+    on the datatype.
 
-    For binary integers, however, the default action (when the
-    delete_axis_0 parameter is set to the default of False) is not to
-    delete examples, but to delete the entire feature. However, if the
-    delete_axis_0 parameter is set to True, both the examples containing
-    the sub-threshold value and the feature are removed from the data
-    set. This makes binary integer columns mimic the behavior of all
-    other datatypes. As an example, consider binary integer columns that
-    arose by dummying (one-hot encoding) a feature that was originally
-    categorical as strings. Had that column not been dummied, the
-    examples containing marked values for that feature would have been
-    deleted, but not the entire feature. But as dummies, the default
-    behavior of binary integer features is to delete the feature and
-    retain the example. The delete_axis_0 parameter allows the user to
-    force removal of marked examples as would happen under any other
-    case. The delete_axis_0 parameter is a global setting and cannot be
-    toggled for individual features.
+    While scanning the features to get uniques and frequencies, MCT
+    also assigns an internal datatype to each feature. There are four
+    datatypes: 'bin_int' for binary integers in [0, 1] only, 'int' for
+    any other column of integers, 'float' for columns that contain one
+    or more floating-point decimal value, and 'obj' for columns that
+    contain at least one non-numeric value.
 
-    In the case that removing examples from a feature has left only one
-    unique value in that feature, those remaining same-valued examples
-    are not deleted (reducing the dataset to empty) but the entire
-    feature is removed instead. This is always the case and cannot be
-    toggled. The analyst must be wary that MCT will delete any feature
-    containing a single value, including an intercept column that the
-    user may want to keep. If the user wishes to retain such features,
-    a workaround is to process the data with MCT, which will remove the
-    columns of constants, then re-append them afterward using pybear
-    InterceptManager.
+    For all cases except binary integer features, the entire example
+    (row) is removed from the dataset. For features of these datatypes
+    (string, float, and non-binary integer), the example will always be
+    deleted, and the feature will not be deleted for simply containing
+    a value whose frequency is below the count threshold. The only way
+    a feature of these datatypes can be completely removed is if one
+    unique value remains after the instructions to delete rows are
+    applied. In that case, those remaining same-valued examples are not
+    deleted (reducing the dataset to empty) but the entire feature is
+    removed instead. This is always the case when operations leave a
+    single value in a column, and cannot be toggled.
+
+    For binary integers, however, the default action is not to delete
+    examples, but to delete the entire feature, while leaving the row
+    axis intact. MCT does this to preserve as much data as possible.
+    The alternative would be to delete the entire row and lose maybe
+    thousands of valid values in other features just because of a single
+    freak value in a one-hot encoding, when the value could be removed
+    with much less pain by simply removing the feature. But, should the
+    user want the 'usual' behavior, this can be controlled via the
+    :param: `delete_axis_0` parameter. When set to the default value of
+    False, the default removal method for binary integers is applied as
+    described above. However, if the `delete_axis_0` parameter is set to
+    True, both the rows containing the sub-threshold value(s) and the
+    feature are removed from the dataset. This makes binary integer
+    columns mimic the behavior of all other datatypes.
+
+    To try to further clarify why the `delete_axis_0` parameter exists,
+    consider binary integer columns that arose by dummying (one-hot
+    encoding) a feature that was originally categorical as strings. Had
+    that column not been dummied, MCT would have deleted the examples
+    containing infrequent values for that feature, but not the entire
+    feature. But as binary integer dummies, the default behavior is to
+    delete the feature without deleting the rows. The `delete_axis_0`
+    parameter allows the user to force removal of rows as would happen
+    under any other case. The `delete_axis_0` parameter is a global
+    setting and cannot be toggled for individual features.
+
+    We have described how MCT will remove all features that are processed
+    down to a single constant value, and this behavior also applies when
+    MCT receives training data that from the outset has a feature with a
+    single value. MCT will ALWAYS remove a feature with a single constant
+    value in it unless the column is ignored. This includes an intercept
+    column that the user may want to keep. If the user wishes to retain
+    such features, the simplest solution would be to ignore the column.
+    Or, prehaps the best solution is simply to ignore thc column using
+    :param: `ignore_columns`, which is explained in more detail later.
+    Another option is to process the data with MCT, which will remove
+    the columns of constants, then re-append them afterward using pybear
+    InterceptManager. Yet another workaround is to extract the column(s)
+    manually before processesing with MCT and manually re-append them
+    later.
 
     By default, MCT ignores floats (:param: `ignore_float_columns`,
     default value is True), meaning they are excluded from application
-    of the frequency rules. When True, any impact on these features could
-    only happen when an example is removed in enacting rules made for
-    other features. The user can override ignoring float columns and
-    allow the float features' values to be handled as if they were
-    categorical, i.e., counted and possibly removed based on insufficient
-    frequency as would happen with a categorical column. See the notes
-    for more discussion about float columns.
+    of the frequency rules at transform time. When True, any impact on
+    these features could only happen when an example is removed in
+    enacting rules made for other features. The user can override
+    ignoring float columns and allow the float features' values to be
+    subject to removal at transform time (remember that MCT always
+    collects uniques and frequencies for every feature, even if it is
+    ignored.) A column of all nans is always classified as 'float' by
+    MCT, and would be subject to how `ignore_float_columns` is set. See
+    the Notes section for more discussion about float columns.
 
     MCT also defaults to ignoring non-binary integer columns in the same
-    way (:param: `ignore_non_binary_integer_columns` default is True).
-    When set to False, these type of features will be handled in the
-    same way as categorical as well.
+    way. The :param: `ignore_non_binary_integer_columns` (default is
+    True) can control this behavior in the same way as described for
+    `ignore_float_columns`. When set to False, these type of features
+    will also have low frequency values removed at transform time (which
+    may mean all the values!)
 
-    The :param: `ignore_nan` parameter allows or disallows the counting
-    and removal of nan values just like any other discrete value. The
+    The :param: `ignore_nan` parameter toggles whether to apply thresholding
+    rules to nan values just like any other discrete value. The
     default behavior (ignore_nan=True) will count nan values during the
     fit process, but overlook their frequency counts during the transform
-    process and not develop any rules for removal. See the notes section
+    process and not develop any rules for removal. See the Notes section
     for in-depth discussion about how MCT handles nan-like values.
 
     The `ignore_float_columns`, `ignore_non_binary_integer_columns`, and
     `ignore_nan` policies are global settings and these behaviors cannot
     be toggled for individual features.
 
-    The `handle_as_bool` parameter (default=None) allows the user to
-    handle a feature as if it were boolean, i.e., in the same manner as
-    binary integer columns. Consider a bag-of-words TextVectorizer
-    operation which results in a column that is sparse except for a few
-    non-zero integer values (which may be different.) 'handle_as_bool'
-    allows for the non-zero values as to handled as if they are the same
-    value. In that way, handle_as_bool can be used to indicate the
+    There is one more 'ignore' parameter: :param: `ignore_columns`. This
+    allows the user to specify any individual column(s) they would like
+    MCT to ignore during the transform process. The function of the
+    parameter is self-explanatory. It accepts several types of values,
+    all of which are described in more detail later.
+
+    In all cases, the 'ignore' parameters (:params: `ignore_columns`,
+    `ignore_float_columns`, `ignore_non_binary_integer_columns`) override
+    the behavior of other parameters. For example, if column index 0 was
+    indicated in `ignore_columns` but is also indicated in`handle_as_bool`,
+    `ignore_columns` supercedes and the column is ignored.
+
+    The :param: `handle_as_bool` parameter (default=None) causes a
+    feature to be handled as if it were boolean, i.e., in the same way
+    as binary integer columns. Consider a bag-of-words TextVectorizer
+    operation which results in a feature that is sparse except for a few
+    non-zero integer values (which may be different.) `handle_as_bool`
+    allows for the non-zero values to be handled as if they are the same
+    value. In that way, `handle_as_bool` can be used to indicate the
     frequency of presence (or absence) as opposed to the frequency of
     each unique value. `ignore_columns`, `ignore_float_columns`, and
     `ignore_non_binary_integer_columns`, when True, will supercede
     `handle_as_bool` and the feature will be ignored.
+
+    The `ignore_columns` and `handle_as_bool` parameters accept:
+        1) a single vector of features names if the fit data is passed
+            in a format that contains feature names (e.g., a pandas or
+            polars dataframe)
+        2) a single vector of indices that indicate feature positions, or
+        3) a callable that returns 1) or 2) when passed X.
+
+    If data is passed as a dataframe with strings as column names during
+    fit, MCT will recognize those names when passed to these parameters
+    in a 1D array-like.
+
+    In all cases, column indices are recognized, as long as they are
+    within range.
+
+    The callable functionality affords the
+    luxury of identifying features to ignore or handle as boolean when
+    the ultimate name or index of the desired feature(s) is/are not known
+    beforehand, such as if the data undergoes another transformation
+    prior to MCT. The callable must accept a single argument, the X
+    parameter passed to methods `partial_fit`, `fit`, and `transform`,
+    whereby column indices can be found based on characteristics of X.
+    Consider a pipeline-like process that includes some operations that
+    act on the features of the data, e.g. TextVectorizer or OneHotEncoder.
+    In that case, the desired columns can be identified as ignored or
+    handled as boolean mid-pipeline by passing a callable with an
+    appropriate algorithm on the output of
+    the preceding transformer.
+
+    Additional care must be taken when using callables. The
+    safest use is with `fit_transform`, however, use is not limited to
+    only that case to allow for use with batch-wise operations. Upon every call
+    to :meth: `partial_fit` and `transform`, the callable is executed
+    on the currently-passed data X, generating column names or indices.
+    In a serialized data processing operation, the callable must generate
+    the same indices for each X seen or the algorithm will return
+    nonsensical results.
 
     The :param: `reject_unseen_values` parameter requires all values
     within data passed to :meth: `transform` to have been seen during
@@ -180,80 +267,24 @@ class MinCountTransformer(
     must see :meth: `fit` before being passed to `transform`, which
     makes `reject_unseen_values` is irrelevant in that case.
 
-    The `ignore_columns` and `handle_as_bool` parameters accept:
-        1) a single vector of features names if the fit data is passed
-            in a format that contains feature names (e.g., a pandas or
-            polars dataframe)
-        2) a single vector of indices that indicate feature positions, or
-        3) a callable that returns 1) or 2) when passed X.
-    If data is passed as a dataframe with strings as column names during
-    fit, MCT will recognize those names when passed to these parameters
-    in a 1D array-like. In all cases, column indices are recognized, as
-    long as they are within range. The callable functionality affords the
-    luxury of identifying features to ignore or handle as boolean when
-    the ultimate name or index of the target feature(s) is/are not known
-    beforehand, such as if the data undergoes another transformation
-    prior to MCT. The callables must accept a single argument, the X
-    parameter passed to methods `partial_fit`, `fit`, and `transform`,
-    whereby column indices can be found based on characteristics of X.
-    Consider a pipeline-like process that includes some operations that
-    act on the features of the data, e.g. TextVectorizer or OneHotEncoder.
-    In that case, the target columns can be identified as ignored or
-    handled as boolean by running an appropriate algorithm on X via the
-    callable. Additional care must be taken when using callables. The
-    safest use is with `fit_transform`, however, use is not limited to
-    only that case to allow for use with batch-wise operations like
-    dask Incremental and ParallelPostFit wrappers. Upon every call
-    to :meth: `partial_fit` and `transform`, the callable is executed
-    on the currently-passed data X, generating column names or indices.
-    In a serialized data processing operation, the callable must generate
-    the same indices for each X seen or the algorithm will return
-    nonsensical results.
-
-    The `transform` and `fit_transform` methods do nothing beyond
-    execute the rules prescribed by applying the count threshold to the
-    frequencies discovered during :term: fit. In some circumstances,
-    transforming new unseen data by these rules may cause the transformed
-    data to contain one or more features that only contain a single value,
-    and this one value could possibly be the 'nan' value. (If the rules
-    would have left only one value in the feature during :term: fit, then
-    there would be instruction to delete the feature entirely. However,
-    proper rules may still induce these and other undesirable effects on
-    unseen data during transform.) In these cases, no further action is
-    taken by the transform operation to diagnose or address any such
-    conditions. The analyst must take care to discover if such conditions
-    exist in the transformed data and address it appropriately.
-
-    In all cases, the "ignore" parameters (:params: ignore_columns,
-    ignore_float_columns, ignore_non_binary integer columns) override
-    the behavior of other parameters. For example, if column index 0 was
-    indicated in :param: ignore_columns but is also indicated in :param:
-    handle_as_bool, ignore_columns supercedes and the column is ignored.
-
-    As MCT removes examples that contain values below the count threshold,
-    it also collaterally removes values in other features as well,
-    possibly causing those values' frequencies to fall below the count
-    threshold. Another pass through MCT would then mark the rows/features
-    associated with those values and remove them. MCT can perform this
-    recursive action with a single call by appropriate settings to
-    the :param: `max_recursions` parameter. This functionality is only
-    available for `fit_transform` and not with `partial_fit`, `fit`, and
-    `transform`. This ensures that the recursive functionality is
-    working with the entire set of data so that the rules developed as
-    the recursion proceeds are uniform across all the data. Recursion
-    continues until it is stopped for any of these four reasons:
+    As MCT removes examples that contain values below the threshold,
+    it also collaterally removes values in other features that were not
+    necessarily below the threshold as well, possibly causing those
+    values' frequencies to fall below the threshold. Another pass
+    through MCT would then mark the rows/features associated with those
+    values and remove them. MCT can perform this recursive action with
+    a single call by appropriate settings to the :param: `max_recursions`
+    parameter. This functionality is only available for `fit_transform`
+    and not with `partial_fit`, `fit`, and `transform`. This ensures
+    that the recursive functionality is working with the entire set of
+    data so that the rules developed as the recursion proceeds are
+    uniform across all the data. Recursion continues until it is stopped
+    for any of these four reasons:
         1) the max_recursions specified by the user is reached (default=1)
         2) all values in all features in the dataset appear at least
             'count_threshold' number of times
         3) all rows would be deleted
         4) all columns would be deleted
-
-    See the "Notes" section for additional discussion of less frequent
-    use cases.
-
-    MCT mostly follows the scikit-learn API. It has `partial_fit`, `fit`,
-    `transform`, `fit_transform`, `set_params`, and :meth: `get_params`
-    methods.
 
     MCT has a convenient :meth: `print_instructions` method that allows
     the analyst to view the recipes for deleting values and columns
@@ -267,11 +298,19 @@ class MinCountTransformer(
     see the impact on the transformation. See the documentation for
     the `print_instructions` method for more information.
 
-    MCT can process X in multiple formats. All MCT 'X' arguments must be
-    2D and can be passed as numpy array, pandas DataFrame, polars
-    DataFrame, or any scipy sparse matrix/array. All MCT 'y' arguments
-    (if passed) can be 1 or 2D and can be passed as numpy array, pandas
-    DataFrame, pandas Series, polars DataFrame, or polars Series.
+    The `transform` and `fit_transform` methods do nothing beyond
+    execute the rules prescribed by applying the count threshold to the
+    frequencies discovered during :term: fit. In some circumstances,
+    transforming new unseen data by these rules may cause the transformed
+    data to contain one or more features that only contain a single
+    value, and this one value could possibly be the 'nan' value. (If the
+    rules would have left only one value in the feature during :term:
+    fit, then there would be instruction to delete the feature entirely.
+    However, proper rules may still induce these and other undesirable effects on
+    unseen data during transform.) In these cases, no further action is
+    taken by the transform operation to diagnose or address any such
+    conditions. The analyst must take care to discover if such conditions
+    exist in the transformed data and address it appropriately.
 
 
     Parameters
@@ -416,15 +455,15 @@ class MinCountTransformer(
     -----
     Concerning the handling of nan-like values. MCT can recognize various
     nan-like formats, such as numpy.nan, pandas.NA, str(nan), None, and
-    others. When collecting uniques and counts during :term: fit, MCT
-    extracts chunks of columns from the data and converts it to a numpy
-    array. Then MCT casts all nan-like values to numpy.nan. The user
-    should be wary that regardless of what type of nan-like values were
-    passed during fit, MCT will report them as all numpy.nan in the
-    attributes `total_counts_by_column_` and `instructions_`. If you are
-    unlucky enough to have multiple types of nan-like values in your
-    data, be a pro and use pybear.utilities.nan_mask or NanStandardizer
-    to cast them all to the same format. See :param: `ignore_nan`.
+    others. When collecting uniques and counts during fit, MCT extracts
+    chunks of columns from the data and converts them to numpy array.
+    Then MCT casts all nan-like values to numpy.nan. The user should be
+    wary that regardless of what type of nan-like values were passed
+    during fit, MCT will report them as all numpy.nan in the attributes
+    :attr: `total_counts_by_column_` and :attr: `instructions_`. If you
+    are unlucky enough to have multiple types of nan-like values in your
+    data, be a pro and use pybear nan_mask or NanStandardizer to cast
+    them all to the same format. See :param: `ignore_nan`.
 
     Concerning float features. MCT was never really intended to perform
     thresholding on float columns, but there are use cases where float
@@ -464,6 +503,7 @@ class MinCountTransformer(
     it in a pipeline step requires using the Pipeline class in imblearn
     that inherits from the one in sklearn.
 
+    like dask Incremental and ParallelPostFit wrappers.... pizza.
     The dask_ml wrappers (currently) do not accept a 'y' argument
     to :meth: `transform`, and MCT is bound to this condition. However,
     the need to mask 'y' identically to the masking of X still exists.

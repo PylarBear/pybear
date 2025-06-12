@@ -12,12 +12,16 @@
 
 
 import pytest
-from typing_extensions import Union, Callable
-import numpy as np
 
+from typing_extensions import (
+    Callable,
+    Union
+)
 import numpy.typing as npt
+
 from copy import deepcopy
 
+import numpy as np
 
 from pybear.utilities._nan_masking import (
     nan_mask,
@@ -816,10 +820,10 @@ def test_accuracy(
     _handle_as_bool, _delete_axis_0, _ct_trial, arg_setter, get_unqs_cts_again,
 ):
 
-    # this is sporadically failing when delete_axis_0 and has columns being
-    # handled as bool. after 2 days of troubleshooting, it isnt worth it to
-    # pursue. skip those tests. the mmct fixture is working in the testing
-    # of MCT.
+    # this is sporadically failing when delete_axis_0 and has columns
+    # being handled as bool. after 2 days of troubleshooting, it isnt
+    # worth it to pursue. skip those tests. the mmct fixture is working
+    # in the testing of MCT.
 
 
     MOCK_X = MOCK_X_NAN if _has_nan else MOCK_X_NO_NAN
@@ -831,7 +835,7 @@ def test_accuracy(
         '_ct_3': 2 * _mmct_test_thresh
     }[_ct_trial]
 
-    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
     # MAKE REF_X
 
     # get the uniques and counts for each column
@@ -1013,13 +1017,14 @@ def test_accuracy(
 
             del _delete_column
 
-        # if there are no delete instructions for a column, then remove the
-        # empty list from DELETE_DICT
+        # if there are no delete instructions for a column, then remove
+        # the empty list from DELETE_DICT
         if len(DELETE_DICT[c_idx]) == 0:
             del DELETE_DICT[c_idx]
 
 
-    # perform the instructions in DELETE_DICT on the columns, in reverse order
+    # perform the instructions in DELETE_DICT on the columns, in reverse
+    # order
     for c_idx in reversed(sorted(DELETE_DICT)):
 
         if sum([__ == 'DELETE COLUMN' for __ in DELETE_DICT[c_idx]]) > 1:
@@ -1061,7 +1066,7 @@ def test_accuracy(
             REF_X = np.delete(REF_X, c_idx, axis=1)
 
     # END MAKE REF_X
-    # # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
     TRFM_X = arg_setter(
         MOCK_X=MOCK_X,
@@ -1080,23 +1085,6 @@ def test_accuracy(
         REF_X[np.logical_not(nan_mask(REF_X))]
     ), (f'TRFM_X shape = {TRFM_X.shape}: \n{TRFM_X}\n\n'
         f'REF_X.shape = {REF_X.shape}: \n{REF_X}\n')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

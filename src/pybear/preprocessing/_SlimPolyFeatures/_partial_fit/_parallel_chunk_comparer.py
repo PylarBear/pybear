@@ -120,8 +120,13 @@ def _parallel_chunk_comparer(
 
         for _chunk2_idx, _X2_idxs in enumerate(_chunk2_X_indices):
 
+            # do not double count. which half of the triangle that is
+            # skipped depends on how the chunks are made in _get_dupls.
+            # _get_dupls is scanning the upper right triangle of the grid,
+            # so skip any remnants that are from the lower left.
+            if len(_X2_idxs) < len(_X1_idxs):
+                continue
             if len(_X1_idxs) == len(_X2_idxs) and _X2_idxs <= _X1_idxs:
-                # do not double count
                 continue
 
             _column2 = _chunk2[:, _chunk2_idx].ravel()

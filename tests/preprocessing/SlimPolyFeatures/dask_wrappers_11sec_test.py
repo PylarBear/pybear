@@ -9,13 +9,13 @@
 import pytest
 
 import numpy as np
+import pandas as pd
 import dask.array as da
 import dask.dataframe as ddf
 
 from dask_ml.wrappers import Incremental, ParallelPostFit
 
-from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures import \
-    SlimPolyFeatures as SlimPoly
+from pybear.preprocessing import SlimPolyFeatures as SlimPoly
 
 
 
@@ -25,7 +25,7 @@ class TestDaskIncrementalParallelPostFit:
 
     @pytest.mark.parametrize('x_format', ['da_array', 'ddf'])
     @pytest.mark.parametrize('y_format', ['da_vector', None])
-    @pytest.mark.parametrize('row_chunk', (10, 20))
+    @pytest.mark.parametrize('row_chunk', (2, 5)) # less than conftest _shape[0]
     @pytest.mark.parametrize('wrappings', ('incr', 'ppf', 'both', 'none'))
     def test_fit_and_transform_accuracy(
         self, wrappings, X_np, y_np, _columns, x_format, y_format, _kwargs,
@@ -33,6 +33,10 @@ class TestDaskIncrementalParallelPostFit:
     ):
 
         # faster without client
+
+
+
+
 
         if wrappings == 'incr':
             _test_cls = Incremental(SlimPoly(**_kwargs))
@@ -42,10 +46,11 @@ class TestDaskIncrementalParallelPostFit:
             _test_cls = ParallelPostFit(Incremental(SlimPoly(**_kwargs)))
         elif wrappings == 'none':
             _test_cls = SlimPoly(**_kwargs)
+        else:
+            raise Exception
 
         _X_chunks = (row_chunk, _shape[1])
         _X = da.from_array(X_np).rechunk(_X_chunks)
-
         if x_format == 'da_array':
             pass
         elif x_format == 'ddf':
@@ -53,20 +58,14 @@ class TestDaskIncrementalParallelPostFit:
         else:
             raise Exception
 
-        # confirm there is an X
-        _X.shape
-
-
         if y_format is None:
             _y = None
+            _y_np = None
         elif y_format == 'da_vector':
-            _y = da.from_array(y_np, chunks=(row_chunk,))
+            _y = da.from_array(y_np).rechunk((row_chunk,))
+            _y_np = y_np.copy()
         else:
             raise Exception
-
-        # confirm there is a y
-        if _y is not None:
-            _y.shape
 
         _was_fitted = False
         # incr covers fit() so should accept all objects for fits
@@ -76,6 +75,8 @@ class TestDaskIncrementalParallelPostFit:
         if wrappings in ['none', 'ppf']:
             # without any wrappers, should except for trying to put
             # dask objects into SlimPoly
+            # pizza in CDT this raises TypeError but here it raises crazy dask error
+            # find out the difference.
             with pytest.raises(Exception):
                 _test_cls.partial_fit(_X, _y)
             pytest.skip(reason=f"cannot do more tests if not fit")
@@ -96,37 +97,28 @@ class TestDaskIncrementalParallelPostFit:
         # always transforms with just X
         TRFM_X = _test_cls.transform(_X)
 
-
         if x_format == 'da_array':
             assert isinstance(TRFM_X, da.core.Array)
         elif x_format == 'ddf':
             assert isinstance(TRFM_X, ddf.DataFrame)
-        else:
-            raise Exception
 
         # ^^^ transform ^^^
 
         # CONVERT TO NP ARRAY FOR COMPARISON AGAINST REF fit_trfm()
-        try:
-            TRFM_X = TRFM_X.compute()
-        except:
-            pass
+        TRFM_X = TRFM_X.compute()
 
-        try:
+        if isinstance(TRFM_X, pd.core.frame.DataFrame):
             TRFM_X = TRFM_X.to_numpy()
-        except:
-            pass
-
-        # END CONVERT TO NP ARRAY FOR COMPARISON AGAINST REF fit_trfm()
-
-        RefTestCls = SlimPoly(**_kwargs)
-
-        REF_X = RefTestCls.fit_transform(X_np, _y)
 
         assert isinstance(TRFM_X, np.ndarray)
-        assert isinstance(REF_X, np.ndarray)
-        assert np.array_equal(TRFM_X, REF_X), \
-            f"wrapped output != unwrapped output"
+        # END CONVERT TO NP ARRAY FOR COMPARISON AGAINST REF fit_trfm()
+
+
+        assert np.array_equal(
+            TRFM_X,
+            SlimPoly(**_kwargs).fit_transform(X_np, _y_np)
+        ), f"wrapped output != unwrapped output"
+
 
 
 

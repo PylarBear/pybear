@@ -13,11 +13,11 @@ from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures import \
 
 
 
-X = np.random.randint(0, 10, (3352, 832))
+X = np.random.randint(0, 10, (10, 5))
 
 
 trfm = SPF(
-    degree = 2,
+    degree = 3,
     min_degree = 1,
     interaction_only = False,
     scan_X = True,
@@ -29,9 +29,13 @@ trfm = SPF(
     atol = 1e-08,
     n_jobs = -1
 )
-print(f'BENCHMARK start fit')
-trfm.fit(X)
-print(f'BENCHMARK end fit')
-print(f'BENCHMARK start transform')
-out = trfm.transform(X)
-print(f'BENCHMARK end transform')
+
+trfm.fit_transform(X)
+
+
+
+
+
+
+
+

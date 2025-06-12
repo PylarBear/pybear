@@ -135,13 +135,19 @@ def _parallel_dtypes_unqs_cts(
             raise UnicodeError
         except UnicodeError:
             # if is num
+            if len(UNIQUES_NO_NAN) == 0:
+                # a column of X cannot be empty, so it must have at least
+                # 1 unq. if UNIQUES_NO_NAN is empty, then the unq was nan
+                _dtypes_unqs_cts.append(('float', UNQ_CT_DICT))
             # determine if is integer
-            if np.allclose(
+            elif np.allclose(
                 UNIQUES_NO_NAN.astype(np.float64),
                 UNIQUES_NO_NAN.astype(np.float64).astype(np.int32),
                 atol=1e-6
             ):
-                if len(UNIQUES_NO_NAN) <= 2:
+                if np.array_equal(
+                    sorted(list(UNIQUES_NO_NAN.astype(np.int32))), [0, 1]
+                ):
                     _dtypes_unqs_cts.append(('bin_int', UNQ_CT_DICT))
                 else:
                     _dtypes_unqs_cts.append(('int', UNQ_CT_DICT))

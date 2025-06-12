@@ -105,9 +105,9 @@ class TestTransform:
 
         # END BUILD_X v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
-        # build the column mask for the parameter inputs - - - - - - - - - - -
+        # build the column mask for the parameter inputs - - - - - - - -
         # this would otherwise be done by _identify_idxs_to_delete....
-        # pizza come back... does the file exist anymore?
+        # it is probably just as well to construct this independently.
 
         # when not equal_nan, all columns must be unequal (full mask, all
         # columns are kept) because every column in X gets some nans
@@ -128,14 +128,14 @@ class TestTransform:
             _column_mask[_del] = False
         elif not _equal_nan:
             _column_mask = np.ones((_shape[1], )).astype(bool)
-        # END build the column mask for the parameter inputs - - - - - - - - -
+        # END build the column mask for the parameter inputs - - - - - -
 
 
         # apply the column mask to the original X
         out = _transform(_X_wip, _column_mask)
 
 
-        # ASSERTIONS ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        # ASSERTIONS ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
         # output format is same as given
         assert isinstance(out, _og_format)
 
@@ -182,10 +182,7 @@ class TestTransform:
                     _out_col, _og_col, 1e-5, 1e-8, _equal_nan
                 )
 
-        # END ASSERTIONS ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-
-
-
+        # END ASSERTIONS ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 
 

@@ -49,8 +49,8 @@ class TestDaskIncrementalParallelPostFit:
         else:
             raise Exception
 
-        _X_chunks = (row_chunk, _shape[1])
-        _X = da.from_array(_X_np).rechunk(_X_chunks)
+
+        _X = da.from_array(_X_np).rechunk((row_chunk, _shape[1]))
         if x_format == 'da_array':
             pass
         elif x_format == 'ddf':
@@ -116,10 +116,6 @@ class TestDaskIncrementalParallelPostFit:
             TRFM_X,
             CDT(**_kwargs).fit_transform(_X_np, _y_np)
         ), f"wrapped output != unwrapped output"
-
-
-# END TEST DASK Incremental + ParallelPostFit == ONE BIG fit_transform()
-
 
 
 

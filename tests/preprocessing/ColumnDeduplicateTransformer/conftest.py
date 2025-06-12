@@ -17,6 +17,24 @@ def _shape():
     return (20, 10)
 
 
+@pytest.fixture(scope='module')
+def _dupls(_shape):
+    # _dupl must be intermingled like [[0,8],[1,9]], not [[0,1],[8,9]]
+    # for TestManyPartialFitsEqualOneBigFit to catch 'random' putting
+    # out different columns over a sequence of transforms
+    return [[0,_shape[1]-2], [1, _shape[1]-1]]
+
+
+@pytest.fixture(scope='module')
+def X_np(_X_factory, _dupls, _shape):
+    return _X_factory(
+        _dupl=_dupls,
+        _has_nan=False,
+        _dtype='flt',
+        _shape=_shape
+    )
+
+
 @pytest.fixture(scope='session')
 def y_np(_shape):
     return np.random.randint(0, 2, _shape[0])

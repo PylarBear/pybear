@@ -179,12 +179,6 @@ class TestMergeConstants:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _mc_args():
-        return {'_rtol': 1e-6, '_atol': 1e-6}
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
     def _init_constants(_dtype):
         if _dtype == 'num':
             return {1:2, 2:2, 4:2, 6:2, 7:1}
@@ -215,7 +209,7 @@ class TestMergeConstants:
     @pytest.mark.parametrize('_constants_set', ('init', 'no', 'more', 'less'))
     def test_first_pass(
         self, _constants_set, _init_constants, _more_constants, _less_constants,
-        _mc_args, _dtype
+        _dtype
     ):
 
         # verifies accuracy of _merge_constants on a single pass
@@ -233,7 +227,8 @@ class TestMergeConstants:
         out: dict[int, Any] = _merge_constants(
             _old_constants=None,   # first pass! occ must be None!
             _new_constants=_constants,
-            **_mc_args
+            _rtol=1e-6,
+            _atol=1e-6
         )
 
         # on first pass, the output of _find_constants is returned directly.
@@ -260,9 +255,7 @@ class TestMergeConstants:
                     raise Exception
 
 
-    def test_less_constants_found(
-        self, _init_constants, _less_constants, _mc_args, _dtype
-    ):
+    def test_less_constants_found(self, _init_constants, _less_constants, _dtype):
 
         # verifies accuracy of _merge_constants when second partial fit
         # has less constants than the first
@@ -273,14 +266,16 @@ class TestMergeConstants:
         _first_fit_constants: dict[int, Any] = _merge_constants(
             _old_constants=None,   # first pass! occ must be None!
             _new_constants=_init_constants,
-            **_mc_args
+            _rtol=1e-6,
+            _atol=1e-6
         )
 
         # get second partial fit constants
         _scd_fit_constants: dict[int, Any] = _merge_constants(
             _old_constants=_first_fit_constants, # <=========
             _new_constants=_less_constants,
-            **_mc_args
+            _rtol=1e-6,
+            _atol=1e-6
         )
 
         # on a partial fit where less duplicates are found, outputted melded
@@ -301,9 +296,7 @@ class TestMergeConstants:
                 raise Exception
 
 
-    def test_more_constants_found(
-        self, _init_constants, _more_constants, _mc_args, _dtype
-    ):
+    def test_more_constants_found(self, _init_constants, _more_constants, _dtype):
 
         # verifies accuracy of _merge_constants when second partial fit
         # has more constants than the first
@@ -314,14 +307,16 @@ class TestMergeConstants:
         _first_fit_constants: dict[int, Any] = _merge_constants(
             _old_constants=None,   # first pass! occ must be None
             _new_constants=_init_constants,
-            **_mc_args
+            _rtol=1e-6,
+            _atol=1e-6
         )
 
         # get second partial fit constants
         _scd_fit_constants: dict[int, Any] = _merge_constants(
             _old_constants=_first_fit_constants, # <=========
             _new_constants=_more_constants,
-            **_mc_args
+            _rtol=1e-6,
+            _atol=1e-6
         )
 
         # on a partial fit where more duplicates are found, outputted melded
@@ -343,7 +338,7 @@ class TestMergeConstants:
 
 
     def test_more_and_less_constants_found(
-        self, _init_constants, _less_constants, _more_constants, _mc_args, _dtype
+        self, _init_constants, _less_constants, _more_constants, _dtype
     ):
 
         # verifies accuracy of _merge_constants when partial fits after the
@@ -355,21 +350,24 @@ class TestMergeConstants:
         _first_fit_constants: dict[int, Any] = _merge_constants(
             _old_constants=None,  # first pass!  occ must be None!
             _new_constants=_init_constants,
-            **_mc_args
+            _rtol=1e-6,
+            _atol=1e-6
         )
 
         # get second partial fit constants
         _scd_fit_constants: dict[int, Any] = _merge_constants(
             _old_constants=_first_fit_constants,  # <=========
             _new_constants=_more_constants,
-            **_mc_args
+            _rtol=1e-6,
+            _atol=1e-6
         )
 
         # get third partial fit constants
         _third_fit_constants: dict[int, Any] = _merge_constants(
             _old_constants=_scd_fit_constants,  # <=========
             _new_constants=_less_constants,
-            **_mc_args
+            _rtol=1e-6,
+            _atol=1e-6
         )
 
         # on a partial fit where more duplicates are found, outputted melded

@@ -67,7 +67,7 @@ class TestDuplsAndConstantsInX:
         # make sure there is no overlap of dupl & constant idxs or
         # it will screw up X_factory
 
-        # set dupls v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # set dupls v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         if dupls == 'dupls1':
             dupls = [[0, 2]]
         elif dupls == 'dupls2':
@@ -76,10 +76,10 @@ class TestDuplsAndConstantsInX:
             dupls = None
         else:
             raise Exception
-        # END set dupls v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # END set dupls v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
 
-        # set constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # set constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         if constants == 'constants1':
             constants = {1: 1}
         elif constants == 'constants2':
@@ -88,49 +88,43 @@ class TestDuplsAndConstantsInX:
             constants = None
         else:
             raise Exception
-        # END set constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
+        # END set constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
 
         TEST_X = _X_factory(
-            _dupl=dupls,
-            _format=X_format,
-            _dtype='flt',
-            _has_nan=True,
-            _constants=constants,
-            _columns=_columns,
-            _zeros=None,
-            _shape=_shape
+            _dupl=dupls, _format=X_format, _dtype='flt', _has_nan=True,
+            _constants=constants, _columns=_columns, _zeros=None, _shape=_shape
         )
 
         TestCls = SlimPoly(**_new_kwargs)
 
-        # if any dupls or any constants, should be no-ops on almost everything.
-        # should still have access to feature_names_in_, n_features_in_,
-        # partial_fit, fit (which resets), get_params, reset, & set_params
+        # if any dupls or any constants, should be no-ops on almost
+        # everything. should still have access to feature_names_in_,
+        # n_features_in_, partial_fit, fit (which resets), get_params,
+        # reset, & set_params
         has_dupls_or_constants = False
         if dupls is not None or constants is not None:
             has_dupls_or_constants += 1
 
 
-        # must be fitted to access all of these attrs, properties, and methods!
-        # partial_fit and fit should always be accessible regardless of dupls or
-        # constants
+        # must be fitted to access all of these attrs, properties, and
+        # methods! partial_fit and fit should always be accessible
+        # regardless of dupls or constants
         # partial_fit() ---- do this partial fit first to induce a state
         # that may have constants and/or dupls...
         assert TestCls.partial_fit(TEST_X) is TestCls
         # TestCls may have degenerate condition, depending on the test.
         # should be able to access partial_fit again...
         assert TestCls.partial_fit(TEST_X) is TestCls
-        # then do fit(), which resets it, to have a fitted instance for the
-        # tests below fit()
+        # then do fit(), which resets it, to have a fitted instance for
+        # the tests below fit()
         assert TestCls.fit(TEST_X) is TestCls
 
 
         if has_dupls_or_constants:
 
-            # all of these should be blocked. should be a no-op with a warning,
-            # and returns None
+            # all of these should be blocked. should be a no-op with a
+            # warning, and returns None
 
             with pytest.warns():
                 assert TestCls.get_feature_names_out() is None
@@ -174,7 +168,8 @@ class TestDuplsAndConstantsInX:
             assert isinstance(TestCls.poly_constants_, dict)
 
 
-        # v v v these all should function normally no matter what state SPF is in
+        # v v v these all should function normally no matter what state
+        # SPF is in
 
         # feature_names_in_
         if X_format in ['pd', 'pl']:

@@ -222,7 +222,7 @@ class TestParallelizedDtypeUnqsCts:
             [3.14, 1, np.nan, 'a'],
             [2.718, 3.14, np.nan, np.nan],
             [1, 2, np.nan, 3],
-            [1, 2, 1, np.nan],
+            [0, 1, 0, np.nan],
             ['a', 'b', 'c', 'nan']
         ]
 
@@ -258,8 +258,8 @@ class TestParallelizedDtypeUnqsCts:
 
         assert out_dtypes_unq_ct_dicts[3][0] == 'bin_int'
         _dict4 = out_dtypes_unq_ct_dicts[3][1]
-        assert _dict4[1] == 2
-        assert _dict4[2] == 1
+        assert _dict4[0] == 2
+        assert _dict4[1] == 1
         assert 'nan' in map(str, _dict4)
 
         assert out_dtypes_unq_ct_dicts[4][0] == 'obj'

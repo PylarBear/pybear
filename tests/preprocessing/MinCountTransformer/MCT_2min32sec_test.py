@@ -2278,14 +2278,16 @@ class TestTransform:
 
     def test_a_column_of_all_nans(self, _shape):
 
+        # need to not ignore float columns because nans are float
         _MCT = MCT(
             count_threshold=3,
-            ignore_float_columns=True,
+            ignore_float_columns=False,
+            ignore_non_binary_integer_columns=True,
             max_recursions=1
         )
 
         _X = np.vstack((
-            np.random.uniform(0, 1, (_shape[0], )),
+            np.random.randint(0, 10, (_shape[0], )),
             np.fromiter((np.nan for i in range(_shape[0])), dtype=np.float64)
         )).transpose().astype(np.float64)
 
