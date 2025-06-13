@@ -19,13 +19,10 @@ from pybear.preprocessing._MinCountTransformer.MinCountTransformer import \
     MinCountTransformer as MCT
 
 
-pytest.skip(reason=f'pizza read the notes', allow_module_level=True)
-# 25_06_12 this is raising because it is sending a dummy 1D row
-# vector of zeros to MCT, apparently it is some kind of primer.
-# MCT is rejecting because min_samples is 3. (all other pybear
-# trfms have min_samples=1.) it does pass if MCT min_samples is
-# set to 1, but the implications of that change ripple thru
-# all other aspects of MCT.
+# 25_06_12 originally min_samples was set to 3. this was raising because
+# dask_ml is sending a dummy 1D row vector of zeros to MCT transform,
+# apparently it is some kind of primer? (all other pybear trfms have
+# min_samples=1.) MCT min_samples is now set to 1.
 
 
 # TEST DASK Incremental + ParallelPostFit == ONE BIG fit_transform()
