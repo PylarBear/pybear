@@ -66,7 +66,7 @@ class TestCopyX:
                 else:
                     out = _container(list(_X))
 
-                # validate object was built correctly -- -- -- -- -- -- -- --
+                # validate object was built correctly -- -- -- -- -- --
                 if _container is np.array:
                     assert isinstance(out, np.ndarray)
                 elif _container is np.ma.masked_array:
@@ -88,7 +88,7 @@ class TestCopyX:
                     del __
                 else:
                     assert all(map(isinstance, out, (numbers.Number for _ in out)))
-                # END validate object was built correctly -- -- -- -- -- -- --
+                # END validate object was built correctly -- -- -- -- --
             else:   # is 2D
                 _X = _X_list_2D
                 if _container is [set, pd.Series, pl.Series, ddf.Series]:
@@ -102,7 +102,7 @@ class TestCopyX:
                 else:
                     out = _container(_X)
 
-                # validate object was built correctly -- -- -- -- -- -- -- --
+                # validate object was built correctly -- -- -- -- -- --
                 if _container is np.array:
                     assert isinstance(out, np.ndarray)
                 elif _container is np.ma.masked_array:
@@ -119,7 +119,7 @@ class TestCopyX:
                     pass
                 else:
                     assert not any(map(isinstance, out, (numbers.Number for _ in out)))
-                # END validate object was built correctly -- -- -- -- -- -- --
+                # END validate object was built correctly -- -- -- -- --
 
             return out
 
@@ -253,15 +253,7 @@ class TestCopyX:
 
         return foo
 
-    # pizza
-    # @staticmethod
-    # @pytest.fixture(scope='session')
-    # def _client():
-    #     client = distributed.Client(n_workers=1, threads_per_worker=1)
-    #     yield client
-    #     client.close()
-
-    # END fixtures v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # END fixtures v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
     @pytest.mark.parametrize('junk_X',
         (-2.7, -1, 0, 1, 2.7, True, False, None, lambda x: x)

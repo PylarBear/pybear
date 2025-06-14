@@ -62,7 +62,6 @@ __all__ = [
     'num_samples',
     'set_order',
     'validate_data',
-    
     'FeatureMixin',
     'FileDumpMixin',
     'FitTransformMixin',

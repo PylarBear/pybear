@@ -144,7 +144,7 @@ class TestAttrAccessBeforeAndAfterFit(Fixtures):
                 isinstance, _value[1], (numbers.Integral for i in _value[1])
             ))
             assert isinstance(_value[2], str)
-        # param_ cannot be set
+        # params_ cannot be set
         with pytest.raises(AttributeError):
             setattr(TestCls, 'params_', {})
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --

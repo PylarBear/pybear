@@ -24,17 +24,6 @@ class TestChunkComparer:
     # this has been fixed but think on how to make this test catch this.
     # see circa line 116 in _pcc.
 
-    # pizza
-    # 25_06_04 overwrite conftest fixture because of error in github actions
-    # FAILED tests/preprocessing/SlimPolyFeatures/partial_fit/parallel_chunk_comparer_6sec_test.py::TestChunkComparer::test_accuracy[True-True] - assert 4 == 3
-    # 2025-06-04T00:06:20.7565360Z  +  where 4 = len([((0,), (1,)), ((0,), (2,)), ((1,), (2,)), ((1,), (3,))])
-    # 2025-06-04T00:06:20.7565690Z  +  and   3 = len([((0,), (1,)), ((0,), (2,)), ((1,), (2,))])
-    # @staticmethod
-    # @pytest.fixture(scope='module')
-    # def _shape():
-    #     return (20, 6)
-
-
 
     # np cant be int if using nans
     @pytest.mark.parametrize('_has_nan', (True, False))
@@ -76,8 +65,8 @@ class TestChunkComparer:
             _shape=_shape
         )
 
-        # output should be every permutation of the indices of the equal columns
-        # like [(0, 1), (0, 2), (1, 2)] if 0, 1, & 2 are equal
+        # output should be every permutation of the indices of the equal
+        # columns like [(0, 1), (0, 2), (1, 2)] if 0, 1, & 2 are equal
 
         out = _parallel_chunk_comparer(
             _chunk1=_X1,

@@ -57,7 +57,7 @@ class TestAccuracy:
 
 
         # BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-        X = _X_factory(
+        _X_wip = _X_factory(
             _dupl=dupls,
             _has_nan=has_nan,
             _format=X_format,
@@ -100,15 +100,15 @@ class TestAccuracy:
         # v v v fit & transform v v v v v v v v v v v v v v v v v v
         if _conflict_condition and conflict == 'raise':
             with pytest.raises(ValueError):
-                TestCls.fit_transform(X)
+                TestCls.fit_transform(_X_wip)
             pytest.skip(reason=f"dont do remaining tests")
         else:
-            TRFM_X = TestCls.fit_transform(X)
+            TRFM_X = TestCls.fit_transform(_X_wip)
         # ^ ^ ^ END fit & transform ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
 
         # get expected number of kept columns
-        exp_num_kept = X.shape[1] - sum([len(_) - 1 for _ in exp_dupls])
+        exp_num_kept = _X_wip.shape[1] - sum([len(_) - 1 for _ in exp_dupls])
 
 
         # ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -122,7 +122,7 @@ class TestAccuracy:
         # and 'get_feature_names_out'
 
         # attr 'n_features_in_' is correct
-        assert TestCls.n_features_in_ == X.shape[1]
+        assert TestCls.n_features_in_ == _X_wip.shape[1]
 
         # attr 'feature_names_in_' is correct
         if X_format in ['pd', 'pl']:
@@ -137,7 +137,7 @@ class TestAccuracy:
 
         # keep ('first','last','random') is correct when not muddied by do_not_drop
         # also build ref objects along the way for testing attrs
-        ref_column_mask = [True for _ in range(X.shape[1])]
+        ref_column_mask = [True for _ in range(_X_wip.shape[1])]
         ref_removed_columns = {}
         if X_format in ['pd', 'pl']:
             ref_feature_names_out = list(deepcopy(_columns))

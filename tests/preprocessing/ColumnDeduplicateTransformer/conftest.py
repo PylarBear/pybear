@@ -22,7 +22,17 @@ def _dupls(_shape):
     # _dupl must be intermingled like [[0,8],[1,9]], not [[0,1],[8,9]]
     # for TestManyPartialFitsEqualOneBigFit to catch 'random' putting
     # out different columns over a sequence of transforms
-    return [[0,_shape[1]-2], [1, _shape[1]-1]]
+
+    while True:
+        _dupls1 = np.random.choice(range(_shape[1]), (2,))
+        _dupls2 = np.random.choice(range(_shape[1]), (2,))
+        _ctr = 0
+        _ctr += _dupls1[0] < _dupls1[1]
+        _ctr += _dupls1[0] < _dupls2[0]
+        _ctr += _dupls1[1] < _dupls2[1]
+        _ctr += _dupls2[0] < _dupls2[1]
+        if _ctr == 4:
+            return [list(map(int, _dupls1)), list(map(int, _dupls2))]
 
 
 @pytest.fixture(scope='module')

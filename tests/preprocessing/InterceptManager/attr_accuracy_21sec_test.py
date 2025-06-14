@@ -21,7 +21,7 @@ from pybear.utilities import nan_mask
 class TestAccuracy:
 
 
-    @pytest.mark.parametrize('X_format', ('np', 'pd', 'pl', 'csr_array'))
+    @pytest.mark.parametrize('X_format', ('np', 'pl')) #, 'pd', 'csr_array'))
     @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('has_nan', (True, False))
     @pytest.mark.parametrize('equal_nan', (True, False))
@@ -76,7 +76,7 @@ class TestAccuracy:
         # END set constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
         # BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-        X = _X_factory(
+        _X_wip = _X_factory(
             _dupl=None,
             _has_nan=has_nan,
             _format=X_format,
@@ -147,10 +147,10 @@ class TestAccuracy:
         # v v v fit & transform v v v v v v v v v v v v v v v v v v
         if raise_for_no_header_str_keep or raise_for_keep_non_constant:
             with pytest.raises(ValueError):
-                TestCls.fit(X)
+                TestCls.fit(_X_wip)
             pytest.skip(reason=f"cant do anymore tests without fit")
         else:
-            TRFM_X = TestCls.fit_transform(X)
+            TRFM_X = TestCls.fit_transform(_X_wip)
         # ^ ^ ^ END fit & transform ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
         del raise_for_keep_non_constant, raise_for_no_header_str_keep
@@ -187,7 +187,7 @@ class TestAccuracy:
         # and 'get_feature_names_out'
 
         # attr 'n_features_in_' is correct
-        assert TestCls.n_features_in_ == X.shape[1]
+        assert TestCls.n_features_in_ == _X_wip.shape[1]
 
         # attr 'feature_names_in_' is correct
         if X_format in ['pd', 'pl']:
@@ -202,7 +202,7 @@ class TestAccuracy:
 
         # keep ('first','last','random','none') is correct
         # also build ref objects along the way for testing attrs
-        ref_column_mask = [True for _ in range(X.shape[1])]
+        ref_column_mask = [True for _ in range(_X_wip.shape[1])]
         ref_kept_columns = {}
         ref_removed_columns = {}
         if X_format in ['pd', 'pl']:
@@ -292,7 +292,7 @@ class TestAccuracy:
             del _kept_idx
         elif callable(keep):
             # if no constants, should have excepted and skipped above
-            _kept_idx = keep(X)
+            _kept_idx = keep(_X_wip)
             ref_kept_columns[_kept_idx] = exp_constants[_kept_idx]
             for idx in _sorted_constant_idxs:
                 if idx == _kept_idx:

@@ -37,19 +37,13 @@ class TestIcHabCondition:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def n_features_in(_shape):
-        return _shape[1]
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
     def allowed():
         return ['bin_int', 'int', 'float', 'obj']
 
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _X_np(_shape, allowed):
+    def _X_np(_shape):
 
         X = np.empty((0, _shape[0]), dtype=object)
         for c_idx in range(_shape[1]):
@@ -99,7 +93,7 @@ class TestIcHabCondition:
         (-2.7, -1, 0, 1, 2.7, True, 'junk', {'a':1})
     )
     def test_rejects_bad_ignore_columns(
-        self, _X_np, good_og_dtypes, bad_ignore_columns, n_features_in
+        self, _X_np, good_og_dtypes, bad_ignore_columns, _shape
     ):
 
         # _ignore_columns must be None, callable, Sequence[str], Sequence[int]
@@ -113,7 +107,7 @@ class TestIcHabCondition:
                 _ignore_non_binary_integer_columns=False,
                 _original_dtypes=good_og_dtypes,
                 _threshold=2,
-                _n_features_in=n_features_in,
+                _n_features_in=_shape[1],
                 _feature_names_in=None,
                 _raise=False
             )
@@ -123,13 +117,13 @@ class TestIcHabCondition:
         (None, list, set, tuple, 'ndarray')
     )
     def test_accepts_good_ignore_columns(
-        self, _X_np, good_og_dtypes, good_ignore_columns, n_features_in
+        self, _X_np, good_og_dtypes, good_ignore_columns, _shape
     ):
 
         # _ignore_columns must be None, callable, Sequence[str], Sequence[int]
         # _feature_names_in: Union[npt.NDArray[str], None]
 
-        _base_ic = [1, n_features_in-1]
+        _base_ic = [1, _shape[1]-1]
         if good_ignore_columns is None:
             pass
         elif good_ignore_columns == 'ndarray':
@@ -146,7 +140,7 @@ class TestIcHabCondition:
             _ignore_non_binary_integer_columns=False,
             _original_dtypes=good_og_dtypes,
             _threshold=2,
-            _n_features_in=n_features_in,
+            _n_features_in=_shape[1],
             _feature_names_in=None,
             _raise=False
         )
@@ -166,7 +160,7 @@ class TestIcHabCondition:
         (-2.7, -1, 0, 1, 2.7, True, 'junk', {'a':1})
     )
     def test_rejects_bad_handle_as_bool(
-        self, _X_np, good_og_dtypes, bad_handle_as_bool, n_features_in
+        self, _X_np, _shape, good_og_dtypes, bad_handle_as_bool
     ):
 
         # _handle_as_bool must be None, callable, Sequence[str], Sequence[int]
@@ -182,7 +176,7 @@ class TestIcHabCondition:
                 _ignore_non_binary_integer_columns=False,
                 _original_dtypes=good_og_dtypes,
                 _threshold=2,
-                _n_features_in=n_features_in,
+                _n_features_in=_shape[1],
                 _feature_names_in=None,
                 _raise=False
             )
@@ -192,11 +186,11 @@ class TestIcHabCondition:
         (None, list, set, tuple, 'ndarray')
     )
     def test_accepts_good_handle_as_bool(
-        self, _X_np, good_og_dtypes, good_handle_as_bool, n_features_in
+        self, _X_np, good_og_dtypes, good_handle_as_bool, _shape
     ):
 
         # only None or list-like-int
-        _base_hab = [0, n_features_in-2]
+        _base_hab = [0, _shape[1]-2]
         if good_handle_as_bool is None:
             pass
         elif good_handle_as_bool == 'ndarray':
@@ -213,7 +207,7 @@ class TestIcHabCondition:
             _ignore_non_binary_integer_columns=False,
             _original_dtypes=good_og_dtypes,
             _threshold=2,
-            _n_features_in=n_features_in,
+            _n_features_in=_shape[1],
             _feature_names_in=None,
             _raise=False
         )
@@ -231,7 +225,7 @@ class TestIcHabCondition:
 
     @pytest.mark.parametrize('handle_as_bool', (None, [], 'empty'))
     def test_hab_none_and_empty(
-        self, _X_np, good_og_dtypes, handle_as_bool, n_features_in
+        self, _X_np, good_og_dtypes, handle_as_bool, _shape
     ):
 
         # None or empty hab short-circuits out, returns empty
@@ -248,7 +242,7 @@ class TestIcHabCondition:
             _ignore_non_binary_integer_columns=False,
             _original_dtypes=good_og_dtypes,
             _threshold=2,
-            _n_features_in=n_features_in,
+            _n_features_in=_shape[1],
             _feature_names_in=None,
             _raise=False
         )
@@ -315,7 +309,7 @@ class TestIcHabCondition:
         (-2.7, -1, 0, 1, 2.7, True, 'junk', {'a':1}, lambda x: x)
     )
     def test_rejects_bad_threshold(
-        self, _X_np, good_og_dtypes, bad_threshold, n_features_in
+        self, _X_np, _shape, good_og_dtypes, bad_threshold
     ):
 
         # only int or list-like-int
@@ -329,7 +323,7 @@ class TestIcHabCondition:
                 _ignore_non_binary_integer_columns=False,
                 _original_dtypes=good_og_dtypes,
                 _threshold=bad_threshold,
-                _n_features_in=n_features_in,
+                _n_features_in=_shape[1],
                 _feature_names_in=None,
                 _raise=False
             )
@@ -337,13 +331,13 @@ class TestIcHabCondition:
 
     @pytest.mark.parametrize('good_threshold', ('int', 'Sequence[int]'))
     def test_accepts_good_threshold(
-        self, _X_np, good_og_dtypes, good_threshold, n_features_in
+        self, _X_np, good_og_dtypes, good_threshold, _shape
     ):
 
         if good_threshold == 'int':
             _threshold = 2
         elif good_threshold == 'Sequence[int]':
-            _threshold = [2 for _ in range(n_features_in)]
+            _threshold = [2 for _ in range(_shape[1])]
         else:
             raise Exception
 
@@ -355,7 +349,7 @@ class TestIcHabCondition:
             _ignore_non_binary_integer_columns=False,
             _original_dtypes=good_og_dtypes,
             _threshold=_threshold,
-            _n_features_in=n_features_in,
+            _n_features_in=_shape[1],
             _feature_names_in=None,
             _raise=False
         )
@@ -373,19 +367,19 @@ class TestIcHabCondition:
     @pytest.mark.parametrize('threshold', ['short', 'good', 'long'])
     def test_rejects_bad_param_lens_wrt_n_features_in(
         self, _X_np, allowed, og_dtypes, ignore_columns, handle_as_bool,
-        threshold, n_features_in
+        threshold, _shape
     ):
 
         len_dict = {
-            'short': n_features_in // 2,
-            'good': n_features_in,
-            'long': 2 * n_features_in
+            'short': _shape[1] // 2,
+            'good': _shape[1],
+            'long': 2 * _shape[1]
         }
 
         idx_dict = {
-            'low': [-n_features_in-1, 0, 1],
-            'good': [0, 1, n_features_in-1],
-            'high': [0, 1, n_features_in]
+            'low': [-_shape[1]-1, 0, 1],
+            'good': [0, 1, _shape[1]-1],
+            'high': [0, 1, _shape[1]]
         }
 
         _og_dtypes = np.random.choice(allowed, len_dict[og_dtypes], replace=True)
@@ -404,7 +398,7 @@ class TestIcHabCondition:
                 _ignore_non_binary_integer_columns=False,
                 _original_dtypes=_og_dtypes,
                 _threshold=_threshold,
-                _n_features_in=n_features_in,
+                _n_features_in=_shape[1],
                 _feature_names_in=None,
                 _raise=False
             )
@@ -419,7 +413,7 @@ class TestIcHabCondition:
                     _ignore_non_binary_integer_columns=False,
                     _original_dtypes=_og_dtypes,
                     _threshold=_threshold,
-                    _n_features_in=n_features_in,
+                    _n_features_in=_shape[1],
                     _feature_names_in=None,
                     _raise=False
                 )
@@ -448,7 +442,7 @@ class TestIcHabCondition:
 
     @pytest.mark.parametrize('bool_raise', (True, False))
     def test_accepts_bool_raise(
-        self, _X_np, n_features_in, good_og_dtypes, bool_raise
+        self, _X_np, _shape, good_og_dtypes, bool_raise
     ):
 
         _ic_hab_condition(
@@ -459,8 +453,8 @@ class TestIcHabCondition:
             _ignore_non_binary_integer_columns=True,
             _original_dtypes=good_og_dtypes,
             _threshold=2,
-            _n_features_in=n_features_in,
-            _feature_names_in=[str(uuid.uuid4)[:5] for _ in range(n_features_in)],
+            _n_features_in=_shape[1],
+            _feature_names_in=[str(uuid.uuid4)[:5] for _ in range(_shape[1])],
             _raise=bool_raise
         )
     # END raise -- -- -- -- -- -- -- -- -- --
@@ -638,12 +632,12 @@ class TestIcHabCondition:
     @pytest.mark.parametrize('_ignore_non_binary_integer_columns', (True, False))
     @pytest.mark.parametrize('_threshold', ('int', 'Sequence[int]'))
     def test_ignore_conflict_warn_accuracy(
-        self, _X_np, good_og_dtypes, n_features_in, _handle_as_bool,
+        self, _X_np, good_og_dtypes, _shape, _handle_as_bool,
         _threshold, _ignore_columns, _ignore_float_columns,
         _ignore_non_binary_integer_columns
     ):
 
-        if n_features_in < 6:
+        if _shape[1] < 6:
             raise Exception(f"'n_features_in' must be >= 6 for this test")
 
         # if intersection between ignore_float_columns and ignore_columns,
@@ -660,7 +654,7 @@ class TestIcHabCondition:
 
 
         vector1 = [0, 1, 2]
-        vector2 = [n_features_in-3, n_features_in-2, n_features_in-1]
+        vector2 = [_shape[1]-3, _shape[1]-2, _shape[1]-1]
         vector3 = [-2, -3, -4]
 
         param_input_dict = {
@@ -675,12 +669,12 @@ class TestIcHabCondition:
         ic = param_input_dict[_ignore_columns]
 
         if _ignore_float_columns:
-            _float_columns = np.arange(n_features_in)[(good_og_dtypes=='float')]
+            _float_columns = np.arange(_shape[1])[(good_og_dtypes=='float')]
         else:
             _float_columns = np.array([])
 
         if _ignore_non_binary_integer_columns:
-            _non_bin_int_columns = np.arange(n_features_in)[(good_og_dtypes=='int')]
+            _non_bin_int_columns = np.arange(_shape[1])[(good_og_dtypes=='int')]
         else:
             _non_bin_int_columns = np.array([])
 
@@ -689,7 +683,7 @@ class TestIcHabCondition:
         else:
             while True:
                 _threshold = \
-                    [int(np.random.randint(1, 3)) for _ in range(n_features_in)]
+                    [int(np.random.randint(1, 3)) for _ in range(_shape[1])]
                 if 1 in _threshold and 2 in _threshold:
                     break
 
@@ -736,7 +730,7 @@ class TestIcHabCondition:
                         _ignore_non_binary_integer_columns,
                     _original_dtypes=good_og_dtypes,
                     _threshold=_threshold,
-                    _n_features_in=n_features_in,
+                    _n_features_in=_shape[1],
                     _feature_names_in=None,
                     _raise=False
                 )
@@ -751,7 +745,7 @@ class TestIcHabCondition:
                     _ignore_non_binary_integer_columns,
                 _original_dtypes=good_og_dtypes,
                 _threshold=_threshold,
-                _n_features_in=n_features_in,
+                _n_features_in=_shape[1],
                 _feature_names_in=None,
                 _raise=False
             )
@@ -767,12 +761,12 @@ class TestIcHabCondition:
         elif _ignore_columns == 'vector2':
             assert np.array_equal(
                 out[0],
-                [n_features_in-3, n_features_in-2, n_features_in-1]
+                [_shape[1]-3, _shape[1]-2, _shape[1]-1]
             )
         elif _ignore_columns == 'vector3':
             assert np.array_equal(
                 out[0],
-                [n_features_in-2, n_features_in-3, n_features_in-4]
+                [_shape[1]-2, _shape[1]-3, _shape[1]-4]
             )
         else:
             raise Exception
@@ -786,12 +780,12 @@ class TestIcHabCondition:
         elif _handle_as_bool == 'vector2':
             assert np.array_equal(
                 out[1],
-                [n_features_in-3, n_features_in-2, n_features_in-1]
+                [_shape[1]-3, _shape[1]-2, _shape[1]-1]
             )
         elif _handle_as_bool == 'vector3':
             assert np.array_equal(
                 out[1],
-                [n_features_in-2, n_features_in-3, n_features_in-4]
+                [_shape[1]-2, _shape[1]-3, _shape[1]-4]
             )
         else:
             raise Exception

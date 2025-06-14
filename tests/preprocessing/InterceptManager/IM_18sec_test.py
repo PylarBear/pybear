@@ -21,18 +21,18 @@ import scipy.sparse as ss
 from pybear.preprocessing._InterceptManager.InterceptManager import \
     InterceptManager as IM
 
+from pybear.preprocessing._InterceptManager._partial_fit. \
+    _parallel_constant_finder import _parallel_constant_finder
+
+from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
+    _parallel_column_comparer import _parallel_column_comparer
+
 from pybear.base.exceptions import NotFittedError
 
 from pybear.utilities import (
     nan_mask,
     nan_mask_numerical
 )
-
-from pybear.preprocessing._InterceptManager._partial_fit. \
-    _parallel_constant_finder import _parallel_constant_finder
-
-from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
-    _parallel_column_comparer import _parallel_column_comparer
 
 
 bypass = False
@@ -45,7 +45,7 @@ class TestInitValidation:
 
     # keep ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('junk_keep',
-        (np.pi, True, False, None, [1,2], {1,2})
+        (np.e, np.pi, True, False, None, [1,2], {1,2})
     )
     def test_junk_keep(self, X_np, _kwargs, junk_keep):
 
@@ -55,9 +55,7 @@ class TestInitValidation:
             IM(**_kwargs).fit_transform(X_np)
 
 
-    @pytest.mark.parametrize('bad_keep',
-        (-1, 'rubbish', {1:'trash'}, lambda x: 'junk')
-    )
+    @pytest.mark.parametrize('bad_keep', (-1, 'rubbish', {1:'trash'}, lambda x: 'junk'))
     def test_bad_keep(self, X_np, _kwargs, bad_keep):
 
         _kwargs['keep'] = bad_keep
@@ -86,7 +84,6 @@ class TestInitValidation:
 
         _kwargs['equal_nan'] = True
         _kwargs['keep'] = good_keep
-
         IM(**_kwargs).fit_transform(pd.DataFrame(X_np, columns=_columns))
     # END keep ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -115,7 +112,7 @@ class TestInitValidation:
     # rtol & atol ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('_param', ('rtol', 'atol'))
     @pytest.mark.parametrize('_junk',
-        (None, 'trash', [1,2], {1,2}, {'a':1}, lambda x: x, min)
+        (True, False, None, 'trash', [1,2], {1,2}, {'a':1}, lambda x: x, min)
     )
     def test_junk_rtol_atol(self, X_np, _kwargs, _param, _junk):
 
@@ -128,7 +125,7 @@ class TestInitValidation:
 
 
     @pytest.mark.parametrize('_param', ('rtol', 'atol'))
-    @pytest.mark.parametrize('_bad', [-np.pi, -2, -1, True, False])
+    @pytest.mark.parametrize('_bad', (-np.pi, -2, -1, True, False))
     def test_bad_rtol_atol(self, X_np, _kwargs, _param, _bad):
 
         _kwargs[_param] = _bad
@@ -138,7 +135,7 @@ class TestInitValidation:
 
 
     @pytest.mark.parametrize('_param', ('rtol', 'atol'))
-    @pytest.mark.parametrize('_good', (1e-5, 1e-6, 1e-1))
+    @pytest.mark.parametrize('_good', (1e-5, 1e-6, 1e-1, 1_000_000))
     def test_good_rtol_atol(self, X_np, _kwargs, _param, _good):
 
         _kwargs[_param] = _good
@@ -338,7 +335,6 @@ class TestX:
             _IM.partial_fit(_X_wip)
             _IM.fit(_X_wip)
             _IM.fit_transform(_X_wip)
-            _IM.fit(X_np[:, :_num_cols])  # fit the instance
             TRFM_X = _IM.transform(_X_wip)
             _IM.inverse_transform(TRFM_X)
 
@@ -676,7 +672,8 @@ class TestPartialFit:
         # ** ** ** ** ** ** ** ** ** ** **
 
         # ** ** ** ** ** ** ** ** ** ** **
-        # TEST PARTIAL FIT CONSTANTS ARE THE SAME WHEN FULL DATA IS partial_fit() 2X
+        # TEST PARTIAL FIT CONSTANTS ARE THE SAME WHEN FULL DATA
+        # IS partial_fit() 2X
         SingleFitTestClass = IM(**_kwargs).fit(X_np)
         _ = SingleFitTestClass.constant_columns_
 
@@ -697,8 +694,8 @@ class TestPartialFit:
         # END PARTIAL FIT CONSTANTS ARE THE SAME WHEN FULL DATA IS partial_fit() 2X
         # ** ** ** ** ** ** ** ** ** ** **
 
-        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** ** ** **
-        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** ** ** **
+        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** **
+        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** **
         # TEST MANY PARTIAL FITS == ONE BIG FIT
 
         # STORE CHUNKS TO ENSURE THEY STACK BACK TO THE ORIGINAL X
@@ -717,7 +714,7 @@ class TestPartialFit:
         PartialFitTestCls = IM(**_kwargs)
         OneShotFitTransformTestCls = IM(**_kwargs)
 
-        # PIECEMEAL PARTIAL FIT ******************************************
+        # PIECEMEAL PARTIAL FIT ****************************************
         for X_CHUNK in X_CHUNK_HOLDER:
             PartialFitTestCls.partial_fit(X_CHUNK)
 
@@ -766,15 +763,20 @@ class TestPartialFit:
             ), (f"trfm X from partial fit / partial trfm != "
              f"trfm X from partial fit / one-shot trfm")
 
+        # TEST MANY PARTIAL FITS == ONE BIG FIT
+        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** **
+        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** **
 
-    @pytest.mark.parametrize('_dtype', ('int', 'flt', 'int', 'obj', 'hybrid'))
+
+    @pytest.mark.parametrize('_dtype', ('flt', 'int', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (False, 5))
     def test_constant_columns_accuracy_over_many_partial_fits(
         self, _kwargs, _X_factory, _dtype, _has_nan
     ):
 
-        # verify correct progression of reported constants as partial fits are done.
-        # rig a set of arrays that have progressively decreasing constants
+        # verify correct progression of reported constants as partial
+        # fits are done. rig a set of arrays that have progressively
+        # decreasing constants
 
         _chunk_shape = (50, 20)
 
@@ -829,18 +831,19 @@ class TestPartialFit:
         X_HOLDER = []
         X_HOLDER.append(_wip_X)
 
-        # take out only half of the constants (arbitrary) v^v^v^v^v^v^v^v^v^v^v
+        # take out only half of the constants (arbitrary) v^v^v^v^v^v^v^
         for trial in range(len(_const_pool)//2):
 
             random_const_idx = np.random.choice(_const_pool, 1, replace=False)[0]
 
-            # take the random constant of out _start_constants and _const_pool,
-            # and take a column out of the X pool to patch the constant in _wip_X
+            # take the random constant of out _start_constants and
+            # _const_pool, and take a column out of the X pool to patch
+            # the constant in _wip_X
             _start_constants.pop(random_const_idx)
             _const_pool.remove(random_const_idx)
 
             # column from X should be constant, column from pool shouldnt be
-            # but verify anyway ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+            # but verify anyway ** ** ** ** ** ** ** ** ** ** ** ** **
             _from_X = _wip_X[:, random_const_idx]
             _from_pool = _pool_X[:, random_const_idx]
             assert not np.array_equal(
@@ -848,7 +851,7 @@ class TestPartialFit:
                 _from_pool[np.logical_not(nan_mask(_from_pool))]
             )
             del _from_X, _from_pool
-            # END verify ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+            # END verify ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
             _wip_X[:, random_const_idx] = _pool_X[:, random_const_idx]
 
@@ -866,7 +869,7 @@ class TestPartialFit:
                     assert v == _constant_columns[idx]
             del _constant_columns
 
-        # END take out only half of the constants (arbitrary) v^v^v^v^v^v^v^v^v
+        # END take out only half of the constants (arbitrary) v^v^v^v^v^
 
         # we now have full X_HOLDER, which holds _wip_Xs with progressively
         # fewer columns of constants
@@ -895,11 +898,11 @@ class TestPartialFit:
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestTransform:
 
-    # def transform(
-    #     self,
-    #     X:XContainer,
-    #     copy:Optional[Union[bool, None]] = None
-    # ) -> XContainer:
+    #     def transform(
+    #         self,
+    #         X:XContainer,
+    #         copy:Optional[Union[bool, None]] = None
+    #     ) -> XContainer:
 
     # - output is C contiguous
 
@@ -1473,34 +1476,6 @@ class TestTransform:
             assert all(nan_mask_numerical(TRFM_X[:, 2]))
 
 
-    @pytest.mark.parametrize('_dtype', ('str', 'obj'))
-    def test_transform_floats_as_str_dtypes(
-        self, _X_factory, _dtype, _shape, _constants
-    ):
-
-        # make an array of floats....
-        _wip_X = _X_factory(
-            _dupl=None, _has_nan=False, _format='np', _dtype='flt',
-            _columns=None, _constants=_constants, _zeros=0, _shape=_shape
-        )
-
-        # set dtype
-        _wip_X = _wip_X.astype('<U20' if _dtype == 'str' else object)
-
-        _IM = IM(keep='last', equal_nan=True, rtol=1e-5, atol=1e-8)
-
-        out = _IM.fit_transform(_wip_X)
-
-        assert isinstance(out, np.ndarray)
-
-        _ref_column_mask = np.ones((_shape[1],)).astype(bool)
-        _ref_column_mask[[i in _constants for i in range(_shape[1])]] = False
-        # keep == 'last'!
-        _ref_column_mask[sorted(list(_constants))[-1]] = True
-
-        assert np.array_equal(_IM.column_mask_, _ref_column_mask)
-
-
     @pytest.mark.parametrize('x_format', ('np', 'pd', 'pl', 'coo_array'))
     @pytest.mark.parametrize('keep',
         ('first', 'last', 'random', 'none', 'int', 'string', 'callable', 'dict')
@@ -1592,6 +1567,34 @@ class TestTransform:
                 assert TRFM_X.shape[1] == _shape[1] - len(_wip_constants)
         else:
             raise Exception(f'algorithm failure')
+
+
+    @pytest.mark.parametrize('_dtype', ('str', 'obj'))
+    def test_transform_floats_as_str_dtypes(
+        self, _X_factory, _dtype, _shape, _constants
+    ):
+
+        # make an array of floats....
+        _wip_X = _X_factory(
+            _dupl=None, _has_nan=False, _format='np', _dtype='flt',
+            _columns=None, _constants=_constants, _zeros=0, _shape=_shape
+        )
+
+        # set dtype
+        _wip_X = _wip_X.astype('<U20' if _dtype == 'str' else object)
+
+        _IM = IM(keep='last', equal_nan=True, rtol=1e-5, atol=1e-8)
+
+        out = _IM.fit_transform(_wip_X)
+
+        assert isinstance(out, np.ndarray)
+
+        _ref_column_mask = np.ones((_shape[1],)).astype(bool)
+        _ref_column_mask[[i in _constants for i in range(_shape[1])]] = False
+        # keep == 'last'!
+        _ref_column_mask[sorted(list(_constants))[-1]] = True
+
+        assert np.array_equal(_IM.column_mask_, _ref_column_mask)
 
 
     # pizza revisit accuracy test.... is probably redundant with transform_test

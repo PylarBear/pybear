@@ -33,13 +33,12 @@ from pybear.utilities import (
 bypass = False
 
 
-
-# test input validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+# test input validation ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestInitValidation:
 
 
-    # keep ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # keep ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('junk_keep',
         (-1,0,1, np.pi, True, False, None, [1,2], {1,2}, {'a':1}, lambda x: x)
     )
@@ -65,10 +64,66 @@ class TestInitValidation:
 
         _kwargs['keep'] = good_keep
         CDT(**_kwargs).fit_transform(X_np)
-    # END keep ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END keep ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-    # do_not_drop ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # equal_nan ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    @pytest.mark.parametrize('_junk',
+        (-1, 0, 1, np.pi, None, 'trash', [1, 2], {1, 2}, {'a': 1}, lambda x: x)
+    )
+    def test_non_bool_equal_nan(self, X_np, _kwargs, _junk):
+
+        _kwargs['equal_nan'] = _junk
+
+        with pytest.raises(TypeError):
+            CDT(**_kwargs).fit_transform(X_np)
+
+
+    @pytest.mark.parametrize('_equal_nan', [True, False])
+    def test_equal_nan_accepts_bool(self, X_np, _kwargs, _equal_nan):
+
+        _kwargs['equal_nan'] = _equal_nan
+
+        CDT(**_kwargs).fit_transform(X_np)
+    # END equal_nan ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+
+    # rtol & atol ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    @pytest.mark.parametrize('_param', ('rtol', 'atol'))
+    @pytest.mark.parametrize('_junk',
+        (True, False, None, 'trash', [1,2], {1,2}, {'a':1}, lambda x: x, min)
+    )
+    def test_junk_rtol_atol(self, X_np, _kwargs, _param, _junk):
+
+        _kwargs[_param] = _junk
+
+        # non-num are handled by np.allclose, let it raise
+        # whatever it will raise
+        with pytest.raises(Exception):
+            CDT(**_kwargs).fit_transform(X_np)
+
+
+    @pytest.mark.parametrize('_param', ('rtol', 'atol'))
+    @pytest.mark.parametrize('_bad', (-np.pi, -2, -1, True, False))
+    def test_bad_rtol_atol(self, X_np, _kwargs, _param, _bad):
+
+        _kwargs[_param] = _bad
+
+        with pytest.raises(ValueError):
+            CDT(**_kwargs).fit_transform(X_np)
+
+
+    @pytest.mark.parametrize('_param', ('rtol', 'atol'))
+    @pytest.mark.parametrize('_good', (1e-5, 1e-6, 1e-1, 1_000_000))
+    def test_good_rtol_atol(self, X_np, _kwargs, _param, _good):
+
+        _kwargs[_param] = _good
+
+        CDT(**_kwargs).fit_transform(X_np)
+    # END rtol & atol ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+
+    # do_not_drop ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('junk_dnd',
         (-1, 0, 1, np.pi, True, False, 'trash', {'a': 1}, lambda x: x, min)
     )
@@ -155,10 +210,10 @@ class TestInitValidation:
         # accepts None always
         _kwargs['do_not_drop'] = None
         CDT(**_kwargs).fit_transform(_X_wip)
-    # END do_not_drop ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END do_not_drop ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    # conflict  ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # conflict  ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('junk_conflict',
         (-1, 0, np.pi, True, None, [1, 2], {1, 2}, {'a': 1}, lambda x: x, min)
     )
@@ -185,63 +240,7 @@ class TestInitValidation:
         _kwargs['conflict'] = good_conflict
 
         CDT(**_kwargs).fit_transform(X_np)
-    # END conflict ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-    # equal_nan ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    @pytest.mark.parametrize('_junk',
-        (-1, 0, 1, np.pi, None, 'trash', [1, 2], {1, 2}, {'a': 1}, lambda x: x)
-    )
-    def test_non_bool_equal_nan(self, X_np, _kwargs, _junk):
-
-        _kwargs['equal_nan'] = _junk
-
-        with pytest.raises(TypeError):
-            CDT(**_kwargs).fit_transform(X_np)
-
-
-    @pytest.mark.parametrize('_equal_nan', [True, False])
-    def test_equal_nan_accepts_bool(self, X_np, _kwargs, _equal_nan):
-
-        _kwargs['equal_nan'] = _equal_nan
-
-        CDT(**_kwargs).fit_transform(X_np)
-    # END equal_nan ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-    # rtol & atol ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    @pytest.mark.parametrize('_param', ('rtol', 'atol'))
-    @pytest.mark.parametrize('_junk',
-        (True, False, None, 'trash', [1,2], {1,2}, {'a':1}, lambda x: x, min)
-    )
-    def test_junk_rtol_atol(self, X_np, _kwargs, _param, _junk):
-
-        _kwargs[_param] = _junk
-
-        # non-num are handled by np.allclose, let it raise
-        # whatever it will raise
-        with pytest.raises(Exception):
-            CDT(**_kwargs).fit_transform(X_np)
-
-
-    @pytest.mark.parametrize('_param', ('rtol', 'atol'))
-    @pytest.mark.parametrize('_bad', (-np.pi, -2, -1))
-    def test_bad_rtol_atol(self, X_np, _kwargs, _param, _bad):
-
-        _kwargs[_param] = _bad
-
-        with pytest.raises(ValueError):
-            CDT(**_kwargs).fit_transform(X_np)
-
-
-    @pytest.mark.parametrize('_param', ('rtol', 'atol'))
-    @pytest.mark.parametrize('_good', (1e-5, 1e-6, 1e-1, 1_000_000))
-    def test_good_rtol_atol(self, X_np, _kwargs, _param, _good):
-
-        _kwargs[_param] = _good
-
-        CDT(**_kwargs).fit_transform(X_np)
-    # END rtol & atol ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END conflict ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     # n_jobs ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -305,7 +304,7 @@ class TestInitValidation:
 
     # END job_size ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-# END test input validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+# END test input validation ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
@@ -510,7 +509,6 @@ class TestX:
             _CDT.partial_fit(_X_wip)
             _CDT.fit(_X_wip)
             _CDT.fit_transform(_X_wip)
-            _CDT.fit(X_np[:, :_num_cols])  # fit the instance
             TRFM_X = _CDT.transform(_X_wip)
             _CDT.inverse_transform(TRFM_X)
 
@@ -831,7 +829,8 @@ class TestPartialFit:
         # ** ** ** ** ** ** ** ** ** ** **
 
         # ** ** ** ** ** ** ** ** ** ** **
-        # TEST PARTIAL FIT DUPLS ARE THE SAME WHEN FULL DATA IS partial_fit() 2X
+        # TEST PARTIAL FIT DUPLS ARE THE SAME WHEN FULL DATA
+        # IS partial_fit() 2X
         SingleFitTestClass = CDT(**_kwargs).fit(X_np)
         _ = SingleFitTestClass.duplicates_
 
@@ -851,8 +850,8 @@ class TestPartialFit:
         # END PARTIAL FIT DUPLS ARE THE SAME WHEN FULL DATA IS partial_fit() 2X
         # ** ** ** ** ** ** ** ** ** ** **
 
-        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** ** ** **
-        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** ** ** **
+        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** **
+        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** **
         # TEST MANY PARTIAL FITS == ONE BIG FIT
 
         # STORE CHUNKS TO ENSURE THEY STACK BACK TO THE ORIGINAL X
@@ -871,7 +870,7 @@ class TestPartialFit:
         PartialFitTestCls = CDT(**_kwargs)
         OneShotFitTransformTestCls = CDT(**_kwargs)
 
-        # PIECEMEAL PARTIAL FIT ******************************************
+        # PIECEMEAL PARTIAL FIT ****************************************
         for X_CHUNK in X_CHUNK_HOLDER:
             PartialFitTestCls.partial_fit(X_CHUNK)
 
@@ -920,6 +919,9 @@ class TestPartialFit:
             ), (f"trfm X from partial fit / partial trfm != "
                 f"trfm X from partial fit / one-shot trfm")
 
+        # TEST MANY PARTIAL FITS == ONE BIG FIT
+        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** **
+        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** **
 
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (False, 5))
@@ -927,8 +929,9 @@ class TestPartialFit:
         self, _kwargs, _X_factory, _dtype, _has_nan
     ):
 
-        # verify correct progression of reported duplicates as partial fits are done.
-        # rig a set of arrays that have progressively decreasing duplicates
+        # verify correct progression of reported duplicates as partial
+        # fits are done. rig a set of arrays that have progressively
+        # decreasing duplicates
 
         _chunk_shape = (50, 20)  # must have at least 10 columns for dupls to work
 
@@ -983,7 +986,7 @@ class TestPartialFit:
         X_HOLDER = []
         X_HOLDER.append(_wip_X)
 
-        # take out only half of the dupls (arbitrary) v^v^v^v^v^v^v^v^v^v^v^v^v
+        # take out only half of the dupls (arbitrary) v^v^v^v^v^v^v^v^v^
         for trial in range(len(_dupl_pool)//2):
 
             random_dupl = np.random.choice(_dupl_pool, 1, replace=False)[0]
@@ -1012,7 +1015,7 @@ class TestPartialFit:
             _start_dupl = sorted(_start_dupl, key=lambda x: x[0])
 
             # column from X is a doppleganger, column from pool shouldnt be
-            # but verify anyway ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+            # but verify anyway ** ** ** ** ** ** ** ** ** ** ** ** **
             _from_X = _wip_X[:, random_dupl]
             _from_pool = _pool_X[:, random_dupl]
             assert not np.array_equal(
@@ -1020,7 +1023,7 @@ class TestPartialFit:
                 _from_pool[np.logical_not(nan_mask(_from_pool))]
             )
             del _from_X, _from_pool
-            # END verify ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+            # END verify ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
             _wip_X[:, random_dupl] = _pool_X[:, random_dupl]
 
@@ -1035,7 +1038,7 @@ class TestPartialFit:
                 assert np.array_equal(_dupl_columns[idx], _start_dupl[idx]), \
                     f"{_dupl_columns=}, {_start_dupl=}"
 
-        # END take out only half of the dupls (arbitrary) v^v^v^v^v^v^v^v^v^v^v
+        # END take out only half of the dupls (arbitrary) v^v^v^v^v^v^v^
 
         # we now have full X_HOLDER, which holds _wip_Xs with progressively
         # fewer duplicate columns
@@ -1060,11 +1063,11 @@ class TestPartialFit:
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestTransform:
 
-    # def transform(
-    #     self,
-    #     X:XContainer,
-    #     copy:Optional[Union[bool, None]] = None
-    # ) -> XContainer:
+    #     def transform(
+    #         self,
+    #         X:XContainer,
+    #         copy:Optional[Union[bool, None]]=None
+    #     ) -> XContainer:
 
     # - output is C contiguous
 
@@ -1130,6 +1133,7 @@ class TestTransform:
             _X_wip_before = _X_wip.copy()
         except:
             _X_wip_before = _X_wip.clone()
+
 
         _CDT = CDT(**_kwargs).fit(_X_wip)
 
@@ -1299,6 +1303,278 @@ class TestTransform:
             )
 
         # END ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     @pytest.mark.parametrize('_equal_nan', (True, False))
