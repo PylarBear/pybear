@@ -12,7 +12,7 @@ from copy import deepcopy
 
 import numpy as np
 
-from pybear.preprocessing import InterceptManager as IM
+from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
 
 
 
@@ -29,7 +29,7 @@ class TestInputFeaturesRejects:
     @pytest.fixture(scope='class')
     def _TestCls(_instance_state, _X_factory, _format, _columns, _shape):
 
-        TestCls = IM()
+        TestCls = CDT()
 
         _X_wip = _X_factory(
             _format=_format,
@@ -96,46 +96,46 @@ class TestGetFeatureNamesOut:
         ('after_fit', 'after_transform'), scope='module'
     )
     @pytest.mark.parametrize('_keep',
-        ('first', 'last', 'none', {'Intercept': 1}), scope='module'
+        ('first', 'last'), scope='module'
     )
-    @pytest.mark.parametrize('_constants',
-        ('none', 'constants1', 'constants2'), scope='module'
+    @pytest.mark.parametrize('_dupls',
+        ('none', 'dupls1', 'dupls2'), scope='module'
     )
     @pytest.mark.parametrize('_input_features_is_passed', (True, False))
     def test_accuracy(
-        self, _X_factory, _instance_state, _kwargs, _constants, _format,
+        self, _X_factory, _instance_state, _kwargs, _dupls, _format,
         _columns, _keep, _shape, _input_features_is_passed, _columns_is_passed
     ):
 
         # build X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        if _constants == 'none':
-            _wip_constants = {}
-        elif _constants == 'constants1':
-            _wip_constants = {1: 1, _shape[1]-2: 1}
-        elif _constants == 'constants2':
-            _wip_constants = {0: 0, _shape[1]-1: np.nan}
+        if _dupls == 'none':
+            _wip_dupls =  []
+        elif _dupls == 'dupls1':
+            _wip_dupls =  [[1, _shape[1] - 2]]
+        elif _dupls == 'dupls2':
+            _wip_dupls =  [[0, _shape[1] - 1], [1, _shape[1] - 2]]
         else:
             raise Exception
 
         _X_wip = _X_factory(
-            _dupl=None,
+            _dupl=_wip_dupls,
             _format=_format,
             _dtype='flt',
             _columns=_columns if _columns_is_passed else None,
-            _constants=_wip_constants,
+            _constants=None,
             _noise=0,
             _shape=_shape
         )
 
         # END build X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        # prepare the IM instance ** * ** * ** * ** * ** * ** * ** * **
+        # prepare the CDT instance ** * ** * ** * ** * ** * ** * ** * **
         _new_kwargs = deepcopy(_kwargs)
         _new_kwargs['keep'] = _keep
         _new_kwargs['equal_nan'] = True
 
-        TestCls = IM(**_new_kwargs)
+        TestCls = CDT(**_new_kwargs)
 
         if _instance_state == 'after_fit':
             TestCls.fit(_X_wip)
@@ -143,7 +143,7 @@ class TestGetFeatureNamesOut:
             TestCls.fit_transform(_X_wip)
         else:
             raise Exception
-        # END prepare the IM instance ** * ** * ** * ** * ** * ** * ** *
+        # END prepare the CDT instance ** * ** * ** * ** * ** * ** * **
 
         # get actual ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         if _input_features_is_passed:
@@ -200,31 +200,26 @@ class TestGetFeatureNamesOut:
         # build column_mask_ - - - - - - - - - - - - - - - - - - - - - -
         MASK = np.ones((_shape[1], ), dtype=bool)
 
-        _sorted_constants = sorted(list(_wip_constants.keys()))
+        _dupls_to_drop = []
 
-        if len(_sorted_constants):
+        for _dupl_set in _wip_dupls:
+            _sorted_dupl_set = sorted(_dupl_set)
             if _keep == 'first':
-                MASK[_sorted_constants[1:]] = False
+                _dupls_to_drop.extend(_sorted_dupl_set[1:])
             elif _keep == 'last':
-                MASK[_sorted_constants[:-1]] = False
-            elif _keep == 'none':
-                MASK[_sorted_constants] = False
-            elif isinstance(_keep, dict):
-                MASK[_sorted_constants] = False
+                _dupls_to_drop.extend(_sorted_dupl_set[:-1])
             else:
                 raise Exception
-        # elif not len(_sorted_constants):
-        #     with no constants no columns are dropped, MASK is unchanged
+        # elif not len(_wip_dupls):
+        #    with no dupls no columns are dropped, this :for: is skipped
+        #    and MASK is unchanged
+
+        MASK[_dupls_to_drop] = False
 
         # END build column_mask_ - - - - - - - - - - - - - - - - - - - -
 
         _EXP_HEADER = _EXP_HEADER[MASK]
-        del MASK, _sorted_constants
-
-        if isinstance(_keep, dict):
-            _EXP_HEADER = np.hstack((
-                _EXP_HEADER, list(_keep.keys())[0]
-            )).astype(object)
+        del MASK, _dupls_to_drop
         # END determine expected ** * ** * ** * ** * ** * ** * ** * ** *
 
         assert isinstance(out, np.ndarray), \
@@ -262,6 +257,7 @@ class TestGetFeatureNamesOut:
                          f"sliced array of generic headers")
         else:
             raise Exception
+
 
 
 

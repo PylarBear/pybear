@@ -6,11 +6,11 @@
 
 
 
-from pybear.preprocessing import MinCountTransformer as MCT
+import pytest
 
 import numpy as np
 
-import pytest
+from pybear.preprocessing import MinCountTransformer as MCT
 
 
 
@@ -33,23 +33,13 @@ class TestGetSupport:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _kwargs(_shape, _count_threshold):
-
-        return {
-            'count_threshold': _count_threshold,
-            'ignore_float_columns': True,
-            'ignore_non_binary_integer_columns': False,
-            'delete_axis_0': False,
-            'max_recursions': 1
-        }
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
     def _X_np(_count_threshold, _shape, _kwargs):
 
         # rig an array so at least one column will be deleted on 1st RCR
         # and another will be deleted on the 2nd RCR
+
+        _kwargs['count_threshold'] = _count_threshold
+        _kwargs['ignore_float_columns'] = True
 
         _MCT = MCT(**_kwargs)
 
@@ -107,10 +97,13 @@ class TestGetSupport:
 
     @pytest.mark.parametrize('_indices', (True, False))
     def test_get_support(
-        self, _X_np, _kwargs, _indices, _shape
+        self, _X_np, _count_threshold, _kwargs, _indices, _shape
     ):
 
         assert _X_np.shape == (_shape[0], _shape[1] + 2)
+
+        _kwargs['count_threshold'] = _count_threshold
+        _kwargs['ignore_float_columns'] = True
 
         _MCT_1 = MCT(**_kwargs)
         _MCT_1.set_params(max_recursions=1)

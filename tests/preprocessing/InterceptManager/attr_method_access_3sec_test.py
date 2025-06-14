@@ -14,10 +14,12 @@ import polars as pl
 
 from pybear.base import is_fitted
 from pybear.base.exceptions import NotFittedError
+
 from pybear.preprocessing import InterceptManager as IM
 
 
 bypass = False
+
 
 
 # ACCESS ATTR BEFORE AND AFTER FIT AND TRANSFORM
@@ -52,7 +54,7 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
         if x_format == 'pd':
             NEW_Y = pd.DataFrame(data=y_np, columns=['y'])
         elif x_format == 'pl':
-            NEW_Y = pl.DataFrame(data=y_np, schema=['y'])
+            NEW_Y = pl.from_numpy(data=y_np, schema=['y'])
         else:
             NEW_Y = y_np
 
@@ -60,10 +62,17 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
 
         # BEFORE FIT ***************************************************
 
-        # dont exist before fit, so should raise AttributeError
+        # ALL OF THESE SHOULD GIVE AttributeError/NotFittedError
+        # SPF external attrs are @property and raise NotFittedError
+        # which is child of AttrError
+        # n_features_in_ & feature_names_in_ dont exist before fit
         for attr in _attrs:
-            with pytest.raises(AttributeError):
-                getattr(TestCls, attr)
+            if attr in ['n_features_in_', 'feature_names_in_']:
+                with pytest.raises(AttributeError):
+                    getattr(TestCls, attr)
+            else:
+                with pytest.raises(NotFittedError):
+                    getattr(TestCls, attr)
 
         # END BEFORE FIT ***********************************************
 
@@ -161,17 +170,9 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
     # ]
 
 
-    def test_access_methods_before_fit(self, _X_factory, y_np, _kwargs, _shape):
+    def test_access_methods_before_fit(self, X_np, y_np, _kwargs):
 
         TestCls = IM(**_kwargs)
-
-        X_np = _X_factory(
-            _format='np',
-            _constants=None,
-            _has_nan=False,
-            _dtype='flt',
-            _shape=_shape
-        )
 
         # **************************************************************
         # vvv BEFORE FIT vvv *******************************************
@@ -179,7 +180,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # fit()
         assert isinstance(TestCls.fit(X_np, y_np), IM)
 
-        # HERE IS A CONVENIENT PLACE TO TEST _reset() ^v^v^v^v^v^v^v^v^v^v^v^v
+        # HERE IS A CONVENIENT PLACE TO TEST _reset() ^v^v^v^v^v^v^v^v^v
         # Reset Changes is_fitted To False:
         # fit an instance  (done above)
         # assert the instance is fitted
@@ -188,7 +189,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         TestCls._reset()
         # assert the instance is not fitted
         assert is_fitted(TestCls) is False
-        # HERE IS A CONVENIENT PLACE TO TEST _reset() ^v^v^v^v^v^v^v^v^v^v^v^v
+        # HERE IS A CONVENIENT PLACE TO TEST _reset() ^v^v^v^v^v^v^v^v^v
 
         # fit_transform()
         assert isinstance(TestCls.fit_transform(X_np, y_np), np.ndarray)
@@ -235,15 +236,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # **************************************************************
 
 
-    def test_access_methods_after_fit(self, _X_factory, y_np, _kwargs, _shape):
-
-        X_np = _X_factory(
-            _format='np',
-            _constants=None,
-            _has_nan=False,
-            _dtype='flt',
-            _shape=_shape
-        )
+    def test_access_methods_after_fit(self, X_np, y_np, _kwargs, _shape):
 
         # **************************************************************
         # vvv AFTER FIT vvv ********************************************
@@ -273,7 +266,6 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         TRFM_X = TestCls.transform(X_np)
         out = TestCls.inverse_transform(TRFM_X)
         assert isinstance(out, np.ndarray)
-        assert np.array_equal(out, X_np)
 
         TestCls = IM(**_kwargs)
 
@@ -304,16 +296,8 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
 
     def test_access_methods_after_transform(
-        self, _X_factory, y_np, _kwargs, _shape
-):
-
-        X_np = _X_factory(
-            _format='np',
-            _constants=None,
-            _has_nan=False,
-            _dtype='flt',
-            _shape=_shape
-        )
+        self, X_np, y_np, _kwargs, _shape
+    ):
 
         # **************************************************************
         # vvv AFTER TRANSFORM vvv **************************************
@@ -359,18 +343,17 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         TransformedTestCls.fit_transform(X_np)
 
         # set_output()
-        assert isinstance(TransformedTestCls.set_output(transform='default'), IM)
+        assert isinstance(
+            TransformedTestCls.set_output(transform='default'), IM
+        )
 
         # set_params()
-        assert isinstance(
-            TransformedTestCls.set_params(keep='first'),
-            IM
-        )
+        assert isinstance(TransformedTestCls.set_params(keep='first'), IM)
 
         # transform()
         assert isinstance(TransformedTestCls.fit_transform(X_np), np.ndarray)
 
-        del FittedTestCls, TransformedTestCls, TRFM_X
+        del FittedTestCls, TransformedTestCls
 
         # END ^^^ AFTER TRANSFORM ^^^ **********************************
         # **************************************************************

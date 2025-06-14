@@ -12,8 +12,7 @@ from copy import deepcopy
 
 import numpy as np
 
-from pybear.preprocessing._InterceptManager.InterceptManager import \
-    InterceptManager as IM
+from pybear.preprocessing import InterceptManager as IM
 
 from pybear.utilities import nan_mask
 
@@ -47,15 +46,15 @@ class TestAccuracy:
         assert X_dtype in ('flt', 'int', 'str', 'obj', 'hybrid')
         # END validate the test parameters
 
-        # skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
         if X_dtype not in ['flt', 'int'] and X_format not in ['np', 'pd', 'pl']:
             pytest.skip(reason=f"scipy sparse cant take str")
 
         if X_format == 'np' and X_dtype == 'int' and has_nan:
             pytest.skip(reason=f"numpy int dtype cant take 'nan'")
-        # END skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # END skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
-        # set constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+        # set constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         if constants == 'constants1':
             constants = None
         elif constants == 'constants2':
@@ -74,9 +73,23 @@ class TestAccuracy:
                 raise Exception
         else:
             raise Exception
-        # END set constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+        # END set constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
-        # set keep v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        X = _X_factory(
+            _dupl=None,
+            _has_nan=has_nan,
+            _format=X_format,
+            _dtype=X_dtype,
+            _columns=_columns,
+            _constants=constants,
+            _noise=0,
+            _zeros=None,
+            _shape=_shape
+        )
+        # END BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+
+        # set keep v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
         if keep == 'string':
             keep = _columns[0]
         elif keep == 'int':
@@ -92,21 +105,7 @@ class TestAccuracy:
         else:
             # keep is not changed
             pass
-        # END set keep v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-        # BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-        X = _X_factory(
-            _dupl=None,
-            _has_nan=has_nan,
-            _format=X_format,
-            _dtype=X_dtype,
-            _columns=_columns,
-            _constants=constants,
-            _noise=0,
-            _zeros=None,
-            _shape=_shape
-        )
-        # END BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # END set keep v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
         # set _kwargs
         _kwargs['keep'] = keep
@@ -114,10 +113,11 @@ class TestAccuracy:
 
         TestCls = IM(**_kwargs)
 
-        # manage constants
+        # get exp_constants & manage error conditions ------------------
         exp_constants = deepcopy(constants or {})
         if has_nan and not equal_nan:
             exp_constants = {}
+
         # if there are constants, and any of them are nan-like, but
         # not equal_nan, then that column cant be a constant, so remove
         if not equal_nan and len(exp_constants) and \
@@ -134,8 +134,7 @@ class TestAccuracy:
         # if data has no constants and
         # user put in keep as feature_str/int/callable, will raise
         raise_for_keep_non_constant = False
-        has_constants = len(exp_constants) and not (has_nan and not equal_nan)
-        if not has_constants:
+        if not exp_constants:
             if callable(keep):
                 raise_for_keep_non_constant += 1
             if isinstance(keep, int):
@@ -143,45 +142,20 @@ class TestAccuracy:
             if isinstance(keep, str) and \
                     keep not in ('first', 'last', 'random', 'none'):
                 raise_for_keep_non_constant += 1
+        # END get exp_constants & manage error conditions --------------
 
-
+        # v v v fit & transform v v v v v v v v v v v v v v v v v v
         if raise_for_no_header_str_keep or raise_for_keep_non_constant:
             with pytest.raises(ValueError):
                 TestCls.fit(X)
             pytest.skip(reason=f"cant do anymore tests without fit")
         else:
-            TestCls.fit(X)
+            TRFM_X = TestCls.fit_transform(X)
+        # ^ ^ ^ END fit & transform ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
         del raise_for_keep_non_constant, raise_for_no_header_str_keep
 
-        TRFM_X = TestCls.transform(X)
-
-
-        # ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
-        # attributes:
-        #     'n_features_in_'
-        #     'feature_names_in_'
-        #     'constant_columns_'
-        #     'kept_columns_'
-        #     'removed_columns_'
-        #     'column_mask_'
-
-
-        # attr 'n_features_in_' is correct
-        assert TestCls.n_features_in_ == X.shape[1]
-        # column_mask_ is never adjusted for keep is dict. it is always
-        # meant to be applied to pre-transform data.
-        assert len(TestCls.column_mask_) == TestCls.n_features_in_
-
-        # attr 'feature_names_in_' is correct
-        if X_format in ['pd', 'pl']:
-            assert np.array_equal(TestCls.feature_names_in_, _columns)
-            assert TestCls.feature_names_in_.dtype == object
-        else:
-            assert not hasattr (TestCls, 'feature_names_in_')
-
-        # number of columns in output is adjusted correctly for num constants
+        # get expected number of kept columns
         exp_num_kept = _shape[1]  # start with full num of columns
         if not has_nan or (has_nan and equal_nan):
             if len(exp_constants):
@@ -201,38 +175,33 @@ class TestAccuracy:
             raise Exception(f"algorithm failure")
 
 
+        # ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+        # attributes:
+        #     'n_features_in_'
+        #     'feature_names_in_'
+        #     'constant_columns_'
+        #     'kept_columns_'
+        #     'removed_columns_'
+        #     'column_mask_'
+        # and 'get_feature_names_out'
+
+        # attr 'n_features_in_' is correct
+        assert TestCls.n_features_in_ == X.shape[1]
+
+        # attr 'feature_names_in_' is correct
+        if X_format in ['pd', 'pl']:
+            assert np.array_equal(TestCls.feature_names_in_, _columns)
+            assert TestCls.feature_names_in_.dtype == object
+        else:
+            assert not hasattr (TestCls, 'feature_names_in_')
+
         # number of columns in output == number of expected
         assert TRFM_X.shape[1] == exp_num_kept
 
 
-        # attr 'constant_columns_' is correct ------------------------------
-        act_constants = TestCls.constant_columns_
-        assert len(act_constants) == len(exp_constants)
-        assert np.array_equal(
-            list(act_constants.keys()),
-            list(exp_constants.keys())
-        )
-        for idx, value in exp_constants.items():
-            if str(value) == 'nan':
-                assert str(value) == str(act_constants[idx])
-            else:
-                try:
-                    float(value)
-                    raise UnicodeError
-                except UnicodeError:
-                    assert np.isclose(
-                        float(value),
-                        float(act_constants[idx]),
-                        rtol=1e-5,
-                        atol=1e-8
-                    )
-                except Exception as e:
-                    assert value == act_constants[idx]
-
-        # END attr 'constant_columns_' is correct ----------------------------
-
         # keep ('first','last','random','none') is correct
-        # also verify 'column_mask_' 'kept_columns_', 'removed_columns_'
+        # also build ref objects along the way for testing attrs
         ref_column_mask = [True for _ in range(X.shape[1])]
         ref_kept_columns = {}
         ref_removed_columns = {}
@@ -336,26 +305,15 @@ class TestAccuracy:
             raise Exception
 
 
-        # for convenient index management, positions to be dropped from
-        # ref_feature_names_out were set to None, take those out now
-        ref_feature_names_out = [_ for _ in ref_feature_names_out if _ is not None]
-
-
-        # validate TestCls attrs against ref objects v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-        # feature_names_out ------------
-        assert np.array_equal(
-            TestCls.get_feature_names_out(),
-            ref_feature_names_out
-        )
-
-        del ref_feature_names_out
-        # END feature_names_out ------------
-
+        # validate TestCls attrs against ref objects v^v^v^v^v^v^v^v^v^v
 
         # column_mask_ ------------
-        # number of columns in column_mask_ == number of expected
+        # number of columns in output is adjusted correctly for num constants
+        # column_mask_ is never adjusted for keep is dict. it is always
+        # meant to be applied to pre-transform data.
+        assert len(ref_column_mask) == TestCls.n_features_in_
         assert sum(ref_column_mask) + isinstance(keep, dict) == exp_num_kept
+        assert len(TestCls.column_mask_) == TestCls.n_features_in_
         assert sum(TestCls.column_mask_) + isinstance(keep, dict) == exp_num_kept
         assert np.array_equal(ref_column_mask, TestCls.column_mask_)
         # assert all columns that werent constants are in the output
@@ -364,74 +322,80 @@ class TestAccuracy:
                 assert TestCls.column_mask_[col_idx] is np.True_
         # END column_mask_ ------------
 
+        # feature_names_out ------------
+        # for convenient index management, positions to be dropped from
+        # ref_feature_names_out were set to None, take those out now
+        ref_feature_names_out = [i for i in ref_feature_names_out if i is not None]
+        assert len(TestCls.get_feature_names_out()) == exp_num_kept
+        assert np.array_equal(
+            TestCls.get_feature_names_out(),
+            ref_feature_names_out
+        )
+        # END feature_names_out ------------
 
         # constant_columns_ , kept_columns_, removed_columns_ ----------
-        # 'constants' that is fed into _X_factory could be None
-        ref_constant_columns = constants or {}
 
-        if not equal_nan:
-            if has_nan:
-                ref_constant_columns = {}
-            else:
-                ref_constant_columns = {
-                    k:v for k,v in ref_constant_columns.items() if str(v) != 'nan'
-                }
+        # all are dictionaries
+        # compare keys of act vs exp and
+        # compare values of act vs exp
 
-        for _, __ in (
-            (TestCls.constant_columns_, ref_constant_columns),
+        for _act, _exp in (
+            (TestCls.constant_columns_, exp_constants),
             (TestCls.kept_columns_, ref_kept_columns),
             (TestCls.removed_columns_, ref_removed_columns)
         ):
 
+            assert len(_act) == len(_exp)
+
+            # attr keys, which should always be col idxs (ints) -- -- --
             assert np.array_equal(
-                sorted(list(_.keys())),
-                sorted(list(__.keys()))
+                sorted(list(_act.keys())),
+                sorted(list(_exp.keys()))
             )
+            # END attr keys, which should always be col idxs (ints) --
+
+            # attr values, which could be str or num -- -- -- -- -- --
+            _act = list(_act.values())
+            _exp = list(_exp.values())
 
             try:
-                np.array(list(_.values())).astype(np.float64)
-                np.array(list(__.values())).astype(np.float64)
-                is_num = True
-            except:
-                is_num = False
-
-            if is_num:
+                np.array(_act).astype(np.float64)
+                np.array(_exp).astype(np.float64)
+                raise UnicodeError
+            except UnicodeError:
+                # dict values are numeric
                 assert np.allclose(
-                    np.array(list(_.values()), dtype=np.float64),
-                    np.array(list(__.values()), dtype=np.float64),
+                    np.array(_act, dtype=np.float64),
+                    np.array(_exp, dtype=np.float64),
                     equal_nan=True
                 )
-            else:
-                # if values are not num, could be num and str mixed together
-                # array_equal is not working in this case. need to iterate
-                # over all constant values and check separately.
-                _ = list(_.values())
-                __ = list(__.values())
-                assert len(_) == len(__)
+            except Exception as e:
+                # dict values are str
 
-                for idx in range(len(_)):
+                # if values are not num, could be num and str mixed
+                # together array_equal is not working in this case.
+                # need to iterate over all constant values and check
+                # separately.
+
+                for idx in range(len(_act)):
                     try:
-                        float(_[idx])
-                        float(__[idx])
-                        if str(_[idx]) == 'nan' or str(__[idx]) == 'nan':
+                        list(map(float, [_act[idx], _exp[idx]]))
+                        if str(_act[idx]) == 'nan' or str(_exp[idx]) == 'nan':
                             raise Exception
-                        is_num = True
-                    except:
-                        is_num = False
+                        raise UnicodeError
+                    except UnicodeError:
+                        # is num
+                        assert np.isclose(float(_act[idx]), float(_exp[idx]))
+                    except Exception as e:
+                        # is str or nan
+                        assert str(_act[idx]) == str(_exp[idx])
+            # END attr values, which could be str or num -- -- -- -- --
 
-                    if is_num:
-                        assert np.isclose(float(_[idx]), float(__[idx]))
-                    else:
-                        assert str(_[idx]) == str(__[idx])
-
-            del _, __
         # END constant_columns_ , kept_columns_, removed_columns_ ------
 
-        # END validate TestCls attrs against ref objects v^v^v^v^v^v^v^v^v^v^v^
+        # END validate TestCls attrs against ref objects v^v^v^v^v^v^v^v
 
-
-        # END ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
+        # END ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
 

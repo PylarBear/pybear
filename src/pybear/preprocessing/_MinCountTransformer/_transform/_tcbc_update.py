@@ -183,17 +183,6 @@ def _tcbc_update(
             # no nans in either
             pass
 
-        # 25_06_11 pizza is this obsolete?
-        # there is a problem of columns being identified for deletion in
-        # the recursive class, but that is not being conveyed into old
-        # tcbc, and the 'DELETE COLUMN' instruction is not being made
-        # when make_instructions() is called on the updated old tcbc
-        # back in the outer self when building the column mask in
-        # get_support(). It is not sufficient to simply lower the counts
-        # in the old tcbc to the new counts in the recursion.
-
-
-
         old_tcbc[old_col_idx] = _old_tcbc_col_dict
 
 

@@ -8,17 +8,14 @@
 
 import pytest
 
-import sys
-
 import numpy as np
 import pandas as pd
 import polars as pl
-import scipy.sparse as ss
 
 from pybear.base import is_fitted
 from pybear.base.exceptions import NotFittedError
 
-from pybear.preprocessing import SlimPolyFeatures as SlimPoly
+from pybear.preprocessing import SlimPolyFeatures as SPF
 
 
 bypass = False
@@ -30,9 +27,10 @@ bypass = False
 class TestAttrAccessBeforeAndAfterFitAndTransform:
 
 
-    @pytest.mark.parametrize('x_format', ('np', 'pd', 'pl', 'csc', 'csr', 'coo'))
+    # keep the different containers to test for feature_names_in_
+    @pytest.mark.parametrize('x_format', ('np', 'pd', 'pl', 'dia_matrix'))
     def test_attr_access(
-        self, X_np, X_pd, y_np, _columns, _kwargs, _shape, x_format
+        self, _X_factory, y_np, _columns, _kwargs, _shape, x_format
     ):
 
         _attrs = [
@@ -45,29 +43,23 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
             'poly_constants_'
         ]
 
-        if x_format == 'np':
-            NEW_X = X_np
-            NEW_Y = y_np
-        elif x_format == 'pd':
-            NEW_X = X_pd
+        NEW_X = _X_factory(
+            _format=x_format,
+            _columns=_columns,
+            _constants=None,
+            _has_nan=False,
+            _dtype='flt',
+            _shape=_shape
+        )
+
+        if x_format == 'pd':
             NEW_Y = pd.DataFrame(data=y_np, columns=['y'])
         elif x_format == 'pl':
-            NEW_X = pl.from_numpy(X_np, schema=list(_columns))
             NEW_Y = pl.from_numpy(data=y_np, schema=['y'])
-        elif x_format == 'csc':
-            NEW_X = ss.csc_array(X_np)
-            NEW_Y = y_np
-        elif x_format == 'csr':
-            NEW_X = ss.csr_array(X_np)
-            NEW_Y = y_np
-        elif x_format == 'coo':
-            NEW_X = ss.coo_array(X_np)
-            NEW_Y = y_np
         else:
-            raise Exception
+            NEW_Y = y_np
 
-
-        TestCls = SlimPoly(**_kwargs)
+        TestCls = SPF(**_kwargs)
 
         # BEFORE FIT ***************************************************
 
@@ -113,8 +105,8 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
                     assert isinstance(e, AttributeError)
                 else:
                     raise AssertionError(
-                        f"unexpected exception {sys.exc_info()[0]} accessing "
-                        f"{attr} after fit, x_format == {x_format}"
+                        f"unexpected exception accessing {attr} after "
+                        f"fit, x_format == {x_format} --- {e}"
                     )
 
         # END AFTER FIT ************************************************
@@ -147,8 +139,8 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
                     assert isinstance(e, AttributeError)
                 else:
                     raise AssertionError(
-                        f"unexpected exception {sys.exc_info()[0]} accessing "
-                        f"{attr} after fit, x_format == {x_format}"
+                        f"unexpected exception accessing {attr} after "
+                        f"fit, x_format == {x_format} --- {e}"
                     )
 
         # END AFTER TRANSFORM ******************************************
@@ -181,15 +173,15 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
     def test_access_methods_before_fit(self, X_np, y_np, _kwargs):
 
-        TestCls = SlimPoly(**_kwargs)
+        TestCls = SPF(**_kwargs)
 
         # **************************************************************
         # vvv BEFORE FIT vvv *******************************************
 
         # fit()
-        assert isinstance(TestCls.fit(X_np, y_np), SlimPoly)
+        assert isinstance(TestCls.fit(X_np, y_np), SPF)
 
-        # HERE IS A CONVENIENT PLACE TO TEST reset() ^v^v^v^v^v^v^v^v^v^v^v^v
+        # HERE IS A CONVENIENT PLACE TO TEST reset() ^v^v^v^v^v^v^v^v^v^
         # Reset Changes is_fitted To False:
         # fit an instance  (done above)
         # assert the instance is fitted
@@ -198,7 +190,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         TestCls.reset()
         # assert the instance is not fitted
         assert is_fitted(TestCls) is False
-        # END HERE IS A CONVENIENT PLACE TO TEST reset() ^v^v^v^v^v^v^v^v^v^v^
+        # END HERE IS A CONVENIENT PLACE TO TEST reset() ^v^v^v^v^v^v^v^
 
         # fit_transform()
         assert isinstance(TestCls.fit_transform(X_np, y_np), np.ndarray)
@@ -222,20 +214,20 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
             getattr(TestCls, 'inverse_transform')
 
         # partial_fit()
-        assert isinstance(TestCls.partial_fit(X_np, y_np), SlimPoly)
+        assert isinstance(TestCls.partial_fit(X_np, y_np), SPF)
 
         # reset()
-        assert isinstance(TestCls.reset(), SlimPoly)
+        assert isinstance(TestCls.reset(), SPF)
 
         # score()
         with pytest.raises(NotFittedError):
             TestCls.score(X_np, y_np)
 
         # set_output()
-        assert isinstance(TestCls.set_output(transform='pandas'), SlimPoly)
+        assert isinstance(TestCls.set_output(transform='pandas'), SPF)
 
         # set_params()
-        assert isinstance(TestCls.set_params(keep='last'), SlimPoly)
+        assert isinstance(TestCls.set_params(keep='last'), SPF)
         assert TestCls.keep == 'last'
 
         # transform()
@@ -246,14 +238,12 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # **************************************************************
 
 
-    def test_access_methods_after_fit(
-        self, X_np, y_np, _columns, _kwargs, _shape
-    ):
+    def test_access_methods_after_fit(self, X_np, y_np, _kwargs, _shape):
 
         # **************************************************************
         # vvv AFTER FIT vvv ********************************************
 
-        TestCls = SlimPoly(**_kwargs)
+        TestCls = SPF(**_kwargs)
         TestCls.fit(X_np, y_np)
 
         # fit_transform()
@@ -262,7 +252,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         TestCls.reset()
 
         # fit()
-        assert isinstance(TestCls.fit(X_np), SlimPoly)
+        assert isinstance(TestCls.fit(X_np), SPF)
 
         # get_feature_names_out()
         assert isinstance(TestCls.get_feature_names_out(None), np.ndarray)
@@ -280,10 +270,10 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
             getattr(TestCls, 'inverse_transform')
 
         # partial_fit()
-        assert isinstance(TestCls.partial_fit(X_np), SlimPoly)
+        assert isinstance(TestCls.partial_fit(X_np), SPF)
 
         # reset()
-        assert isinstance(TestCls.reset(), SlimPoly)
+        assert isinstance(TestCls.reset(), SPF)
 
         TestCls.fit(X_np)
 
@@ -291,10 +281,10 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         assert TestCls.score(X_np) is None
 
         # set_output()
-        assert isinstance(TestCls.set_output(transform='default'), SlimPoly)
+        assert isinstance(TestCls.set_output(transform='default'), SPF)
 
         # set_params()
-        assert isinstance(TestCls.set_params(keep='random'), SlimPoly)
+        assert isinstance(TestCls.set_params(keep='random'), SPF)
 
         # transform()
         assert isinstance(TestCls.transform(X_np), np.ndarray)
@@ -306,20 +296,20 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
 
 
     def test_access_methods_after_transform(
-        self, X_np, y_np, _columns, _kwargs, _shape
+        self, X_np, y_np, _kwargs, _shape
     ):
 
         # **************************************************************
         # vvv AFTER TRANSFORM vvv **************************************
-        FittedTestCls = SlimPoly(**_kwargs).fit(X_np, y_np)
-        TransformedTestCls = SlimPoly(**_kwargs).fit(X_np, y_np)
+        FittedTestCls = SPF(**_kwargs).fit(X_np, y_np)
+        TransformedTestCls = SPF(**_kwargs).fit(X_np, y_np)
         TransformedTestCls.transform(X_np)
 
         # fit_transform()
         assert isinstance(TransformedTestCls.fit_transform(X_np), np.ndarray)
 
         # fit()
-        assert isinstance(TransformedTestCls.fit(X_np), SlimPoly)
+        assert isinstance(TransformedTestCls.fit(X_np), SPF)
 
         TransformedTestCls.transform(X_np)
 
@@ -344,20 +334,20 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
             getattr(TransformedTestCls, 'inverse_transform')
 
         # partial_fit()
-        assert isinstance(TransformedTestCls.partial_fit(X_np), SlimPoly)
+        assert isinstance(TransformedTestCls.partial_fit(X_np), SPF)
         TransformedTestCls.transform(X_np)
 
         # reset()
-        assert isinstance(TransformedTestCls.reset(), SlimPoly)
+        assert isinstance(TransformedTestCls.reset(), SPF)
         TransformedTestCls.fit_transform(X_np)
 
         # set_output()
         assert isinstance(
-            TransformedTestCls.set_output(transform='default'), SlimPoly
+            TransformedTestCls.set_output(transform='default'), SPF
         )
 
         # set_params()
-        assert isinstance(TransformedTestCls.set_params(keep='first'), SlimPoly)
+        assert isinstance(TransformedTestCls.set_params(keep='first'), SPF)
 
         # transform()
         assert isinstance(TransformedTestCls.fit_transform(X_np), np.ndarray)
@@ -368,15 +358,6 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # **************************************************************
 
 # END ACCESS METHODS BEFORE AND AFTER FIT AND TRANSFORM
-
-
-
-
-
-
-
-
-
 
 
 

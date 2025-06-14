@@ -36,18 +36,6 @@ class TestPrintInstructionDoesntMutateFutureResults:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _kwargs(_count_threshold):
-
-        return {
-            'count_threshold': _count_threshold,
-            'ignore_non_binary_integer_columns': False,
-            'ignore_columns': [0, 1],
-            'handle_as_bool': [2, 3]
-        }
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
     def _X_np(_shape, _count_threshold, _kwargs):
 
         # find an X where some, but not all, rows are chopped
@@ -72,9 +60,13 @@ class TestPrintInstructionDoesntMutateFutureResults:
         return _X
 
 
-    def test_print_instructions(self, _X_np, _kwargs):
+    def test_print_instructions(self, _X_np, _count_threshold, _kwargs):
 
 
+        _kwargs['count_threshold'] = _count_threshold
+        _kwargs['ignore_non_binary_integer_columns'] = False
+        _kwargs['ignore_columns'] = [0, 1]
+        _kwargs['handle_as_bool'] = [2, 3]
         _MCT = MCT(**_kwargs)
 
         FIRST_TRFM_X = _MCT.fit_transform(_X_np.copy())

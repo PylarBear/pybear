@@ -9,7 +9,6 @@
 import pytest
 
 import numpy as np
-import pandas as pd
 
 
 
@@ -28,10 +27,6 @@ def X_np(_X_factory, _shape):
         _shape=_shape
     ).astype(np.float64)
 
-
-@pytest.fixture(scope='module')
-def X_pd(X_np, _columns):
-    return pd.DataFrame(data=X_np, columns=_columns)
 
 
 @pytest.fixture(scope='module')
@@ -53,7 +48,7 @@ def _kwargs():
         'equal_nan': True,
         'rtol': 1e-5,
         'atol': 1e-8,
-        'n_jobs': 1,  # leave this at 1 because of confliction
+        'n_jobs': 1,  # leave set at 1 because of confliction
         'job_size': 20
     }
 

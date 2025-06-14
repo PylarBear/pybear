@@ -32,10 +32,10 @@ class TestDaskIncrementalParallelPostFit:
         _kwargs, _shape, row_chunk
     ):
 
-        # faster without client, verified 24_11_27 25_05_11
+        # faster without client, dont even test it again
 
         _X_np = _X_factory(
-            _dupl=None, _has_nan=False, _dtype='flt', _shape=_shape
+            _constants={0:1, 1:2}, _has_nan=False, _dtype='flt', _shape=_shape
         )
 
         if wrappings == 'incr':

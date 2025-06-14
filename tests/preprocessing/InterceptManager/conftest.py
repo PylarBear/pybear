@@ -12,7 +12,7 @@ import numpy as np
 
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='module')
 def _shape():
     return (20, 10)
 
@@ -34,7 +34,7 @@ def X_np(_X_factory, _constants, _shape):
     )
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='module')
 def y_np(_shape):
     return np.random.randint(0, 2, _shape[0])
 

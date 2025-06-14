@@ -45,12 +45,12 @@ from pybear.model_selection.GSTCV._GSTCVMixin._validation._scoring \
 
 
 
-
-@pytest.fixture(scope='session')
-def _client():
-    client = Client(n_workers=1, threads_per_worker=1)
-    yield client
-    client.close()
+# pizza
+# @pytest.fixture(scope='session')
+# def _client():
+#     client = Client(n_workers=1, threads_per_worker=1)
+#     yield client
+#     client.close()
 
 
 # data objects ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
