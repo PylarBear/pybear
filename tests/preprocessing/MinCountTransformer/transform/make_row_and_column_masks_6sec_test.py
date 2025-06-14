@@ -30,37 +30,32 @@ class TestMakeRowAndColumnMasks:
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    @staticmethod
-    @pytest.fixture
-    def _rows():
-        return 60
-
 
     @staticmethod
     @pytest.fixture
-    def _pool_size(_rows):
-        return _rows // 4
+    def _pool_size(_shape):
+        return _shape[0] // 4
 
 
     @staticmethod
     @pytest.fixture
-    def _thresh(_rows, _pool_size):
-        return _rows // _pool_size
+    def _thresh(_shape, _pool_size):
+        return _shape[0] // _pool_size
 
 
     @staticmethod
     @pytest.fixture
-    def float_column_no_nan(_pool_size, _rows):
+    def float_column_no_nan(_pool_size, _shape):
         np.random.seed(14)
-        return np.random.randint(0, _pool_size, (_rows, 1)).astype(np.float64)
+        return np.random.randint(0, _pool_size, (_shape[0], 1)).astype(np.float64)
 
 
     @staticmethod
     @pytest.fixture
-    def float_column_nan(float_column_no_nan, _rows, _thresh):
+    def float_column_nan(float_column_no_nan, _shape, _thresh):
         np.random.seed(14)
         NAN_MASK = np.random.choice(
-            np.arange(_rows), int(_thresh-1), replace=False
+            np.arange(_shape[0]), int(_thresh-1), replace=False
         )
         float_column_nan = float_column_no_nan.copy()
         float_column_nan[NAN_MASK, 0] = np.nan
@@ -70,20 +65,20 @@ class TestMakeRowAndColumnMasks:
 
     @staticmethod
     @pytest.fixture
-    def str_column_no_nan(_pool_size, _rows):
+    def str_column_no_nan(_pool_size, _shape):
         np.random.seed(14)
         alpha = 'abcdefghijklmnopqrstuvwxyz'
 
         pool = list(alpha + alpha.upper())[:_pool_size]
-        return np.random.choice(pool, _rows, replace=True).reshape((-1,1))
+        return np.random.choice(pool, _shape[0], replace=True).reshape((-1,1))
 
 
     @staticmethod
     @pytest.fixture
-    def str_column_nan(str_column_no_nan, _rows, _thresh):
+    def str_column_nan(str_column_no_nan, _shape, _thresh):
         np.random.seed(14)
         NAN_MASK = np.random.choice(
-            np.arange(_rows), int(_thresh-1), replace=False
+            np.arange(_shape[0]), int(_thresh-1), replace=False
         )
         str_column_nan = str_column_no_nan.copy().astype('<U3')
         str_column_nan[NAN_MASK, 0] = 'nan'
@@ -244,15 +239,15 @@ class TestMakeRowAndColumnMasks:
         # END ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-    def test_sees_nans(self, _thresh, _rows, good_tcbc, good_instr):
+    def test_sees_nans(self, _thresh, _shape, good_tcbc, good_instr):
 
 
         RIGGED_FLOAT_COL = \
-            np.random.randint(1, _rows//_thresh, size=(_rows - (_thresh - 1), 1))
+            np.random.randint(1, _shape[0]//_thresh, size=(_shape[0] - (_thresh - 1), 1))
         RIGGED_FLOAT_COL = RIGGED_FLOAT_COL.astype(np.float64)
 
         MASK = np.random.choice(
-            list(range(_rows - (_thresh - 1))),
+            list(range(_shape[0] - (_thresh - 1))),
             _thresh - 1,
             replace=False
         )

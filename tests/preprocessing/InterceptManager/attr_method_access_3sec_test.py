@@ -21,14 +21,13 @@ from pybear.preprocessing import InterceptManager as IM
 bypass = False
 
 
-
 # ACCESS ATTR BEFORE AND AFTER FIT AND TRANSFORM
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestAttrAccessBeforeAndAfterFitAndTransform:
 
 
     # keep the different containers to test for feature_names_in_
-    @pytest.mark.parametrize('x_format',('np', 'pd', 'pl', 'csc_array'))
+    @pytest.mark.parametrize('x_format', ('np', 'pd', 'pl', 'csc_array'))
     def test_attr_access(
         self, _X_factory, y_np, _columns, _kwargs, _shape, x_format
     ):
@@ -42,30 +41,32 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
             'column_mask_'
         ]
 
-        NEW_X = _X_factory(
+        _X_wip = _X_factory(
             _format=x_format,
-            _columns=_columns,
-            _constants={3:0, 5:1, _shape[1]-1:2},
             _has_nan=False,
             _dtype='flt',
+            _dupl=None,
+            _columns=_columns,
+            _constants={3: 0, 5: 1, _shape[1] - 1: 2},
             _shape=_shape
         )
 
         if x_format == 'pd':
-            NEW_Y = pd.DataFrame(data=y_np, columns=['y'])
+            _y_wip = pd.DataFrame(data=y_np, columns=['y'])
         elif x_format == 'pl':
-            NEW_Y = pl.from_numpy(data=y_np, schema=['y'])
+            _y_wip = pl.from_numpy(data=y_np, schema=['y'])
         else:
-            NEW_Y = y_np
+            _y_wip = y_np
 
         TestCls = IM(**_kwargs)
 
         # BEFORE FIT ***************************************************
 
         # ALL OF THESE SHOULD GIVE AttributeError/NotFittedError
-        # SPF external attrs are @property and raise NotFittedError
+        # IM external attrs are @property and raise NotFittedError
         # which is child of AttrError
-        # n_features_in_ & feature_names_in_ dont exist before fit
+        # n_features_in_ & feature_names_in_ dont exist before fit.
+        # @property cannot be set.
         for attr in _attrs:
             if attr in ['n_features_in_', 'feature_names_in_']:
                 with pytest.raises(AttributeError):
@@ -74,14 +75,19 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
                 with pytest.raises(NotFittedError):
                     getattr(TestCls, attr)
 
+            if attr not in ['n_features_in_', 'feature_names_in_']:
+                with pytest.raises(AttributeError):
+                    setattr(TestCls, attr, any)
+
         # END BEFORE FIT ***********************************************
 
         # AFTER FIT ****************************************************
 
-        TestCls.fit(NEW_X, NEW_Y)
+        TestCls.fit(_X_wip, _y_wip)
 
         # all attrs should be accessible after fit, the only exception
-        # should be feature_names_in_ if not pd
+        # should be feature_names_in_ if not pd/pl
+        # @property cannot be set.
         for attr in _attrs:
             try:
                 out = getattr(TestCls, attr)
@@ -107,15 +113,21 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
                         f"unexpected exception accessing {attr} after "
                         f"fit, x_format == {x_format} --- {e}"
                     )
+
+        for attr in _attrs:
+            if attr not in ['n_features_in_', 'feature_names_in_']:
+                with pytest.raises(AttributeError):
+                    setattr(TestCls, attr, any)
 
         # END AFTER FIT ************************************************
 
         # AFTER TRANSFORM **********************************************
 
-        TestCls.transform(NEW_X)
+        TestCls.transform(_X_wip)
 
         # after transform, should be the exact same condition as after
         # fit, and pass the same tests
+        # @property cannot be set.
         for attr in _attrs:
             try:
                 out = getattr(TestCls, attr)
@@ -142,9 +154,12 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
                         f"fit, x_format == {x_format} --- {e}"
                     )
 
-        # END AFTER TRANSFORM ******************************************
+        for attr in _attrs:
+            if attr not in ['n_features_in_', 'feature_names_in_']:
+                with pytest.raises(AttributeError):
+                    setattr(TestCls, attr, any)
 
-        del NEW_X, NEW_Y, TestCls
+        # END AFTER TRANSFORM ******************************************
 
 # END ACCESS ATTR BEFORE AND AFTER FIT AND TRANSFORM
 
@@ -163,6 +178,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
     #     'get_params',
     #     'inverse_transform',
     #     'partial_fit',
+    #     '_reset',
     #     'score',
     #     'set_output',
     #     'set_params',
@@ -181,7 +197,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         assert isinstance(TestCls.fit(X_np, y_np), IM)
 
         # HERE IS A CONVENIENT PLACE TO TEST _reset() ^v^v^v^v^v^v^v^v^v
-        # Reset Changes is_fitted To False:
+        # Reset changes is_fitted To False:
         # fit an instance  (done above)
         # assert the instance is fitted
         assert is_fitted(TestCls) is True
@@ -189,7 +205,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         TestCls._reset()
         # assert the instance is not fitted
         assert is_fitted(TestCls) is False
-        # HERE IS A CONVENIENT PLACE TO TEST _reset() ^v^v^v^v^v^v^v^v^v
+        # END HERE IS A CONVENIENT PLACE TO TEST _reset() ^v^v^v^v^v^v^v
 
         # fit_transform()
         assert isinstance(TestCls.fit_transform(X_np, y_np), np.ndarray)
@@ -236,7 +252,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # **************************************************************
 
 
-    def test_access_methods_after_fit(self, X_np, y_np, _kwargs, _shape):
+    def test_access_methods_after_fit(self, X_np, y_np, _kwargs):
 
         # **************************************************************
         # vvv AFTER FIT vvv ********************************************
@@ -266,6 +282,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         TRFM_X = TestCls.transform(X_np)
         out = TestCls.inverse_transform(TRFM_X)
         assert isinstance(out, np.ndarray)
+        assert np.array_equal(out, X_np, equal_nan=True)
 
         TestCls = IM(**_kwargs)
 
@@ -295,9 +312,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # **************************************************************
 
 
-    def test_access_methods_after_transform(
-        self, X_np, y_np, _kwargs, _shape
-    ):
+    def test_access_methods_after_transform(self, X_np, y_np, _kwargs):
 
         # **************************************************************
         # vvv AFTER TRANSFORM vvv **************************************
@@ -353,7 +368,7 @@ class TestMethodAccessBeforeAndAfterFitAndAfterTransform:
         # transform()
         assert isinstance(TransformedTestCls.fit_transform(X_np), np.ndarray)
 
-        del FittedTestCls, TransformedTestCls
+        del FittedTestCls, TransformedTestCls, TRFM_X
 
         # END ^^^ AFTER TRANSFORM ^^^ **********************************
         # **************************************************************

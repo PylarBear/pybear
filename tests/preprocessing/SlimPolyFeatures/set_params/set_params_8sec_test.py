@@ -8,30 +8,32 @@
 
 import pytest
 
-from copy import deepcopy
-
 import numpy as np
 
-from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures import \
-    SlimPolyFeatures as SlimPoly
+from pybear.preprocessing import SlimPolyFeatures as SlimPoly
 
 
 
 class TestSetParams:
 
 
-    @staticmethod
     @pytest.fixture(scope='function')
-    def _kwargs(_kwargs):
+    def _kwargs(self):
 
-        # overwrite the conftest fixture
-
-        _new_kwargs = deepcopy(_kwargs)
-        _new_kwargs['interaction_only'] = False
-        _new_kwargs['feature_name_combiner'] = lambda _columns, _x: 'abc'
-        _new_kwargs['equal_nan'] = False
-
-        return _new_kwargs
+        return {
+            'degree': 2,
+            'min_degree': 1,
+            'interaction_only': False,
+            'scan_X': False,
+            'keep': 'first',
+            'sparse_output': False,
+            'feature_name_combiner': lambda _columns, _x: 'abc',
+            'equal_nan': False,
+            'rtol': 1e-5,
+            'atol': 1e-8,
+            'n_jobs': 1,  # leave set at 1 because of confliction
+            'job_size': 20
+        }
 
 
     @staticmethod
@@ -76,7 +78,7 @@ class TestSetParams:
             'job_size': 30  # <==== diff
         }
 
-    # END Fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END Fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     def test_blocks_some_params_after_fit(self, X_np, y_np, _kwargs):
@@ -396,8 +398,6 @@ class TestSetParams:
         # THE PARAMS THAT ARE NOT ALLOWED TO CHANGE AFTER FIT CONTROL THIS
         # SINCE THEY CANT BE CHANGED, THIRD MUST EQUAL SECOND (AND FIRST)
         assert np.array_equal(SECOND_TRFM_X, THIRD_TRFM_X)
-
-
 
 
 

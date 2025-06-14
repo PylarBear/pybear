@@ -10,8 +10,7 @@ import pytest
 
 import numpy as np
 
-from pybear.preprocessing._InterceptManager.InterceptManager import \
-    InterceptManager as IM
+from pybear.preprocessing import InterceptManager as IM
 
 
 
@@ -51,13 +50,13 @@ class TestSetParams:
         # 1) set_params(via init) -> fit -> transform
         # 2) fit -> set_params -> transform
 
-        _X = _X_factory(
-            _constants={0: 1, _shape[1]-1: 2},   # <===== important
+        _X_wip = _X_factory(
             _dupl=None,
             _format='np',
             _dtype='int',
             _has_nan=False,
             _columns=None,
+            _constants={0: 1, _shape[1] - 1: 2},  # <===== important
             _zeros=None,
             _shape=_shape
         )
@@ -66,10 +65,10 @@ class TestSetParams:
         FirstTestClass = IM(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
-        FirstTestClass.fit(_X, y_np)
+        FirstTestClass.fit(_X_wip, y_np)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
-        FIRST_TRFM_X = FirstTestClass.transform(_X)
+        FIRST_TRFM_X = FirstTestClass.transform(_X_wip)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
         del FirstTestClass
@@ -80,10 +79,10 @@ class TestSetParams:
         SecondTestClass = IM(**_alt_kwargs)
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
-        SecondTestClass.fit(_X, y_np)
+        SecondTestClass.fit(_X_wip, y_np)
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
-        SECOND_TRFM_X = SecondTestClass.transform(_X)
+        SECOND_TRFM_X = SecondTestClass.transform(_X_wip)
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
 
@@ -94,7 +93,7 @@ class TestSetParams:
         SecondTestClass.set_params(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(SecondTestClass, param) == value
-        THIRD_TRFM_X = SecondTestClass.transform(_X)
+        THIRD_TRFM_X = SecondTestClass.transform(_X_wip)
         for param, value in _kwargs.items():
             assert getattr(SecondTestClass, param) == value
         del SecondTestClass
@@ -107,13 +106,13 @@ class TestSetParams:
         self, _X_factory, y_np, _kwargs, _alt_kwargs, _shape
     ):
 
-        _X = _X_factory(
-            _constants={0: 1, _shape[1]-1: 2},   # <===== important
+        _X_wip = _X_factory(
             _dupl=None,
             _format='np',
             _dtype='int',
             _has_nan=False,
             _columns=None,
+            _constants={0: 1, _shape[1] - 1: 2},  # <===== important
             _zeros=None,
             _shape=_shape
         )
@@ -122,7 +121,7 @@ class TestSetParams:
         FirstTestClass = IM(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
-        FIRST_TRFM_X = FirstTestClass.fit_transform(_X, y_np)
+        FIRST_TRFM_X = FirstTestClass.fit_transform(_X_wip, y_np)
         for param, value in _kwargs.items():
             assert getattr(FirstTestClass, param) == value
 
@@ -133,7 +132,7 @@ class TestSetParams:
         SecondTestClass.set_params(**_alt_kwargs)
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
-        SECOND_TRFM_X = SecondTestClass.fit_transform(_X, y_np)
+        SECOND_TRFM_X = SecondTestClass.fit_transform(_X_wip, y_np)
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
 
@@ -144,7 +143,7 @@ class TestSetParams:
         SecondTestClass.set_params(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(SecondTestClass, param) == value
-        THIRD_TRFM_X = SecondTestClass.fit_transform(_X, y_np)
+        THIRD_TRFM_X = SecondTestClass.fit_transform(_X_wip, y_np)
         for param, value in _kwargs.items():
             assert getattr(SecondTestClass, param) == value
 
@@ -160,13 +159,13 @@ class TestSetParams:
         # set all new params and transform
         # set back to the old params and transform, compare with the first output
 
-        _X = _X_factory(
-            _constants={0: 1, _shape[1]-1: 2},   # <===== important
+        _X_wip = _X_factory(
             _dupl=None,
             _format='np',
             _dtype='int',
             _has_nan=False,
             _columns=None,
+            _constants={0: 1, _shape[1] - 1: 2},  # <===== important
             _zeros=None,
             _shape=_shape
         )
@@ -175,17 +174,17 @@ class TestSetParams:
         TestClass = IM(**_kwargs)
         for param, value in _kwargs.items():
             assert getattr(TestClass, param) == value
-        TestClass.fit(_X, y_np)
+        TestClass.fit(_X_wip, y_np)
         for param, value in _kwargs.items():
             assert getattr(TestClass, param) == value
-        FIRST_TRFM_X = TestClass.transform(_X)
+        FIRST_TRFM_X = TestClass.transform(_X_wip)
         for param, value in _kwargs.items():
             assert getattr(TestClass, param) == value
         # use set_params to change all params.  DO NOT FIT!
         TestClass.set_params(**_alt_kwargs)
         for param, value in _alt_kwargs.items():
             assert getattr(TestClass, param) == value
-        SECOND_TRFM_X = TestClass.transform(_X)
+        SECOND_TRFM_X = TestClass.transform(_X_wip)
         for param, value in _alt_kwargs.items():
             assert getattr(TestClass, param) == value
 
@@ -197,12 +196,11 @@ class TestSetParams:
         for param, value in _kwargs.items():
             assert getattr(TestClass, param) == value
         # transform again, and compare with the first output
-        THIRD_TRFM_X = TestClass.transform(_X)
+        THIRD_TRFM_X = TestClass.transform(_X_wip)
         for param, value in _kwargs.items():
             assert getattr(TestClass, param) == value
 
         assert np.array_equal(FIRST_TRFM_X, THIRD_TRFM_X)
-
 
 
 

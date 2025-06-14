@@ -11,80 +11,27 @@ import pytest
 import numpy as np
 import pandas as pd
 import polars as pl
-import scipy.sparse as ss
 
 from pybear.base import is_fitted
 from pybear.base.exceptions import NotFittedError
+
 from pybear.preprocessing import MinCountTransformer as MCT
 
 
-
-#     n_features_in_
-#     feature_names_in_
-#     original_dtypes_
-#     total_counts_by_column_
-#     instructions_
-
-# original_dtypes_, total_counts_by_column_, instructions_ should have
-# the setter blocked, and be not accessible before fit. this is tested
-# in attr_method_access_test with 1 & 2 rcr.
-
-
-
-# v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-# FIXTURES
-
-@pytest.fixture(scope='module')
-def X_np(_kwargs, _shape):
-    return np.random.randint(
-        0,
-        _shape[0]//_kwargs['count_threshold'],
-        _shape
-    )
-
-# END fixtures
-# v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+bypass = False
 
 
 
 # ACCESS ATTR BEFORE AND AFTER FIT AND TRANSFORM FOR 1 & 2 RECURSION
+@pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestAttrAccessBeforeAndAfterFitAndTransform:
 
-
-    @pytest.mark.parametrize('x_format', ('np', 'pd', 'pl', 'csc', 'csr', 'coo'))
+    # simultaneously test 1 & 2 RCR
+    # keep the different containers to test for feature_names_in_
+    @pytest.mark.parametrize('x_format', ('np', 'pd', 'pl', 'bsr_array'))
     def test_attr_access(
-        self, X_np, y_np, _columns, _kwargs, _shape, x_format
+        self, _X_factory, y_np, _columns, _kwargs, _shape, x_format
     ):
-
-        # simultaneously test 1 & 2 RCR
-
-        if x_format == 'np':
-            NEW_X = X_np
-            NEW_Y = np.random.randint(0, 2, _shape[0])
-        elif x_format == 'pd':
-            NEW_X = pd.DataFrame(data=X_np, columns=_columns)
-            NEW_Y = pd.DataFrame(data=np.random.randint(0, 2, _shape[0]), columns=['y'])
-        elif x_format == 'pl':
-            NEW_X = pl.from_numpy(X_np, schema=list(_columns))
-            NEW_Y = pl.from_numpy(data=np.random.randint(0, 2, _shape[0]), schema=['y'])
-        elif x_format == 'csc':
-            NEW_X = ss.csc_array(X_np.copy())
-            NEW_Y = np.random.randint(0, 2, _shape[0])
-        elif x_format == 'csr':
-            NEW_X = ss.csr_array(X_np.copy())
-            NEW_Y = np.random.randint(0, 2, _shape[0])
-        elif x_format == 'coo':
-            NEW_X = ss.coo_array(X_np.copy())
-            NEW_Y = np.random.randint(0, 2, _shape[0])
-        else:
-            raise Exception
-
-
-        OneRcrTestCls = MCT(**_kwargs)
-        OneRcrTestCls.set_params(max_recursions=1, count_threshold=3)
-
-        TwoRcrTestCls = MCT(**_kwargs)
-        TwoRcrTestCls.set_params(max_recursions=2, count_threshold=3)
 
         _attrs = [
             'n_features_in_',
@@ -94,13 +41,36 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
             'instructions_'
         ]
 
+        _X_wip = _X_factory(
+            _format=x_format,
+            _has_nan=False,
+            _dtype='int',
+            _dupl=None,
+            _columns=_columns,
+            _constants=None,
+            _shape=_shape
+        )
+
+        if x_format == 'pd':
+            _y_wip = pd.DataFrame(data=y_np, columns=['y'])
+        elif x_format == 'pl':
+            _y_wip = pl.from_numpy(data=y_np, schema=['y'])
+        else:
+            _y_wip = y_np
+
+        OneRcrTestCls = MCT(**_kwargs)
+        OneRcrTestCls.set_params(max_recursions=1, count_threshold=3)
+
+        TwoRcrTestCls = MCT(**_kwargs)
+        TwoRcrTestCls.set_params(max_recursions=2, count_threshold=3)
 
         # BEFORE FIT ***************************************************
 
         # ALL OF THESE SHOULD GIVE AttributeError/NotFittedError
         # MCT external attrs are @property and raise NotFittedError
         # which is child of AttrError
-        # n_features_in_ & feature_names_in_ dont exist before fit
+        # n_features_in_ & feature_names_in_ dont exist before fit.
+        # @property cannot be set.
         for attr in _attrs:
             if attr in ['n_features_in_', 'feature_names_in_']:
                 with pytest.raises(AttributeError):
@@ -113,24 +83,21 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
                 with pytest.raises(NotFittedError):
                     getattr(TwoRcrTestCls, attr)
 
-
-        # @property attributes can never be set
-        for attr in [
-            'original_dtypes_', 'total_counts_by_column_', 'instructions_'
-        ]:
-            with pytest.raises(AttributeError):
-                setattr(OneRcrTestCls, attr, ['int', 'bin_int', 'float'])
-            with pytest.raises(AttributeError):
-                setattr(TwoRcrTestCls, attr, ['int', 'bin_int', 'float'])
+            if attr not in ['n_features_in_', 'feature_names_in_']:
+                with pytest.raises(AttributeError):
+                    setattr(OneRcrTestCls, attr, any)
+                with pytest.raises(AttributeError):
+                    setattr(TwoRcrTestCls, attr, any)
         # END BEFORE FIT ***********************************************
 
         # AFTER FIT ****************************************************
 
         # TwoRcrTestCls cant be tested here, can only do fit_transform
-        OneRcrTestCls.fit(NEW_X, NEW_Y)
+        OneRcrTestCls.fit(_X_wip, _y_wip)
 
         # all attrs should be accessible after fit, the only exception
         # should be feature_names_in_ if not pd/pl
+        # @property cannot be set.
         for attr in _attrs:
             try:
                 out = getattr(OneRcrTestCls, attr)
@@ -157,24 +124,23 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
                         f"fit, x_format == {x_format} --- {e}"
                     )
 
-        # @property attributes can never be set
-        for attr in [
-            'original_dtypes_', 'total_counts_by_column_', 'instructions_'
-        ]:
-            with pytest.raises(AttributeError):
-                setattr(OneRcrTestCls, attr, ['int', 'bin_int', 'float'])
-            with pytest.raises(AttributeError):
-                setattr(TwoRcrTestCls, attr, ['int', 'bin_int', 'float'])
+        for attr in _attrs:
+            if attr not in ['n_features_in_', 'feature_names_in_']:
+                with pytest.raises(AttributeError):
+                    setattr(OneRcrTestCls, attr, any)
+                with pytest.raises(AttributeError):
+                    setattr(TwoRcrTestCls, attr, any)
 
         # END AFTER FIT ************************************************
 
         # AFTER TRANSFORM **********************************************
 
-        OneRcrTestCls.transform(NEW_X)
-        TwoRcrTestCls.fit_transform(NEW_X)
+        OneRcrTestCls.transform(_X_wip)
+        TwoRcrTestCls.fit_transform(_X_wip)
 
         # after transform, should be the exact same condition as after
         # fit, and pass the same tests
+        # @property cannot be set.
         for attr in _attrs:
             try:
                 out1 = getattr(OneRcrTestCls, attr)
@@ -203,44 +169,40 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
                         f"fit, x_format == {x_format} --- {e}"
                     )
 
-        # @property attributes can never be set
-        for attr in [
-            'original_dtypes_', 'total_counts_by_column_', 'instructions_'
-        ]:
-            with pytest.raises(AttributeError):
-                setattr(OneRcrTestCls, attr, ['int', 'bin_int', 'float'])
-            with pytest.raises(AttributeError):
-                setattr(TwoRcrTestCls, attr, ['int', 'bin_int', 'float'])
+        for attr in _attrs:
+            if attr not in ['n_features_in_', 'feature_names_in_']:
+                with pytest.raises(AttributeError):
+                    setattr(OneRcrTestCls, attr, any)
+                with pytest.raises(AttributeError):
+                    setattr(TwoRcrTestCls, attr, any)
 
         # END AFTER TRANSFORM ******************************************
-
-        del NEW_X, NEW_Y, OneRcrTestCls, TwoRcrTestCls
 
 # END ACCESS ATTR BEFORE AND AFTER FIT AND TRANSFORM FOR 1 & 2 RECURSION
 
 
 # ACCESS METHODS BEFORE AND AFTER FIT AND TRANSFORM FOR 1 & 2RECURSION
+@pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestMethodAccessBeforeAndAfterFitAndTransform:
 
 
-    @staticmethod
-    def _methods():
-        return [
-            'fit',
-            'fit_transform',
-            'get_feature_names_out',
-            'get_metadata_routing',
-            'get_params',
-            'get_row_support',
-            'get_support',
-            'partial_fit',
-            'print_instructions',
-            'reset',
-            'score',
-            'set_output',
-            'set_params',
-            'transform'
-        ]
+    # _methods():
+    # [
+    #     'fit',
+    #     'fit_transform',
+    #     'get_feature_names_out',
+    #     'get_metadata_routing',
+    #     'get_params',
+    #     'get_row_support',
+    #     'get_support',
+    #     'partial_fit',
+    #     'print_instructions',
+    #     'reset',
+    #     'score',
+    #     'set_output',
+    #     'set_params',
+    #     'transform'
+    # ]
 
 
     # simultaneously test 1RCR & 2RCR
@@ -260,7 +222,7 @@ class TestMethodAccessBeforeAndAfterFitAndTransform:
         with pytest.raises(ValueError):
             assert isinstance(TwoRcrTestCls.fit(X_np, y_np), MCT)
 
-        # HERE IS A CONVENIENT PLACE TO TEST reset() ^v^v^v^v^v^v^v^v^v^v^v^v
+        # HERE IS A CONVENIENT PLACE TO TEST reset() ^v^v^v^v^v^v^v^v^v^
         # Reset changes is_fitted To False:
         # fit an instance  (done above)
         # assert the instance is fitted
@@ -272,7 +234,7 @@ class TestMethodAccessBeforeAndAfterFitAndTransform:
         # assert the instance is not fitted
         assert is_fitted(OneRcrTestCls) is False
         assert is_fitted(TwoRcrTestCls) is False
-        # END HERE IS A CONVENIENT PLACE TO TEST reset() ^v^v^v^v^v^v^v^v^v^v^
+        # END HERE IS A CONVENIENT PLACE TO TEST reset() ^v^v^v^v^v^v^v^
 
         # fit_transform()
         assert isinstance(OneRcrTestCls.fit_transform(X_np, y_np), tuple)
@@ -319,8 +281,7 @@ class TestMethodAccessBeforeAndAfterFitAndTransform:
         with pytest.raises(NotFittedError):
             TwoRcrTestCls.get_support(True)
 
-        # inverse_transform()
-        # MCT should never have inverse_transform method
+        # inverse_transform() - MCT should never have inverse_transform method
         with pytest.raises(AttributeError):
             getattr(OneRcrTestCls, 'inverse_transform')
         with pytest.raises(AttributeError):
@@ -381,9 +342,7 @@ class TestMethodAccessBeforeAndAfterFitAndTransform:
 
 
     # 2 RCR cant be tested here, can only do fit_transform
-    def test_access_methods_after_fit(
-        self, X_np, y_np, _columns, _kwargs, _shape
-    ):
+    def test_access_methods_after_fit(self, X_np, y_np, _kwargs):
 
         # **************************************************************
         # vvv AFTER FIT vvv ********************************************
@@ -434,6 +393,9 @@ class TestMethodAccessBeforeAndAfterFitAndTransform:
         # ** print_instructions()
         assert TestCls.print_instructions() is None
 
+        # score()
+        assert TestCls.score(X_np, y_np) is None
+
         # set_output()
         assert isinstance(TestCls.set_output(transform='default'), MCT)
 
@@ -467,9 +429,7 @@ class TestMethodAccessBeforeAndAfterFitAndTransform:
 
 
     # simultaneously test 1 & 2 RCR
-    def test_access_methods_after_transform(
-        self, X_np, y_np, _columns, _kwargs, _shape
-    ):
+    def test_access_methods_after_transform(self, X_np, y_np, _kwargs):
 
         # **************************************************************
         # vvv AFTER TRANSFORM vvv **************************************

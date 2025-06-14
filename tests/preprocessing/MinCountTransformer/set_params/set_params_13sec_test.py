@@ -6,14 +6,13 @@
 
 
 
-from pybear.preprocessing._MinCountTransformer.MinCountTransformer import \
-    MinCountTransformer as MCT
-
-from copy import deepcopy
-import numpy as np
-
 import pytest
 
+from copy import deepcopy
+
+import numpy as np
+
+from pybear.preprocessing import MinCountTransformer as MCT
 
 
 class TestSetParams:
@@ -172,6 +171,7 @@ class TestSetParams:
             assert getattr(FirstTestClass, param) == value
         del FirstTestClass
 
+
         # fit -> set_params -> transform
         # all different params to start
         SecondTestClass = MCT(**_alt_kwargs)
@@ -180,10 +180,10 @@ class TestSetParams:
         SecondTestClass.fit(X_np, y_np)
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
-        SECOND_TRFM_X, SECOND_TRFM_Y = \
-            SecondTestClass.transform(X_np, y_np)
+        SECOND_TRFM_X, SECOND_TRFM_Y = SecondTestClass.transform(X_np, y_np)
         for param, value in _alt_kwargs.items():
             assert getattr(SecondTestClass, param) == value
+
         # should not be equal to first transform
         assert not np.array_equal(FIRST_TRFM_X, SECOND_TRFM_X)
         assert not np.array_equal(FIRST_TRFM_Y, SECOND_TRFM_Y)

@@ -14,11 +14,9 @@ __all__ = [
     "model_selection",
     "new_numpy",
     "preprocessing",
+    "utilities",
     "__version__"
 ]
-
-
-
 
 
 

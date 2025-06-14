@@ -27,13 +27,6 @@ from pybear.base.mixins._GetParamsMixin import GetParamsMixin
 from pybear.base.mixins._SetParamsMixin import SetParamsMixin
 
 
-# pizza
-# @pytest.fixture(scope='session')
-# def _client():
-#     client = Client(n_workers=1, threads_per_worker=1, asynchronous=False)
-#     yield client
-#     client.close()
-
 
 @pytest.fixture(scope='session')
 def _shape():

@@ -34,7 +34,7 @@ class TestNFeaturesInFeatureNamesIn:
         self, _X_factory, _columns, _kwargs, _shape, X_format
     ):
 
-        _X = _X_factory(
+        _X_wip = _X_factory(
             _dupl=None,
             _format=X_format,
             _dtype='flt',
@@ -49,14 +49,14 @@ class TestNFeaturesInFeatureNamesIn:
         TestCls = SlimPoly(**_kwargs)
 
         # must be fitted to access all of these attrs & properties!
-        assert TestCls.fit(_X) is TestCls
+        assert TestCls.fit(_X_wip) is TestCls
 
         # feature_names_in_ - - - - - - - - - - - - - - -
         if X_format in ['pd', 'pl']:
             _fni = TestCls.feature_names_in_
             assert isinstance(_fni, np.ndarray)
             assert _fni.dtype == object
-            assert len(_fni) == _X.shape[1]
+            assert len(_fni) == _X_wip.shape[1]
             assert np.array_equiv(_fni, _columns), \
                 f"{_fni} after fit() != originally passed columns"
         else:
@@ -172,15 +172,15 @@ class TestRiggedCasePolyHasConstantsAndDupls:
         TestCls = SlimPoly(**_new_kwargs)
 
         while True:
-            _X = np.random.choice(
+            _X_wip = np.random.choice(
                 list('abc'), _shape[0], replace=True
             ).reshape((-1,1))
-            if len(np.unique(_X.ravel())) == 3:
+            if len(np.unique(_X_wip.ravel())) == 3:
                 break
 
-        _X = OHE().fit_transform(_X)
+        _X_wip = OHE().fit_transform(_X_wip)
 
-        TestCls.fit(_X)
+        TestCls.fit(_X_wip)
 
 
         # poly_combinations_ - - - - - - - - - - - - - - - - - - - - - -
@@ -199,7 +199,7 @@ class TestRiggedCasePolyHasConstantsAndDupls:
                 # but if the og data is not included, then the squared
                 # columns have nothing to be a duplicate of anymore, so
                 # they stay.
-                assert len(out) == _X.shape[1]
+                assert len(out) == _X_wip.shape[1]
                 assert out == ((0, 0), (1, 1), (2, 2))
         else:
             raise Exception
@@ -215,7 +215,7 @@ class TestRiggedCasePolyHasConstantsAndDupls:
             if intx_only:
                 assert len(out) == 0
             elif not intx_only:
-                assert len(out) == _X.shape[1]
+                assert len(out) == _X_wip.shape[1]
                 assert out[0] == [(0,), (0, 0)]
                 assert out[1] == [(1,), (1, 1)]
                 assert out[2] == [(2,), (2, 2)]
@@ -316,7 +316,7 @@ class TestRiggedCaseAllIntxAreDupl:
         # with this rigging:
         # - all squared columns != original column.
         # - all interactions equal the same thing
-        _X = np.array(
+        _X_wip = np.array(
             [
                 [2, 0, 0],
                 [2, 0, 0],
@@ -332,7 +332,7 @@ class TestRiggedCaseAllIntxAreDupl:
         )
 
         TestCls = SlimPoly(**_new_kwargs)
-        TestCls.fit(_X)
+        TestCls.fit(_X_wip)
 
 
         # poly_combinations_ - - - - - - - - - - - - - - - - - - - - - -
