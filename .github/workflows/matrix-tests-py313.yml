@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         os: ["windows-latest", "macos-latest"]
-        python-version: ["3.13"]
+        python-version: ["3.13t"]
     steps:  
     # Conditional step to install libomp on macOS
     # Need libomp on macOS to run XGBoost
