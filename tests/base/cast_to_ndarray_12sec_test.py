@@ -40,13 +40,13 @@ class TestCastToNDArray:
     def _columns(_master_columns, _shape):
         return _master_columns.copy()[:_shape[1]]
 
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _client():
-        client = distributed.Client(n_workers=1, threads_per_worker=1)
-        yield client
-        client.close()
+    # pizza
+    # @staticmethod
+    # @pytest.fixture(scope='session')
+    # def _client():
+    #     client = distributed.Client(n_workers=1, threads_per_worker=1)
+    #     yield client
+    #     client.close()
 
     # END fixtures v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 

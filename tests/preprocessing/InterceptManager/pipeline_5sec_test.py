@@ -23,28 +23,17 @@ class TestPipeline:
 
 
     def test_accuracy_in_pipe_vs_out_of_pipe(
-        self, _X_factory, _shape, _kwargs, y_np
+        self, X_np, _shape, _kwargs, y_np
     ):
 
         # this also incidentally tests functionality in a pipe
 
         # make a pipe of OneHotEncoder, IM, and LinearRegression
-        # the X object needs to contain categorical data
         # fit the data on the pipeline, get coef_
         # fit the data on the steps severally, compare coef_
 
-        # pizza think on this test.... it seems as tho IM may not be doing
-        # anything?
-        _X = _X_factory(
-            _dupl=None,
-            _format='np',
-            _has_nan=False,
-            _columns=None,
-            _dtype='obj',
-            _shape=_shape
-        )
+        # pipe ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-        # pipe ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         pipe = Pipeline(
             steps = [
                 ('onehot', OneHotEncoder(sparse_output=True)),
@@ -55,20 +44,24 @@ class TestPipeline:
 
         check_pipeline(pipe)
 
-        pipe.fit(_X, y_np)
+        pipe.fit(X_np, y_np)
 
         _coef_pipe = pipe.steps[2][1].coef_
 
-        # END pipe ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # END pipe ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-        # separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-        encoded_X = OneHotEncoder(sparse_output=True).fit_transform(_X)
+        encoded_X = OneHotEncoder(sparse_output=True).fit_transform(X_np)
         deconstanted_X = IM(**_kwargs).fit_transform(encoded_X)
+        # prove out that IM is actually doing something
+        assert 0 < deconstanted_X.shape[0] == encoded_X.shape[0]
+        assert deconstanted_X.shape[1] < encoded_X.shape[1]
+        # END prove out that IM is actually doing something
         _coef_separate = LogisticRegression().fit(deconstanted_X, y_np).coef_
 
-        # END separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # END separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         assert np.allclose(_coef_pipe, _coef_separate)
 

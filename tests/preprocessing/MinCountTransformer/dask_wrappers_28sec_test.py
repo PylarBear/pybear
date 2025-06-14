@@ -15,11 +15,10 @@ import dask.dataframe as ddf
 
 from dask_ml.wrappers import Incremental, ParallelPostFit
 
-from pybear.preprocessing._MinCountTransformer.MinCountTransformer import \
-    MinCountTransformer as MCT
+from pybear.preprocessing import MinCountTransformer as MCT
 
 
-# 25_06_12 originally min_samples was set to 3. this was raising because
+# 25_06_12 originally min_samples was set to 3. that was raising because
 # dask_ml is sending a dummy 1D row vector of zeros to MCT transform,
 # apparently it is some kind of primer? (all other pybear trfms have
 # min_samples=1.) MCT min_samples is now set to 1.
@@ -28,46 +27,17 @@ from pybear.preprocessing._MinCountTransformer.MinCountTransformer import \
 # TEST DASK Incremental + ParallelPostFit == ONE BIG fit_transform()
 class TestDaskIncrementalParallelPostFit:
 
-    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-    # FIXTURES
-
-    # pizza
-    # @staticmethod
-    # @pytest.fixture(scope='module')
-    # def _shape():
-    #     return (200, 20)
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _kwargs():
-        return {
-            'count_threshold': 5,
-            'ignore_float_columns': False,
-            'ignore_non_binary_integer_columns': False,
-            'ignore_columns': None,
-            'ignore_nan': False,
-            'delete_axis_0': False,
-            'handle_as_bool': None,
-            'reject_unseen_values': True,
-            'max_recursions': 1
-        }
-
-    # END fixtures
-    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
 
     @pytest.mark.parametrize('x_format', ['da_array', 'ddf'])
     @pytest.mark.parametrize('y_format', ['da_vector', None])
-    @pytest.mark.parametrize('row_chunk', (4, 5)) # less than conftest _shape[0]
+    @pytest.mark.parametrize('row_chunk', (2, 5)) # less than conftest _shape[0]
     @pytest.mark.parametrize('wrappings', ('incr', 'ppf', 'both', 'none'))
     def test_fit_and_transform_accuracy(
         self, wrappings, _X_factory, y_np, _columns, x_format, y_format,
         _kwargs, _shape, row_chunk
     ):
 
-        # faster without Client, verified 25_02_02
-        # pizza retest with conftest client
+        # faster without client, dont even test it again
 
         _X_np = _X_factory(
             _dupl=None, _has_nan=False, _dtype='int', _shape=_shape
@@ -147,7 +117,7 @@ class TestDaskIncrementalParallelPostFit:
         # END CONVERT TO NP ARRAY FOR COMPARISON AGAINST REF fit_trfm()
 
 
-        assert np.array_equiv(
+        assert np.array_equal(
             TRFM_X,
             MCT(**_kwargs).fit_transform(_X_np)
         ), f"wrapped output != unwrapped output"

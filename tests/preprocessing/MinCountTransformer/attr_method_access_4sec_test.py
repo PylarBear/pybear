@@ -8,8 +8,6 @@
 
 import pytest
 
-from uuid import uuid4
-
 import numpy as np
 import pandas as pd
 import polars as pl
@@ -21,24 +19,20 @@ from pybear.preprocessing import MinCountTransformer as MCT
 
 
 
+#     n_features_in_
+#     feature_names_in_
+#     original_dtypes_
+#     total_counts_by_column_
+#     instructions_
+
+# original_dtypes_, total_counts_by_column_, instructions_ should have
+# the setter blocked, and be not accessible before fit. this is tested
+# in attr_method_access_test with 1 & 2 rcr.
+
+
+
 # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 # FIXTURES
-
-
-@pytest.fixture(scope='module')
-def _kwargs():
-    return {
-        'count_threshold': 5,
-        'ignore_float_columns': False,
-        'ignore_non_binary_integer_columns': False,
-        'ignore_columns': None,
-        'ignore_nan': False,
-        'handle_as_bool': None,
-        'delete_axis_0': False,
-        'reject_unseen_values': True,
-        'max_recursions': 1
-    }
-
 
 @pytest.fixture(scope='module')
 def X_np(_kwargs, _shape):
@@ -59,7 +53,7 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
 
     @pytest.mark.parametrize('x_format', ('np', 'pd', 'pl', 'csc', 'csr', 'coo'))
     def test_attr_access(
-        self, X_np, X_pd, y_np, _columns, _kwargs, _shape, x_format
+        self, X_np, y_np, _columns, _kwargs, _shape, x_format
     ):
 
         # simultaneously test 1 & 2 RCR
@@ -68,7 +62,7 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
             NEW_X = X_np
             NEW_Y = np.random.randint(0, 2, _shape[0])
         elif x_format == 'pd':
-            NEW_X = X_pd
+            NEW_X = pd.DataFrame(data=X_np, columns=_columns)
             NEW_Y = pd.DataFrame(data=np.random.randint(0, 2, _shape[0]), columns=['y'])
         elif x_format == 'pl':
             NEW_X = pl.from_numpy(X_np, schema=list(_columns))

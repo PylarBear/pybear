@@ -6,7 +6,9 @@
 
 
 
-from pybear.preprocessing import MinCountTransformer
+import pytest
+
+import re
 
 from sklearn.utils.estimator_checks import (
     check_transformer_general,
@@ -16,9 +18,7 @@ from sklearn.utils.estimator_checks import (
     check_transformer_get_feature_names_out_pandas
 )
 
-import re
-
-import pytest
+from pybear.preprocessing import MinCountTransformer
 
 
 
@@ -77,8 +77,6 @@ class TestSKLearnCheckTransformer:
             'MinCountTransformer',
             MinCountTransformer(count_threshold=5)
         )
-
-
 
 
 

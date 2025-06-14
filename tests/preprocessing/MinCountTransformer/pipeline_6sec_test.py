@@ -11,10 +11,7 @@ import pytest
 import numpy as np
 
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import (
-    OneHotEncoder,
-    FunctionTransformer
-)
+from sklearn.preprocessing import OneHotEncoder
 
 from pybear.preprocessing import MinCountTransformer as MCT
 from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
@@ -29,88 +26,35 @@ from pybear.utilities import check_pipeline
 
 class TestPipeline:
 
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _kwargs():
-        return {
-            'count_threshold': 6,
-            'ignore_float_columns': True,
-            'ignore_non_binary_integer_columns': True,
-            'ignore_columns': None,
-            'ignore_nan': True,
-            'handle_as_bool': None,
-            'delete_axis_0': False,
-            'reject_unseen_values': False,
-            'max_recursions': 1
-        }
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _X_np(_shape, _kwargs):
-
-        # need some columns that wont be row-chopped and some
-        # columns of constants that will be chopped
-
-        _X = np.empty((_shape[0], 0))
-        for c_idx in range(_shape[1]):
-            if c_idx % 2 == 0:
-                _X = np.hstack((
-                    _X,
-                    np.full((_shape[0], 1), fill_value= np.random.randint(1, 10))
-                ))
-            else:
-                # build a vector with all values > thresh
-                while True:
-                    _rigged_vector = \
-                        np.random.randint(
-                            0,
-                            _kwargs['count_threshold'] // 2,
-                            (_shape[0], 1)
-                        )
-
-                    CTS = np.unique(_rigged_vector, return_counts=True)[1]
-
-                    if min(CTS) >= _kwargs['count_threshold']:
-                        del CTS
-                        break
-
-                _X = np.hstack((_X, _rigged_vector))
-
-        assert _X.shape == _shape
-
-        return _X
-
-    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
-
-    def test_accuracy_in_pipe_vs_out_of_pipe(self, _X_np, _shape, _kwargs):
+    def test_accuracy_in_pipe_vs_out_of_pipe(
+        self, _X_factory, _shape, _kwargs
+    ):
 
         # this also incidentally tests functionality in a pipe
 
         # make a pipe of MCT, CDT, & OneHotEncoder
-        # the X object needs to contain categorical data
         # fit the data on the pipeline and transform, get output
         # fit the data on the steps severally and transform, compare output
 
+        # need some columns that wont be row-chopped and some
+        # columns of constants that will be chopped
+        _X_np = _X_factory(
+            _format='np',
+            _dtype='int',
+            _columns=None,
+            _dupl=None,
+            _constants={k: 1 for k in range(_shape[1]) if k%2==0},
+            _shape=_shape
+        )
 
-        # pipe ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
+        # pipe ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
         # dont use OHE sparse_output, that only puts out CSR.
-
-
         pipe = Pipeline(
             steps = [
                 ('mct', MCT(**_kwargs)),
                 ('cdt', CDT(keep='first', equal_nan=True)),
-                ('ft',
-                    FunctionTransformer(
-                        lambda X: X.toarray() if hasattr(X, 'toarray') else X,
-                        accept_sparse=True
-                    )
-                ),
                 ('onehot', OneHotEncoder(sparse_output=False))
             ]
         )
@@ -121,20 +65,22 @@ class TestPipeline:
 
         TRFM_X_PIPE = pipe.transform(_X_np)
 
-        # END pipe ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # END pipe ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-        # separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
         _chopped_X = MCT(**_kwargs).fit_transform(_X_np)
         assert isinstance(_chopped_X, type(_X_np))
-        _CDT = CDT(keep='first', equal_nan=True)
-        _CDT.set_output('default')
-        _dedupl_X = _CDT.fit_transform(_chopped_X)
+        # prove out that MCT is actually doing something
+        assert 0 < _chopped_X.shape[0] == _X_np.shape[0]
+        assert 0 < _chopped_X.shape[1] < _X_np.shape[1]
+        # END prove out that MCT is actually doing something
+        _dedupl_X = CDT(keep='first', equal_nan=True).fit_transform(_chopped_X)
         TRFM_X_NOT_PIPE = \
             OneHotEncoder(sparse_output=False).fit_transform(_dedupl_X)
 
-        # END separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # END separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         assert np.array_equal(TRFM_X_PIPE, TRFM_X_NOT_PIPE, equal_nan=True)
 

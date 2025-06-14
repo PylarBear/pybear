@@ -16,7 +16,6 @@ from typing_extensions import (
 import numpy.typing as npt
 
 import numpy as np
-import pandas as pd
 
 from pybear.utilities._nan_masking import (
     nan_mask_numerical,
@@ -26,7 +25,6 @@ from pybear.utilities._nan_masking import (
 
 
 
-# pizza finalize this shape
 @pytest.fixture(scope='module')
 def _shape():
     return (200, 10)
@@ -44,32 +42,23 @@ def X_np(_X_factory, _shape):
 
 
 @pytest.fixture(scope='module')
-def X_pd(X_np, _columns):
-    return pd.DataFrame(data=X_np, columns=_columns)
-
-
-@pytest.fixture(scope='module')
 def y_np(_shape):
     return np.random.randint(0, 2, (_shape[0],))
 
-# pizza
-# @pytest.fixture(scope='function')
-# def _kwargs():
-#
-#     return {
-#         'degree': 2,
-#         'min_degree': 1,
-#         'interaction_only': True,
-#         'scan_X': False,
-#         'keep': 'first',
-#         'sparse_output': False,
-#         'feature_name_combiner': "as_indices",
-#         'equal_nan': True,
-#         'rtol': 1e-5,
-#         'atol': 1e-8
-#     }
 
-
+@pytest.fixture(scope='module')
+def _kwargs():
+    return {
+        'count_threshold': 5,
+        'ignore_float_columns': False,
+        'ignore_non_binary_integer_columns': False,
+        'ignore_columns': None,
+        'ignore_nan': False,
+        'handle_as_bool': None,
+        'delete_axis_0': False,
+        'reject_unseen_values': True,
+        'max_recursions': 1
+    }
 
 
 

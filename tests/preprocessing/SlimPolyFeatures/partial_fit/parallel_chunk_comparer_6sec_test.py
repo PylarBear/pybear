@@ -24,6 +24,7 @@ class TestChunkComparer:
     # this has been fixed but think on how to make this test catch this.
     # see circa line 116 in _pcc.
 
+    # pizza
     # 25_06_04 overwrite conftest fixture because of error in github actions
     # FAILED tests/preprocessing/SlimPolyFeatures/partial_fit/parallel_chunk_comparer_6sec_test.py::TestChunkComparer::test_accuracy[True-True] - assert 4 == 3
     # 2025-06-04T00:06:20.7565360Z  +  where 4 = len([((0,), (1,)), ((0,), (2,)), ((1,), (2,)), ((1,), (3,))])

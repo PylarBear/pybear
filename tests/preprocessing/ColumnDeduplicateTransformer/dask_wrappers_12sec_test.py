@@ -32,7 +32,7 @@ class TestDaskIncrementalParallelPostFit:
         _kwargs, _shape, row_chunk
     ):
 
-        # faster without client, verified 24_02_03, 25_05_11
+        # faster without client, dont even test it again
 
         _X_np = _X_factory(
             _dupl=[[0, 1, _shape[1] - 1]], _has_nan=False, _dtype='flt', _shape=_shape

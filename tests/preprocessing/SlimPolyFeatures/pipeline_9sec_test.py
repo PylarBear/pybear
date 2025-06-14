@@ -11,7 +11,7 @@ import pytest
 import numpy as np
 
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
 
 from pybear.preprocessing import SlimPolyFeatures as SlimPoly
@@ -22,31 +22,20 @@ from pybear.utilities import check_pipeline
 class TestPipeline:
 
 
-    @pytest.mark.parametrize('ohe_sparse_output', (True, False))
     def test_accuracy_in_pipe_vs_out_of_pipe(
-        self, _X_factory, _shape, _kwargs, y_np, ohe_sparse_output
+        self, X_np, _shape, _kwargs, y_np
     ):
 
         # this also incidentally tests functionality in a pipe
 
-        # make a pipe of OneHotEncoder, SlimPoly, and LinearRegression
-        # the X object needs to contain categorical data
+        # make a pipe of StandardScaler, SlimPoly, and LinearRegression
         # fit the data on the pipeline, get coef_
         # fit the data on the steps severally, compare coef_
-
-        _X = _X_factory(
-            _dupl=None,
-            _format='np',
-            _has_nan=False,
-            _columns=None,
-            _dtype='obj',      # <+=== THIS MUST BE OBJ, NEED CATEGORICAL
-            _shape=_shape
-        )
 
         # pipe ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
         pipe = Pipeline(
             steps = [
-                ('onehot', OneHotEncoder(sparse_output=ohe_sparse_output)),
+                ('onehot', StandardScaler(with_std=True, with_mean=True)),
                 ('SlimPoly', SlimPoly(**_kwargs)),
                 ('MLR', LinearRegression(fit_intercept = True, n_jobs = 1))
             ]
@@ -54,7 +43,7 @@ class TestPipeline:
 
         check_pipeline(pipe)
 
-        pipe.fit(_X, y_np)
+        pipe.fit(X_np, y_np)
 
         _coef_pipe = pipe.steps[2][1].coef_
 
@@ -63,11 +52,13 @@ class TestPipeline:
 
         # separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-        encoded_X = OneHotEncoder(sparse_output=False).fit_transform(_X)
-        deduplicated_X = SlimPoly(**_kwargs).fit_transform(encoded_X)
-        _coef_separate = LinearRegression(
-            fit_intercept = True, n_jobs = 1
-        ).fit(deduplicated_X, y_np).coef_
+        encoded_X = StandardScaler(with_std=True, with_mean=True).fit_transform(X_np)
+        slim_X = SlimPoly(**_kwargs).fit_transform(encoded_X)
+        # prove out that SPF is actually doing something
+        assert 0 < slim_X.shape[0] == encoded_X.shape[0]
+        assert 0 < encoded_X.shape[1] < slim_X.shape[1]
+        # END prove out that SPF is actually doing something
+        _coef_separate = LinearRegression().fit(slim_X, y_np).coef_
 
         # END separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 

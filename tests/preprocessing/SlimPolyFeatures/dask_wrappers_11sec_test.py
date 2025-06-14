@@ -28,15 +28,15 @@ class TestDaskIncrementalParallelPostFit:
     @pytest.mark.parametrize('row_chunk', (2, 5)) # less than conftest _shape[0]
     @pytest.mark.parametrize('wrappings', ('incr', 'ppf', 'both', 'none'))
     def test_fit_and_transform_accuracy(
-        self, wrappings, X_np, y_np, _columns, x_format, y_format, _kwargs,
+        self, wrappings, _X_factory, y_np, _columns, x_format, y_format, _kwargs,
         _shape, row_chunk
     ):
 
-        # faster without client
+        # faster without client, dont even test it
 
-
-
-
+        _X_np = _X_factory(
+            _dupl=None, _has_nan=False, _dtype='flt', _shape=_shape
+        )
 
         if wrappings == 'incr':
             _test_cls = Incremental(SlimPoly(**_kwargs))
@@ -49,8 +49,8 @@ class TestDaskIncrementalParallelPostFit:
         else:
             raise Exception
 
-        _X_chunks = (row_chunk, _shape[1])
-        _X = da.from_array(X_np).rechunk(_X_chunks)
+
+        _X = da.from_array(_X_np).rechunk((row_chunk, _shape[1]))
         if x_format == 'da_array':
             pass
         elif x_format == 'ddf':
@@ -74,9 +74,12 @@ class TestDaskIncrementalParallelPostFit:
 
         if wrappings in ['none', 'ppf']:
             # without any wrappers, should except for trying to put
-            # dask objects into SlimPoly
-            # pizza in CDT this raises TypeError but here it raises crazy dask error
-            # find out the difference.
+            # dask objects into SlimPoly.
+            # this is raising differently than other preprocessing modules.
+            # this is the only one that requires 'numeric' in
+            # base.validate_data, and dask objects are hanging up on that
+            # and raising weird errors. in the other modules dask gets
+            # thru base and get raised by _val_X
             with pytest.raises(Exception):
                 _test_cls.partial_fit(_X, _y)
             pytest.skip(reason=f"cannot do more tests if not fit")
@@ -116,7 +119,7 @@ class TestDaskIncrementalParallelPostFit:
 
         assert np.array_equal(
             TRFM_X,
-            SlimPoly(**_kwargs).fit_transform(X_np, _y_np)
+            SlimPoly(**_kwargs).fit_transform(_X_np, _y_np)
         ), f"wrapped output != unwrapped output"
 
 

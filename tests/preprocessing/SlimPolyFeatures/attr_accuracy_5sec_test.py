@@ -15,17 +15,13 @@ import numpy as np
 
 from sklearn.preprocessing import OneHotEncoder as OHE
 
-from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures import \
-    SlimPolyFeatures as SlimPoly
+from pybear.preprocessing import SlimPolyFeatures as SlimPoly
 
 
 
 # this tests the accuracy of the 5 @property attributes & feature_names_in_
 # & n_features_in_ of SlimPoly for different min_degree/degree/interaction_only
 # settings
-# remember that the 5 @property attributes only reflect information
-# about the poly expansion portion, never the original data even
-# when min_degree == 1
 
 
 
@@ -33,7 +29,7 @@ class TestNFeaturesInFeatureNamesIn:
 
     # TEST ATTRS THAT ARE INDEPENDENT OF THE DEGREES OF EXPANSION
 
-    @pytest.mark.parametrize('X_format', ('np', 'pd', 'pl', 'csr_array'))
+    @pytest.mark.parametrize('X_format', ('np', 'pd', 'pl', 'coo_array'))
     def test_attr_accuracy(
         self, _X_factory, _columns, _kwargs, _shape, X_format
     ):
@@ -95,7 +91,7 @@ class TestBasicCaseNoDuplsNoConstantsInPoly:
         TestCls = SlimPoly(**_new_kwargs)
         TestCls.fit(X_np)
 
-        # poly_combinations_ - - - - - - - - - - - - - - - - - - - - - - - - -
+        # poly_combinations_ - - - - - - - - - - - - - - - - - - - - - -
         out = TestCls.poly_combinations_
         assert isinstance(out, tuple)
         assert all(map(isinstance, out, (tuple for _ in out)))
@@ -120,7 +116,7 @@ class TestBasicCaseNoDuplsNoConstantsInPoly:
                 assert out == tuple(_3_deg_intx_only)
             elif not intx_only:
                 assert out == tuple(_3_deg_not_intx_only)
-        # END poly_combinations_ - - - - - - - - - - - - - - - - - - - - - - -
+        # END poly_combinations_ - - - - - - - - - - - - - - - - - - - -
 
         # poly_duplicates_ - - - - - - - - - - - - - - - - - - - - - - -
         out = TestCls.poly_duplicates_
@@ -130,21 +126,21 @@ class TestBasicCaseNoDuplsNoConstantsInPoly:
         assert len(out) == 0
         # END poly_duplicates_ - - - - - - - - - - - - - - - - - - - - -
 
-        # kept_poly_duplicates_ - - - - - - - - - - - - - - - - - - - - - - -
+        # kept_poly_duplicates_ - - - - - - - - - - - - - - - - - - - -
         out = TestCls.kept_poly_duplicates_
         assert isinstance(out, dict)
         assert all(map(isinstance, out, (tuple for _ in out)))
         # should be empty dict in every case for these specific tests
         assert len(out) == 0
-        # END kept_poly_duplicates_ - - - - - - - - - - - - - - - - - - - - -
+        # END kept_poly_duplicates_ - - - - - - - - - - - - - - - - - -
 
-        # dropped_poly_duplicates_ - - - - - - - - - - - - - - - - - - - - - -
+        # dropped_poly_duplicates_ - - - - - - - - - - - - - - - - - - -
         out = TestCls.dropped_poly_duplicates_
         assert isinstance(out, dict)
         assert all(map(isinstance, out, (tuple for _ in out)))
         # should be empty dict in every case for these specific tests
         assert len(out) == 0
-        # END dropped_poly_duplicates_ - - - - - - - - - - - - - - - - - - - -
+        # END dropped_poly_duplicates_ - - - - - - - - - - - - - - - - -
 
         # poly_constants_ - - - - - - - - - - - - - - - - - - - - - - -
         out = TestCls.poly_constants_
@@ -158,8 +154,8 @@ class TestBasicCaseNoDuplsNoConstantsInPoly:
 
 class TestRiggedCasePolyHasConstantsAndDupls:
 
-    # A POLY EXPANSION ON A ONE HOT ENCODED COLUMN, ALL INTERACTION FEATURES
-    # ARE COLUMNS OF ZEROS OR DUPLICATE
+    # A POLY EXPANSION ON A ONE HOT ENCODED COLUMN, ALL INTERACTION
+    # FEATURES ARE COLUMNS OF ZEROS OR DUPLICATE
 
     @pytest.mark.parametrize('min_degree', (1,2))
     @pytest.mark.parametrize('intx_only', (True, False))
@@ -187,27 +183,29 @@ class TestRiggedCasePolyHasConstantsAndDupls:
         TestCls.fit(_X)
 
 
-        # poly_combinations_ - - - - - - - - - - - - - - - - - - - - - - - - -
+        # poly_combinations_ - - - - - - - - - - - - - - - - - - - - - -
         out = TestCls.poly_combinations_
         assert isinstance(out, tuple)
         assert all(map(isinstance, out, (tuple for _ in out)))
         if min_degree == 1:
-            # the squares of the og columns, which are in [0,1], would be equal
-            # to the og column, so not included in output if og X is included.
+            # the squares of the og columns, which are in [0,1], would
+            # be equal to the og column, so not included in output if og
+            # X is included.
             assert len(out) == 0
         elif min_degree == 2:
             if intx_only:
                 assert len(out) == 0
             elif not intx_only:
-                # but if the og data is not included, then the squared columns have
-                # nothing to be a duplicate of anymore, so they stay.
+                # but if the og data is not included, then the squared
+                # columns have nothing to be a duplicate of anymore, so
+                # they stay.
                 assert len(out) == _X.shape[1]
                 assert out == ((0, 0), (1, 1), (2, 2))
         else:
             raise Exception
-        # END poly_combinations_ - - - - - - - - - - - - - - - - - - - - - - -
+        # END poly_combinations_ - - - - - - - - - - - - - - - - - - - -
 
-        # poly_duplicates_ - - - - - - - - - - - - - - - - - - - - - - - - -
+        # poly_duplicates_ - - - - - - - - - - - - - - - - - - - - - - -
         out = TestCls.poly_duplicates_
         assert isinstance(out, list)
         assert all(map(isinstance, out, (list for _ in out)))
@@ -227,9 +225,9 @@ class TestRiggedCasePolyHasConstantsAndDupls:
             assert len(out) == 0
         else:
             raise Exception
-        # END poly_duplicates_ - - - - - - - - - - - - - - - - - - - - - - -
+        # END poly_duplicates_ - - - - - - - - - - - - - - - - - - - - -
 
-        # kept_poly_duplicates_ - - - - - - - - - - - - - - - - - - - - - - - -
+        # kept_poly_duplicates_ - - - - - - - - - - - - - - - - - - - -
         out = TestCls.kept_poly_duplicates_
         assert isinstance(out, dict)
         assert all(map(isinstance, out, (tuple for _ in out)))
@@ -256,9 +254,9 @@ class TestRiggedCasePolyHasConstantsAndDupls:
                 assert len(out) == 0
         else:
             raise Exception
-        # END kept_poly_duplicates_ - - - - - - - - - - - - - - - - - - - - - -
+        # END kept_poly_duplicates_ - - - - - - - - - - - - - - - - - -
 
-        # dropped_poly_duplicates_ - - - - - - - - - - - - - - - - - - - - - -
+        # dropped_poly_duplicates_ - - - - - - - - - - - - - - - - - - -
         out = TestCls.dropped_poly_duplicates_
         assert isinstance(out, dict)
         assert all(map(isinstance, out, (tuple for _ in out)))
@@ -284,7 +282,7 @@ class TestRiggedCasePolyHasConstantsAndDupls:
                 assert len(out) == 0
         else:
             raise Exception
-        # END dropped_poly_duplicates_ - - - - - - - - - - - - - - - - - - - -
+        # END dropped_poly_duplicates_ - - - - - - - - - - - - - - - - -
 
         # poly_constants_ - - - - - - - - - - - - - - - - - - - - - - -
         out = TestCls.poly_constants_
@@ -317,8 +315,7 @@ class TestRiggedCaseAllIntxAreDupl:
 
         # with this rigging:
         # - all squared columns != original column.
-        # - all interactions equal the same thing, so there should be
-        #       only one feature in poly.
+        # - all interactions equal the same thing
         _X = np.array(
             [
                 [2, 0, 0],
@@ -362,7 +359,7 @@ class TestRiggedCaseAllIntxAreDupl:
         assert out == [[(0,1), (0,2), (1,2)]]
         # END poly_duplicates_ - - - - - - - - - - - - - - - - - - - - -
 
-        # kept_poly_duplicates_ - - - - - - - - - - - - - - - - - - - - -
+        # kept_poly_duplicates_ - - - - - - - - - - - - - - - - - - - -
         out = TestCls.kept_poly_duplicates_
         assert isinstance(out, dict)
         assert all(map(isinstance, out, (tuple for _ in out)))
@@ -371,7 +368,7 @@ class TestRiggedCaseAllIntxAreDupl:
         # only one feature in poly.
         # all squared columns != original column.
         assert out == {(0,1): [(0,2), (1,2)]}
-        # END kept_poly_duplicates_ - - - - - - - - - - - - - - - - - - -
+        # END kept_poly_duplicates_ - - - - - - - - - - - - - - - - - -
 
         # dropped_poly_duplicates_ - - - - - - - - - - - - - - - - - - -
         out = TestCls.dropped_poly_duplicates_
@@ -389,10 +386,6 @@ class TestRiggedCaseAllIntxAreDupl:
         assert isinstance(out, dict)
         assert len(out) == 0
         # END poly_constants_ - - - - - - - - - - - - - - - - - - - - -
-
-
-
-
 
 
 

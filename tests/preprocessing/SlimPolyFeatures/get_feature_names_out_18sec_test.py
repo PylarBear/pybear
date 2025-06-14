@@ -13,28 +13,8 @@ import itertools
 
 import numpy as np
 
-from pybear.base.exceptions import NotFittedError
+from pybear.preprocessing import SlimPolyFeatures as SlimPoly
 
-from pybear.preprocessing._SlimPolyFeatures.SlimPolyFeatures import \
-    SlimPolyFeatures as SlimPoly
-
-
-
-@pytest.fixture(scope='module')
-def _shape():
-    return (8, 4)
-
-
-
-class TestAlwaysExceptsBeforeFit:
-
-
-    @pytest.mark.parametrize('_keep', ('first', 'last', 'random', 'none'))
-    @pytest.mark.parametrize('_equal_nan', (True, False))
-    def test_always_except_before_fit(self, _keep, _equal_nan):
-
-        with pytest.raises(NotFittedError):
-            SlimPoly().get_feature_names_out()
 
 
 @pytest.mark.parametrize('_format', ('np', 'pd', 'pl'), scope='module')
@@ -44,33 +24,34 @@ class TestAlwaysExceptsBeforeFit:
 class TestInputFeaturesRejects:
 
 
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     @staticmethod
     @pytest.fixture(scope='class')
     def _TestCls(_instance_state, _X_factory, _format, _columns, _shape):
 
-        _TestCls = SlimPoly()
+        TestCls = SlimPoly()
 
-        _X = _X_factory(
+        _X_wip = _X_factory(
             _format=_format,
             _dupl=None,
             _dtype='flt',
             _columns=_columns if _format in ['pd', 'pl'] else None,
+            _constants=None,
             _noise=0,
             _shape=_shape
         )
 
         if _instance_state == 'after_fit':
-            _TestCls.fit(_X)
-            return _TestCls
+            TestCls.fit(_X_wip)
+            return TestCls
         elif _instance_state == 'after_transform':
-            _TestCls.fit_transform(_X)
-            return _TestCls
+            TestCls.fit_transform(_X_wip)
+            return TestCls
         else:
             raise Exception
 
-    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     @pytest.mark.parametrize('junk_input_features',
@@ -109,8 +90,8 @@ class TestGetFeatureNamesOut:
 
 
     @pytest.mark.parametrize('_format, _columns_is_passed',
-        (('np', False), ('pd', True), ('pd', False), ('pl', True),
-         ('pl', False)), scope='module'
+        (('np', False), ('pd', True), ('pd', False), ('pl', True), ('pl', False)),
+        scope='module'
     )
     @pytest.mark.parametrize('_instance_state',
         ('after_fit', 'after_transform'), scope='module'
@@ -119,57 +100,56 @@ class TestGetFeatureNamesOut:
     @pytest.mark.parametrize('_interaction_only', (True, False), scope='module')
     @pytest.mark.parametrize('_input_features_is_passed', (True, False))
     def test_accuracy(
-        self, _X_factory, _shape, _columns, _kwargs, _instance_state, _format,
-        _min_degree, _interaction_only, _input_features_is_passed,
+        self, _X_factory, _instance_state, _kwargs, _min_degree, _format,
+        _columns, _interaction_only, _shape, _input_features_is_passed,
         _columns_is_passed
     ):
 
         # build X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        _X = _X_factory(
+        _X_wip = _X_factory(
             _dupl=None,
             _format=_format,
             _dtype='flt',
-            _columns=_columns if (_format in ['pd', 'pl'] and _columns_is_passed) else None,
+            _columns=_columns if _columns_is_passed else None,
             _constants=None,
+            _noise=0,
             _shape=_shape
         )
 
         # END build X ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        # prepare the SPF instance ** * ** * ** * ** * ** * ** * ** * ** *
+        # prepare the SPF instance ** * ** * ** * ** * ** * ** * ** * **
         _new_kwargs = deepcopy(_kwargs)
         _new_kwargs['degree'] = 3
         _new_kwargs['min_degree'] = _min_degree
         _new_kwargs['interaction_only'] = _interaction_only
         _new_kwargs['equal_nan'] = False
-        _new_kwargs['n_jobs'] = 1
-        # job_size
 
-        _TestCls = SlimPoly(**_new_kwargs)
+        TestCls = SlimPoly(**_new_kwargs)
 
         if _instance_state == 'after_fit':
-            _TestCls.fit(_X)
+            TestCls.fit(_X_wip)
         elif _instance_state == 'after_transform':
-            _TestCls.fit_transform(_X)
+            TestCls.fit_transform(_X_wip)
         else:
             raise Exception
-        # END prepare the SPF instance ** * ** * ** * ** * ** * ** * ** *
+        # END prepare the SPF instance ** * ** * ** * ** * ** * ** * **
 
-        # get actual ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+        # get actual ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
         if _input_features_is_passed:
             if _format == 'pl' and not _columns_is_passed:
                 with pytest.raises(ValueError):
-                    _TestCls.get_feature_names_out(_columns)
+                    TestCls.get_feature_names_out(_columns)
                 # get the actual feature names anyway
-                out = _TestCls.get_feature_names_out(None)
+                out = TestCls.get_feature_names_out(None)
             else:
-                out = _TestCls.get_feature_names_out(_columns)
+                out = TestCls.get_feature_names_out(_columns)
         elif not _input_features_is_passed:
-            out = _TestCls.get_feature_names_out(None)
-        # END get actual ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+            out = TestCls.get_feature_names_out(None)
+        # END get actual ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-        # determine expected ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # determine expected ** * ** * ** * ** * ** * ** * ** * ** * **
         # build polynomial header for 'as_indices'
         # dont bother testing 'as_features' or callable, the accuracy of building
         # the POLY portion of the header is handled in gfno_poly_3sec_test
@@ -179,7 +159,7 @@ class TestGetFeatureNamesOut:
             _fxn = itertools.combinations_with_replacement
 
         _POLY_HEADER = []
-        for _poly_degree in range(2, _TestCls.degree+1):
+        for _poly_degree in range(2, TestCls.degree+1):
             _POLY_HEADER += list(map(str, _fxn(range(_shape[1]), _poly_degree)))
         # END build polynomial header for 'as_indices'
 
@@ -230,7 +210,7 @@ class TestGetFeatureNamesOut:
             _EXP_HEADER = np.hstack((_EXP_HEADER, _POLY_HEADER)).astype(object)
 
 
-        # END determine expected ** * ** * ** * ** * ** * ** * ** * ** * ** * s
+        # END determine expected ** * ** * ** * ** * ** * ** * ** * ** *
 
         assert isinstance(out, np.ndarray), \
             (f"get_feature_names_out should return numpy.ndarray, but "
@@ -263,8 +243,8 @@ class TestGetFeatureNamesOut:
                          f"sliced array of valid input features")
                 elif not _input_features_is_passed:
                     assert np.array_equiv(out, _EXP_HEADER), \
-                        (f"get_feature_names_out(None) after fit() != sliced "
-                        f"array of generic headers")
+                        (f"get_feature_names_out(None) after fit() != "
+                         f"sliced array of generic headers")
         else:
             raise Exception
 
