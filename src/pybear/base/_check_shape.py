@@ -167,7 +167,7 @@ def check_shape(
         if _samples != sample_check:
             raise ValueError(
                 f"passed object has {_samples} samples, but :param: "
-                f"sample_check requires there be exactly {sample_check}"
+                f"sample_check requires there be exactly {sample_check} "
                 f"samples"
             )
     elif sample_check is None:
