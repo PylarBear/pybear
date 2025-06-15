@@ -19,11 +19,6 @@ from pybear.preprocessing._SlimPolyFeatures._partial_fit. \
 
 class TestChunkComparer:
 
-    # pizza, think on this. this test was not catching that _pcc was
-    # calling things like (3,) not less than something like (1,1,).
-    # this has been fixed but think on how to make this test catch this.
-    # see circa line 116 in _pcc.
-
 
     # np cant be int if using nans
     @pytest.mark.parametrize('_has_nan', (True, False))

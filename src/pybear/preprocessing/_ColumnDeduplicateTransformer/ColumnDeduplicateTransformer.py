@@ -584,7 +584,7 @@ class ColumnDeduplicateTransformer(
     def partial_fit(
         self,
         X: XContainer,
-        y: Optional[Any]=None
+        y: Optional[Union[Any, None]]=None
     ) -> Self:
 
         """

@@ -906,6 +906,7 @@ class TestTransform:
 
     # - output is C contiguous
 
+
     @pytest.mark.parametrize('_copy',
         (-1, 0, 1, 3.14, True, False, None, 'junk', [0, 1], (1,), {'a': 1}, min)
     )
@@ -935,8 +936,8 @@ class TestTransform:
         )
 
         TestCls = IM(**_kwargs)
-        TestCls.set_output(transform=output_type)
-        TRFM_X = TestCls.fit_transform(_X_wip)
+        TestCls.set_output(transform=output_type).fit(_X_wip)
+        TRFM_X = TestCls.transform(_X_wip)
 
         # if output_type is None, should return same type as given
         # if 'default', should return np array no matter what given
@@ -1009,28 +1010,28 @@ class TestTransform:
         {'Intercept': 1})
     )
     def test_accuracy(
-        self, _X_factory, _kwargs, X_format, X_dtype, has_nan, equal_nan,
-        constants, keep, _columns, _shape
+        self, _X_factory, _kwargs, _columns, _shape, X_format, X_dtype,
+        has_nan, equal_nan, constants, keep
     ):
 
-        # validate the test parameters
+        # validate the test parameters -------------
         assert keep in ['first', 'last', 'random', 'none'] or \
                     isinstance(keep, (int, dict, str)) or callable(keep)
         assert isinstance(has_nan, bool)
         assert isinstance(equal_nan, bool)
         # dont need to validate X_format, X_factory will do it
         assert X_dtype in ('flt', 'int', 'str', 'obj', 'hybrid')
-        # END validate the test parameters
+        # END validate the test parameters -------------
 
-        # skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
         if X_dtype not in ['flt', 'int'] and X_format not in ['np', 'pd', 'pl']:
             pytest.skip(reason=f"scipy sparse cant take str")
 
         if X_format == 'np' and X_dtype == 'int' and has_nan:
             pytest.skip(reason=f"numpy int dtype cant take 'nan'")
-        # END skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # END skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
-        # set constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+        # set constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         if constants == 'constants1':
             constants = None
         elif constants == 'constants2':
@@ -1049,9 +1050,72 @@ class TestTransform:
                 raise Exception
         else:
             raise Exception
-        # END set constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+        # END set constants v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
-        # set keep v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        _X_wip = _X_factory(
+            _dupl=None,
+            _has_nan=has_nan,
+            _format=X_format,
+            _dtype=X_dtype,
+            _columns=_columns,
+            _constants=constants,
+            _noise=0,
+            _zeros=None,
+            _shape=_shape
+        )
+
+        # retain original dtype(s) v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+        if isinstance(_X_wip, (pd.core.frame.DataFrame, pl.DataFrame)):
+            # need to adjust the pd/pl dtypes if keep is dict
+            if isinstance(keep, dict):
+                # in _transform(), when keep is a dict, it looks at whether
+                # the dict value is numerical; if so, the dtype of the
+                # appended column for a df is float64, if not num then
+                # dtype is object. this constructs the appended column,
+                # puts it on the df, then gets all the dtypes.
+
+                _key = list(keep.keys())[0]
+                _value = keep[_key]
+                if isinstance(_X_wip, (pd.core.frame.DataFrame, pl.DataFrame)):
+                    # -----------------
+                    try:
+                        float(_value)
+                        _dtype = {'pd': np.float64, 'pl': pl.Float64}
+                    except:
+                        _dtype = {'pd': object, 'pl': pl.Object}
+                    # -----------------
+                    if isinstance(_X_wip, pd.core.frame.DataFrame):
+                        _vector = pd.DataFrame(
+                            {_key: np.full(_X_wip.shape[0], _value)}
+                        )
+                        _og_dtype = pd.concat(
+                            (_X_wip, _vector.astype(_dtype[X_format])), axis=1
+                        ).dtypes
+                    elif isinstance(_X_wip, pl.DataFrame):
+                        _vector = np.full((_shape[0], 1), _value)
+                        if _dtype['pl'] == pl.Float64:
+                            # need to do this so that polars can cast the
+                            # dtype. it wont cast it on the numpy array
+                            _vector = list(map(float, _vector.ravel()))
+                        _vector = pl.DataFrame({_key: _vector})
+                        _og_dtype = _X_wip.with_columns(
+                            _vector.cast(_dtype['pl'])
+                        ).dtypes
+                del _key, _value, _vector
+            else:
+                _og_dtype = _X_wip.dtypes
+            # need np.array for pl dtypes
+            _og_dtype = np.array(_og_dtype)
+        else:
+            # if np or ss
+            # dont need to worry about keep is dict (appending a column),
+            # X will still have one dtype
+            _og_dtype = _X_wip.dtype
+        # END retain original dtype(s) v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+        # END BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+
+        # set keep v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
         if keep == 'string':
             keep = _columns[0]
         elif keep == 'int':
@@ -1067,71 +1131,7 @@ class TestTransform:
         else:
             # keep is not changed
             pass
-        # END set keep v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-        # BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-        X = _X_factory(
-            _dupl=None,
-            _has_nan=has_nan,
-            _format=X_format,
-            _dtype=X_dtype,
-            _columns=_columns,
-            _constants=constants,
-            _noise=0,
-            _zeros=None,
-            _shape=_shape
-        )
-
-        # retain original format
-        _og_format = type(X)
-
-        # retain original dtype(s) v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-        if isinstance(X, (pd.core.frame.DataFrame, pl.DataFrame)):
-            # need to adjust the pd/pl dtypes if keep is dict
-            if isinstance(keep, dict):
-                # in _transform(), when keep is a dict, it looks at whether
-                # the dict value is numerical; if so, the dtype of the appended
-                # column for a df is float64, if not num then dtype is object.
-                # this constructs the appended column, puts it on the df,
-                # then gets all the dtypes.
-
-                _key = list(keep.keys())[0]
-                _value = keep[_key]
-                if isinstance(X, (pd.core.frame.DataFrame, pl.DataFrame)):
-                    # -----------------
-                    try:
-                        float(_value)
-                        _dtype = {'pd': np.float64, 'pl': pl.Float64}
-                    except:
-                        _dtype = {'pd': object, 'pl': pl.Object}
-                    # -----------------
-                    if isinstance(X, pd.core.frame.DataFrame):
-                        _vector = pd.DataFrame(
-                            {_key: np.full(X.shape[0], _value)}
-                        )
-                        _og_dtype = pd.concat(
-                            (X, _vector.astype(_dtype[X_format])), axis=1
-                        ).dtypes
-                    elif isinstance(X, pl.DataFrame):
-                        _vector = np.full((_shape[0], 1), _value)
-                        if _dtype['pl'] == pl.Float64:
-                            # need to do this so that polars can cast the dtype. it
-                            # wont cast it on the numpy array
-                            _vector = list(map(float, _vector.ravel()))
-                        _vector = pl.DataFrame({_key: _vector})
-                        _og_dtype = X.with_columns(_vector.cast(_dtype['pl'])).dtypes
-                del _key, _value, _vector
-            else:
-                _og_dtype = X.dtypes
-            # need np.array for pl dtypes
-            _og_dtype = np.array(_og_dtype)
-        else:
-            # if np or ss
-            # dont need to worry about keep is dict (appending a column),
-            # X will still have one dtype
-            _og_dtype = X.dtype
-        # END retain original dtype(s) v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-        # END BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+        # END set keep v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
         # set _kwargs
         _kwargs['keep'] = keep
@@ -1139,10 +1139,11 @@ class TestTransform:
 
         TestCls = IM(**_kwargs)
 
-        # manage constants
+        # get exp_constants & manage error conditions ------------------
         exp_constants = deepcopy(constants or {})
         if has_nan and not equal_nan:
             exp_constants = {}
+
         # if there are constants, and any of them are nan-like, but
         # not equal_nan, then that column cant be a constant, so remove
         if not equal_nan and len(exp_constants) and \
@@ -1159,8 +1160,7 @@ class TestTransform:
         # if data has no constants and
         # user put in keep as feature_str/int/callable, will raise
         raise_for_keep_non_constant = False
-        has_constants = len(exp_constants) and not (has_nan and not equal_nan)
-        if not has_constants:
+        if not exp_constants:
             if callable(keep):
                 raise_for_keep_non_constant += 1
             if isinstance(keep, int):
@@ -1168,30 +1168,30 @@ class TestTransform:
             if isinstance(keep, str) and \
                     keep not in ('first', 'last', 'random', 'none'):
                 raise_for_keep_non_constant += 1
+        # END get exp_constants & manage error conditions --------------
 
-
+        # v v v fit & transform v v v v v v v v v v v v v v v v v v
         if raise_for_no_header_str_keep or raise_for_keep_non_constant:
             with pytest.raises(ValueError):
-                TestCls.fit(X)
+                TestCls.fit(_X_wip)
             pytest.skip(reason=f"cant do anymore tests without fit")
         else:
-            TestCls.fit(X)
+            TRFM_X = TestCls.fit_transform(_X_wip)
+        # ^ ^ ^ END fit & transform ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
 
         del raise_for_keep_non_constant, raise_for_no_header_str_keep
 
-        TRFM_X = TestCls.transform(X)
 
-
-        # ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+        # ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # returned format is same as given format
-        assert isinstance(TRFM_X, _og_format)
+        assert isinstance(TRFM_X, type(_X_wip))
 
         # if numpy output, is C order
         if isinstance(TRFM_X, np.ndarray):
             assert TRFM_X.flags['C_CONTIGUOUS'] is True
 
-        # returned dtypes are same as given dtypes ** * ** * ** * ** * **
+        # returned dtypes are same as given dtypes ** * ** * ** * ** *
         if isinstance(TRFM_X, (pd.core.frame.DataFrame, pl.DataFrame)):
             MASK = TestCls.column_mask_
             if isinstance(keep, dict):
@@ -1208,8 +1208,8 @@ class TestTransform:
             # _X = np.hstack((_X, _new_column))
             # there does not seem to be an obvious connection between what
             # the dtype of _value is and the resultant dtype (for example,
-            # _X with dtype '<U10' when appending float(1.0), the output dtype
-            # is '<U21' (???, maybe the floating points on the float?) )
+            # _X with dtype '<U10' when appending float(1.0), the output
+            # dtype is '<U21' (???, maybe the floating points on the float?))
             assert '<U' in str(TRFM_X.dtype)
         elif os.name == 'nt' and 'int' in str(_og_dtype).lower():
             # on windows (verified not macos or linux), int dtypes are
@@ -1218,140 +1218,9 @@ class TestTransform:
             assert 'int' in str(TRFM_X.dtype).lower()
         else:
             assert TRFM_X.dtype == _og_dtype
-        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-        # number of columns in output is adjusted correctly for num constants
-        exp_num_kept = _shape[1]  # start with full num of columns
-        if not has_nan or (has_nan and equal_nan):
-            if len(exp_constants):
-                # if there are constants, 'none' removes all n of them,
-                # but all other 'keep' arguments remove n-1
-                exp_num_kept -= len(exp_constants)
-                exp_num_kept +=  (keep != 'none') # this catches dict
-            else:
-                # if there are no constants, all that could happen is that
-                # keep dict is appended
-                exp_num_kept += isinstance(keep, dict)
-        elif has_nan and not equal_nan:
-            # in this case there are no constant columns, all that could
-            # happen is that keep dict is appended
-            exp_num_kept += isinstance(keep, dict)
-        else:
-            raise Exception(f"algorithm failure")
-
-
-        # number of columns in output == number of expected
-        assert TRFM_X.shape[1] == exp_num_kept
-
-        # # keep ('first','last','random','none') is correct
-        # # also verify 'column_mask_' 'kept_columns_', 'removed_columns_'
-        # ref_column_mask = [True for _ in range(X.shape[1])]
-        # ref_kept_columns = {}
-        # ref_removed_columns = {}
-        # if X_format in ['pd', 'pl']:
-        #     ref_feature_names_out = list(deepcopy(_columns))
-        # else:
-        #     ref_feature_names_out = [f'x{i}' for i in range(_shape[1])]
-        #
         _sorted_constant_idxs = sorted(list(exp_constants.keys()))
-        #
-        # if keep == 'first':
-        #     if len(_sorted_constant_idxs):
-        #         _first = _sorted_constant_idxs[0]
-        #         ref_kept_columns[_first] = exp_constants[_first]
-        #         del _first
-        #
-        #         for idx in _sorted_constant_idxs[1:]:
-        #             ref_column_mask[idx] = False
-        #             ref_removed_columns[idx] = exp_constants[idx]
-        #             ref_feature_names_out[idx] = None
-        #     # if there are no constants, then ref objects do not change
-        # elif keep == 'last':
-        #     if len(_sorted_constant_idxs):
-        #         _last = _sorted_constant_idxs[-1]
-        #         ref_kept_columns[_last] = exp_constants[_last]
-        #         del _last
-        #
-        #         for idx in _sorted_constant_idxs[:-1]:
-        #             ref_column_mask[idx] = False
-        #             ref_removed_columns[idx] = exp_constants[idx]
-        #             ref_feature_names_out[idx] = None
-        #     # if there are no constants, then ref objects do not change
-        # elif keep == 'random':
-        #     # cop out a little here, since we cant know what index
-        #     # was kept, use TestCls attr for help
-        #     # (even tho the attrs are something we are trying
-        #     # to verify)
-        #     if len(_sorted_constant_idxs):
-        #         assert len(TestCls.kept_columns_) == 1
-        #         _kept_idx = list(TestCls.kept_columns_.keys())[0]
-        #         assert _kept_idx in exp_constants
-        #         ref_kept_columns[_kept_idx] = exp_constants[_kept_idx]
-        #         assert _kept_idx not in TestCls.removed_columns_
-        #
-        #         for idx in _sorted_constant_idxs:
-        #             if idx == _kept_idx:
-        #                 continue
-        #             ref_column_mask[idx] = False
-        #             ref_removed_columns[idx] = exp_constants[idx]
-        #             ref_feature_names_out[idx] = None
-        #         del _kept_idx
-        #     # if there are no constants, then ref objects do not change
-        # elif keep == 'none':
-        #     # ref_kept_columns does not change
-        #     for idx in _sorted_constant_idxs:
-        #         ref_column_mask[idx] = False
-        #         ref_removed_columns[idx] = exp_constants[idx]
-        #         ref_feature_names_out[idx] = None
-        # elif isinstance(keep, dict):
-        #     # ref_kept_columns does not change
-        #     for idx in _sorted_constant_idxs:
-        #         ref_column_mask[idx] = False
-        #         ref_removed_columns[idx] = exp_constants[idx]
-        #         ref_feature_names_out[idx] = None
-        #     ref_feature_names_out.append(list(keep.keys())[0])
-        # elif isinstance(keep, int):
-        #     # if no constants, should have excepted and skipped above
-        #     ref_kept_columns[keep] = exp_constants[keep]
-        #     for idx in _sorted_constant_idxs:
-        #         if idx == keep:
-        #             continue
-        #         else:
-        #             ref_column_mask[idx] = False
-        #             ref_removed_columns[idx] = exp_constants[idx]
-        #             ref_feature_names_out[idx] = None
-        # elif isinstance(keep, str):  # must be a feature str
-        #     # if no constants, should have excepted and skipped above
-        #     # if no header, should have excepted and skipped above
-        #     _kept_idx = np.arange(len(_columns))[_columns == keep][0]
-        #     ref_kept_columns[_kept_idx] = exp_constants[_kept_idx]
-        #     for idx in _sorted_constant_idxs:
-        #         if idx == _kept_idx:
-        #             continue
-        #         else:
-        #             ref_column_mask[idx] = False
-        #             ref_removed_columns[idx] = exp_constants[idx]
-        #             ref_feature_names_out[idx] = None
-        #     del _kept_idx
-        # elif callable(keep):
-        #     # if no constants, should have excepted and skipped above
-        #     _kept_idx = keep(X)
-        #     ref_kept_columns[_kept_idx] = exp_constants[_kept_idx]
-        #     for idx in _sorted_constant_idxs:
-        #         if idx == _kept_idx:
-        #             continue
-        #         else:
-        #             ref_column_mask[idx] = False
-        #             ref_removed_columns[idx] = exp_constants[idx]
-        #             ref_feature_names_out[idx] = None
-        # else:
-        #     raise Exception
-        #
-        #
-        # # for convenient index management, positions to be dropped from
-        # # ref_feature_names_out were set to None, take those out now
-        # ref_feature_names_out = [_ for _ in ref_feature_names_out if _ is not None]
-
 
         # for retained columns, assert they are equal to themselves in
         # the original data. if the column is not retained, then assert
@@ -1374,7 +1243,7 @@ class TestTransform:
             del _num_kept_constants
         else:
             # if no constants, all columns are kept
-            assert np.array_equal(_kept_idxs, range(X.shape[1]))
+            assert np.array_equal(_kept_idxs, range(_X_wip.shape[1]))
 
 
         for _idx in range(_shape[1]):
@@ -1382,18 +1251,18 @@ class TestTransform:
             if _idx in _kept_idxs:
                 _new_idx += 1
 
-            if isinstance(X, np.ndarray):
+            if isinstance(_X_wip, np.ndarray):
                 _out_col = TRFM_X[:, [_new_idx]]
-                _og_col = X[:, [_idx]]
-            elif isinstance(X, pd.core.frame.DataFrame):
+                _og_col = _X_wip[:, [_idx]]
+            elif isinstance(_X_wip, pd.core.frame.DataFrame):
                 _out_col = TRFM_X.iloc[:, [_new_idx]].to_numpy()
-                _og_col = X.iloc[:, [_idx]].to_numpy()
-            elif isinstance(X, pl.DataFrame):
+                _og_col = _X_wip.iloc[:, [_idx]].to_numpy()
+            elif isinstance(_X_wip, pl.DataFrame):
                 _out_col = TRFM_X[:, [_new_idx]].to_numpy()
-                _og_col = X[:, [_idx]].to_numpy()
+                _og_col = _X_wip[:, [_idx]].to_numpy()
             else:
                 _out_col = TRFM_X.tocsc()[:, [_new_idx]].toarray()
-                _og_col = X.tocsc()[:, [_idx]].toarray()
+                _og_col = _X_wip.tocsc()[:, [_idx]].toarray()
 
             try:
                 _out_col = _out_col.astype(np.float64)
@@ -1409,7 +1278,7 @@ class TestTransform:
                 # a uuid would be returned if the column is not constant
                 assert not isinstance(out, uuid.UUID)
 
-        # END ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # END ASSERTIONS ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     @pytest.mark.parametrize('_equal_nan', (True, False))
@@ -1595,9 +1464,6 @@ class TestTransform:
         _ref_column_mask[sorted(list(_constants))[-1]] = True
 
         assert np.array_equal(_IM.column_mask_, _ref_column_mask)
-
-
-    # pizza revisit accuracy test.... is probably redundant with transform_test
 
 
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
