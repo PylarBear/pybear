@@ -12,7 +12,7 @@ readme = "README.rst"
 homepage = "https://github.com/PylarBear/pybear"
 repository = "https://github.com/PylarBear/pybear"
 #documentation
-keywords = ["data analytics numpy pandas polars sci-kit dask dask_ml"]
+keywords = ["python data analytics scikit numpy pandas polars dask"]
 #classifiers
 packages = [
 	{ include = "pybear", from = "src"}
@@ -54,8 +54,8 @@ notebook = "*"
 pyarrow = "^17.0.0"
 sphinx = "*"
 sphinx-autobuild = "*"
-sphinx-rtd-theme = "*"
 xgboost = "*"
+pydata-sphinx-theme = "^0.16.1"
 
 
 [tool.poetry.group.test.dependencies]

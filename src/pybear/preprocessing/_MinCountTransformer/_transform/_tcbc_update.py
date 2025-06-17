@@ -124,7 +124,7 @@ def _tcbc_update(
         _rcr_nan_ct = 0
         _rcr_col_dict = {}
         for k, v in recursion_tcbc[new_col_idx].items():
-            if str(k) in ['nan', 'NAN', 'NaN', '<NA>']:
+            if str(k).upper() in ['NAN', '<NA>']:
                 if _rcr_nan_symbol is not None:
                     raise ValueError(
                         f">=2 nan-like in recursion_tcbc: col idx {new_col_idx}, "

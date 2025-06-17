@@ -7,14 +7,19 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'pybear'
-copyright = '2024, PylarBear'
+copyright = '2025, PylarBear'
 author = 'Bill Sousa'
-release = '0.1.0'
+release = '0.2.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = []
+# Add any Sphinx extension module names here, as strings. They can be
+# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
+# ones.
+extensions = [
+    'sphinx.ext.duration',
+]
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
@@ -24,5 +29,10 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'sphinx_rtd_theme'   # alabaster
+html_theme = 'pydata_sphinx_theme'   # alabaster
 html_static_path = ['_static']
+html_theme_options = {
+    "navigation_depth": 2,
+    "show_prev_next": False,
+    # add more if needed
+}

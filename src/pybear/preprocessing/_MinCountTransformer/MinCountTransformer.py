@@ -495,11 +495,7 @@ class MinCountTransformer(
     In supervised learning, if the data dimensionality along the example
     axis is changed, the target must also correspondingly change along
     the example axis. These two characteristics of MCT violate at least
-    four APIs:
-        1) the scikit-learn transformer API,
-        2) the scikit-learn pipeline API,
-        3) the dask_ml Incremental API, and
-        4) the dask_ml ParallelPostFit API.
+    the scikit-learn transformer API and the scikit-learn pipeline API.
 
     For pipeline applications, there are some options available beyond
     the scikit-learn pipeline implementation.
@@ -512,20 +508,12 @@ class MinCountTransformer(
     it in a pipeline step requires using the Pipeline class in imblearn
     that inherits from the one in sklearn.
 
-    The dask_ml wrappers (currently) do not accept a 'y' argument
-    to `transform`, and MCT is bound to this condition. However,
-    the need to mask 'y' identically to the masking of X still exists.
-    For dask Incremental and ParallelPostFit applications, one workaround
-    for the API constraint is to merge the data and the target into a
-    single X object, use the `ignore_columns` parameter of MCT to ignore
-    the target column, perform the fit and transform, then split the X
-    object back into data and target. A second workaround is to fit on X
-    only, use MCT :meth: `get_row_support` to get the row mask generated
-    for X, and apply the mask to y separately.
+    For technical reasons, pybear does not recommend wrapping MCT
+    with dask_ml Incremental and ParallelPostFit wrappers. However,
+    you can accomplish the same effect by embedding MCT in for loops
+    and computing the chunks of your data before passing them to
+    `partial_fit` and `transform`.
 
-    dask_ml Incremental and ParallelPostFit wrappers also preclude the
-    use of multiple recursions, unless the data/target hybrid object can
-    be passed as a single chunk to `fit_transform`.
 
     Type Aliases
 
@@ -824,7 +812,7 @@ class MinCountTransformer(
             order='F',
             ensure_min_features=1,
             ensure_max_features=None,
-            ensure_min_samples=1,
+            ensure_min_samples=3,
             sample_check=None
         )
 
@@ -1222,8 +1210,9 @@ class MinCountTransformer(
     ) -> None:
 
         """
-        Dummy method to spoof dask Incremental and ParallelPostFit
-        wrappers. Verified must be here for dask wrappers.
+        Dummy method to spoof dask_ml Incremental and ParallelPostFit
+        wrappers. As of 25_06_17 no longer designing for dask_ml
+        wrappers.
         """
 
         check_is_fitted(self)
@@ -1417,7 +1406,7 @@ class MinCountTransformer(
             order='F',
             ensure_min_features=1,
             ensure_max_features=None,
-            ensure_min_samples=1,
+            ensure_min_samples=3,
             sample_check=None
         )
 
@@ -1453,25 +1442,10 @@ class MinCountTransformer(
             # around this, look to see if y is of the form tuple(str, int).
             # If that is the case, override y with y = None.
 
-            # Determine if the MCT instance is wrapped by dask_ml
-            # Incremental or ParallelPostFit by checking the stack and
-            # looking for the '_partial' method used by those modules.
-            # Wrapping with these modules imposes limitations on passing
-            # a value to y. as of 25_02_04 bypassing the wrapper diagnosis.
-            # an obscure object like ('', order[i]) hopefully is enough
-            # to determine that its wrapped by dask.
-            # _using_dask_ml_wrapper = False
-            # for frame_info in inspect.stack():
-            #     _module = inspect.getmodule(frame_info.frame)
-            #     if _module:
-            #         if _module.__name__ == 'dask_ml._partial':
-            #             _using_dask_ml_wrapper = True
-            #             break
-            # del _module
-
-            if isinstance(y, tuple) and isinstance(y[0], str) \
-                    and isinstance(y[1], int):
-                y = None
+            # as of 25_06_17 no longer designing for dask_ml wrappers.
+            # if isinstance(y, tuple) and isinstance(y[0], str) \
+            #         and isinstance(y[1], int):
+            #     y = None
 
             # END accommodate dask_ml junk y ** * ** * ** * ** * ** * **
 
@@ -1489,7 +1463,7 @@ class MinCountTransformer(
                 order='C',
                 ensure_min_features=1,
                 ensure_max_features=None,
-                ensure_min_samples=1,
+                ensure_min_samples=3,
                 sample_check=X.shape[0]
             )
 
@@ -1613,25 +1587,20 @@ class MinCountTransformer(
                 # count_threshold FROM WHAT THEY WERE FOR self TO WHAT
                 # THEY ARE FOR THE CURRENT (POTENTIALLY COLUMN MASKED)
                 # DATA GOING INTO THIS RECURSION
+                # do not pass the function!
+                IGN_COL_MASK = np.zeros(self.n_features_in_).astype(bool)
+                IGN_COL_MASK[self._ignore_columns.astype(np.uint32)] = True
+                NEW_IGN_COL = np.arange(sum(COLUMN_KEEP_MASK))[
+                                        IGN_COL_MASK[COLUMN_KEEP_MASK]
+                ]
+                del IGN_COL_MASK
 
-                if callable(self.ignore_columns):
-                    NEW_IGN_COL = self.ignore_columns # pass the function!
-                else:
-                    IGN_COL_MASK = np.zeros(self.n_features_in_).astype(bool)
-                    IGN_COL_MASK[self._ignore_columns.astype(np.uint32)] = True
-                    NEW_IGN_COL = np.arange(sum(COLUMN_KEEP_MASK))[
-                                            IGN_COL_MASK[COLUMN_KEEP_MASK]
-                    ]
-                    del IGN_COL_MASK
-
-                if callable(self.handle_as_bool):
-                    NEW_HDL_AS_BOOL_COL = self.handle_as_bool # pass the function!
-                else:
-                    HDL_AS_BOOL_MASK = np.zeros(self.n_features_in_).astype(bool)
-                    HDL_AS_BOOL_MASK[self._handle_as_bool.astype(np.uint32)] = True
-                    NEW_HDL_AS_BOOL_COL = np.arange(sum(COLUMN_KEEP_MASK))[
-                                            HDL_AS_BOOL_MASK[COLUMN_KEEP_MASK]]
-                    del HDL_AS_BOOL_MASK
+                # do not pass the function!
+                HDL_AS_BOOL_MASK = np.zeros(self.n_features_in_).astype(bool)
+                HDL_AS_BOOL_MASK[self._handle_as_bool.astype(np.uint32)] = True
+                NEW_HDL_AS_BOOL_COL = np.arange(sum(COLUMN_KEEP_MASK))[
+                                        HDL_AS_BOOL_MASK[COLUMN_KEEP_MASK]]
+                del HDL_AS_BOOL_MASK
 
                 if isinstance(self.count_threshold, numbers.Integral):
                     NEW_COUNT_THRESHOLD = self.count_threshold
@@ -1673,7 +1642,6 @@ class MinCountTransformer(
                         RecursiveCls._total_counts_by_column,
                         MAP_DICT
                 )
-
                 # ^^^ tcbc update ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
                 self._row_support[self._row_support] = RecursiveCls._row_support
