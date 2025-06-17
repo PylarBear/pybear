@@ -89,7 +89,7 @@ def _validation(
 
     _val_any_integer(_n_features_in, '_n_features_in', _min=1)
     if _n_features_in != _X.shape[1]:
-        raise ValueError(f"_n_features_in != _X.shape[1]")
+        raise ValueError(f"n_features_in != _X.shape[1]")
 
     _val_feature_names_in(
         _feature_names_in,
@@ -108,7 +108,7 @@ def _validation(
 
     _val_any_bool(
         _ignore_non_binary_integer_columns,
-        '_ignore_non_binary_integer_columns',
+        'ignore_non_binary_integer_columns',
         _can_be_None=False
     )
 

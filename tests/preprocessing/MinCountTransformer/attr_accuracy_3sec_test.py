@@ -25,10 +25,6 @@
 # parallel_dtype_unqs_cts_test. the accuracy of merging 2 of these is
 # tested with fabricated tcbcs is in tcbc_merger_test.
 
-# pizza verify this
-# accuracy of original_dtypes_ and total_counts_by_column_ for an instance
-# that has been / has not been reset is tested in MinCountTransformer_test.
-
 # instructions_ is built directly off of total_counts_by_column_. the
 # accuracy of instructions_ vis-a-vis fabricated total_counts_by_column
 # is tested in make_instructions_test.
@@ -40,7 +36,6 @@ import pytest
 import numpy as np
 import pandas as pd
 import polars as pl
-import scipy.sparse as ss
 
 from pybear.preprocessing import MinCountTransformer as MCT
 
@@ -50,21 +45,19 @@ class TestAccuracy:
 
 
     @pytest.mark.parametrize('X_format', ('np', 'pd', 'pl'))
-    @pytest.mark.parametrize('_recursions', (1,2))
+    @pytest.mark.parametrize('_recursions', (1, 2))
     def test_accuracy(self, _X_factory, _columns, X_format, _recursions):
 
         # BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         _shape = (100, 5)
 
-        _count_threshold = _shape[0] // 10
-
-        _pool_size = (_shape[0] // (_count_threshold + 1))
+        # pizza this file changed, maybe reconcile w other attr_accuracy
 
         _X_wip = np.vstack((
             np.random.randint(0, 2, _shape[0]).astype(np.uint8),
-            np.random.randint(0, _pool_size, _shape[0]).astype(np.int32),
+            np.random.randint(0, 3, _shape[0]).astype(np.int32),
             np.random.uniform(0, 1, _shape[0]).astype(np.float64),
-            np.random.choice(list(list('abcdefghijklmnop')[:_pool_size]), _shape[0]),
+            np.random.choice(['a', 'b', 'c'], _shape[0]),
             # one column that gets removed
             np.full((_shape[0],), 1).astype(np.uint8)
         ))
@@ -80,12 +73,11 @@ class TestAccuracy:
         else:
             raise Exception
 
-        del _pool_size
         # END BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
         # set _kwargs
         _kwargs = {
-            'count_threshold': _count_threshold,
+            'count_threshold': _shape[0] // 10,
             'ignore_float_columns': True,
             'ignore_non_binary_integer_columns': False,
             'delete_axis_0': False,

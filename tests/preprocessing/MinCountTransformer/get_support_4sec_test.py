@@ -32,7 +32,7 @@ class TestGetSupport:
 
 
     @staticmethod
-    @pytest.fixture(scope='module')
+    @pytest.fixture(scope='function')
     def _X_np(_count_threshold, _shape, _kwargs):
 
         # rig an array so at least one column will be deleted on 1st RCR
@@ -54,13 +54,16 @@ class TestGetSupport:
 
             # columns that wont be removed
             __ = np.random.randint(
-                0, (_shape[0] // (1.2*_count_threshold)), _shape
+                0, (_shape[0] // (2 * _count_threshold)), _shape
             )
             # a column to be removed on the second rcr
             _dum_column = np.zeros((_shape[0],))
-            _dum_column[-_count_threshold:] = 1
+            _dum_column[-_count_threshold:] = 99
             __ = np.hstack((__, _dum_column.reshape((-1, 1))))
             del _dum_column
+            # spike a column that wont be removed with a single value
+            # so that it strategically deletes a row
+            __[-1, 0] = 98
             # a column of constants to be removed on the first rcr
             __ = np.hstack((__, np.ones((_shape[0], 1))))
 
@@ -97,7 +100,7 @@ class TestGetSupport:
 
     @pytest.mark.parametrize('_indices', (True, False))
     def test_get_support(
-        self, _X_np, _count_threshold, _kwargs, _indices, _shape
+        self, _X_np, _kwargs, _indices, _shape, _count_threshold
     ):
 
         assert _X_np.shape == (_shape[0], _shape[1] + 2)

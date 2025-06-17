@@ -14,7 +14,7 @@ import numpy as np
 
 @pytest.fixture(scope='module')
 def _shape():
-    return (6, 4)
+    return (20, 4)
 
 
 @pytest.fixture(scope='module')

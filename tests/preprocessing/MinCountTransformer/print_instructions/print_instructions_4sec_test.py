@@ -22,45 +22,37 @@ class TestPrintInstructionDoesntMutateFutureResults:
 
 
     # dont use conftest _shape
+    # pizza on 2nd thought see if this can come out 25_06_16
     @staticmethod
     @pytest.fixture(scope='module')
     def _shape():
         return (100, 20)
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _count_threshold(_shape):
-        return _shape[0] // 10
+    def test_print_instructions(self, _shape, _kwargs):
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X_np(_shape, _count_threshold, _kwargs):
+        _count_threshold = _shape[0] // 10
 
+        # build X -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         # find an X where some, but not all, rows are chopped
-
         ctr = 0
         while True:
 
             ctr += 1
 
-            _X = np.random.randint(0, _count_threshold-1, _shape)
+            _X_np = np.random.randint(0, _count_threshold - 1, _shape)
 
             try:
                 # will except if all rows are deleted
-                TRFM_X = MCT(**_kwargs).fit_transform(_X)
+                TRFM_X = MCT(**_kwargs).fit_transform(_X_np)
                 assert TRFM_X.shape[0] < _shape[0]
                 break
             except Exception:
                 if ctr == 200:
                     raise Exception(f"could not make good X in 200 tries")
                 continue
-
-        return _X
-
-
-    def test_print_instructions(self, _X_np, _count_threshold, _kwargs):
+        # END build X -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
         _kwargs['count_threshold'] = _count_threshold

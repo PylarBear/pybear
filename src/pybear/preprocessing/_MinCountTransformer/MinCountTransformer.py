@@ -1597,9 +1597,13 @@ class MinCountTransformer(
                     y_tr = y_tr.loc[ROW_KEEP_MASK]
                 elif isinstance(y_tr, pd.core.frame.DataFrame):
                     y_tr = y_tr.loc[ROW_KEEP_MASK, :]
+                elif isinstance(y_tr, pl.Series):
+                    y_tr = y_tr.filter(ROW_KEEP_MASK)
+                elif isinstance(y_tr, pl.DataFrame):
+                    y_tr = y_tr.filter(ROW_KEEP_MASK)
                 else:
                     raise Exception(
-                        f"expected y as ndarray or pd df or series, got {type(y_tr)}."
+                        f"expected y as ndarray or pd/pl df/series, got {type(y_tr)}."
                     )
 
             # v v v everything below here is for recursion v v v v v v
