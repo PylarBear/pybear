@@ -677,6 +677,7 @@ class SlimPolyFeatures(
             )
         except:
             warnings.warn(self._attr_access_warning())
+
             return
 
 

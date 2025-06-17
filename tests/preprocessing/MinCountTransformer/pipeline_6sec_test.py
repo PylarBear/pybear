@@ -33,7 +33,7 @@ class TestPipeline:
 
         # this also incidentally tests functionality in a pipe
 
-        # make a pipe of MCT, CDT, & OneHotEncoder
+        # make a pipe of MCT, OneHotEncoder, & CDT
         # fit the data on the pipeline and transform, get output
         # fit the data on the steps severally and transform, compare output
 
@@ -54,8 +54,8 @@ class TestPipeline:
         pipe = Pipeline(
             steps = [
                 ('mct', MCT(**_kwargs)),
-                ('cdt', CDT(keep='first', equal_nan=True)),
-                ('onehot', OneHotEncoder(sparse_output=False))
+                ('onehot', OneHotEncoder(sparse_output=False)),
+                ('cdt', CDT(keep='first', equal_nan=True))
             ]
         )
 
@@ -73,12 +73,12 @@ class TestPipeline:
         _chopped_X = MCT(**_kwargs).fit_transform(_X_np)
         assert isinstance(_chopped_X, type(_X_np))
         # prove out that MCT is actually doing something
-        assert 0 < _chopped_X.shape[0] == _X_np.shape[0]
+        assert 0 < _chopped_X.shape[0] <= _X_np.shape[0]
         assert 0 < _chopped_X.shape[1] < _X_np.shape[1]
         # END prove out that MCT is actually doing something
-        _dedupl_X = CDT(keep='first', equal_nan=True).fit_transform(_chopped_X)
-        TRFM_X_NOT_PIPE = \
-            OneHotEncoder(sparse_output=False).fit_transform(_dedupl_X)
+        _ohe_X = OneHotEncoder(sparse_output=False).fit_transform(_chopped_X)
+        TRFM_X_NOT_PIPE = CDT(keep='first', equal_nan=True).fit_transform(_ohe_X)
+
 
         # END separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 

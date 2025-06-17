@@ -81,6 +81,7 @@ def _lock_in_random_combos(
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     # poly_duplicates_ must be list of lists of tuples of ints
+
     assert isinstance(poly_duplicates_, list)
     for _set in poly_duplicates_:
         assert isinstance(_set, list)

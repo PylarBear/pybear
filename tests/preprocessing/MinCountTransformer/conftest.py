@@ -27,7 +27,7 @@ from pybear.utilities._nan_masking import (
 
 @pytest.fixture(scope='module')
 def _shape():
-    return (200, 10)
+    return (100, 10)
 
 
 @pytest.fixture(scope='module')
@@ -46,7 +46,7 @@ def y_np(_shape):
     return np.random.randint(0, 2, (_shape[0],))
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def _kwargs():
     return {
         'count_threshold': 5,

@@ -6,11 +6,11 @@
 
 
 
-from pybear.preprocessing import MinCountTransformer as MCT
+import pytest
 
 import numpy as np
 
-import pytest
+from pybear.preprocessing import MinCountTransformer as MCT
 
 
 
@@ -25,20 +25,7 @@ class TestGetRowSupport:
 
 
     @staticmethod
-    @pytest.fixture(scope='module')
-    def _kwargs(_shape, _count_threshold):
-
-        return {
-            'count_threshold': _count_threshold,
-            'ignore_float_columns': True,
-            'ignore_non_binary_integer_columns': False,
-            'delete_axis_0': True,  # <=== must be True, working with bin_ints
-            'max_recursions': 1
-        }
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
+    @pytest.fixture(scope='function')
     def _X_np(_count_threshold, _shape, _kwargs):
 
         # rig an array so some known rows in one column will be deleted
@@ -46,6 +33,9 @@ class TestGetRowSupport:
         # column on the 2nd RCR. make first rcr chop some of the rigged
         # values in the second column so that those values fall below
         # threshold going into 2nd RCR.
+
+        _kwargs['count_threshold'] = _count_threshold
+        _kwargs['ignore_non_binary_integer_columns'] = False
 
         _MCT = MCT(**_kwargs)
 
@@ -83,6 +73,12 @@ class TestGetRowSupport:
     ):
 
         assert _X_np.shape == _shape
+
+        _kwargs['count_threshold']: _count_threshold
+        _kwargs['ignore_float_columns']: True
+        _kwargs['ignore_non_binary_integer_columns']: False
+        _kwargs['delete_axis_0']: True  # <=== must be True, working with bin_ints
+        _kwargs['max_recursions']: 1
 
         _MCT_1 = MCT(**_kwargs)
         _MCT_1.set_params(max_recursions=1)
