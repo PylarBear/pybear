@@ -10,21 +10,22 @@ import pytest
 
 import numpy as np
 import pandas as pd
-import dask.array as da
-import dask.dataframe as ddf
+# import dask.array as da
+# import dask.dataframe as ddf
 
-from dask_ml.wrappers import Incremental, ParallelPostFit
+# from dask_ml.wrappers import Incremental, ParallelPostFit
 
 from pybear.preprocessing import MinCountTransformer as MCT
 
 
-# 25_06_12 originally min_samples was set to 3. that was raising because
 # dask_ml is sending a dummy 1D row vector of zeros to MCT transform,
-# apparently it is some kind of primer? (all other pybear trfms have
-# min_samples=1.) MCT min_samples is now set to 1.
+# apparently it is some kind of primer? this would cause MCT to need to
+# accept min_samples=1. this also would cause MCT to raise when 0 is in
+# delete_instr, because deleting the one row would be delete of all rows.
+# as of 25_06_17 no longer designing for wrap with dask_ml wrappers.
 
-# pizza, that vector of all zeros is screwing up transform.
-pytest.skip(reason=f'pizza has some thinking to do', allow_module_level=True)
+
+pytest.skip(reason=f'25_06_17 no longer design for dask_ml', allow_module_level=True)
 
 
 # TEST DASK Incremental + ParallelPostFit == ONE BIG fit_transform()

@@ -86,13 +86,10 @@ def _make_instructions(
     data seen up to the point of calling _make_instructions. Counts can
     be accreted incrementally, as with partial_fit(), and then finally
     _make_instructions is run to create instructions based on the total
-    counts. This allows for use of a dask Incremental wrapper to get
-    counts for bigger-than-memory data. Because the instructions are
-    agnostic to the origins of the data they were created from, the
-    instructions can be applied to any data that matches the schema of
-    the training data. This allows for the use of an incremental post-fit
-    like dask ParallelPostFit. This also allows for transformation of
-    unseen data.
+    counts. Because the instructions are agnostic to the origins of the
+    data they were created from, the instructions can be applied to any
+    data that matches the schema of the training data. This allows for
+    transformation of unseen data.
 
     A) if col_idx is inactive, skip.
     column is 'INACTIVE' if:

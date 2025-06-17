@@ -6,20 +6,20 @@
 
 
 
-from pybear.preprocessing._MinCountTransformer.MinCountTransformer import \
-    MinCountTransformer
-from pybear.utilities._nan_masking import nan_mask
-
-import numpy.typing as npt
-from typing_extensions import Union
 from typing import Literal, Iterable
+from typing_extensions import Union
+import numpy.typing as npt
+
+from copy import deepcopy
+import warnings
 
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
 
-from copy import deepcopy
-import warnings
+from pybear.preprocessing._MinCountTransformer.MinCountTransformer import \
+    MinCountTransformer
+from pybear.utilities._nan_masking import nan_mask
 
 
 # this compares whether MCT with max_recursions=2 is identical to MCT
@@ -33,14 +33,15 @@ def _idx_getter(_rows, _zeros):
 
 
 def foo(
-        _dupl: list[list[int]] = None,
-        _has_nan: Union[int, bool] = False,
-        _format: Literal['np', 'pd', 'csc', 'csr', 'coo'] = 'np',
-        _dtype: Literal['flt', 'int', 'str', 'obj', 'hybrid'] = 'flt',
-        _columns: Union[Iterable[str], None] = None,
-        _zeros: Union[float, None] = 0,
-        _shape: tuple[int, int] = (20, 5)
+    _dupl: list[list[int]] = None,
+    _has_nan: Union[int, bool] = False,
+    _format: Literal['np', 'pd', 'csc', 'csr', 'coo'] = 'np',
+    _dtype: Literal['flt', 'int', 'str', 'obj', 'hybrid'] = 'flt',
+    _columns: Union[Iterable[str], None] = None,
+    _zeros: Union[float, None] = 0,
+    _shape: tuple[int, int] = (20, 5)
 ) -> npt.NDArray[any]:
+
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     assert isinstance(_dupl, (list, type(None)))
     if _dupl is not None:
