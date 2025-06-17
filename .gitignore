@@ -13,8 +13,8 @@ ENV/
 
 # Build artifacts
 _build/
-dist/
 build/
+dist/
 
 # Unit test / coverage reports
 .tox/
