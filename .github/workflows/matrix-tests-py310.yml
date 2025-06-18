@@ -41,7 +41,6 @@ jobs:
         poetry install
 
     - name: Run tests
-      run: poetry run pytest tests/ --doctest-modules -v
+      run: poetry run pytest tests/ --doctest-modules -v --maxfail=1 \
+              --disable-warnings --cov=pybear --cov-report=term-missing
       timeout-minutes: 120
-
-
