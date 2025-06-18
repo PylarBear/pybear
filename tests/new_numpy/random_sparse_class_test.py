@@ -5,10 +5,12 @@
 # License: BSD 3 clause
 
 
+
 import pytest
 import numpy as np
 from pybear.new_numpy._random_ import Sparse
 from pybear.utilities._array_sparsity import array_sparsity as arsp
+
 
 
 @pytest.fixture
@@ -26,9 +28,9 @@ def engine():
 @pytest.fixture
 def valid_dtypes():
     return [
-            np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16,
-            np.uint32, np.uint64, np.float16, np.float32, np.float64, int, float
-            ]
+        np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16,
+        np.uint32, np.uint64, np.float16, np.float32, np.float64, int, float
+    ]
 
 
 # START DATA VALIDATION TESTS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -184,15 +186,15 @@ class TestEngine:
             Sparse(0, 10, good_shape, 50, engine=_engine, dtype=np.uint8)
 
 
-    def test_accepts_allowed_strings_case_insensitive(self, good_shape,
-                                                      allowed_engines):
+    def test_accepts_allowed_strings_case_insensitive(
+        self, good_shape, allowed_engines
+    ):
+
         for _engine in allowed_engines:
             Sparse(0, 10, good_shape, 50, engine=_engine, dtype=np.uint8)
 
         for _engine in allowed_engines:
-            Sparse(0, 10, good_shape, 50, engine=_engine.upper(),
-                   dtype=np.uint8
-            )
+            Sparse(0, 10, good_shape, 50, engine=_engine.upper(),dtype=np.uint8)
 # END DATA VALIDATION TESTS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 

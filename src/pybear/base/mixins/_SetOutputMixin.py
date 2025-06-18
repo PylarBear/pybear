@@ -11,6 +11,7 @@ from typing_extensions import Union
 
 import inspect
 from functools import wraps
+
 import numpy as np
 import pandas as pd
 import polars as pl
@@ -66,7 +67,7 @@ class SetOutputMixin:
 
         """
 
-        # validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        # validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
         ALLOWED = [None, "default", "pandas", "polars"]
 
         err_msg = (
@@ -82,7 +83,7 @@ class SetOutputMixin:
 
         del err_msg, ALLOWED
 
-        # END validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        # END validation ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
         self._output_transform = transform
 
@@ -171,19 +172,30 @@ class SetOutputMixin:
                 # all polars dtypes love None! cast all nan-likes to None
                 # before converting numpy and scipy to polars.
                 if isinstance(X, np.ndarray):
-                    X[nan_mask(X)] = None
+                    # trying to assign None to an int array will except,
+                    # even with an empty mask, so conditionally assign
+                    _NAN_MASK = nan_mask(X)
+                    if np.any(_NAN_MASK):
+                        X[_NAN_MASK] = None
+                    del _NAN_MASK
                     X = pl.DataFrame(X, orient='row')
                 elif isinstance(X, pd.core.frame.DataFrame):
                     X = pl.from_pandas(X)
                 elif isinstance(X, pl.dataframe.frame.DataFrame):
                     pass
                 elif hasattr(X, 'toarray'):
-                    # unfortunately X must have a .data attribute to recast
-                    # the nans. we are allowing all scipy but at least dok
-                    # doesnt have a .data attr. so convert and convert back.
+                    # unfortunately X must have a .data attribute to
+                    # recast the nans. we are allowing all scipy but at
+                    # least dok doesnt have a .data attr. so convert and
+                    # convert back.
                     _og_dtype = type(X)
                     X = X.tocsr()
-                    X.data[nan_mask(X)] = None
+                    # trying to assign None to an int array will except,
+                    # even with an empty mask, so conditionally assign
+                    _NAN_MASK = nan_mask(X.data)
+                    if np.any(_NAN_MASK):
+                        X.data[_NAN_MASK] = None
+                    del _NAN_MASK
                     X = _og_dtype(X)
                     del _og_dtype
                     X = pl.DataFrame(X.toarray(), schema=_columns, orient='row')
@@ -202,15 +214,6 @@ class SetOutputMixin:
         bar.__signature__ = foo_signature
 
         return bar
-
-
-
-
-
-
-
-
-
 
 
 
