@@ -146,6 +146,11 @@ def _validation(
         _reject_unseen_values, '_reject_unseen_values', _can_be_None=False
     )
 
+    # _val_any_integer allows lists
+    if not isinstance(_max_recursions, numbers.Integral):
+        raise TypeError(
+            f"'max_recursions' must be an integer >= 1. Got {_max_recursions}."
+        )
     _val_any_integer(_max_recursions, 'max_recursions', _min=1)
 
 

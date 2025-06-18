@@ -920,8 +920,7 @@ class TestPartialFit:
                 f"trfm X from partial fit / one-shot trfm")
 
         # TEST MANY PARTIAL FITS == ONE BIG FIT
-        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** **
-        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** **
+        # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (False, 5))
@@ -1069,7 +1068,10 @@ class TestTransform:
     #         copy:Optional[Union[bool, None]]=None
     #     ) -> XContainer:
 
+    # - num columns must equal num columns seen during fit
+    # - allows nan
     # - output is C contiguous
+    # - does not mutate passed X
 
 
     @pytest.mark.parametrize('_copy',

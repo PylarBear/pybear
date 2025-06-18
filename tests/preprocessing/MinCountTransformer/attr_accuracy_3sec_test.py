@@ -51,8 +51,6 @@ class TestAccuracy:
         # BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         _shape = (100, 5)
 
-        # pizza this file changed, maybe reconcile w other attr_accuracy
-
         _X_wip = np.vstack((
             np.random.randint(0, 2, _shape[0]).astype(np.uint8),
             np.random.randint(0, 3, _shape[0]).astype(np.int32),
@@ -166,7 +164,6 @@ class TestAccuracy:
             ref_feature_names_out
         )
         # END feature_names_out -- -- -- -- -- -- -- -- -- -- -- -- --
-
 
         # original_dtypes -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         original_dtypes = TestCls.original_dtypes_

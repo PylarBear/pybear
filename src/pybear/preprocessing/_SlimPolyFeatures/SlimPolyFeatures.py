@@ -102,7 +102,19 @@ class SlimPolyFeatures(
     sparse objects (csr, csc, coo, lil, dia, dok, and bsr matrices
     and arrays) are accepted by :meth: `partial_fit`, :meth: `fit`,
     and :meth: `transform`. SPF only accepts numerical data, and will
-    raise if passed non-numerical values.
+    raise an exception if passed non-numerical values.
+
+    SPF requires that data passed to it have no duplicates and no
+    constants. This stipulation is explained in more detail later in
+    the docs. If you are expanding non-binary integer or float data
+    under this condition, there is low (but non-zero) likelihood that
+    polynomial terms will be constant or duplicate. Therefore, SPF has
+    the least utility for that type of data, and the user may be better
+    off using scikit PolynomialFeatures, which has much lower cost of
+    operation than SPF. SPF is of greatest benefit when it is used to
+    perform polynomial expansion on one-hot encoded data, where there
+    is high likelihood that polynomial terms are constant (all zeros)
+    or duplicate.
 
     A polynomial feature expansion generates all possible multiplicative
     combinations of the original features, typically from the zero-degree
