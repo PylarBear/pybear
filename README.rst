@@ -36,6 +36,16 @@ pybear
 .. |Test Status 39| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py39.yml/badge.svg
    :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py39.yml
 
+|Tests|
+
+.. |Tests| image:: https://github.com/PylarBear/pybear/.github/badges/tests-badge.svg
+   :target: https://github.com/PylarBear/pybear/reports/junit/report.html
+
+|Coverage|
+
+.. |Coverage| image:: https://github.com/PylarBear/pybear/.github/badges/coverage-badge.svg
+   :target: https://github.com/PylarBear/pybear/reports/coverage/index.html
+
 |Doc Status|
 
 .. |Doc Status| image:: https://readthedocs.org/projects/ml/badge/?version=latest
