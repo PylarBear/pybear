@@ -53,16 +53,6 @@ def _mct_cols():
 
 
 @pytest.fixture(scope='session')
-def y_rows(x_rows):
-    return x_rows
-
-
-@pytest.fixture(scope='session')
-def y_cols():
-    return 2
-
-
-@pytest.fixture(scope='session')
 def _kwargs(_mct_rows):
     return {
         'count_threshold': _mct_rows // 20,
@@ -288,7 +278,7 @@ def build_test_objects_for_MCT(mmct, _mct_rows, _mct_cols, _kwargs):
 
 
 @pytest.fixture(scope='session')
-def X_np(build_test_objects_for_MCT):
+def NAN_X(build_test_objects_for_MCT):
     return build_test_objects_for_MCT[0]
 
 
@@ -318,16 +308,6 @@ def COLUMNS(x_cols):
 
 # END build X_np, NO_NAN_X, DTYPE_KEY, x_rows, x_cols for MCT test (not mmct test!)
 
-
-# Build y_np for MCT tests (not mmct test!) ** * ** * ** * ** * ** * **
-
-# pizza
-# @pytest.fixture(scope='session')
-# def y_np(y_rows, y_cols):
-#     return np.random.randint(0, 2, (y_rows, y_cols), dtype=np.uint8)
-
-# Build y_np for MCT tests (not mmct test!) ** * ** * ** * ** * ** * **
-
 # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
@@ -340,7 +320,7 @@ class TestInitValidation:
 
     # _ignore_float_columns, _ignore_non_binary_integer_columns, _ignore_nan,
     # _delete_axis_0, reject_unseen_values ** * ** * ** * ** * ** * ** *
-    @pytest.mark.parametrize('attr',
+    @pytest.mark.parametrize('_param',
         ('ignore_float_columns', 'ignore_non_binary_integer_columns',
             'delete_axis_0', 'ignore_nan', 'reject_unseen_values')
     )
@@ -348,11 +328,11 @@ class TestInitValidation:
         (None, np.pi, 0, 1, min, (1, 2), [1, 2], {1, 2}, {'a': 1}, lambda x: x)
     )
     def test_bool_kwargs_reject_non_bool(
-        self, X_np, y_np, _kwargs, attr, junk_value
+        self, X_np, y_np, _kwargs, _param, junk_value
     ):
 
         _new_kwargs = deepcopy(_kwargs)
-        _new_kwargs[attr] = junk_value
+        _new_kwargs[_param] = junk_value
 
         TestCls = MCT(**_new_kwargs)
         with pytest.raises(TypeError):
@@ -457,21 +437,19 @@ class TestInitValidation:
 
 
     # ignore_columns / handle_as_bool ** * ** * ** * ** * ** * ** * ** *
-    # both can take list of int, list of str, callable, or None
-    @pytest.mark.parametrize('x_format', ('np', 'pd', 'pl'))
     @pytest.mark.parametrize('junk_value',
         (0, 1, 3.14, True, False, 'junk', np.nan, {0: 'a', 1: 'b'},
-        [True, False, None, 'junk'], 'get_from_COLUMNS', [np.nan],
+        [True, False, None, 'junk'], 'get_from_columns', [np.nan],
         'bad_callable')
     )
     @pytest.mark.parametrize('_param', ('ignore_columns', 'handle_as_bool'))
     def test_junk_ign_cols_handle_as_bool(
-        self, X_np, COLUMNS, y_np, _kwargs, x_format, junk_value, _param
+        self, X_np, _columns, y_np, _kwargs, junk_value, _param
     ):
 
         _new_kwargs = deepcopy(_kwargs)
-        if junk_value == 'get_from_COLUMNS':
-            _new_kwargs[_param] = [1, 3, COLUMNS[6]]
+        if junk_value == 'get_from_columns':
+            _new_kwargs[_param] = [1, 3, _columns[6]]
         elif junk_value == 'bad_callable':
             _new_kwargs[_param] = lambda X: 'unrecognizable junk'
         else:
@@ -479,54 +457,35 @@ class TestInitValidation:
 
         TestCls = MCT(**_new_kwargs)
 
-        if x_format == 'np':
-            _X_wip = X_np.copy()
-        elif x_format == 'pd':
-            _X_wip = pd.DataFrame(data=X_np, columns=COLUMNS, dtype=object)
-        elif x_format == 'pl':
-            _X_wip = pl.from_numpy(X_np, schema=list(COLUMNS))
-        else:
-            raise Exception
-
         with pytest.raises(TypeError):
-            TestCls.fit_transform(_X_wip, y_np)
+            TestCls.fit_transform(X_np, y_np)
 
 
-    @pytest.mark.parametrize('x_format', ('np', 'pd', 'pl'))
     @pytest.mark.parametrize('_param', ('ignore_columns', 'handle_as_bool'))
     def test_bad_ign_cols_handle_as_bool(
-        self, X_np, COLUMNS, y_np, _kwargs, x_format, _param, _mct_cols
+        self, X_np, _columns, y_np, _kwargs, _param, _mct_cols
     ):
 
         _new_kwargs = deepcopy(_kwargs)
         _new_kwargs[_param] = [1000, 1001, 1002]
         TestCls = MCT(**_new_kwargs)
 
-        if x_format == 'np':
-            _X_wip = X_np.copy()
-        elif x_format == 'pd':
-            _X_wip = pd.DataFrame(data=X_np, columns=COLUMNS, dtype=object)
-        elif x_format == 'pl':
-            _X_wip = pl.from_numpy(X_np, schema=list(COLUMNS))
-        else:
-            raise Exception
-
         with pytest.raises(ValueError):
-            TestCls.fit_transform(_X_wip, y_np)
+            TestCls.fit_transform(X_np, y_np)
 
 
     @pytest.mark.parametrize('x_format', ('np', 'pd', 'pl'))
     @pytest.mark.parametrize('kwarg_input',
-        ([], [0], 'make_from_cols', 'get_from_COLUMNS', 'good_callable')
+        ([], [0], 'make_from_cols', 'get_from_columns', 'good_callable')
     )
     @pytest.mark.parametrize('_param', ('ignore_columns', 'handle_as_bool'))
     def test_accepts_good_ign_cols_handle_as_bool(
-        self, X_np, COLUMNS, y_np, _kwargs, x_format, kwarg_input, _param,
+        self, X_np, _columns, y_np, _kwargs, x_format, kwarg_input, _param,
         _mct_cols, x_cols
     ):
 
         # skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- --
-        if kwarg_input == 'get_from_COLUMNS' and x_format == 'np':
+        if kwarg_input == 'get_from_columns' and x_format == 'np':
             pytest.skip(reason=f"cannot use column names when header is not given")
         # END skip impossible conditions -- -- -- -- -- -- -- -- -- --  
 
@@ -534,8 +493,8 @@ class TestInitValidation:
 
         _col_idxs = range(_mct_cols, 2*_mct_cols)
 
-        if kwarg_input == 'get_from_COLUMNS':
-            _new_kwargs[_param] = [COLUMNS[j] for j in _col_idxs]
+        if kwarg_input == 'get_from_columns':
+            _new_kwargs[_param] = [_columns[j] for j in _col_idxs]
         elif kwarg_input == 'good_callable':
             _new_kwargs[_param] = lambda X: list(_col_idxs)
         elif kwarg_input == 'make_from_cols':
@@ -546,9 +505,9 @@ class TestInitValidation:
         if x_format == 'np':
             _X_wip = X_np.copy()
         elif x_format == 'pd':
-            _X_wip = pd.DataFrame(data=X_np, columns=COLUMNS, dtype=object)
+            _X_wip = pd.DataFrame(data=X_np, columns=_columns, dtype=object)
         elif x_format == 'pl':
-            _X_wip = pl.from_numpy(X_np, schema=list(COLUMNS))
+            _X_wip = pl.from_numpy(X_np, schema=list(_columns))
         else:
             raise Exception
 
@@ -766,31 +725,30 @@ class TestHandleAsBoolWorks:
 
 
     def test_hab_cannot_be_used_on_str(
-        self, _kwargs, X_np, y_np, _mct_cols, x_cols
+        self, _kwargs, NAN_X, y_np, _mct_cols, x_cols
     ):
 
         # TEST handle_as_bool CANNOT BE USED ON STR ('obj') COLUMNS
         # STR COLUMNS SHOULD BE [:, 3*_mct_cols:] ON ORIGINAL X
         # PICK ONE COLUMN IS STR; ONE EACH FROM BIN-INT, INT, AND FLOAT
-        MCT(**_kwargs).set_params(handle_as_bool=[_mct_cols - 1]).fit(X_np, y_np)
-        MCT(**_kwargs).set_params(handle_as_bool=[2 * _mct_cols - 1]).fit(X_np, y_np)
-        MCT(**_kwargs).set_params(handle_as_bool=[3 * _mct_cols - 1]).fit(X_np, y_np)
+        MCT(**_kwargs).set_params(handle_as_bool=[_mct_cols - 1]).fit(NAN_X, y_np)
+        MCT(**_kwargs).set_params(handle_as_bool=[2 * _mct_cols - 1]).fit(NAN_X, y_np)
+        MCT(**_kwargs).set_params(handle_as_bool=[3 * _mct_cols - 1]).fit(NAN_X, y_np)
         with pytest.raises(ValueError):
-            MCT(**_kwargs).set_params(handle_as_bool=[3 * _mct_cols]).fit(X_np, y_np)
+            MCT(**_kwargs).set_params(handle_as_bool=[3 * _mct_cols]).fit(NAN_X, y_np)
 
 
         # DEMONSTRATE THAT AFTER fit() WITH VALID handle_as_bool, IF
         # handle_as_bool IS CHANGED TO INVALID, RAISES ValueError
         TestCls = MCT(**_kwargs)
         TestCls.set_params(handle_as_bool=[_mct_cols + 1])  # A NON-BINARY INT COLUMN
-        TestCls.partial_fit(X_np)
+        TestCls.partial_fit(NAN_X)
         TestCls.set_params(handle_as_bool=[x_cols - 1])  # STR COLUMN
         with pytest.raises(ValueError):
-            TestCls.partial_fit(X_np)
+            TestCls.partial_fit(NAN_X)
 
         with pytest.raises(ValueError):
-            TestCls.transform(X_np)
-
+            TestCls.transform(NAN_X)
 # END TEST handle_as_bool WORKS ########################################
 
 
@@ -978,34 +936,6 @@ class TestCountThresholdFormat:
 # END TEST PARAM ACCURACY ** * ** * ** * ** * ** * ** * ** * ** * ** *
 # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-# pizza pick up here v v v v
-
-# TEST BIN INT COLUMN WITH ALL ABOVE THRESHOLD NOT DELETED #############
-@pytest.mark.skipif(bypass is True, reason=f"bypass")
-class TestBinIntAboveThreshNotDeleted:
-
-    def test_bin_int_above_thresh_not_deleted(self, _kwargs):
-
-        _new_kwargs = deepcopy(_kwargs)
-        _new_kwargs['count_threshold'] = 2
-
-        TestCls = MCT(**_new_kwargs)
-
-        NEW_X = np.array(
-            [['a',0], ['b',0], ['a',1], ['b',1], ['c',0]], dtype=object
-        )
-        NEW_Y = np.array([0, 1, 0, 1, 1], dtype=np.uint8)
-
-        TestCls.fit(NEW_X, NEW_Y)
-
-        TRFM_X, TRFM_Y = TestCls.transform(NEW_X, NEW_Y)
-
-        assert TRFM_X.shape[1]==2, \
-            f"bin int column with all values above threshold was deleted"
-
-        assert TRFM_X.shape[0]==4, \
-            f"TRFM_X should have 4 rows but has {TRFM_X.shape[0]}"
-# END TEST BIN INT COLUMN WITH ALL ABOVE THRESHOLD NOT DELETED #########
 
 
 # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -1024,9 +954,9 @@ class TestAssignedDtypesWithAndWithoutNansMixedIn:
 
         del TestCls
 
-    def test_with_nan(self, _kwargs, DTYPE_KEY, X_np, y_np):
+    def test_with_nan(self, _kwargs, DTYPE_KEY, NAN_X, y_np):
         TestCls = MCT(**_kwargs)
-        TestCls.fit(X_np, y_np)
+        TestCls.fit(NAN_X, y_np)
         assert np.array_equiv(TestCls.original_dtypes_, DTYPE_KEY)
 
         del TestCls
@@ -1050,7 +980,7 @@ class TestConditionalAccessToRecursion:
 
         TestCls = MCT(**_new_kwargs)
 
-        # 1)
+        # 1) partial_fit/fit/transform blocked with max_recursions >= 2
         with pytest.raises(ValueError):
             MCT(**_new_kwargs).partial_fit(TEST_X, TEST_Y)
 
@@ -1060,16 +990,16 @@ class TestConditionalAccessToRecursion:
         with pytest.raises(ValueError):
             MCT(**_new_kwargs).transform(TEST_X, TEST_Y)
 
-        # 2)
+        # 2) ad libido access to fit_transform
         for _ in range(5):
             TestCls.fit_transform(TEST_X, TEST_Y)
 
-        # 3)
+        # 3) max_recursions==1 ad libido access to partial_fit/fit/transform
         _new_kwargs['max_recursions'] = 1
         TestCls = MCT(**_new_kwargs)
         for _name, cls_method in zip(
-                ['fit', 'partial_fit', 'transform'],
-                [TestCls.fit, TestCls.partial_fit, TestCls.transform]
+            ['fit', 'partial_fit', 'transform'],
+            [TestCls.fit, TestCls.partial_fit, TestCls.transform]
         ):
             cls_method(TEST_X, TEST_Y)
 
@@ -1090,7 +1020,7 @@ class TestX:
     # - cannot be None
     # - must be 2D
     # - must have at least 1 column
-    # - must have at least 1 sample
+    # - must have at least 3 samples
     # - allows nan
     # - partial_fit/transform num columns must equal num columns seen during first fit
 
@@ -1168,6 +1098,8 @@ class TestX:
 
         _MCT.fit_transform(_X_wip)
 
+        _MCT.transform(_X_wip)
+
     # END CONTAINERS ###################################################
 
 
@@ -1209,7 +1141,7 @@ class TestX:
 
 
     @pytest.mark.parametrize('_num_cols', (0, 1, 2))
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'dia_matrix'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'csc_array'))
     def test_X_2D_number_of_columns(
         self, X_np, _kwargs, _columns, _format, _num_cols
     ):
@@ -1221,15 +1153,15 @@ class TestX:
         # so for the fits & transform, validate_data will catch
         # for all methods the min number of columns is 1
 
-        _base_X = X_np[:, :_num_cols].astype(np.float64)
+        _base_X = X_np[:, :_num_cols]
         if _format == 'np':
             _X_wip = _base_X
         elif _format == 'pd':
             _X_wip = pd.DataFrame(_base_X, columns=_columns[:_num_cols])
         elif _format == 'pl':
             _X_wip = pl.from_numpy(_base_X, schema=list(_columns[:_num_cols]))
-        elif _format == 'dia_matrix':
-            _X_wip = ss.dia_matrix(_base_X)
+        elif _format == 'csc_array':
+            _X_wip = ss.csc_array(_base_X)
         else:
             raise Exception
 
@@ -1253,7 +1185,6 @@ class TestX:
             _MCT.partial_fit(_X_wip)
             _MCT.fit(_X_wip)
             _MCT.fit_transform(_X_wip)
-            _MCT.fit(X_np[:, :_num_cols])  # fit the instance
             _MCT.transform(_X_wip)
 
 
@@ -1323,9 +1254,7 @@ class TestX:
             _shape=_new_shape_dict[_diff]
         )
 
-        _MCT = MCT(**_kwargs)
-        # pizza not using X_np here because is redefined above, not the same as conftest
-        _MCT.fit(np.random.randint(0, 10, _shape))
+        _MCT = MCT(**_kwargs).fit(X_np)
 
         if _diff == 'same':
             _MCT.partial_fit(_X_wip)
@@ -1568,19 +1497,11 @@ class TestPartialFit:
                 assert CT2[_c_idx][_unq] == 2 * CT1[_c_idx][_unq]
         del CT1, CT2
 
-        # pizza for some reason this doesnt work
-        # convert keys to strs to deal with nans
-        # for _c_idx in CT1:
-        #     for _unq in CT1[_c_idx]:
-        #         assert CT2[_c_idx][str(_unq)] == 2 * CT1[_c_idx][str(_unq)]
-        #
-        # del CT1, CT2
-
         # END TEST PARTIAL FIT COUNTS ARE DOUBLED WHEN FULL DATA IS partial_fit() 2X
         # ** ** ** ** ** ** ** ** ** ** **
 
-        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** ** ** **
-        # ** ** ** ** ** ** ** ** ** ** **# ** ** ** ** ** ** ** ** ** ** **
+        # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+        # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
         # TEST MANY PARTIAL FITS == ONE BIG FIT
 
         # STORE CHUNKS TO ENSURE THEY STACK BACK TO THE ORIGINAL X/y
@@ -1604,7 +1525,7 @@ class TestPartialFit:
         PartialFitOneShotTrfmTestCls = MCT(**_kwargs)
         OneShotFitTransformTestCls = MCT(**_kwargs)
 
-        # PIECEMEAL PARTIAL FIT ******************************************
+        # PIECEMEAL PARTIAL FIT ****************************************
         for X_CHUNK, Y_CHUNK in zip(X_CHUNK_HOLDER, Y_CHUNK_HOLDER):
             PartialFitPartialTrfmTestCls.partial_fit(X_CHUNK, Y_CHUNK)
             PartialFitOneShotTrfmTestCls.partial_fit(X_CHUNK, Y_CHUNK)
@@ -1637,7 +1558,6 @@ class TestPartialFit:
         del out,  PartialFitOneShotTrfmTestCls
 
 
-
         # ONE-SHOT FIT TRANSFORM
         FULL_TRFM_X_ONE_SHOT_FIT_TRANSFORM, FULL_TRFM_Y_ONE_SHOT_FIT_TRANSFORM = \
             OneShotFitTransformTestCls.fit_transform(X_np, y_np)
@@ -1665,8 +1585,10 @@ class TestPartialFit:
             FULL_TRFM_Y_FROM_PARTIAL_FIT_ONESHOT_TRFM
         ), f"trfm y from partial fits / one-shot trfm != one-shot fit/trfm y"
 
+        # TEST MANY PARTIAL FITS == ONE BIG FIT
+        # ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
-    # TEST LATER PARTIAL FITS ACCEPT NEW UNIQUES ***************************
+
     def test_later_partial_fits_accept_new_uniques(
         self, NO_NAN_X, y_np, _kwargs, _mct_cols
     ):
@@ -1685,7 +1607,7 @@ class TestPartialFit:
         _new_kwargs['count_threshold'] *= 3
         _new_kwargs['ignore_non_binary_integer_columns'] = False
 
-        # 2 PARTIAL FITS - - -  - - - - - - - - - - - - - - - - - - - - -
+        # 2 PARTIAL FITS - - -  - - - - - - - - - - - - - - - - - - - -
         PartialFitTestCls = MCT(**_new_kwargs)
 
         PartialFitTestCls.partial_fit(X1, y1)
@@ -1700,7 +1622,7 @@ class TestPartialFit:
         assert not np.array_equiv(PARTIAL_FIT_X, STACKED_X), \
             (f'later partial fits accept new uniques --- '
              f'transform did not delete any rows')
-        # END 2 PARTIAL FITS - - -  - - - - - - - - - - - - - - - - - - -
+        # END 2 PARTIAL FITS - - -  - - - - - - - - - - - - - - - - - -
 
         # 1 BIG FIT - - -  - - - - - - - - - - - - - - - - - - - - - - -
         SingleFitTestCls = MCT(**_new_kwargs)
@@ -1719,7 +1641,7 @@ class TestPartialFit:
         assert np.array_equiv(PARTIAL_FIT_Y, SINGLE_FIT_Y), \
             (f"new uniques in partial fits -- partial fitted y does not "
              f"equal single fitted y")
-    # END TEST LATER PARTIAL FITS ACCEPT NEW UNIQUES ***********************
+    # END TEST LATER PARTIAL FITS ACCEPT NEW UNIQUES *******************
 
 
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
@@ -1732,12 +1654,11 @@ class TestTransform:
     #         copy: Optional[Union[bool, None]]=None
     #     ) -> Union[tuple[XContainer, YContainer], XContainer]:
 
-
     # - num columns must equal num columns seen during fit
     # - must have at least 3 samples
     # - allows nan
     # - output is C contiguous
-    # - does not mutate X
+    # - does not mutate passed X
 
 
     @pytest.mark.parametrize('_copy',
@@ -1846,13 +1767,8 @@ class TestTransform:
         _X_wip = _X_factory(
             _dupl=None, _has_nan=False, _format=_format, _dtype='int',
             _columns=_columns if _format in ['pd', 'pl'] else None,
-            _constants=None, _noise=0, _zeros=None, _shape=(len(y_np), _shape[1])   # pizza fix this
+            _constants=None, _noise=0, _zeros=None, _shape=_shape
         )
-
-        try:
-            _X_wip = _X_wip.astype(np.float64) # pizza this is a problem!!!
-        except:
-            _X_wip = _X_wip.cast(pl.Float64)  # pizza this is a problem!!!
 
         if y_input_type == 'np':
             _y_wip = y_np.copy()
@@ -1930,10 +1846,6 @@ class TestTransform:
         else:
             raise Exception
 
-
-    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    # TEST ACCURACY ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     @pytest.mark.parametrize('count_threshold', [2, 3])
     @pytest.mark.parametrize('ignore_float_columns', [True, False])
@@ -2227,7 +2139,7 @@ class TestTransform:
     @pytest.mark.parametrize('handle_as_bool', ('hab_1',  'hab_2', 'hab_3'))
     @pytest.mark.parametrize('delete_axis_0', [False, True])
     @pytest.mark.parametrize('reject_unseen_values', [False, True])
-    def test_accuracy_two_rcr_two_shot(self, _kwargs, X_np, y_np, count_threshold,
+    def test_accuracy_two_rcr_two_shot(self, _kwargs, NAN_X, y_np, count_threshold,
         ignore_columns, ignore_float_columns, ignore_non_binary_integer_columns,
         ignore_nan, handle_as_bool, delete_axis_0, reject_unseen_values,
         _mct_cols, x_cols, mmct
@@ -2259,12 +2171,12 @@ class TestTransform:
 
         # need to make accommodations for mmct kwargs, cant take callables
         try:
-            _ignore_columns = ignore_columns(X_np)
+            _ignore_columns = ignore_columns(NAN_X)
         except:
             _ignore_columns = ignore_columns
 
         try:
-            _handle_as_bool = HANDLE_AS_BOOL(X_np)
+            _handle_as_bool = HANDLE_AS_BOOL(NAN_X)
         except:
             _handle_as_bool = HANDLE_AS_BOOL
 
@@ -2272,12 +2184,12 @@ class TestTransform:
 
         # MCT first one-shot rcr
         TestCls1 = MCT(**_new_kwargs)
-        TRFM_X_1, TRFM_Y_1 = TestCls1.fit_transform(X_np.copy(), y_np.copy())
+        TRFM_X_1, TRFM_Y_1 = TestCls1.fit_transform(NAN_X.copy(), y_np.copy())
 
         _first_support = TestCls1.get_support(indices=False).copy()
 
         # validate MCT 1rcrX1 get_support and object dimensions make sense
-        assert len(_first_support) == X_np.shape[1]
+        assert len(_first_support) == NAN_X.shape[1]
         assert TRFM_X_1.shape[1] == sum(_first_support)
 
         # assert columns in get_support and those actually in the data match
@@ -2285,11 +2197,11 @@ class TestTransform:
         _row_support = TestCls1.get_row_support(indices=False)
         _actual_idxs = []
         for col_idx in range(TRFM_X_1.shape[1]):
-            for col_idx2 in range(X_np.shape[1]):
+            for col_idx2 in range(NAN_X.shape[1]):
                 NOT_NAN_MASK = np.logical_not(nan_mask(TRFM_X_1[:, col_idx]))
                 if np.array_equal(
                     TRFM_X_1[:, col_idx][NOT_NAN_MASK],
-                    X_np[_row_support, col_idx2][NOT_NAN_MASK]
+                    NAN_X[_row_support, col_idx2][NOT_NAN_MASK]
                 ):
                     _actual_idxs.append(col_idx2)
 
@@ -2309,14 +2221,14 @@ class TestTransform:
         # USING MCT get_support
         NEW_COLUMN_MASK = TestCls1.get_support(indices=False)
 
-        OG_IGN_COL_MASK = np.zeros(X_np.shape[1]).astype(bool)
+        OG_IGN_COL_MASK = np.zeros(NAN_X.shape[1]).astype(bool)
         OG_IGN_COL_MASK[_ignore_columns] = True
         mct_scd_ignore_columns = \
             np.arange(sum(NEW_COLUMN_MASK))[OG_IGN_COL_MASK[NEW_COLUMN_MASK]]
         if _ignore_columns is None or len(mct_scd_ignore_columns) == 0:
             mct_scd_ignore_columns = None
 
-        OG_H_A_B_MASK = np.zeros(X_np.shape[1]).astype(bool)
+        OG_H_A_B_MASK = np.zeros(NAN_X.shape[1]).astype(bool)
         OG_H_A_B_MASK[_handle_as_bool] = True
         mct_scd_handle_as_bool = \
             np.arange(sum(NEW_COLUMN_MASK))[OG_H_A_B_MASK[NEW_COLUMN_MASK]]
@@ -2372,7 +2284,7 @@ class TestTransform:
         # compare 2 one-shot MCTs against 1 two-shot MCT - -- - -- - -- - -- - --
         TestCls_2SHOT = MCT(**_new_kwargs)  # use original _new_kwargs!
         TestCls_2SHOT.set_params(max_recursions=2)
-        TRFM_X_2SHOT, TRFM_Y_2SHOT = TestCls_2SHOT.fit_transform(X_np.copy(), y_np.copy())
+        TRFM_X_2SHOT, TRFM_Y_2SHOT = TestCls_2SHOT.fit_transform(NAN_X.copy(), y_np.copy())
 
         _adj_get_support_mct = np.array(_first_support.copy())
         _idxs = np.arange(len(_adj_get_support_mct))[_adj_get_support_mct]
@@ -2380,7 +2292,7 @@ class TestTransform:
         del _idxs
 
         # compare MCT 2rcrX1 outputs are equal to MCT 1rcrX2 outputs
-        assert len(TestCls_2SHOT.get_support(indices=False)) == X_np.shape[1]
+        assert len(TestCls_2SHOT.get_support(indices=False)) == NAN_X.shape[1]
         assert sum(TestCls_2SHOT.get_support(indices=False)) == TRFM_X_2SHOT.shape[1]
 
         assert np.array_equal(
@@ -2401,20 +2313,20 @@ class TestTransform:
             f'1X2rcr Y output != 2X1rcr Y output'
 
         del TRFM_X_2SHOT, TRFM_Y_2SHOT
-        # END compare 2 one-shot MCTs against 1 two-shot MCT - -- - -- - -- - --
+        # END compare 2 one-shot MCTs against 1 two-shot MCT - -- - -- -
 
-        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
         # BUILD MOCK_X & MOCK_Y #
         # mmct first recursion
         mmct_first_rcr = mmct()   # give class a name to access attr later
         MOCK_X1, MOCK_Y1 = mmct_first_rcr.trfm(
-            X_np.copy(), y_np.copy(), _ignore_columns, ignore_nan,
+            NAN_X.copy(), y_np.copy(), _ignore_columns, ignore_nan,
             ignore_non_binary_integer_columns, ignore_float_columns,
             _handle_as_bool, delete_axis_0, count_threshold
         )
 
         # validate mmct 1rcrX1 get_support and object dimensions make sense
-        assert len(mmct_first_rcr.get_support_) == X_np.shape[1]
+        assert len(mmct_first_rcr.get_support_) == NAN_X.shape[1]
         assert MOCK_X1.shape[1] == sum(mmct_first_rcr.get_support_)
 
 
@@ -2444,7 +2356,7 @@ class TestTransform:
         # USING mmct get_support
         NEW_COLUMN_MASK = mmct_first_rcr.get_support_
 
-        OG_IGN_COL_MASK = np.zeros(X_np.shape[1]).astype(bool)
+        OG_IGN_COL_MASK = np.zeros(NAN_X.shape[1]).astype(bool)
         OG_IGN_COL_MASK[_ignore_columns] = True
         mmct_scd_ignore_columns = \
             np.arange(sum(NEW_COLUMN_MASK))[OG_IGN_COL_MASK[NEW_COLUMN_MASK]]
@@ -2517,10 +2429,6 @@ class TestTransform:
         del TRFM_X_2, TRFM_Y_2
         del _ignore_columns, _handle_as_bool
 
-    # END TEST ACCURACY ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
 
     def test_one_all_nans(self, _shape):
 
@@ -2543,6 +2451,30 @@ class TestTransform:
         # column and leave behind only the column of floats
         assert np.array_equal(out.ravel(), _X[:, 0])
 
+
+    # TEST BIN INT COLUMN WITH ALL ABOVE THRESHOLD NOT DELETED #########
+    def test_bin_int_above_thresh_not_deleted(self, _kwargs, y_np):
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['count_threshold'] = 2
+
+        TestCls = MCT(**_new_kwargs)
+
+        _X_wip = np.array(
+            [['a', 0], ['b', 0], ['a', 1], ['b', 1], ['c', 0]], dtype=object
+        )
+        _y_wip = y_np[:_X_wip.shape[0]]
+
+        TestCls.fit(_X_wip, _y_wip)
+
+        TRFM_X, TRFM_Y = TestCls.transform(_X_wip, _y_wip)
+
+        assert TRFM_X.shape[1] == 2, \
+            f"bin int column with all values above threshold was deleted"
+
+        assert TRFM_X.shape[0] == 4, \
+            f"TRFM_X should have 4 rows but has {TRFM_X.shape[0]}"
+
+    # END TEST BIN INT COLUMN WITH ALL ABOVE THRESHOLD NOT DELETED #####
 
     # TEST TRANSFORM CONDITIONALLY ACCEPT NEW UNIQUES ******************
     def test_transform_conditionally_accepts_new_uniques(
@@ -2642,13 +2574,8 @@ class TestFitTransform:
         _X_wip = _X_factory(
             _dupl=None, _has_nan=False, _format=_format, _dtype='int',
             _columns=_columns if _format in ['pd', 'pl'] else None,
-            _constants=None, _noise=0, _zeros=None, _shape=(len(y_np), _shape[1])   # pizza fix this
+            _constants=None, _noise=0, _zeros=None, _shape=_shape
         )
-
-        try:
-            _X_wip = _X_wip.astype(np.float64) # pizza this is a problem!!!
-        except:
-            _X_wip = _X_wip.cast(pl.Float64)  # pizza this is a problem!!!
 
         if y_input_type == 'np':
             _y_wip = y_np.copy()

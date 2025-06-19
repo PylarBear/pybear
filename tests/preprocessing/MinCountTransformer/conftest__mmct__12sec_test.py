@@ -4,6 +4,7 @@
 # License: BSD 3 clause
 #
 
+
 # this is a test module for a fixture (mmct) used to test MinCountTransformer!
 # this is test for a test fixture.
 #
@@ -785,46 +786,19 @@ def MOCK_X_NAN(MOCK_X_NO_NAN):
     return _MOCK_X_NAN
 
 
-@pytest.fixture(scope='session')
-def get_unqs_cts_again():
-
-    def foo(_COLUMN_OF_X):
-
-        NAN_MASK = nan_mask(_COLUMN_OF_X)
-        NOT_NAN_MASK = np.logical_not(NAN_MASK)
-
-        UNIQUES, COUNTS = np.unique(
-            _COLUMN_OF_X[NOT_NAN_MASK], return_counts=True
-        )
-
-        if any(NAN_MASK):
-            UNIQUES = np.insert(UNIQUES, -1, np.nan, axis=0)
-            COUNTS = np.insert(COUNTS, -1, np.sum(NAN_MASK), axis=0)
-
-        return UNIQUES, COUNTS
-
-    return foo
-
-
-@pytest.mark.parametrize('_has_nan', [True, False])
-@pytest.mark.parametrize('_ignore_columns', (None, [0, 3]))
-@pytest.mark.parametrize('_ignore_nan', [True, False])
-@pytest.mark.parametrize('_ignore_non_binary_integer_columns', [True, False])
-@pytest.mark.parametrize('_ignore_float_columns', [True, False])
-@pytest.mark.parametrize('_handle_as_bool', [None, ]) # [1, 4, 5]])
-@pytest.mark.parametrize('_delete_axis_0', (False,)) # [True, False])
-@pytest.mark.parametrize('_ct_trial', ['_ct_1', '_ct_2', '_ct_3'])
+@pytest.mark.parametrize('_has_nan', (True, False))
+@pytest.mark.parametrize('_ignore_columns', (None, (0, 3)))
+@pytest.mark.parametrize('_ignore_nan', (True, False))
+@pytest.mark.parametrize('_ignore_non_binary_integer_columns', (True, False))
+@pytest.mark.parametrize('_ignore_float_columns', (True, False))
+@pytest.mark.parametrize('_handle_as_bool', (None, )) # (1, 4, 5)))
+@pytest.mark.parametrize('_delete_axis_0', (False,)) # (True, False))
+@pytest.mark.parametrize('_ct_trial', ('_ct_1', '_ct_2', '_ct_3'))
 def test_accuracy(
     MOCK_X_NO_NAN, MOCK_X_NAN, _has_nan, _ignore_columns, _mmct_test_thresh,
     _ignore_nan, _ignore_non_binary_integer_columns, _ignore_float_columns,
-    _handle_as_bool, _delete_axis_0, _ct_trial, arg_setter, get_unqs_cts_again,
+    _handle_as_bool, _delete_axis_0, _ct_trial, arg_setter
 ):
-
-    # this is sporadically failing when delete_axis_0 and has columns
-    # being handled as bool. after 2 days of troubleshooting, it isnt
-    # worth it to pursue. skip those tests. the mmct fixture is working
-    # in the testing of MCT.
-
 
     MOCK_X = MOCK_X_NAN if _has_nan else MOCK_X_NO_NAN
     REF_X = MOCK_X_NAN if _has_nan else MOCK_X_NO_NAN
@@ -838,12 +812,26 @@ def test_accuracy(
     # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
     # MAKE REF_X
 
-    # get the uniques and counts for each column
+    # get the uniques and counts for each column -- -- -- -- -- -- -- --
     TEST_UNQS_CTS = []
     for c_idx in range(MOCK_X.shape[1]):
-        # get_unqs_cts_again returns a tuple of ([UNIQUES], [COUNTS])
         # MOCK_X may or may not have nans
-        TEST_UNQS_CTS.append(get_unqs_cts_again(MOCK_X[:, c_idx]))
+
+        _COLUMN_OF_X = MOCK_X[:, c_idx]
+
+        NAN_MASK = nan_mask(_COLUMN_OF_X)
+        NOT_NAN_MASK = np.logical_not(NAN_MASK)
+
+        UNIQUES, COUNTS = np.unique(
+            _COLUMN_OF_X[NOT_NAN_MASK], return_counts=True
+        )
+
+        if any(NAN_MASK):
+            UNIQUES = np.insert(UNIQUES, -1, np.nan, axis=0)
+            COUNTS = np.insert(COUNTS, -1, np.sum(NAN_MASK), axis=0)
+
+        TEST_UNQS_CTS.append((UNIQUES, COUNTS))
+    # END get the uniques and counts for each column -- -- -- -- -- --
 
     # use TEST_UNQS_CTS to build DTYPES vector and unq_ct_dict
     unq_ct_dict = {}

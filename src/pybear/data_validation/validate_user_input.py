@@ -6,7 +6,6 @@
 
 
 
-
 import datetime as dt
 import numbers
 
@@ -523,21 +522,6 @@ class ValidateUserDate:
 
             return (dt.date(self.startYYYY, self.startMM, self.startDD),
                     dt.date(self.endYYYY, self.endMM, self.endDD))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

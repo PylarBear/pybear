@@ -10,8 +10,9 @@
 
 
 
-import numpy as np
 import pytest
+
+import numpy as np
 
 from pybear.preprocessing._MinCountTransformer.MinCountTransformer import \
     MinCountTransformer as MCT
@@ -19,14 +20,6 @@ from pybear.preprocessing._MinCountTransformer.MinCountTransformer import \
 
 
 class TestPrintInstructionDoesntMutateFutureResults:
-
-
-    # dont use conftest _shape
-    # pizza on 2nd thought see if this can come out 25_06_16
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (100, 20)
 
 
     def test_print_instructions(self, _shape, _kwargs):

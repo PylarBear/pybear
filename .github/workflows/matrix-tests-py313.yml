@@ -12,15 +12,10 @@ jobs:
 
     strategy:
       matrix:
-        os: ["windows-latest", "macos-latest"]
-        python-version: ["3.13"]
-    steps:  
-    # Conditional step to install libomp on macOS
-    # Need libomp on macOS to run XGBoost
-    - name: Install libomp on macOS
-      if: matrix.os == 'macos-latest'
-      run: brew install libomp
-  
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.13']
+
+    steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
@@ -28,6 +23,12 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+
+    # Conditional step to install libomp on macOS
+    # Need libomp on macOS to run XGBoost
+    - name: Install libomp on macOS
+      if: matrix.os == 'macos-latest'
+      run: brew install libomp
 
     - name: Install Poetry
       run: |
@@ -40,5 +41,6 @@ jobs:
         poetry install
 
     - name: Run tests
-      run: poetry run pytest tests/ --doctest-modules -v
+      run: poetry run pytest tests/ --doctest-modules -v --maxfail=1 \
+              --disable-warnings --cov=pybear --cov-report=term-missing
       timeout-minutes: 120

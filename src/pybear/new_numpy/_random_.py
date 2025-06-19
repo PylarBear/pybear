@@ -22,8 +22,6 @@ from numpy import (
 
 from pybear.utilities._serial_index_mapper import serial_index_mapper as sim
 from pybear.utilities._array_sparsity import array_sparsity as arsp
-from pybear.data_validation import arg_kwarg_validater as akv
-
 
 
 
@@ -461,9 +459,14 @@ class Sparse:
         if not isinstance(self._engine, str):
             raise TypeError(err_msg)
 
-        self._engine = akv(
-            self._engine, 'engine', allowed, 'random', 'Sparse'
-        )
+        self._engine = self._engine.lower()
+
+        if self._engine not in allowed:
+            raise ValueError(
+                f"'{self._engine}' is not in allowed, must be "
+                f"{', '.join(map(str, allowed))}"
+            )
+        del allowed
 
         # END engine ** * ** * ** * ** * ** * ** * ** * ** *
 

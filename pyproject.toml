@@ -60,6 +60,7 @@ pydata-sphinx-theme = "^0.16.1"
 
 [tool.poetry.group.test.dependencies]
 pytest = "*"
+pytest-cov = "*"
 
 
 [tool.poetry.extras]
@@ -76,7 +77,12 @@ pytest = "*"
 # If you publish your package on PyPI, they will appear in the Project Links section.
 
 
+[tool.coverage.run]
+source = ["pybear"]
+
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
 

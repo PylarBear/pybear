@@ -503,7 +503,7 @@ class TestX:
         elif _format == 'pl':
             _X_wip = pl.from_numpy(_base_X, schema=list(_columns[:_num_cols]))
         elif _format == 'csc_matrix':
-            _X_wip = ss.coo_array(_base_X)
+            _X_wip = ss.csc_matrix(_base_X)
         else:
             raise Exception
 
@@ -528,6 +528,7 @@ class TestX:
             _SPF.partial_fit(_X_wip)
             _SPF.fit(_X_wip)
             _SPF.fit_transform(_X_wip)
+            _SPF.transform(_X_wip)
 
 
     @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'bsr_matrix'))
@@ -1465,7 +1466,7 @@ class TestFitTransform:
     @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'bsr_array'))
     @pytest.mark.parametrize('output_type', (None, 'default', 'pandas', 'polars'))
     def test_output_types(
-        self, _X_factory, _columns, _kwargs, _format, _shape,
+        self, _X_factory, _columns, _shape, _kwargs, _format,
         output_type
     ):
 
