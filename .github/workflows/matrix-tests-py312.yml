@@ -46,7 +46,7 @@ jobs:
     - name: Install pytest-cov & genbadge
       run: |
         pip install pytest-cov
-        pip install genbadge[tests, coverage]
+        pip install genbadge[tests,coverage]
         mkdir -p .github/badges
 
     - name: Run tests
