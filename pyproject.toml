@@ -60,7 +60,6 @@ pydata-sphinx-theme = "^0.16.1"
 
 [tool.poetry.group.test.dependencies]
 pytest = "*"
-pytest-cov = "*"
 
 
 [tool.poetry.extras]
