@@ -46,20 +46,34 @@ jobs:
     - name: Install genbadge
       run: |
         pip install genbadge[tests,coverage]
+
+    - name: Make Directories
+      run: |
         mkdir -p .github/badges
+        mkdir -p reports/junit
+        mkdir -p reports/coverage
 
     - name: Run tests
       run: |
-        poetry run pytest tests/ -v --doctest-modules --maxfail=1 --disable-warnings --junitxml=reports/junit/junit.xml --html=reports/junit/report.html --cov=pybear --cov-report=xml
+        poetry run pytest tests/ -v --doctest-modules --maxfail=1 --disable-warnings --junitxml=reports/junit/junit.xml --html=reports/junit/report.html --cov=pybear --cov-report=reports/coverage/coverage.xml
       timeout-minutes: 120
 
     - name: Generate tests badge
       run: |
         genbadge tests -i reports/junit/junit.xml -o .github/badges/tests-badge.svg
 
+    - name: Upload tests badge
+      uses: actions/upload-artifact@v4
+      with:
+        name: tests-badge
+        path: .github/badges/tests-badge.svg
+
     - name: Generate coverage badge
       run: |
         genbadge coverage -i reports/coverage/coverage.xml -o .github/badges/coverage-badge.svg
 
-
-
+    - name: Upload coverage badge
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-badge
+        path: .github/badges/coverage-badge.svg
