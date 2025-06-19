@@ -55,7 +55,7 @@ jobs:
 
     - name: Run tests
       run: |
-        poetry run pytest tests/ -v --doctest-modules --maxfail=1 --disable-warnings --junitxml=reports/junit/junit.xml --html=reports/junit/report.html --cov=pybear --cov-report=reports/coverage/coverage.xml
+        poetry run pytest tests/ -v --doctest-modules --maxfail=1 --disable-warnings --junitxml=reports/junit/junit.xml --html=reports/junit/report.html --cov=pybear --cov-report=xml:reports/coverage/coverage.xml
       timeout-minutes: 120
 
     - name: Generate tests badge
