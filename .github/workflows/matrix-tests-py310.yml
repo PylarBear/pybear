@@ -42,6 +42,6 @@ jobs:
 
     - name: Run tests
       run: |
-        poetry run pytest tests/ --doctest-modules -v --maxfail=1 |
+        poetry run pytest tests/ --doctest-modules -v --maxfail=1 \ 
           --disable-warnings --cov=pybear --cov-report=term-missing
       timeout-minutes: 120
