@@ -44,7 +44,6 @@ pybear
 |Coverage|
 
 .. |Coverage| image:: https://github.com/PylarBear/pybear/.github/badges/coverage-badge.svg
-   :target: https://github.com/PylarBear/pybear/reports/coverage/index.html
 
 |Doc Status|
 
