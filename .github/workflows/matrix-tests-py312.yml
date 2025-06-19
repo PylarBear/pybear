@@ -43,9 +43,8 @@ jobs:
         poetry lock
         poetry install
 
-    - name: Install pytest-cov & genbadge
+    - name: Install genbadge
       run: |
-        pip install pytest-cov
         pip install genbadge[tests,coverage]
         mkdir -p .github/badges
 
