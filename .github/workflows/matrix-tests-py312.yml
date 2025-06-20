@@ -43,16 +43,25 @@ jobs:
         poetry lock
         poetry install
 
-    - name: Run tests
+    - name: Run tests with reports
+      if: matrix.os == 'ubuntu-latest'
       run: |
         poetry run pytest tests/ -v --doctest-modules --maxfail=1 --disable-warnings --junitxml=reports/junit/junit.xml --html=reports/junit/report.html --cov=pybear --cov-report=xml:reports/coverage/coverage.xml
       timeout-minutes: 120
 
+    - name: Run tests without reports
+      if: matrix.os != 'ubuntu-latest'
+      run: |
+        poetry run pytest tests/ -v --doctest-modules --maxfail=1 --disable-warnings
+      timeout-minutes: 120
+
     - name: Install genbadge
+      if: matrix.os == 'ubuntu-latest'
       run: |
         pip install genbadge[tests,coverage]
 
     - name: Make Directories
+      if: matrix.os == 'ubuntu-latest'
       run: |
         mkdir -p .github/badges
         mkdir -p reports/junit
