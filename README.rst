@@ -39,12 +39,12 @@ pybear
 |Tests|
 
 .. |Tests| image:: https://raw.githubusercontent.com/PylarBear/pybear/main/.github/badges/tests-badge.svg
-   :target: https://github.com/PylarBear/pybear/reports/junit/report.html
+   :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py312.yml
 
 |Coverage|
 
 .. |Coverage| image:: https://raw.githubusercontent.com/PylarBear/pybear/main/.github/badges/coverage-badge.svg
-   :target: https://github.com/PylarBear/pybear/reports/coverage/coverage.xml
+   :target: https://github.com/PylarBear/pybear/actions
 
 |Doc Status|
 
