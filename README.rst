@@ -37,9 +37,9 @@ pybear
    :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py39.yml
 
 
-![Tests](.github/badges/tests-badge.svg)
+![Tests](https://raw.githubusercontent.com/PylarBear/pybear/main/.github/badges/tests-badge.svg)
 
-![Coverage](.github/badges/coverage-badge.svg)
+![Coverage](https://raw.githubusercontent.com/PylarBear/pybear/main/.github/badges/coverage-badge.svg)
 
 
 |Tests|
