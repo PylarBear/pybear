@@ -1,9 +1,9 @@
 name: py3.9 Matrix Tests
 
 on:
-  push:
-    branches:
-      - main
+#  push:
+#    branches:
+#      - main
 #  pull_request:
 #    branches:
 #      - main
