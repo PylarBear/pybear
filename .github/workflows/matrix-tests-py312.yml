@@ -59,20 +59,24 @@ jobs:
       timeout-minutes: 120
 
     - name: Generate tests badge
+      if: matrix.os == 'ubuntu-latest'
       run: |
         genbadge tests -i reports/junit/junit.xml -o .github/badges/tests-badge.svg
 
     - name: Upload tests badge
+      if: matrix.os == 'ubuntu-latest'
       uses: actions/upload-artifact@v4
       with:
         name: tests-badge
         path: .github/badges/tests-badge.svg
 
     - name: Generate coverage badge
+      if: matrix.os == 'ubuntu-latest'
       run: |
         genbadge coverage -i reports/coverage/coverage.xml -o .github/badges/coverage-badge.svg
 
     - name: Upload coverage badge
+      if: matrix.os == 'ubuntu-latest'
       uses: actions/upload-artifact@v4
       with:
         name: coverage-badge
