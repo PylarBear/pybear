@@ -93,6 +93,6 @@ jobs:
         git commit -m "Update tests & coverage badges"
         git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:badge/update-${{ github.run_id }}
 
-        gh pr create --title "🤖 Update badges" --body "Auto-updated badges from CI run." --base main
+        gh pr create --title "🤖 Update badges" --body "Auto-updated badges from CI run." --base main --head badge/update-${{ github.run_id }}
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
