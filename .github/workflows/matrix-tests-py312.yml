@@ -43,6 +43,11 @@ jobs:
         poetry lock
         poetry install
 
+    - name: Run tests
+      run: |
+        poetry run pytest tests/ -v --doctest-modules --maxfail=1 --disable-warnings --junitxml=reports/junit/junit.xml --html=reports/junit/report.html --cov=pybear --cov-report=xml:reports/coverage/coverage.xml
+      timeout-minutes: 120
+
     - name: Install genbadge
       run: |
         pip install genbadge[tests,coverage]
@@ -52,11 +57,6 @@ jobs:
         mkdir -p .github/badges
         mkdir -p reports/junit
         mkdir -p reports/coverage
-
-    - name: Run tests
-      run: |
-        poetry run pytest tests/ -v --doctest-modules --maxfail=1 --disable-warnings --junitxml=reports/junit/junit.xml --html=reports/junit/report.html --cov=pybear --cov-report=xml:reports/coverage/coverage.xml
-      timeout-minutes: 120
 
     - name: Generate tests badge
       if: matrix.os == 'ubuntu-latest'
@@ -81,3 +81,13 @@ jobs:
       with:
         name: coverage-badge
         path: .github/badges/coverage-badge.svg
+
+    - name: Commit Tests & Coverage Badges
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        git config user.name "ci-bot"
+        git config user.email "ci@example.com"
+        git add tests-badge.svg
+        git add coverage-badge.svg
+        git commit -m "Update tests & coverage badges"
+        git push
