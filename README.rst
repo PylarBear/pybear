@@ -38,15 +38,14 @@ pybear
 
 |Tests|
 
-.. |Tests| image:: https://github.com/PylarBear/pybear/.github/badges/tests-badge.svg
+.. |Tests| image:: ![Tests](.github/badges/tests-badge.svg)
+# https://github.com/PylarBear/pybear/.github/badges/tests-badge.svg
    :target: https://github.com/PylarBear/pybear/reports/junit/report.html
-
-![Tests](.github/badges/tests-badge.svg)
-![Coverage](.github/badges/coverage-badge.svg)
 
 |Coverage|
 
-.. |Coverage| image:: https://github.com/PylarBear/pybear/.github/badges/coverage-badge.svg
+.. |Coverage| image:: ![Coverage](.github/badges/coverage-badge.svg)
+# https://github.com/PylarBear/pybear/.github/badges/coverage-badge.svg
 
 |Doc Status|
 
