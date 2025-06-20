@@ -41,6 +41,9 @@ pybear
 .. |Tests| image:: https://github.com/PylarBear/pybear/.github/badges/tests-badge.svg
    :target: https://github.com/PylarBear/pybear/reports/junit/report.html
 
+![Tests](.github/badges/tests-badge.svg)
+![Coverage](.github/badges/coverage-badge.svg)
+
 |Coverage|
 
 .. |Coverage| image:: https://github.com/PylarBear/pybear/.github/badges/coverage-badge.svg
