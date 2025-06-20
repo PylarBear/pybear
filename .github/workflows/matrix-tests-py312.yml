@@ -90,4 +90,4 @@ jobs:
         git add .github/badges/tests-badge.svg
         git add .github/badges/coverage-badge.svg
         git commit -m "Update tests & coverage badges"
-        git push
+        git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main
