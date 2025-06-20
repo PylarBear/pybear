@@ -87,7 +87,7 @@ jobs:
       run: |
         git config user.name "ci-bot"
         git config user.email "ci@example.com"
-        git add tests-badge.svg
-        git add coverage-badge.svg
+        git add .github/badges/tests-badge.svg
+        git add .github/badges/coverage-badge.svg
         git commit -m "Update tests & coverage badges"
         git push
