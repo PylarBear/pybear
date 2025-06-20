@@ -99,6 +99,11 @@ jobs:
         git checkout -b badge/update-${{ github.run_id }}
         git add .github/badges/tests-badge.svg
         git add .github/badges/coverage-badge.svg
+        # Only commit if there are staged changes
+        if git diff --cached --quiet; then
+          echo "No changes to commit. Skipping PR creation."
+          exit 0
+        fi
         git commit -m "Update tests & coverage badges"
         git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:badge/update-${{ github.run_id }}
 
