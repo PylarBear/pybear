@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pybear"
-version = "0.1.19"
+version = "0.1.20"
 description = "Python modules for miscellaneous data analytics applications"
 license = "BSD-3-clause"
 authors = ["Bill Sousa <WKSJR99@msn.com>"]
@@ -12,7 +12,7 @@ readme = "README.rst"
 homepage = "https://github.com/PylarBear/pybear"
 repository = "https://github.com/PylarBear/pybear"
 #documentation
-keywords = ["python data analytics scikit numpy pandas polars dask"]
+keywords = ["python data analytics scikit-style API"]
 #classifiers
 packages = [
 	{ include = "pybear", from = "src"}
@@ -29,7 +29,7 @@ include = [
 [tool.poetry.dependencies]
 # These packages are mandatory and form the core of this package’s distribution.
 python = "^3.9, <3.14"
-dask = "2024.8.0"
+dask = "*"
 dask-ml = "*"
 distributed = "*"
 joblib = "*"
@@ -40,7 +40,7 @@ scipy = [
     { version = "<1.14.0", markers = "python_version < '3.10'" },
     { version = "*", markers = "python_version >= '3.10'" }
 ]
-scikit-learn = ">=1.1.3, <1.7.0"
+scikit-learn = ">=1.1.3"
 typing_extensions = ">=4.7.0"
 
 
