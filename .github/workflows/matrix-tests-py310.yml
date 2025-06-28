@@ -42,6 +42,7 @@ jobs:
       run: |
         poetry lock
         poetry install
+        python -m pip install pyarrow
 
     - name: Run tests
       run: |
