@@ -1,56 +1,48 @@
 pybear
 ======
 
-|PyPI Build Status|
-
-.. |PyPI Build Status| image:: https://github.com/PylarBear/pybear/actions/workflows/pypi-publish.yml/badge.svg
-   :target: https://github.com/PylarBear/pybear/actions/workflows/pypi-publish.yml
-
-|TestPyPI Build Status|
-
-.. |TestPyPI Build Status| image:: https://github.com/PylarBear/pybear/actions/workflows/testpypi-publish.yml/badge.svg
-   :target: https://github.com/PylarBear/pybear/actions/workflows/testpypi-publish.yml
-
+|Tests||Coverage|
 |Test Status 313|
-
-.. |Test Status 313| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py313.yml/badge.svg
-   :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py313.yml
-
 |Test Status 312|
-
-.. |Test Status 312| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py312.yml/badge.svg
-   :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py312.yml
-
 |Test Status 311|
-
-.. |Test Status 311| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py311.yml/badge.svg
-   :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py311.yml
-
 |Test Status 310|
-
-.. |Test Status 310| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py310.yml/badge.svg
-   :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py310.yml
-
 |Test Status 39|
-
-.. |Test Status 39| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py39.yml/badge.svg
-   :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py39.yml
-
-|Tests|
 
 .. |Tests| image:: https://raw.githubusercontent.com/PylarBear/pybear/main/.github/badges/tests-badge.svg
    :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py312.yml
 
-|Coverage|
-
 .. |Coverage| image:: https://raw.githubusercontent.com/PylarBear/pybear/main/.github/badges/coverage-badge.svg
    :target: https://github.com/PylarBear/pybear/actions
+
+.. |Test Status 313| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py313.yml/badge.svg
+   :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py313.yml
+
+.. |Test Status 312| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py312.yml/badge.svg
+   :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py312.yml
+
+.. |Test Status 311| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py311.yml/badge.svg
+   :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py311.yml
+
+.. |Test Status 310| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py310.yml/badge.svg
+   :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py310.yml
+
+.. |Test Status 39| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py39.yml/badge.svg
+   :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py39.yml
 
 |Doc Status|
 
 .. |Doc Status| image:: https://readthedocs.org/projects/ml/badge/?version=latest
    :target: //pybear.readthedocs.io/
    :alt: Documentation Status
+
+|PyPI Build Status|
+|TestPyPI Build Status|
+
+.. |PyPI Build Status| image:: https://github.com/PylarBear/pybear/actions/workflows/pypi-publish.yml/badge.svg
+   :target: https://github.com/PylarBear/pybear/actions/workflows/pypi-publish.yml
+
+.. |TestPyPI Build Status| image:: https://github.com/PylarBear/pybear/actions/workflows/testpypi-publish.yml/badge.svg
+   :target: https://github.com/PylarBear/pybear/actions/workflows/testpypi-publish.yml
 
 |PyPI Downloads|
 
@@ -109,21 +101,20 @@ pybear requires:
 - numpy (|NumPyVersion|)
 - pandas (|PandasVersion|)
 - polars (|PolarsVersion|)
-- scipy (|ScipyVersion|)
 - scikit-learn (|ScikitLearnVersion|)
+- scipy (|ScipyVersion|)
 - typing_extensions (|TypingExtensionsVersion|)
 
-pybear 0.1 is tested via GitHub Actions to run on Linux, Windows, and MacOS, 
+pybear 0.2 is tested via GitHub Actions to run on Linux, Windows, and MacOS,
 with Python versions 3.9, 3.10, 3.11, and 3.12. pybear is not tested on earlier
 versions, but some features may work.
 
 User installation
 ~~~~~~~~~~~~~~~~~
 
-pybear has not been released to PyPI yet. (But with every passing day we get 
-closer and closer!) First publish to PyPI is anticipated to be July 2025. If
-you really want to try it out, the only way to install pybear is from TestPyPI
-using ``pip``::
+pybear has not been released to PyPI yet. First publish to PyPI is
+anticipated to be July 2025. If you really want to try it out, the only way to
+install pybear is from TestPyPI using ``pip``::
 
    pip install -i https://test.pypi.org/simple/ pybear
 
