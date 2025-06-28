@@ -7,16 +7,16 @@
 
 
 from typing import Optional
-
-from typing_extensions import TypeAlias, Union
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 import numpy.typing as npt
 
 import numpy as np
 import pandas as pd
-import scipy.sparse as ss
 import polars as pl
-import dask.array as da
-import dask.dataframe as ddf
+import scipy.sparse as ss
 
 from ._copy_X import copy_X as _copy_X
 from ..utilities._nan_masking import nan_mask
@@ -27,7 +27,6 @@ PythonTypes: TypeAlias = Union[list, tuple, set]
 NumpyTypes: TypeAlias = Union[npt.NDArray, np.ma.MaskedArray]
 PandasTypes: TypeAlias = Union[pd.Series, pd.DataFrame]
 PolarsTypes: TypeAlias = Union[pl.Series, pl.DataFrame]
-DaskTypes: TypeAlias = Union[da.Array, ddf.Series, ddf.DataFrame]
 SparseTypes: TypeAlias = Union[
     ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
     ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
@@ -37,8 +36,7 @@ SparseTypes: TypeAlias = Union[
 
 XContainer: TypeAlias = \
     Union[
-        PythonTypes, NumpyTypes, PandasTypes,
-        PolarsTypes, DaskTypes, SparseTypes
+        PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, SparseTypes
     ]
 
 
@@ -50,10 +48,9 @@ def cast_to_ndarray(
 
     """
     Convert the container of X to numpy.ndarray. Can take python lists,
-    tuples, and sets, numpy arrays and masked arrays, pandas dataframes
-    and series, polars dataframes and series, dask arrays, dataframes,
-    and series, and scipy sparse matrices/arrays. Any nan-like values
-    are standardized to numpy.nan.
+    tuples, and sets, numpy ndarrays and masked arrays, pandas dataframes
+    and series, polars dataframes and series, and scipy sparse matrices
+    and arrays. Any nan-like values are standardized to numpy.nan.
 
 
     Parameters
@@ -73,19 +70,20 @@ def cast_to_ndarray(
 
     """
 
+
     if not isinstance(copy_X, bool):
         raise TypeError(f"'copy_X' must be boolean.")
 
 
-    # block unsupported containers -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    # block unsupported containers -- -- -- -- -- -- -- -- -- -- -- --
     # dont use the type aliases while still supporting py39
     if not isinstance(X,
         (list, tuple, set, np.ndarray, np.ma.MaskedArray, pd.Series,
-         pd.DataFrame, pl.Series, pl.DataFrame, da.Array, ddf.Series,
-         ddf.DataFrame, ss.csc_matrix, ss.csc_array, ss.csr_matrix,
-         ss.csr_array, ss.coo_matrix, ss.coo_array, ss.dia_matrix,
-         ss.dia_array, ss.lil_matrix, ss.lil_array, ss.dok_matrix,
-         ss.dok_array, ss.bsr_matrix, ss.bsr_array)
+         pd.DataFrame, pl.Series, pl.DataFrame,
+         ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
+         ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
+         ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
+         ss.bsr_matrix, ss.bsr_array)
     ):
         raise TypeError(
             f"cast_to_ndarray(): unsupported container {type(X)}. "
@@ -93,7 +91,7 @@ def cast_to_ndarray(
 
     if isinstance(X, np.recarray):
         raise TypeError(f"copy_X(): unsupported container {type(X)}")
-    # END block unsupported containers -- -- -- -- -- -- -- -- -- -- -- -- --
+    # END block unsupported containers -- -- -- -- -- -- -- -- -- -- --
 
     if copy_X:
         _X = _copy_X(X)
@@ -129,9 +127,6 @@ def cast_to_ndarray(
     elif hasattr(_X, 'clone'):
         # polars
         _X = _X.to_numpy()
-    elif hasattr(_X, 'compute'):
-        # dask
-        _X = _X.compute()
     elif isinstance(_X, np.ma.MaskedArray):
         _X = np.ma.getdata(_X)
 
@@ -165,7 +160,7 @@ def cast_to_ndarray(
     except Exception as e:
         pass
 
-    # END convert to ndarray -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    # END convert to ndarray -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     # *** _X MUST BE np ***
 
@@ -177,10 +172,6 @@ def cast_to_ndarray(
 
 
     return _X
-
-
-
-
 
 
 

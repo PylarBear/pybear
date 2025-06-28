@@ -124,10 +124,10 @@ def calculate_estimated_memory(self):
 
 def column_drop_iterator(self):
     """Iteratively drop each column from passed object."""
-    # PIZZA THIS FUNCTION WILL HAVE TO ACCOMMODATE DOES/DOESNT HAVE TARGET, WHAT STATS CAN BE GOT WILL CHANGE
+    # THIS FUNCTION WILL HAVE TO ACCOMMODATE DOES/DOESNT HAVE TARGET, WHAT STATS CAN BE GOT WILL CHANGE
 
     print(f'\n************************* '
-          f'\nPIZZA \nBYPASS \nwhole_data_object_stats \nUNTIL \nMLRegression \ncolumn_drop_iterator \nMODULE \nFINISHED'
+          f'\n\nBYPASS \nwhole_data_object_stats \nUNTIL \nMLRegression \ncolumn_drop_iterator \nMODULE \nFINISHED'
           f'*************************\n')
     # self.column_drop_iterator(self.LEVELS, EXPANDED_COLUMN_NAMES, self.UNIQUES_HOLDER[col_idx], append_ones='Y')
     print()
@@ -137,10 +137,10 @@ def column_drop_iterator(self):
 def whole_data_object_stats(self):
     """Display statistics derived from MLRegression for passed object."""
     print(f'\n************************* '
-          f'\nPIZZA \nBYPASS \nwhole_data_object_stats \n UNTIL MLRegression \ncolumn_drop_iterator \nMODULE \nFINISHED'
+          f'\n\nBYPASS \nwhole_data_object_stats \n UNTIL MLRegression \ncolumn_drop_iterator \nMODULE \nFINISHED'
           f'*************************\n')
 
-    # PIZZA THIS FUNCTION WILL HAVE TO ACCOMMODATE DOES/DOESNT HAVE TARGET, WHAT STATS CAN BE GOT WILL CHANGE
+    # THIS FUNCTION WILL HAVE TO ACCOMMODATE DOES/DOESNT HAVE TARGET, WHAT STATS CAN BE GOT WILL CHANGE
 
         # if self.TARGET is None:.....
         # self.whole_data_object_stats(self.LEVELS, EXPANDED_COLUMN_NAMES, self.UNIQUES_HOLDER[col_idx], append_ones='Y')

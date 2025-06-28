@@ -14,9 +14,6 @@ import numpy as np
 import pandas as pd
 import polars as pl
 import scipy.sparse as ss
-import dask.array as da
-import dask.dataframe as ddf
-import distributed
 
 from pybear.base._cast_to_ndarray import cast_to_ndarray
 from pybear.utilities._nan_masking import nan_mask
@@ -40,10 +37,10 @@ class TestCastToNDArray:
     def _columns(_master_columns, _shape):
         return _master_columns.copy()[:_shape[1]]
 
-    # END fixtures v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # END fixtures v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
 
-    # test validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # test validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
     @pytest.mark.parametrize('junk_copy_X',
         (-2.7, -1, 0, 1, 2.7, None, 'trash', [0,1], (0,1), {'A':1}, lambda x: x)
@@ -81,7 +78,7 @@ class TestCastToNDArray:
         with pytest.raises(TypeError):
             cast_to_ndarray(np.recarray((1,2,3), dtype=np.float64))
 
-    # END test validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # END test validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
 
     @pytest.mark.parametrize('_dim', (1,2))
@@ -470,154 +467,6 @@ class TestCastToNDArray:
             )
         else:
             raise Exception
-
-
-
-    @pytest.mark.parametrize('_dim', (1,2))
-    @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str'))
-    @pytest.mark.parametrize('_has_nan', (True, False))
-    def test_dask_array(
-        self, _X_factory, _shape, _dim, _dtype, _has_nan, _client
-    ):
-
-        _X_base_np = _X_factory(
-            _dupl=None,
-            _has_nan=_has_nan,
-            _format='np',
-            _dtype=_dtype,
-            _columns=None,
-            _constants=None,
-            _zeros=None,
-            _shape=_shape
-        )
-
-        _X_da = da.from_array(_X_base_np)
-
-        if _dim == 1:
-            _ref_X = _X_da[:, 0].copy().compute(scheduler=_client)
-            _X = _X_da[:, 0]
-        elif _dim == 2:
-            _ref_X = _X_da.copy().compute(scheduler=_client)
-            _X = _X_da
-        else:
-            raise Exception
-
-
-        assert isinstance(_X, da.Array)
-
-        try:
-            _og_dtype = _ref_X.dtype
-            _ref_X = _ref_X.astype(np.float64)
-            _ref_X[nan_mask(_ref_X)] = np.nan
-            _ref_X = _ref_X.astype(_og_dtype)
-            del _og_dtype
-        except:
-            # can only kick out to here if non-numeric
-            try:
-                _ref_X[nan_mask(_ref_X)] = np.nan
-            except:
-                pass
-
-        out = cast_to_ndarray(_X)
-
-        # assertions -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        assert isinstance(out, np.ndarray)
-
-        if _dim == 1:
-            assert len(out.shape) == 1
-        elif _dim == 2:
-            assert len(out.shape) == 2
-
-        assert out.shape == _ref_X.shape
-
-        if _dtype in ['flt', 'int']:
-            if _dtype == 'flt' or _has_nan:
-                assert out.dtype == np.float64
-                assert np.array_equal(
-                    out, _ref_X, equal_nan=True
-                )
-            elif _dtype == 'int':   # and not _has_nan
-                assert 'int' in str(out.dtype).lower()
-                assert np.array_equal(out, _ref_X, equal_nan=True)
-        elif _dtype == 'str':
-            assert '<U' in str(out.dtype).upper()
-            assert np.array_equal(out, _ref_X)
-        else:
-            raise Exception
-
-
-    @pytest.mark.parametrize('_dim', (1,2))
-    @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str'))
-    @pytest.mark.parametrize('_has_nan', (True, False))
-    def test_dask_ddf(self, _X_factory, _shape, _dim, _dtype, _has_nan, _client):
-
-        _X_base_pd = _X_factory(
-            _dupl=None,
-            _has_nan=_has_nan,
-            _format='pd',
-            _dtype=_dtype,
-            _columns=None,
-            _constants=None,
-            _zeros=None,
-            _shape=_shape
-        )
-
-        if _dim == 1:
-            _ref_X = _X_base_pd.iloc[:, 0].copy().squeeze().to_numpy()
-            _X = ddf.from_pandas(_X_base_pd.iloc[:, 0].squeeze())
-        elif _dim == 2:
-            _ref_X = _X_base_pd.copy().to_numpy()
-            _X = ddf.from_pandas(_X_base_pd)
-        else:
-            raise Exception
-
-        try:
-            _og_dtypes = _ref_X.dtypes
-            _ref_X.astype(np.float64)
-            _ref_X[nan_mask(_ref_X)] = np.nan
-            _ref_X.dtypes = _og_dtypes
-            del _og_dtypes
-        except:
-            # only kicks out to here if non-numeric
-            try:
-                _ref_X[nan_mask(_ref_X)] = np.nan
-            except:
-                pass
-
-
-        if _dim == 1:
-            assert isinstance(_X, ddf.Series)
-        elif _dim == 2:
-            assert isinstance(_X, ddf.DataFrame)
-
-        out = cast_to_ndarray(_X)
-
-        # assertions -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        assert isinstance(out, np.ndarray)
-
-        if _dim == 1:
-            assert len(out.shape) == 1
-        elif _dim == 2:
-            assert len(out.shape) == 2
-
-        assert out.shape == _ref_X.shape
-
-        if _dtype in ['flt', 'int']:
-            if _dtype == 'flt' or _has_nan:
-                assert out.dtype == np.float64
-            elif _dtype == 'int':
-                assert 'int' in str(out.dtype).lower()
-            assert np.array_equal(out, _ref_X.astype(np.float64), equal_nan=True)
-        elif _dtype == 'str':
-            assert out.dtype == object
-            assert np.array_equal(
-                list(map(str, out)),
-                list(map(str, _ref_X))
-            )
-        else:
-            raise Exception
-
-
 
 
 

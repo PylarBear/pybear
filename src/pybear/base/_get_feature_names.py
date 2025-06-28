@@ -5,6 +5,7 @@
 #
 
 
+
 import warnings
 import numpy as np
 
@@ -28,7 +29,7 @@ def get_feature_names(X):
     Parameters
     ----------
     X:
-        {array-like} of shape (n_samples, n_features) of (n_samples, ) -
+        array-like of shape (n_samples, n_features) or (n_samples, ) -
         Array container from which to extract feature names.
 
         Objects that have known compatibility with this module:
@@ -48,7 +49,6 @@ def get_feature_names(X):
         of 'X'. Unrecognized array containers return None.
 
     """
-
 
 
     feature_names = None

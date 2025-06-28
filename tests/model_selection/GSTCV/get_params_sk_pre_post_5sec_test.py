@@ -21,9 +21,8 @@ class TestSKGetParams:
     @staticmethod
     @pytest.fixture(scope='module')
     def _base_params(
-        sk_est_log, param_grid_sk_log, param_grid_dask_log, standard_thresholds,
-        standard_cv_int, standard_refit, one_scorer, standard_error_score,
-        standard_n_jobs
+        sk_est_log, param_grid_sk_log, standard_thresholds,  standard_cv_int,
+        standard_refit, one_scorer, standard_error_score, standard_n_jobs
     ):
         # remember we cant just use the init defaults because we are using
         # the specially init-ed instances from conftest
@@ -70,29 +69,18 @@ class TestSKGetParams:
         sk_GSTCV_est_log_one_scorer_prefit,
         sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_np,
         sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np,
-        # dask_GSTCV_est_log_one_scorer_prefit,
-        # dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_da,
-        # dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_da,
-        _base_params, standard_cache_cv, standard_iid
+        _base_params
     ):
-
-        # skip dask. takes 45 seconds with, 5 seconds without. pybear
-        # GetParamsMixin looks at vars in __init__, so it should be
-        # sufficient that if it sees the vars correctly for GSTCV, then
-        # it will see them correctly for GSTCVDask also.
 
         # test shallow no pipe v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
         if _state == 'prefit':
             _GSTCV = sk_GSTCV_est_log_one_scorer_prefit
-            # _GSTCVDASK = dask_GSTCV_est_log_one_scorer_prefit
         elif _state == 'postfit':
             if _refit is False:
                 _GSTCV = sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_np
-                # _GSTCVDASK = dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_da
             elif _refit == 'accuracy':
                 _GSTCV = sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_np
-                # _GSTCVDASK = dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_da
 
         # SK SHALLOW ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -111,26 +99,6 @@ class TestSKGetParams:
             assert _param in act_gstcv_shallow
 
         # END SK SHALLOW ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
-        # DASK SHALLOW ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-        # act_gstcv_dask_shallow = _GSTCVDASK.get_params(deep=False)
-        #
-        # # create expected output, tack on unique GSTCV params
-        # # dont need to reinvent GetParamsMixin tests, just show that exp
-        # # params are in GSTCVDASK.get_params(deep=False)
-        # exp_gstcv_dask_shallow = deepcopy(_base_params) | {
-        #     'iid': standard_iid, 'cache_cv': standard_cache_cv, 'scheduler': None
-        # }
-        #
-        # # same number of params
-        # assert len(exp_gstcv_dask_shallow) == len(act_gstcv_dask_shallow)
-        #
-        # # params are correct
-        # for _param, _exp_value in exp_gstcv_dask_shallow.items():
-        #     assert _param in act_gstcv_dask_shallow
-
-        # END DASK SHALLOW ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # END test shallow no pipe v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
@@ -156,28 +124,6 @@ class TestSKGetParams:
 
         # END SK DEEP ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-        # DASK DEEP ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
-        # act_gstcv_dask_deep = _GSTCVDASK.get_params(deep=True)
-        #
-        # # create expected output, tack on unique GSTCV params, tack on est params
-        # # dont need to reinvent GetParamsMixin tests, just show that exp
-        # # params are in GSTCVDASK.get_params(deep=True)
-        # exp_gstcv_dask_deep = deepcopy(_base_params) | {
-        #     'iid': standard_iid, 'cache_cv': standard_cache_cv, 'scheduler': None
-        # } | {
-        #     f'estimator__{k}': v for k, v in sk_est_log.get_params().items()
-        # }
-        #
-        # # same number of params
-        # assert len(exp_gstcv_dask_deep) == len(act_gstcv_dask_deep)
-        #
-        # # param values are correct
-        # for _param, _exp_value in exp_gstcv_dask_deep.items():
-        #     assert _param in act_gstcv_dask_deep
-
-        # END DASK DEEP ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
         # END test deep no pipe v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
 
@@ -191,7 +137,6 @@ class TestSKGetParams:
         sk_GSTCV_pipe_log_one_scorer_prefit,
         sk_GSTCV_pipe_log_one_scorer_postfit_refit_false_fit_on_np,
         sk_GSTCV_pipe_log_one_scorer_postfit_refit_str_fit_on_np,
-        # there are no dask pipes, and dont make any!
         _base_params
     ):
 

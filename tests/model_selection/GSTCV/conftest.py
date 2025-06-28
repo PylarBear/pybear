@@ -17,9 +17,7 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as ss
 import polars as pl
-import dask.array as da
-import dask.dataframe as ddf
-from distributed import Client
+
 from uuid import uuid4
 
 from sklearn.preprocessing import StandardScaler as sk_StandardScaler
@@ -39,7 +37,7 @@ from sklearn.metrics import (
 )
 
 from pybear.model_selection.GSTCV._GSTCV.GSTCV import GSTCV as sk_GSTCV
-from pybear.model_selection.GSTCV._GSTCVDask.GSTCVDask import GSTCVDask as dask_GSTCV
+
 from pybear.model_selection.GSTCV._GSTCVMixin._validation._scoring \
     import master_scorer_dict
 
@@ -48,7 +46,6 @@ from pybear.model_selection.GSTCV._GSTCVMixin._validation._scoring \
 # data objects ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 @pytest.fixture(scope='session')
 def _rows():
-    # must have at least 5 rows for dask chunk //5 division
     return int(np.random.randint(5, 200))
 
 
@@ -64,14 +61,6 @@ def X_np(_rows, _cols):
 
 
 @pytest.fixture(scope='session')
-def X_da(_rows, _cols):
-    da.random.seed(19)
-    return da.random.randint(
-        0, 10, (_rows, _cols)
-    ).rechunk((int(_rows//5), _cols)).astype(np.float64)
-
-
-@pytest.fixture(scope='session')
 def COLUMNS(_cols):
     return [str(uuid4())[:4] for _ in range(_cols)]
 
@@ -82,30 +71,14 @@ def X_pd(X_np, COLUMNS):
 
 
 @pytest.fixture(scope='session')
-def X_ddf(X_da, COLUMNS):
-    return ddf.from_dask_array(X_da, columns=COLUMNS)
-
-
-@pytest.fixture(scope='session')
 def y_np(_rows):
     np.random.seed(19)
     return np.random.randint(0, 2, (_rows,))
 
 
 @pytest.fixture(scope='session')
-def y_da(_rows):
-    np.random.seed(19)
-    return da.random.randint(0, 2, (_rows,)).rechunk((int(_rows/10),))
-
-
-@pytest.fixture(scope='session')
 def y_pd(y_np):
     return pd.DataFrame(data=y_np, columns=['y'])
-
-
-@pytest.fixture(scope='session')
-def y_ddf(y_da):
-    return ddf.from_dask_array(y_da, columns=['y'])
 
 # END data objects ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -137,19 +110,6 @@ def sk_log_init_params():
         'solver': 'lbfgs'
     }
 
-
-@pytest.fixture(scope='session')
-def dask_log_init_params():
-
-    return {
-        'C':1e-8,
-        'tol': 1e-1,
-        'max_iter': 2,
-        'fit_intercept': False,
-        'solver': 'lbfgs',
-        'random_state': 69
-    }
-
 # END estimator init params ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 # transformers / estimators ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -161,23 +121,12 @@ def sk_standard_scaler():
 @pytest.fixture(scope='session')
 def sk_est_log(sk_log_init_params):
     return sk_LogisticRegression(**sk_log_init_params)
-
-
-@pytest.fixture(scope='session')
-def dask_est_log(dask_log_init_params):
-    # 25_04_29 converted this to sklearn for speed and risk mitigation
-    return sk_LogisticRegression(**dask_log_init_params)
 # END transformers / estimators ** * ** * ** * ** * ** * ** * ** * ** *
 
 
 # grid search params ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 @pytest.fixture(scope='session')
 def param_grid_sk_log():
-    return {'C': [1e-4, 1e-5]}
-
-
-@pytest.fixture(scope='session')
-def param_grid_dask_log():
     return {'C': [1e-4, 1e-5]}
 
 
@@ -215,15 +164,6 @@ def standard_error_score():
 def standard_n_jobs():
     return 1
 
-
-@pytest.fixture(scope='session')
-def standard_cache_cv():
-    return True
-
-
-@pytest.fixture(scope='session')
-def standard_iid():
-    return True
 # END grid search params ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
@@ -268,29 +208,6 @@ def sk_gstcv_init_params(
         'return_train_score': False
     }
 
-
-@pytest.fixture(scope='session')
-def dask_gstcv_init_params(
-    dask_est_log, param_grid_dask_log, standard_thresholds, one_scorer,
-    standard_n_jobs, standard_refit, standard_cv_int, standard_error_score,
-    standard_iid, standard_cache_cv
-):
-    return {
-        'estimator': dask_est_log,
-        'param_grid': param_grid_dask_log,
-        'thresholds': standard_thresholds,
-        'scoring': one_scorer,
-        'n_jobs': standard_n_jobs,
-        'refit': standard_refit,
-        'cv': standard_cv_int,
-        'verbose': 0,
-        'error_score': standard_error_score,
-        'return_train_score': False,
-        'iid': standard_iid,
-        'cache_cv': standard_cache_cv,
-        'scheduler': None
-    }
-
 # END gs(t)cv init params ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
@@ -333,12 +250,6 @@ def sk_GSTCV_est_log_one_scorer_prefit(sk_gstcv_init_params):
 
 
 @pytest.fixture(scope='session')
-def dask_GSTCV_est_log_one_scorer_prefit(dask_gstcv_init_params, _client):
-
-    return dask_GSTCV(**dask_gstcv_init_params)
-
-
-@pytest.fixture(scope='session')
 def sk_GSTCV_est_log_one_scorer_postfit_refit_false_fit_on_np(
     sk_gstcv_init_params, X_np, y_np
 ):
@@ -371,16 +282,6 @@ def sk_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_pd(
     return sk_GSTCV(
         **sk_gstcv_init_params
     ).set_params(refit=one_scorer).fit(X_pd, y_pd)
-
-
-@pytest.fixture(scope='session')
-def dask_GSTCV_est_log_one_scorer_postfit_refit_str_fit_on_da(
-    dask_gstcv_init_params, one_scorer, X_da, y_da, _client
-):
-
-    return dask_GSTCV(
-        **dask_gstcv_init_params
-    ).set_params(refit=one_scorer).fit(X_da, y_da)
 
 
 @pytest.fixture(scope='session')
@@ -449,17 +350,6 @@ def sk_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_np(
 
     return sk_GSTCV(**sk_gstcv_init_params).set_params(
         scoring=two_scorers, refit=one_scorer).fit(X_np, y_np)
-
-
-
-@pytest.fixture(scope='session')
-def dask_GSTCV_est_log_two_scorers_postfit_refit_str_fit_on_da(
-    dask_gstcv_init_params, two_scorers, one_scorer, X_da, y_da, _client
-):
-
-    return dask_GSTCV(**dask_gstcv_init_params).set_params(
-        scoring=two_scorers, refit=one_scorer
-    ).fit(X_da, y_da)
 
 
 @pytest.fixture(scope='session')
@@ -731,19 +621,14 @@ def _format_helper():
 
 
     def foo(
-        _base: Union[npt.NDArray, da.core.Array],
+        _base: Union[npt.NDArray],
         _format: str,
         _dim: int
     ):
 
-        """Cast dummy numpy or dask array to desired container."""
+        """Cast dummy numpy array to desired container."""
 
         # _new_X can be X or y in the tests
-
-        if _format in ['da', 'ddf'] and not isinstance(_base, da.core.Array):
-            raise ValueError(
-                f"must pass '_base' as dask array to cast to 'da' or 'ddf'"
-            )
 
         if _format == 'ss' and _dim == 1:
             raise ValueError(f"cant have 1D scipy sparse")
@@ -796,13 +681,6 @@ def _format_helper():
                 _new_X = pl.Series(_intrmdt_X)
             elif _dim == 2:
                 _new_X = pl.from_numpy(_intrmdt_X)
-        elif _format == 'da':
-            _new_X = _intrmdt_X.copy()
-        elif _format == 'ddf':
-            if _dim == 1:
-                _new_X = ddf.from_dask_array(_intrmdt_X).squeeze()
-            elif _dim == 2:
-                _new_X = ddf.from_dask_array(_intrmdt_X)
         else:
             raise ValueError(f"_format_helper invalid format '{_format}'")
 

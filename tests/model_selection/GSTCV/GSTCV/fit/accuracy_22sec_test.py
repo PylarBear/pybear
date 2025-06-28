@@ -10,6 +10,7 @@ import pytest
 
 import numpy as np
 import pandas as pd
+
 from sklearn.model_selection import GridSearchCV as sk_GSCV
 from sklearn.linear_model import LogisticRegression as sk_LogisticRegression
 from sklearn.metrics import make_scorer

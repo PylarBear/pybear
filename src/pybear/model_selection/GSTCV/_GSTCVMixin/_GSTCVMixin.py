@@ -23,14 +23,6 @@ from .._type_aliases import (
     NDArrayHolderType,
     FeatureNamesInType
 )
-from .._GSTCV._type_aliases import (
-    SKXType,
-    SKYType,
-)
-from .._GSTCVDask._type_aliases import (
-    DaskXType,
-    DaskYType
-)
 
 from copy import deepcopy
 import numbers
@@ -158,7 +150,7 @@ class _GSTCVMixin(
         self,
         method_name: str,
         method_to_call: str,
-        X: Union[SKXType, DaskXType]
+        X
     ) -> Any:
 
         """

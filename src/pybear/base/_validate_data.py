@@ -6,7 +6,11 @@
 
 
 
-from typing import Literal, Iterable, Optional
+from typing import (
+    Literal,
+    Iterable,
+    Optional
+)
 from typing_extensions import Union
 
 import numbers

@@ -70,9 +70,6 @@ pybear
 .. _documentation: https://pybear.readthedocs.io/
 
 .. |PythonVersion| replace:: >=3.9, <3.14
-.. |DaskVersion| replace:: >=X.X.X
-.. |DaskMLVersion| replace:: >=X.X.X
-.. |DistributedVersion| replace:: >=X.X.X
 .. |JoblibVersion| replace:: >=X.X.X
 .. |NumpyVersion| replace:: >=1.26.0
 .. |PandasVersion| replace:: >=X.X.X
@@ -85,8 +82,8 @@ pybear
 
 Cool, but not frozen, packages to augment your Python data analytics experience.
 
-pybear is a Python computing library that augments data analytics functionality 
-found in the popular numpy, scikit-learn, dask, and dask_ml libraries.
+pybear is a scikit-learn-style Python computing library that augments data
+analytics functionality found in popular packages like scikit-learn and xgboost.
 
 See documentation_ for more information.
 
@@ -108,9 +105,6 @@ Dependencies
 pybear requires:
 
 - Python (|PythonVersion|)
-- dask (|DaskVersion|)
-- dask_ml (|DaskMLVersion|)
-- distributed (|DistributedVersion|)
 - joblib (|JoblibVersion|)
 - numpy (|NumPyVersion|)
 - pandas (|PandasVersion|)
@@ -152,13 +146,6 @@ GridSearchCV utilizing progressively narrower search grids.
 
 - Access via pybear.model_selection.AutoGridSearchCV.
 
-AutoGridSearchCVDask
-~~~~~~~~~~~~~~~~~~~~
-Perform multiple uninterrupted passes of grid search with dask_ml GridSearchCV 
-and dask objects utilizing progressively narrower search grids.
-
-- Access via pybear.model_selection.AutoGridSearchCVDask.
-
 autogridsearch_wrapper
 ~~~~~~~~~~~~~~~~~~~~~~
 Create your own auto-gridsearch class. A function that wraps any scikit-learn,
@@ -176,28 +163,12 @@ compliant with the scikit-learn GridSearchCV API.
 
 - Access via pybear.model_selection.GSTCV.
 
-GSTCVDask (GridSearchThresholdCV for Dask)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Perform conventional grid search on a classifier with concurrent threshold 
-search using dask objects in parallel and distributed environments. Finds the 
-global optima for the passed parameters and thresholds. Fully compliant with 
-the dask_ml/scikit-learn GridSearchCV API.
-
-- Access via pybear.model_selection.GSTCVDask.
-
 AutoGSTCV
 ~~~~~~~~~
 Perform multiple uninterrupted passes of grid search with pybear GSTCV 
 utilizing progressively narrower search grids.
 
 - Access via pybear.model_selection.AutoGSTCV.
-
-AutoGSTCVDask
-~~~~~~~~~~~~~
-Perform multiple uninterrupted passes of grid search with pybear GSTCVDask 
-utilizing progressively narrower search grids.
-
-- Access via pybear.model_selection.AutoGSTCVDask.
 
 MinCountTransformer
 ~~~~~~~~~~~~~~~~~~~

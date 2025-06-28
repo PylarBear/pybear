@@ -29,9 +29,6 @@ include = [
 [tool.poetry.dependencies]
 # These packages are mandatory and form the core of this package’s distribution.
 python = "^3.9, <3.14"
-dask = "*"
-dask-ml = "*"
-distributed = "*"
 joblib = "*"
 numpy = ">=1.26.0"
 pandas = "*"
@@ -45,16 +42,11 @@ typing_extensions = ">=4.7.0"
 
 
 [tool.poetry.group.dev.dependencies]
-bokeh = "*"
 docutils = ">=0.20"
-graphviz = "*"
 jupyter = "*"
-lightgbm = "*"
 notebook = "*"
-pyarrow = "^17.0.0"
 sphinx = "*"
 sphinx-autobuild = "*"
-xgboost = "*"
 pydata-sphinx-theme = "^0.16.1"
 
 

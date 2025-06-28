@@ -9,7 +9,7 @@
 # in SkLearnAutoGridSearch and DaskAutoGridSearch expose the docs in
 # autogridsearch_docs to the pycharm tool tip. 24_06_03_14_01_00 still no :(
 
-# pizza, need to see under what arrangement sphinx can see the docs.
+# TODO: need to see under what arrangement sphinx can see the docs.
 
 
 

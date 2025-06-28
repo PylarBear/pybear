@@ -24,16 +24,8 @@ from sklearn.linear_model import (
 
 from sklearn.calibration import CalibratedClassifierCV # wrap around RidgeClassifier
 
-from dask_ml.linear_model import (
-    LinearRegression as dask_LinearRegression,
-    LogisticRegression as dask_LogisticRegression
-)
-
 from sklearn.feature_extraction.text import CountVectorizer as sk_CountVectorizer
 from sklearn.pipeline import Pipeline
-
-from dask_ml.feature_extraction.text import CountVectorizer as dask_CountVectorizer
-from dask_ml.preprocessing import OneHotEncoder as dask_OneHotEncoder
 
 
 # must be an instance not the class! & be an estimator!
@@ -47,12 +39,6 @@ class TestValWrappedEstimator:
     def test_accepts_sk_CCCV(self):
         assert _val_estimator(CalibratedClassifierCV(sk_RidgeClassifier())) is None
         assert _val_estimator(CalibratedClassifierCV(sk_SGDClassifier())) is None
-
-
-    def test_accepts_dask_CCCV(self):
-        assert _val_estimator(
-            CalibratedClassifierCV(self._pipeline(dask_LogisticRegression()))
-        ) is None
 
     # END CCCV ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
@@ -71,8 +57,8 @@ class TestValWrappedEstimator:
 
     @pytest.mark.parametrize('junk_pipeline_steps',
         (
-            [dask_OneHotEncoder(), dask_LogisticRegression()],
-            [(4, dask_OneHotEncoder()), (3.14, dask_LogisticRegression())],
+            [sk_OneHotEncoder(), sk_LogisticRegression()],
+            [(4, sk_OneHotEncoder()), (3.14, sk_LogisticRegression())],
             [('onehot', 4), ('logistic', 3.14)]
         )
     )
@@ -123,21 +109,6 @@ class TestValWrappedEstimator:
         ) is None
 
 
-    def test_accepts_wrapped_dask_CCCV(self):
-        with pytest.raises(TypeError):
-            _val_estimator(
-                self._pipeline(CalibratedClassifierCV(dask_LogisticRegression()))
-            )
-
-
-    @pytest.mark.parametrize('dask_non_classifiers', (dask_LinearRegression, ))
-    def test_rejects_all_dask_non_classifiers(self, dask_non_classifiers):
-
-        # must be an instance not the class! & be a classifier!
-        with pytest.raises(AttributeError):
-            _val_estimator(self._pipeline(dask_non_classifiers()))
-
-
     @pytest.mark.parametrize('junk_pipeline_steps',
         (
             [sk_OneHotEncoder(), sk_LogisticRegression()],
@@ -162,27 +133,6 @@ class TestValWrappedEstimator:
 
         assert _val_estimator(Pipeline(steps=good_pipeline_steps)) is None
 
-
-    @pytest.mark.parametrize('dask_classifiers', (dask_LogisticRegression, ))
-    def test_accepts_good_pipeline_1(self, dask_classifiers):
-        # must be an instance not the class! & be a classifier!
-        assert _val_estimator(self._pipeline(dask_classifiers())) is None
-
-
-    @pytest.mark.parametrize('good_pipeline_steps',
-        ([('onehot', dask_OneHotEncoder()), ('logistic', dask_LogisticRegression())],)
-    )
-    def test_accepts_good_pipeline_2(self, good_pipeline_steps):
-
-        assert _val_estimator(Pipeline(steps=good_pipeline_steps)) is None
-
-
-    def test_accepts_wrapped_dask_CCCV(self):
-        assert _val_estimator(
-            self._pipeline(CalibratedClassifierCV(dask_LogisticRegression()))
-        ) is None
-
-
     # END pipeline - 2 inner objects ** * ** * ** * ** * ** * ** * ** *
     # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
@@ -204,56 +154,11 @@ class TestValWrappedEstimator:
         )
 
 
-    @staticmethod
-    @pytest.fixture
-    def dask_pipeline_1():
-        # must be an instance not the class!
-        return Pipeline(
-            steps=[
-                ('dask_CountVectorizer', dask_CountVectorizer()),
-                ('dask_OneHotEncoder', dask_OneHotEncoder()),
-                ('dask_Logistic', dask_LogisticRegression())
-            ],
-            verbose=0
-        )
-
-
-    @staticmethod
-    @pytest.fixture
-    def dask_pipeline_2():
-        # must be an instance not the class!
-        return Pipeline(
-            steps=[
-                ('sk_CountVectorizer', sk_CountVectorizer()),
-                ('sk_OneHotEncoder', sk_OneHotEncoder()),
-                ('dask_Logistic', dask_LogisticRegression())
-            ],
-            verbose=0
-        )
-
-
-    @staticmethod
-    @pytest.fixture
-    def dask_pipeline_3():
-        # must be an instance not the class!
-        return Pipeline(
-            steps=[
-                ('dask_CountVectorizer', dask_CountVectorizer()),
-                ('dask_OneHotEncoder', dask_OneHotEncoder()),
-                ('sk_Logistic', sk_LogisticRegression())
-            ],
-            verbose=0
-        )
-
-
     def test_accuracy_pipeline(self,
-        sk_pipeline, dask_pipeline_1, dask_pipeline_2, dask_pipeline_3
+        sk_pipeline
     ):
 
         assert _val_estimator(sk_pipeline) is None
-        assert _val_estimator(dask_pipeline_1) is None
-        assert _val_estimator(dask_pipeline_2) is None
-        assert _val_estimator(dask_pipeline_3) is None
 
 
     # END pipeline - 3 inner objects ** * ** * ** * ** * ** * ** * ** *
