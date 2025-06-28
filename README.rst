@@ -1,7 +1,8 @@
 pybear
 ======
 
-|Tests||Coverage|
+|Tests|
+|Coverage|
 |Test Status 313|
 |Test Status 312|
 |Test Status 311|

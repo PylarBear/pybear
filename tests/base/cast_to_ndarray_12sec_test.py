@@ -414,7 +414,7 @@ class TestCastToNDArray:
             _shape=_shape
         )
 
-        _X_base_pd[nan_mask(_X_base_pd)] = None
+        _X_base_pd[nan_mask(_X_base_pd)] = np.nan
 
         if _dim == 1:
             _ref_X = _X_base_pd.iloc[:, 0].copy().squeeze().to_numpy()

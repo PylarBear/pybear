@@ -1,4 +1,4 @@
-name: py3.10 Matrix Tests
+name: py3.10
 
 on:
   push:

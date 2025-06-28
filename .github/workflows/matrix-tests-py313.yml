@@ -1,4 +1,4 @@
-name: py3.13 Matrix Tests
+name: py3.13
 
 on:
   push:
