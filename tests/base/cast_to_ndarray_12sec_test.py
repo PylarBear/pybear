@@ -434,7 +434,7 @@ class TestCastToNDArray:
             _shape=_shape
         )
 
-        _X_base_pd[nan_mask(_X_base_pd)] = np.nan
+        _X_base_pd[nan_mask(_X_base_pd)] = {'str': 'nan'}.get(_dtype, np.nan)
 
         _X_base_pd = _X_base_pd.astype(
             {'flt': np.float64, 'int': np.int32, 'str': object}[_dtype]
