@@ -434,11 +434,7 @@ class TestCastToNDArray:
             _shape=_shape
         )
 
-        _X_base_pd[nan_mask(_X_base_pd)] = {'str': 'nan'}.get(_dtype, np.nan)
-
-        _X_base_pd = _X_base_pd.astype(
-            {'flt': np.float64, 'int': np.int32, 'str': object}[_dtype]
-        )
+        _X_base_pd[nan_mask(_X_base_pd)] = None
 
         if _dim == 1:
             _ref_X = _X_base_pd.iloc[:, 0].copy().to_numpy()
