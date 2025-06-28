@@ -6,7 +6,10 @@
 
 
 
-from typing import Callable, Literal
+from typing import (
+    Callable,
+    Literal
+)
 from typing_extensions import Union
 
 from sklearn.model_selection import (
@@ -15,9 +18,16 @@ from sklearn.model_selection import (
 )
 
 from ...GSTCV._GSTCV import GSTCV
-# pizza we need a way to let agscv know that it is running GSTCVDask and
-# it can skip itermediate refits, without using this module that imports GSTCVDask!
-# from ...GSTCV._GSTCVDask import GSTCVDask
+
+# agscv could possibly be wrapping a dask GSCV (dask_ml or pybear),
+# but we cant import anything from dask, want to keep dask/dask_ml out
+# of pybear. So in the absence of the ability to check for this, we only
+# have a list of non-dask GSCVs that can skip refits, and anything not
+# on the list (which includes everything we cant check for) must run
+# refit on every pass. so for dask things this imposes the worst case
+# and forces refit to happen on every pass, which is actually the correct
+# thing to do for dask_ml, but is forcing GSTCVDask to do this
+# unnecessarily (they should be using AutoGSTCVDask anyway!)
 
 
 
@@ -30,10 +40,11 @@ def _refit_can_be_skipped(
     """
     Determine if the parent GridSearch, the scoring strategy, and the
     total number of passes allow for refits to be skipped until the
-    final pass. Some GridSearch parents require that `refit` be True to
-    expose `best_params_`. All require that `refit` be specified if
-    `scoring` is multiple scorers to expose `best_params_`. Refit cannot
-    be skipped if agscv is only running one pass.
+    final pass. `best_params_` needs to be exposed on every pass.
+    Some GridSearch parents require that `refit` be True to expose
+    `best_params_`. All require that `refit` be specified if `scoring`
+    is multiple scorers to expose `best_params_`. Refit cannot be
+    skipped if agscv is only running one pass.
 
     This ignores whether `refit` was originally passed as False. If it
     was, then this module will still allow agscv to overwrite pre-final
@@ -65,29 +76,20 @@ def _refit_can_be_skipped(
     """
 
 
-    # *************************************************************
-    # *** ONLY REFIT ON THE LAST PASS TO SAVE TIME WHEN POSSIBLE **
+    # *** ONLY REFIT ON THE LAST PASS TO SAVE TIME WHEN POSSIBLE ***
     # IS POSSIBLE WHEN PARENT:
-    # == has refit attr, is not False, AND is using only one scorer
+    # == has refit param, is not False, AND is using only one scorer
     # IS NOT POSSIBLE WHEN:
     # == total_passes = 1
-    # == When using multiple scorers, refit must always be
-    # left on because multiple scorers dont expose best_params_
-    # when multiscorer and refit=False
-    # == using dask GridSearchCV or dask RandomizedSearchCV, they
-    # require refit always be True to expose best_params_.
-    # == dask IncrementalSearchCV, HyperbandSearchCV,
-    # SuccessiveHalvingSearchCV and InverseDecaySearchCV do
-    # not take a refit kwarg.
+    # == When using multiple scorers, refit must always be left on
+    # because multiple scorers dont expose best_params_ when
+    # multiscorer and refit=False
     # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-    # dask_ml is the fly in the ointment. Always leave refit
-    # as the user passed it. So apply the rules for managing
-    # refits to sklearn/pybear only.
+
 
     # all of these have refit
     _is_candidate_gscv = _GridSearchParent in (
-        SklearnGridSearchCV, SklearnRandomizedSearchCV,
-        GSTCV     # pizza, GSTCVDask
+        SklearnGridSearchCV, SklearnRandomizedSearchCV, GSTCV
     )
 
     # if 'scoring' is not available from parent (Literal[False] was sent

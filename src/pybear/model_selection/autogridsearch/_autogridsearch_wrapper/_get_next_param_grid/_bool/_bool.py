@@ -37,8 +37,7 @@ def _bool(
         int - zero-indexed count of passes to this point, inclusive; the
         current pass
     _best_param_from_previous_pass:
-        BoolDataType - best value returned from sklearn / dask
-        best_params_
+        BoolDataType - best value returned from GSCV best_params_
 
 
     Return
