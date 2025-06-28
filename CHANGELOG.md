@@ -27,7 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     ensure_2D,
     get_feature_names,
     get_feature_names_out,
-    is_classifier,
     is_fitted,
     num_features,
     num_samples,
@@ -61,11 +60,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - model_selection:
     autogridsearch_wrapper,
     GSTCV,
-    GSTCVDask,
     AutoGridSearchCV,
-    AutoGridSearchCVDask,
-    AutoGSTCV,
-    AutoGSTCVDask
+    AutoGSTCV
 
 - new_numpy:
     random.choice,
