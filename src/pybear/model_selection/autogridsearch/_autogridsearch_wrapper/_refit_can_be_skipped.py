@@ -15,7 +15,9 @@ from sklearn.model_selection import (
 )
 
 from ...GSTCV._GSTCV import GSTCV
-from ...GSTCV._GSTCVDask import GSTCVDask
+# pizza we need a way to let agscv know that it is running GSTCVDask and
+# it can skip itermediate refits, without using this module that imports GSTCVDask!
+# from ...GSTCV._GSTCVDask import GSTCVDask
 
 
 
@@ -85,7 +87,7 @@ def _refit_can_be_skipped(
     # all of these have refit
     _is_candidate_gscv = _GridSearchParent in (
         SklearnGridSearchCV, SklearnRandomizedSearchCV,
-        GSTCV, GSTCVDask
+        GSTCV     # pizza, GSTCVDask
     )
 
     # if 'scoring' is not available from parent (Literal[False] was sent

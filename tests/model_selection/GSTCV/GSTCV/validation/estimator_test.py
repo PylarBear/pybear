@@ -13,32 +13,16 @@ from pybear.model_selection.GSTCV._GSTCV._validation._sk_estimator import \
 
 from sklearn.linear_model import LogisticRegression as sk_LogisticRegression
 
-# ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-from dask_ml.linear_model import LogisticRegression as dask_LogisticRegression
-
 
 # must be an instance not the class! & be an estimator!
-
 
 
 class TestValSkEstimator:
 
 
     @pytest.mark.parametrize('good_classifiers', (sk_LogisticRegression, ))
-    def test_accepts_non_dask_classifiers(self, good_classifiers):
+    def test_accepts_sk_classifiers(self, good_classifiers):
         assert _val_sk_estimator(good_classifiers()) is None
-
-
-    @pytest.mark.parametrize('dask_classifiers', (dask_LogisticRegression, ))
-    def test_rejects_all_dask_classifiers(self, dask_classifiers):
-        # must be an instance not the class! & be a classifier!
-        with pytest.raises(TypeError):
-            _val_sk_estimator(dask_classifiers())
-
-
-
-
 
 
 

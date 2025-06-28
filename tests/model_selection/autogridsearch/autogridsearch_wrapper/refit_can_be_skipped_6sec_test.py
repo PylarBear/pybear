@@ -21,10 +21,12 @@ from sklearn.model_selection import (
     HalvingRandomSearchCV
 )
 
-from dask_ml.model_selection import GridSearchCV as DaskGridSearchCV
+# pizza
+# from dask_ml.model_selection import GridSearchCV as DaskGridSearchCV
+# from pybear.model_selection.GSTCV._GSTCVDask import GSTCVDask
 
 from pybear.model_selection.GSTCV._GSTCV import GSTCV
-from pybear.model_selection.GSTCV._GSTCVDask import GSTCVDask
+
 
 
 
@@ -33,7 +35,7 @@ class TestRefitCanBeSkipped:
 
     _parent_gscvs = (
         SklearnGridSearchCV, SklearnRandomizedSearchCV, HalvingGridSearchCV,
-        HalvingRandomSearchCV, DaskGridSearchCV, GSTCV, GSTCVDask
+        HalvingRandomSearchCV,  # pizza DaskGridSearchCV, GSTCV, GSTCVDask
     )
 
 
@@ -59,7 +61,7 @@ class TestRefitCanBeSkipped:
         #   total_passes > 1
 
         _allowed = (
-            SklearnGridSearchCV, SklearnRandomizedSearchCV, GSTCV, GSTCVDask
+            SklearnGridSearchCV, SklearnRandomizedSearchCV, GSTCV, # pizza GSTCVDask
         )
 
         # if parent GSCV doesnt have a scoring method (not likely to happen),

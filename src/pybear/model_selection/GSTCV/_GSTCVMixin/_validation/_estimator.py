@@ -58,13 +58,13 @@ def _val_estimator(
     # could be a pipeline
 
     # validate pipeline ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-    # because sklearn/dask don't do this, and could be hard to detect
+    # because sklearn doesn't do this, and could be hard to detect
     if 'pipe' in str(type(_estimator)).lower():
         check_pipeline(_estimator)
     # END validate pipeline ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     # validate estimator ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-    # must have the sklearn / dask API
+    # must have the sklearn API
     _has_method = lambda _method: callable(getattr(_estimator, _method, None))
 
     if not _has_method('fit'):

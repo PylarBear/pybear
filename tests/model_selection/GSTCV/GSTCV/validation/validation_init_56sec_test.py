@@ -10,7 +10,6 @@ import pytest
 
 import numpy as np
 
-
 from sklearn.preprocessing import OneHotEncoder as sk_OneHotEncoder
 from sklearn.model_selection import KFold as sk_KFold
 
@@ -23,11 +22,6 @@ from sklearn.linear_model import (
     RidgeClassifier as sk_RidgeClassifier,  # wrap with CCCV
     LogisticRegression as sk_LogisticRegression,
     SGDClassifier as sk_SGDClassifier
-)
-
-from dask_ml.linear_model import (
-    LinearRegression as dask_LinearRegression,
-    LogisticRegression as dask_LogisticRegression
 )
 
 from sklearn.metrics import (
@@ -66,10 +60,6 @@ class TestInitValidation:
     #     ) -> None:
 
 
-
-
-
-
     # fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
     @staticmethod
@@ -93,8 +83,6 @@ class TestInitValidation:
             pre_dispatch='2*n_jobs',
             return_train_score=True
         )
-
-
 
     # END fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
@@ -154,23 +142,7 @@ class TestInitValidation:
             special_gstcv.set_params(estimator=not_instantiated)
 
 
-    def test_estimator_rejects_dask_non_classifier(self, special_gstcv, X_np, y_np):
-
-        special_gstcv.set_params(estimator=dask_LinearRegression())
-
-        with pytest.raises(AttributeError):
-            special_gstcv.fit(X_np, y_np)
-
-
-    def test_estimator_rejects_dask_classifier(self, special_gstcv, X_np, y_np):
-
-        special_gstcv.set_params(estimator=dask_LogisticRegression())
-
-        with pytest.raises(TypeError):
-            special_gstcv.fit(X_np, y_np)
-
-
-    def test_estimator_accepts_non_dask_classifiers(self, special_gstcv, X_np, y_np):
+    def test_estimator_accepts_sk_classifiers(self, special_gstcv, X_np, y_np):
 
         special_gstcv.set_params(estimator=sk_LogisticRegression())
 
@@ -963,8 +935,6 @@ class TestInitValidation:
             special_gstcv.fit(X_np, y_np)
 
     # END pre_dispatch v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-
-
 
 
 

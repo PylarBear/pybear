@@ -9,7 +9,6 @@
 import pytest
 
 import numpy as np
-import dask.array as da
 
 from pybear.model_selection.GSTCV._GSTCVMixin._validation._predict_proba \
     import _val_predict_proba
@@ -75,25 +74,16 @@ class TestValPredictProba:
         with pytest.raises(ValueError):
             _val_predict_proba(np.random.uniform(0, 1, (3,3,3)), 3)
 
-        with pytest.raises(ValueError):
-            _val_predict_proba(da.random.uniform(0, 1, (20, 5)), 20)
-
-        with pytest.raises(ValueError):
-            _val_predict_proba(da.random.uniform(0, 1, (3,3,3)), 3)
-
 
     @pytest.mark.parametrize('_len', (1, 5, 10))
-    def test_rejects_pp_out_of_range(self, X_np, X_da, _len):
+    def test_rejects_pp_out_of_range(self, X_np, _len):
 
         with pytest.raises(ValueError):
             _val_predict_proba(X_np[:_len, 0], _len)
 
-        with pytest.raises(ValueError):
-            _val_predict_proba(X_da[:_len, 0], _len)
-
 
     @pytest.mark.parametrize('_format',
-        ('py_list', 'py_tup', 'py_set', 'np', 'pd', 'pl', 'da', 'ddf')
+        ('py_list', 'py_tup', 'py_set', 'np', 'pd', 'pl')
     )
     @pytest.mark.parametrize('_dim', (1, 2))
     @pytest.mark.parametrize('_len', (2, 5, 10, 100))
@@ -103,14 +93,9 @@ class TestValPredictProba:
             pytest.skip(reason=f'cant have 2D set')
         # END skip impossible ** * ** * ** * ** * ** * ** * ** * ** * **
 
-        if _format in ['da', 'ddf']:
-            good_pp = _format_helper(
-                da.random.uniform(0, 1, (_len,)), _format, _dim
-            )
-        else:
-            good_pp = _format_helper(
-                np.random.uniform(0, 1, (_len,)), _format, _dim
-            )
+        good_pp = _format_helper(
+            np.random.uniform(0, 1, (_len,)), _format, _dim
+        )
 
 
         assert _val_predict_proba(good_pp, _len) is None

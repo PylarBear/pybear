@@ -7,7 +7,12 @@
 
 
 from typing import Optional
-from typing_extensions import Any, Self, TypeAlias, Union
+from typing_extensions import (
+    Any,
+    Self,
+    TypeAlias,
+    Union
+)
 from ._autogridsearch_wrapper._type_aliases import (
     ParamsType,
     GridsType,
@@ -45,18 +50,19 @@ from sklearn.model_selection import (
     HalvingGridSearchCV,
     HalvingRandomSearchCV
 )
-
-from dask_ml.model_selection import (
-    GridSearchCV as DaskGridSearchCV,
-    RandomizedSearchCV as DaskRandomizedSearchCV,
-    IncrementalSearchCV,
-    HyperbandSearchCV,
-    SuccessiveHalvingSearchCV,
-    InverseDecaySearchCV
-)
+# pizza
+# from dask_ml.model_selection import (
+#     GridSearchCV as DaskGridSearchCV,
+#     RandomizedSearchCV as DaskRandomizedSearchCV,
+#     IncrementalSearchCV,
+#     HyperbandSearchCV,
+#     SuccessiveHalvingSearchCV,
+#     InverseDecaySearchCV
+# )
 
 from ..GSTCV._GSTCV import GSTCV
-from ..GSTCV._GSTCVDask import GSTCVDask
+# pizza again with the importing GSTCVDask problem. need a way around this.
+# from ..GSTCV._GSTCVDask import GSTCVDask
 
 
 
@@ -65,14 +71,16 @@ GridSearchType: TypeAlias = Union[
     type(SklearnRandomizedSearchCV),
     type(HalvingGridSearchCV),
     type(HalvingRandomSearchCV),
-    type(DaskGridSearchCV),
-    type(DaskRandomizedSearchCV),
-    type(IncrementalSearchCV),
-    type(HyperbandSearchCV),
-    type(SuccessiveHalvingSearchCV),
-    type(InverseDecaySearchCV),
-    type(GSTCV),
-    type(GSTCVDask)
+    # pizza
+    # type(DaskGridSearchCV),
+    # type(DaskRandomizedSearchCV),
+    # type(IncrementalSearchCV),
+    # type(HyperbandSearchCV),
+    # type(SuccessiveHalvingSearchCV),
+    # type(InverseDecaySearchCV),
+    type(GSTCV)
+    # pizza fix this!
+    # type(GSTCVDask)
 ]
 
 
@@ -122,7 +130,7 @@ def autogridsearch_wrapper(
     dask_ml.model_selection.SuccessiveHalvingSearchCV
     dask_ml.model_selection.InverseDecaySearchCV
     pybear.model_selection.GSTCV
-    pybear.model_selection.GSTCVDask
+    pybear.model_selection.GSTCVDask     # <===== pizza
 
 
     Examples

@@ -22,7 +22,6 @@ from ._copy_X import copy_X
 from ._ensure_2D import ensure_2D
 from ._get_feature_names import get_feature_names
 from ._get_feature_names_out import get_feature_names_out
-from ._is_classifier import is_classifier
 from ._is_fitted import is_fitted
 from ._num_features import num_features
 from ._num_samples import num_samples
@@ -56,7 +55,6 @@ __all__ = [
     'ensure_2D',
     'get_feature_names',
     'get_feature_names_out',
-    'is_classifier',
     'is_fitted',
     'num_features',
     'num_samples',

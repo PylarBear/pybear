@@ -13,11 +13,7 @@ import numbers
 import numpy as np
 import pandas as pd
 import polars as pl
-import dask.array as da
-import dask.dataframe as ddf
 import scipy.sparse as ss
-import distributed
-
 
 from pybear.base._copy_X import copy_X
 
@@ -26,6 +22,7 @@ from pybear.base._copy_X import copy_X
 class TestCopyX:
 
 
+    # fixtures v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
     @staticmethod
     @pytest.fixture(scope='module')
     def _shape():
@@ -46,7 +43,7 @@ class TestCopyX:
 
     @staticmethod
     @pytest.fixture(scope='function')
-    def _container_maker(_X_list_1D, _X_list_2D, _client):
+    def _container_maker(_X_list_1D, _X_list_2D):
 
         def foo(_container, _dim):
 
@@ -57,12 +54,8 @@ class TestCopyX:
                 assert all(map(isinstance, _X, (numbers.Number for _ in _X)))
                 if hasattr(_container, 'toarray'):
                     raise TypeError(f"container cant be scipy when 1D")
-                elif _container in [pd.DataFrame, pl.DataFrame, ddf.DataFrame]:
+                elif _container in [pd.DataFrame, pl.DataFrame]:
                     raise TypeError(f"container cant be {_container} when 1D")
-                if _container is ddf.Series:
-                    __ = pd.DataFrame(list(_X))
-                    out = ddf.from_pandas(__, chunksize=__.shape[0]).squeeze()
-                    del __
                 else:
                     out = _container(list(_X))
 
@@ -71,34 +64,17 @@ class TestCopyX:
                     assert isinstance(out, np.ndarray)
                 elif _container is np.ma.masked_array:
                     assert isinstance(out, np.ma.MaskedArray)
-                elif _container is da.array:
-                    assert isinstance(out, da.Array)
                 else:
                     assert isinstance(out, _container)
 
-                if hasattr(out, 'compute'):
-
-                    __ = out.compute(scheduler=_client)
-
-                    assert all(map(
-                        isinstance,
-                        __,
-                        (numbers.Number for _ in __)
-                    ))
-                    del __
-                else:
-                    assert all(map(isinstance, out, (numbers.Number for _ in out)))
+                assert all(map(isinstance, out, (numbers.Number for _ in out)))
                 # END validate object was built correctly -- -- -- -- --
             else:   # is 2D
                 _X = _X_list_2D
-                if _container is [set, pd.Series, pl.Series, ddf.Series]:
+                if _container is [set, pd.Series, pl.Series]:
                     raise TypeError(f"container cant be {_container} when 2D")
                 elif _container in [list, tuple]:
                     out = _container(map(_container, _X))
-                elif _container is da.array:
-                    out = da.from_array(_X)
-                elif _container is ddf.DataFrame:
-                    out = ddf.from_array(np.array(_X))
                 else:
                     out = _container(_X)
 
@@ -107,14 +83,12 @@ class TestCopyX:
                     assert isinstance(out, np.ndarray)
                 elif _container is np.ma.masked_array:
                     assert isinstance(out, np.ma.MaskedArray)
-                elif _container is da.array:
-                    assert isinstance(out, da.Array)
                 else:
                     assert isinstance(out, _container)
 
                 if hasattr(out, 'toarray') \
-                        or isinstance(out, (pd.DataFrame, pl.DataFrame, ddf.DataFrame)):
-                    # scipy sparse, pd df, pl df, ddf can only be 2D, so dont
+                        or isinstance(out, (pd.DataFrame, pl.DataFrame)):
+                    # scipy sparse, pd df, pl df can only be 2D, so dont
                     # need to prove is 2D
                     pass
                 else:
@@ -129,7 +103,7 @@ class TestCopyX:
 
     @staticmethod
     @pytest.fixture(scope='function')
-    def _value_getter(_client):
+    def _value_getter():
 
         # return the upper-left-most value in a container
 
@@ -143,24 +117,20 @@ class TestCopyX:
             if _is_1D:
                 if hasattr(_X, 'toarray'):
                     raise TypeError(f"container cant be scipy when 1D")
-                elif isinstance(_X, (pd.DataFrame, pl.DataFrame, ddf.DataFrame)):
+                elif isinstance(_X, (pd.DataFrame, pl.DataFrame)):
                     raise TypeError(f"container cant be {_X} when 1D")
                 elif isinstance(_X, set):
                     out = sorted(list(_X))[0]
                 else:
-                    # could be list, tuple, ndarray, masked array, da array
-                    # pd/pl/ddf Series
+                    # could be list, tuple, ndarray, masked array
+                    # pd/pl Series
                     out = _X[0]
 
-                if hasattr(out, 'compute'):
-                    out = out.compute(scheduler=_client)
             else:   # is 2D
-                if isinstance(_X, (set, pd.Series, pl.Series, ddf.Series)):
+                if isinstance(_X, (set, pd.Series, pl.Series)):
                     raise TypeError(f"container cant be {_X} when 2D")
                 elif isinstance(_X, pd.DataFrame):
                     out = _X.iloc[0, 0]
-                elif isinstance(_X, ddf.DataFrame):
-                    out = _X.to_dask_array(lengths=True)[0][0]
                 elif isinstance(_X, pl.DataFrame):
                     out = _X.item(0, 0)
                 elif hasattr(_X, 'toarray'):
@@ -169,9 +139,6 @@ class TestCopyX:
                     out = list(_X)[0][0]
                 else:
                     out = _X[0][0]
-
-                if hasattr(_X, 'compute'):
-                    out = out.compute(scheduler=_client)
 
             assert isinstance(out, numbers.Number)
 
@@ -184,7 +151,7 @@ class TestCopyX:
 
     @staticmethod
     @pytest.fixture(scope='function')
-    def _value_setter(_client):
+    def _value_setter():
 
         # set the upper-left-most value in a container
 
@@ -198,7 +165,7 @@ class TestCopyX:
             if _is_1D:
                 if hasattr(_X, 'toarray'):
                     raise TypeError(f"container cant be scipy when 1D")
-                elif isinstance(_X, (pd.DataFrame, pl.DataFrame, ddf.DataFrame)):
+                elif isinstance(_X, (pd.DataFrame, pl.DataFrame)):
                     raise TypeError(f"container cant be {_X} when 1D")
                 elif isinstance(_X, set):
                     _X = list(_X)
@@ -209,29 +176,13 @@ class TestCopyX:
                     _X[0] = _value
                     _X = tuple(_X)
                 else:
-                    # could be list, ndarray, masked array, pd/pl/ddf Series
-                    if isinstance(_X, ddf.Series):
-                        _X = _X.compute(scheduler=_client).to_numpy()
-                        _X[0] = _value
-                        _X = ddf.from_pandas(
-                            pd.DataFrame(_X),
-                            chunksize=_X.shape[0]
-                        ).squeeze()
-                    else:
-                        _X[0] = _value
+                    # could be list, ndarray, masked array, pd/pl Series
+                    _X[0] = _value
             else:   # is 2D
-                if isinstance(_X, (set, pd.Series, pl.Series, ddf.Series)):
+                if isinstance(_X, (set, pd.Series, pl.Series)):
                     raise TypeError(f"container cant be {_X} when 2D")
                 elif isinstance(_X, pd.DataFrame):
                     _X.iloc[0, 0] = _value
-                elif isinstance(_X, ddf.DataFrame):
-                    _X = _X.compute(scheduler=_client)
-                    _X.iloc[0, 0] = _value
-                    _X = ddf.from_pandas(_X, npartitions=1)
-                elif isinstance(_X, da.Array):
-                    _X = _X.compute(scheduler=_client)
-                    _X[0][0] = _value
-                    _X = da.from_array(_X)
                 elif hasattr(_X, 'toarray'):
                     _og_dtype = type(_X)
                     _X = _X.tocsc()
@@ -255,6 +206,7 @@ class TestCopyX:
 
     # END fixtures v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
+
     @pytest.mark.parametrize('junk_X',
         (-2.7, -1, 0, 1, 2.7, True, False, None, lambda x: x)
     )
@@ -267,7 +219,7 @@ class TestCopyX:
     @pytest.mark.parametrize('_dim', (1,2))
     @pytest.mark.parametrize('_container',
         (list, tuple, set, np.array, np.ma.masked_array, pd.Series, pd.DataFrame,
-         pl.Series, pl.DataFrame, da.array, ddf.Series, ddf.DataFrame,
+         pl.Series, pl.DataFrame,
          ss.csr_matrix, ss.csr_array, ss.csc_matrix, ss.csc_array, ss.coo_matrix,
          ss.coo_array, ss.dia_matrix, ss.dia_array, ss.dok_matrix, ss.dok_array,
          ss.lil_matrix, ss.lil_array, ss.bsr_matrix, ss.bsr_array)
@@ -275,21 +227,18 @@ class TestCopyX:
     @pytest.mark.parametrize('_value', (-99, -1))
     def test_does_not_mutate_original(
         self, _container_maker, _value_getter, _value_setter, _dim, _container,
-        _value, _client
+        _value
     ):
 
         # the _value number is rigged. set always sorts, so need to make _value
         # be something that will always sort to the first position
 
-        # must use _client. somehow some way the accuracy of the dask outputs
-        # is wrong when not using it.
-
         # skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- --
-        if _dim == 1 and _container in [pd.DataFrame, pl.DataFrame, ddf.DataFrame]:
+        if _dim == 1 and _container in [pd.DataFrame, pl.DataFrame]:
             pytest.skip(f'impossible condition')
         if _dim == 1 and hasattr(_container, 'toarray'):
             pytest.skip(f'impossible condition')
-        if _dim == 2 and _container in [set, pd.Series, pl.Series, ddf.Series]:
+        if _dim == 2 and _container in [set, pd.Series, pl.Series]:
             pytest.skip(f'impossible condition')
 
         # END skip impossible conditions -- -- -- -- -- -- -- -- -- --
@@ -311,11 +260,6 @@ class TestCopyX:
 
         # the value in the original X should be unchanged
         assert _value_getter(_X) == _og_value
-
-
-
-
-
 
 
 
