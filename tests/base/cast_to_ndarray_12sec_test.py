@@ -414,14 +414,18 @@ class TestCastToNDArray:
             _shape=_shape
         )
 
-        _X_base_pd[nan_mask(_X_base_pd)] = np.nan
+        _X_base_pd[nan_mask(_X_base_pd)] = None
 
         if _dim == 1:
-            _ref_X = _X_base_pd.iloc[:, 0].copy().squeeze().to_numpy()
-            _X = pl.Series(_X_base_pd.iloc[:, 0].squeeze())
+            _ref_X = _X_base_pd.iloc[:, 0].copy().to_numpy()
+            assert isinstance(_ref_X, np.ndarray)
+            _X = pl.from_pandas(_X_base_pd.copy())[:, 0]
+            assert isinstance(_X, pl.Series)
         elif _dim == 2:
             _ref_X = _X_base_pd.copy().to_numpy()
-            _X = pl.DataFrame(_X_base_pd.copy())
+            assert isinstance(_ref_X, np.ndarray)
+            _X = pl.from_pandas(_X_base_pd.copy())
+            assert isinstance(_X, pl.DataFrame)
         else:
             raise Exception
 
