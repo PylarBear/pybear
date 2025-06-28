@@ -436,6 +436,10 @@ class TestCastToNDArray:
 
         _X_base_pd[nan_mask(_X_base_pd)] = np.nan
 
+        _X_base_pd = _X_base_pd.astype(
+            {'flt': np.float64, 'int': np.int32, 'str': object}[_dtype]
+        )
+
         if _dim == 1:
             _ref_X = _X_base_pd.iloc[:, 0].copy().to_numpy()
             assert isinstance(_ref_X, np.ndarray)
