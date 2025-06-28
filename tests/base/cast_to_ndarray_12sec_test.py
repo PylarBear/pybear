@@ -211,6 +211,11 @@ class TestCastToNDArray:
         self, _X_factory, _shape, _dim, _container, _dtype, _has_nan
     ):
 
+        # skip impossible ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        if _has_nan and _dtype == 'int':
+            pytest.skip(reason=f'int dtypes cant take nan')
+        # END skip impossible ** * ** * ** * ** * ** * ** * ** * ** * **
+
         _X_base_np = _X_factory(
             _dupl=None,
             _has_nan=_has_nan,
@@ -291,6 +296,11 @@ class TestCastToNDArray:
 
         # can only be 2D, can only be numeric
 
+        # skip impossible ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        if _has_nan and _dtype == 'int':
+            pytest.skip(reason=f'int dtypes cant take nan')
+        # END skip impossible ** * ** * ** * ** * ** * ** * ** * ** * **
+
         _X_base_np = _X_factory(
             _dupl=None,
             _has_nan=_has_nan,
@@ -329,6 +339,11 @@ class TestCastToNDArray:
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str'))
     @pytest.mark.parametrize('_has_nan', (True, False))
     def test_pandas(self, _X_factory, _shape, _dim, _dtype, _has_nan):
+
+        # skip impossible ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        if _has_nan and _dtype == 'int':
+            pytest.skip(reason=f'int dtypes cant take nan')
+        # END skip impossible ** * ** * ** * ** * ** * ** * ** * ** * **
 
         _X_base_pd = _X_factory(
             _dupl=None,
@@ -402,6 +417,11 @@ class TestCastToNDArray:
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str'))
     @pytest.mark.parametrize('_has_nan', (True, False))
     def test_polars(self, _X_factory, _shape, _dim, _dtype, _has_nan):
+
+        # skip impossible ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        if _has_nan and _dtype == 'int':
+            pytest.skip(reason=f'int dtypes cant take nan')
+        # END skip impossible ** * ** * ** * ** * ** * ** * ** * ** * **
 
         _X_base_pd = _X_factory(
             _dupl=None,
