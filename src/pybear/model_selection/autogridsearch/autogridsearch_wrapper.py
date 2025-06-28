@@ -10,7 +10,6 @@ from typing import Optional
 from typing_extensions import (
     Any,
     Self,
-    TypeAlias,
     Union
 )
 from ._autogridsearch_wrapper._type_aliases import (
@@ -43,63 +42,18 @@ from ._autogridsearch_wrapper._demo._demo import _demo
 
 from ...base._check_is_fitted import check_is_fitted
 
-from sklearn.experimental import enable_halving_search_cv
-from sklearn.model_selection import (
-    GridSearchCV as SklearnGridSearchCV,
-    RandomizedSearchCV as SklearnRandomizedSearchCV,
-    HalvingGridSearchCV,
-    HalvingRandomSearchCV
-)
-# pizza
-# from dask_ml.model_selection import (
-#     GridSearchCV as DaskGridSearchCV,
-#     RandomizedSearchCV as DaskRandomizedSearchCV,
-#     IncrementalSearchCV,
-#     HyperbandSearchCV,
-#     SuccessiveHalvingSearchCV,
-#     InverseDecaySearchCV
-# )
-
-from ..GSTCV._GSTCV import GSTCV
-# pizza again with the importing GSTCVDask problem. need a way around this.
-# from ..GSTCV._GSTCVDask import GSTCVDask
 
 
-
-GridSearchType: TypeAlias = Union[
-    type(SklearnGridSearchCV),
-    type(SklearnRandomizedSearchCV),
-    type(HalvingGridSearchCV),
-    type(HalvingRandomSearchCV),
-    # pizza
-    # type(DaskGridSearchCV),
-    # type(DaskRandomizedSearchCV),
-    # type(IncrementalSearchCV),
-    # type(HyperbandSearchCV),
-    # type(SuccessiveHalvingSearchCV),
-    # type(InverseDecaySearchCV),
-    type(GSTCV)
-    # pizza fix this!
-    # type(GSTCVDask)
-]
-
-
-
-def autogridsearch_wrapper(
-    GridSearchParent: GridSearchType
-) -> GridSearchType:
+def autogridsearch_wrapper(GridSearchParent):
 
     """
-    Wrap a sci-kit learn or dask_ml GridSearchCV class with a class that
-    overwrites the `fit` method of that GridSearchCV. The superseding
-    fit method automates multiple calls to the super fit() method with
-    progressively more precise search grids based on previous search
-    results. All sci-kit and pybear GridSearch modules are supported and
-    routinely tested. dask_ml's GridSearchCV module is consistently
-    tested. Other dask_ml GridSearch modules are sporadically tested so
-    compatibility with autogridsearch_wrapper is not guaranteed. See the
-    sci-kit, dask_ml, and pybear documentation for more information
-    about the available GridSearchCV modules.
+    Wrap a sci-kit learn, pybear, or dask_ml GridSearchCV class with
+    a class that overwrites the `fit` method of that GridSearchCV.
+    The superseding fit method automates multiple calls to the super
+    fit() method with progressively more precise search grids based on
+    previous search results. See the sci-kit, pybear, and dask_ml
+    documentation for more information about the available GridSearchCV
+    modules.
 
 
     Parameters
@@ -120,17 +74,8 @@ def autogridsearch_wrapper(
     See Also
     --------
     sklearn.model_selection.GridSearchCV
-    sklearn.model_selection.RandomizedSearchCV
-    dask_ml.model_selection.GridSearchCV
-    dask_ml.model_selection.HalvingGridSearchCV
-    dask_ml.model_selection.HalvingRandomSearchCV
-    dask_ml.model_selection.RandomizedSearchCV
-    dask_ml.model_selection.IncrementalSearchCV
-    dask_ml.model_selection.HyperbandSearchCV
-    dask_ml.model_selection.SuccessiveHalvingSearchCV
-    dask_ml.model_selection.InverseDecaySearchCV
     pybear.model_selection.GSTCV
-    pybear.model_selection.GSTCVDask     # <===== pizza
+    pybear-dask.model_selection.GSTCVDask
 
 
     Examples
