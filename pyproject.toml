@@ -12,7 +12,7 @@ readme = "README.rst"
 homepage = "https://github.com/PylarBear/pybear"
 repository = "https://github.com/PylarBear/pybear"
 #documentation
-keywords = ["python data analytics scikit-style API"]
+keywords = ["python data analytics scikit-style text"]
 #classifiers
 packages = [
 	{ include = "pybear", from = "src"}
