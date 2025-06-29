@@ -6,8 +6,15 @@
 
 
 
-from typing import Optional, Sequence, Tuple
-from typing_extensions import Any, Union
+from typing import (
+    Optional,
+    Sequence,
+    Tuple
+)
+from typing_extensions import (
+    Any,
+    Union
+)
 
 import numbers
 

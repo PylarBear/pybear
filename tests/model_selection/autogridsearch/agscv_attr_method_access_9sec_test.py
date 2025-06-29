@@ -6,12 +6,19 @@
 
 
 
-import numbers
-
 import pytest
+
+import numbers
 
 from pybear.base._is_fitted import is_fitted
 
+
+
+# this test should only need to be done on one arbitrary valid gscv to
+# prove out access to agscv attrs and methods. that should be sufficient
+# to show agscv does / does not expose them appropriately for any valid
+# wrapped GSCV. tests for wrapped dask GSCVS (in particular those in
+# pybear-dask) should not need to be tested again.
 
 
 # FIXTURES ^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -45,7 +52,7 @@ class Fixtures:
 class TestAttrAccessBeforeAndAfterFit(Fixtures):
 
 
-    def test_attr_access_before_fit(self, X_np, y_np, TestCls):
+    def test_attr_access_before_fit(self, TestCls):
 
         # BEFORE FIT ***************************************************
 

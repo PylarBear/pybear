@@ -1,0 +1,8 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - name: "The pybear developers"
+title: "pybear"
+version: 0.2.0
+# doi: https://doi.org/10.5281/zenodo.1234567  # Will be added after first release
+url: "https://github.com/PylarBear/pybear"

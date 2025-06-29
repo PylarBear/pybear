@@ -6,27 +6,27 @@
 
 
 
+# this module tests compatibility of autogridsearch_wrapper with SK GSCV
+# simply by running wrapped GSCV to completion and asserting a few of
+# the GSCV attributes are exposed by the wrapper.
+
+
+
 # demo_test incidentally handles testing of all autogridsearch_wrapper
 # functionality except fit() (because demo bypasses fit().) This test
-# module handles fit() for all sklearn gridsearch modules.
+# module handles fit().
 
 
 
 import pytest
 
-from pybear.model_selection import autogridsearch_wrapper
+import numpy as np
 
-from sklearn.experimental import enable_halving_search_cv
-from sklearn.model_selection import (
-    GridSearchCV as SklearnGridSearchCV,
-    RandomizedSearchCV as SklearnRandomizedSearchCV,
-    HalvingGridSearchCV,
-    HalvingRandomSearchCV
-)
+from pybear.model_selection.autogridsearch.AutoGridSearchCV import AutoGridSearchCV
 
 
 
-class TestSklearnGSCVS:
+class TestAutoGridSearch:
 
     #         estimator,
     #         params: ParamsType,
@@ -37,14 +37,6 @@ class TestSklearnGSCVS:
     #         **parent_gscv_kwargs
 
 
-    @pytest.mark.parametrize('SKLEARN_GSCV',
-        (
-            SklearnGridSearchCV,
-            SklearnRandomizedSearchCV,
-            HalvingGridSearchCV,
-            HalvingRandomSearchCV
-        )
-    )
     @pytest.mark.parametrize('_total_passes', (2, 3, 4))
     @pytest.mark.parametrize('_scorer',
         ('accuracy', ['accuracy', 'balanced_accuracy'])
@@ -52,36 +44,29 @@ class TestSklearnGSCVS:
     @pytest.mark.parametrize('_tpih', (True, ))
     @pytest.mark.parametrize('_max_shifts', (2, ))
     @pytest.mark.parametrize('_refit', ('accuracy', False, lambda x: 0))
-    def test_sklearn_gscvs(
-        self, sk_estimator_1, sk_params_1, SKLEARN_GSCV, _total_passes, _scorer,
-        _tpih, _max_shifts, _refit, X_np, y_np
+    def test_AGSCV(self, mock_estimator, mock_estimator_params,
+        _total_passes, _scorer, _tpih, _max_shifts, _refit, X_np, y_np
     ):
 
-        # the 'halving' grid searches cannot take multiple scorers
-        if SKLEARN_GSCV in (HalvingGridSearchCV, HalvingRandomSearchCV) \
-                and len(_scorer) > 1:
-            pytest.skip(
-                reason=f"the 'halving' grid searches cannot take multiple scorers"
-            )
-
-        AGSCV_params = {
-            'estimator': sk_estimator_1,
-            'params': sk_params_1,
+        AGSTCV_params = {
+            'estimator': mock_estimator,
+            'params': mock_estimator_params,
             'total_passes': _total_passes,
             'total_passes_is_hard': _tpih,
             'max_shifts': _max_shifts,
             'agscv_verbose': False,
             'scoring': _scorer,
-            'n_jobs': -1,    # -1 is fastest 25_04_18_10_00_00
+            'n_jobs': 1,     # leave a 1, confliction
+            'refit': _refit,
             'cv': 4,
+            'verbose': 0,
+            'pre_dispatch': '2*n_jobs',
             'error_score': 'raise',
             'return_train_score': False,
-            'refit': _refit,
-            'pre_dispatch': '2*n_jobs',
-            'verbose': 0
         }
 
-        AutoGridSearch = autogridsearch_wrapper(SKLEARN_GSCV)(**AGSCV_params)
+
+        AutoGridSearch = AutoGridSearchCV(**AGSTCV_params)
 
         # 25_04_19 changed fit() to raise ValueError when best_params_
         # is not exposed. it used to be that agscv code was shrink-wrapped
@@ -100,8 +85,8 @@ class TestSklearnGSCVS:
         except ValueError:
             assert not hasattr(AutoGridSearch, 'best_params_')
             pytest.skip(reason=f'cant do any later tests without fit')
-        except Exception as hell:
-            raise hell
+        except Exception as e:
+            raise e
 
         # assertions ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
         assert AutoGridSearch.total_passes >= _total_passes
@@ -111,25 +96,37 @@ class TestSklearnGSCVS:
         assert AutoGridSearch.scoring == _scorer
         assert AutoGridSearch.refit == _refit
 
+        # cannot test MockEstimator for scoring or scorer_
+
         if _refit:
             assert isinstance(
-                AutoGridSearch.best_estimator_, type(sk_estimator_1)
+                AutoGridSearch.best_estimator_,
+                type(mock_estimator)
             )
-        elif not _refit:
+        else:
             with pytest.raises(AttributeError):
                 AutoGridSearch.best_estimator_
 
 
         best_params_ = AutoGridSearch.best_params_
         assert isinstance(best_params_, dict)
-        assert sorted(list(best_params_)) == sorted(list(sk_params_1))
+        assert sorted(list(best_params_)) == sorted(list(mock_estimator_params))
         assert all(map(
             isinstance,
             best_params_.values(),
-            ((int, float, bool, str) for _ in sk_params_1)
+            ((int, float, bool, str, np.int64) for _ in mock_estimator_params)
         ))
 
+        # best_threshold_ should always be exposed with one scorer
+        if isinstance(_refit, str) or callable(_scorer) or \
+                isinstance(_scorer, str) or len(_scorer) == 1:
+            best_threshold_ = AutoGridSearch.best_threshold_
+            assert isinstance(best_threshold_, float)
+            assert 0 <= best_threshold_ <= 1
+
         # END assertions ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
+
 
 
 

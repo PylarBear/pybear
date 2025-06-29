@@ -6,27 +6,30 @@
 
 
 
-# This test module handles arg/kwarg _validation at the highest level.
-
+# This test module checks agscv arg/kwarg validation at the highest
+# level. this should only need to be tested on one arbitrary valid wrapped
+# GSCV, because this validation is only for agscv-only params, which
+# would be common to all wrapped GSCVs.
 
 
 import pytest
+
 import numpy as np
 
 
 
 class TestAGSCVValidation:
 
-    #         estimator,
-    #         params: ParamsType,
-    #         total_passes: int = 5,
-    #         total_passes_is_hard: bool = False,
-    #         max_shifts: Union[None, int] = None,
-    #         agscv_verbose: bool = False,
-    #         **parent_gscv_kwargs
+    # estimator,
+    # params: ParamsType,
+    # total_passes: int = 5,
+    # total_passes_is_hard: bool = False,
+    # max_shifts: Union[None, int] = None,
+    # agscv_verbose: bool = False,
+    # **parent_gscv_kwargs
 
 
-    # parent GSCV ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # parent GSCV ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     @pytest.mark.parametrize('non_class',
         (0, 1, 3.14, [1,2], (1,2), {1,2}, {'a':1}, 'junk', lambda x: x)
@@ -43,9 +46,7 @@ class TestAGSCVValidation:
             ).fit(X_np, y_np)
 
 
-    def test_invalid_estimator(
-        self, SKAutoGridSearch, X_np, y_np
-    ):
+    def test_invalid_estimator(self, SKAutoGridSearch, X_np, y_np):
 
         class weird_estimator:
 
@@ -71,8 +72,7 @@ class TestAGSCVValidation:
 
 
     def test_rejects_bad_sklearn_GSCV_kwargs(
-        self, SKAutoGridSearch, sk_estimator_1, sk_params_1,
-        X_np, y_np
+        self, SKAutoGridSearch, sk_estimator_1, sk_params_1, X_np, y_np
     ):
 
         # this is raised by the parent GSCV, let it raise whatever
@@ -149,8 +149,7 @@ class TestAGSCVValidation:
 
     @pytest.mark.parametrize('bad_tp', (-1, 0))
     def test_rejects_bad_total_passes(
-        self, bad_tp, SKAutoGridSearch, sk_estimator_1,
-        sk_params_1, X_np, y_np
+        self, bad_tp, SKAutoGridSearch, sk_estimator_1, sk_params_1, X_np, y_np
     ):
         with pytest.raises(ValueError):
             SKAutoGridSearch(
@@ -162,7 +161,7 @@ class TestAGSCVValidation:
     # END total_passes ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    # tpih ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # tpih ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     # must be bool
     @pytest.mark.parametrize('_tpih',
@@ -352,7 +351,7 @@ class TestZeroAndNegativeGrid:
         self, SKAutoGridSearch, mock_estimator, type1, type2, X_np, y_np
     ):
 
-        # should be allowed by agscv
+        # should be allowed by agscv at init, but raise at fit
 
         # must use this special param grid with negative values
         agscv = SKAutoGridSearch(
