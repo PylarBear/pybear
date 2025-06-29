@@ -18,7 +18,7 @@ from sklearn.metrics import make_scorer
 
 from pybear.model_selection.GSTCV._GSTCV.GSTCV import GSTCV
 
-pytest.skip(reason='pizza really screwed up this time', allow_module_level=True)
+# pytest.skip(reason='pizza really screwed up this time', allow_module_level=True)
 
 class TestFitAccuracy:
 
