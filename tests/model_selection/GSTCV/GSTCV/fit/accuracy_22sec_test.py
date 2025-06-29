@@ -107,7 +107,7 @@ class TestFitAccuracy:
         TestCls = GSTCV(
             estimator=special_sk_est_log,
             param_grid=_param_grid,
-            thresholds=[0.50000000000000],
+            thresholds=np.float64(0.5),
             cv=_cv_iter,
             error_score=standard_error_score,
             refit=False,
