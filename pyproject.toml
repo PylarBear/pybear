@@ -46,9 +46,6 @@ docutils = ">=0.20"
 jupyter = "*"
 notebook = "*"
 pyarrow = "^17.0.0"
-sphinx = "*"
-sphinx-autobuild = "*"
-pydata-sphinx-theme = "^0.16.1"
 
 
 [tool.poetry.group.test.dependencies]
