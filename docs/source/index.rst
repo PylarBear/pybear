@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to the pybear documentation
-====================================
+===================================
 
 pybear is a scikit-learn-style Python computing library that augments data 
 analytics functionality found in popular packages like scikit-learn and xgboost.
