@@ -1,0 +1,6 @@
+﻿pybear
+======
+
+.. automodule:: pybear
+
+   
