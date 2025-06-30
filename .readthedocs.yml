@@ -10,7 +10,7 @@ build:
 sphinx:
    configuration: docs/source/conf.py
 
-# # Dependencies required to build your docs
-# python:
-#    install:
-#    - requirements: docs/requirements.txt
+# Dependencies required to build your docs
+python:
+   install:
+   - requirements: docs/requirements.txt
