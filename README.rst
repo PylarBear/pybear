@@ -32,8 +32,8 @@ pybear
 
 |Doc Status|
 
-.. |Doc Status| image:: https://readthedocs.org/projects/ml/badge/?version=latest
-   :target: //pybear.readthedocs.io/
+.. |Doc Status| image:: https://readthedocs.org/projects/pybear/badge/?version=latest
+   :target: https://pybear.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
 
 |PyPI Build Status|
