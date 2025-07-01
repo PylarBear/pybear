@@ -2,7 +2,7 @@ API
 ===
 
 .. autosummary::
-   :toctree: generated
    :recursive:
+   :toctree: generated
 
    pybear
