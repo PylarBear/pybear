@@ -37,3 +37,9 @@ exclude_patterns = []
 
 html_theme = 'pydata_sphinx_theme'   # 'alabaster'
 html_static_path = ['_static']
+html_theme_options = {
+    "logo": {"text": "pybear"},
+    "navigation_with_keys": True,
+    "theme_switcher": False,  # optional: disables theme toggle in nav bar
+    "default_mode": "light",
+}
