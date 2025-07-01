@@ -5,10 +5,14 @@
 # License: BSD 3 clause
 
 
+
 import pytest
 
 from pybear.utilities._benchmarking import timer
-import sys, io
+
+import io
+import sys
+
 
 
 def test_returns_original_function():

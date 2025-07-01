@@ -5,8 +5,10 @@
 # License: BSD 3 clause
 
 
+
 import pytest
-import sys, io
+import io
+import sys
 import numpy as np
 from pybear.utilities._benchmarking import time_memory_benchmark as tmb
 
@@ -121,25 +123,6 @@ def test_results(number_of_fxns, number_of_trials, good_args):
 
     # ALL TIMES MUST BE >= 0 (SOMETIMES ANOMALIES HAPPEN WITH MEMORY)
     assert (RESULT[0, :, :] > 0).all()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
