@@ -40,6 +40,5 @@ html_static_path = ['_static']
 html_theme_options = {
     "logo": {"text": "pybear"},
     "navigation_with_keys": True,
-    "default_mode": "light",      # defaults to light
     "switcher": True,             # but user can toggle back to dark if they want
 }
