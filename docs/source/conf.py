@@ -42,3 +42,7 @@ html_theme_options = {
     "navigation_with_keys": True,
     "switcher": True,             # but user can toggle back to dark if they want
 }
+html_context = {
+   # ...
+   "default_mode": "light"
+}
