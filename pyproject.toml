@@ -46,6 +46,7 @@ docutils = ">=0.20"
 jupyter = "*"
 notebook = "*"
 pyarrow = "^17.0.0"
+sphinx = "*"
 
 
 [tool.poetry.group.test.dependencies]
