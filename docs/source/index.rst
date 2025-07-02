@@ -18,7 +18,7 @@ Check out the :doc:`usage` section for further information, including how to
 
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
    :caption: Contents:
 
 Contents
