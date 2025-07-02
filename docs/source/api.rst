@@ -1,8 +1,6 @@
 API
 ===
 
-.. currentmodule:: pybear
-
 .. autosummary::
 
    :recursive:
@@ -10,3 +8,8 @@ API
    
    pybear
 
+
+.. toctree::
+   :hidden:
+
+   generated/pybear
