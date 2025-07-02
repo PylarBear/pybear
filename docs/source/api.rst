@@ -8,6 +8,5 @@ API
    pybear
    
 .. toctree::
-   :hidden:
 
-   generated/pybear.rst
+   generated/pybear
