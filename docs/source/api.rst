@@ -4,7 +4,7 @@ API
 .. autosummary::
 
    :recursive:
-   :toctree: generated/pybear.rst
+   :toctree: generated
    
    pybear
 
