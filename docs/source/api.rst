@@ -6,7 +6,4 @@ API
    :toctree: generated
    
    pybear
-   
-.. toctree::
 
-   generated/pybear
