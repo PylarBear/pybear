@@ -1,6 +1,8 @@
 API
 ===
 
+.. currentmodule:: pybear
+
 .. autosummary::
 
    :recursive:
