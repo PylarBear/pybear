@@ -9,4 +9,4 @@ API
    
 .. toctree::
 
-generated/pybear
+   generated/pybear
