@@ -1,30 +1,35 @@
-﻿pybear.feature\_extraction.text.TextReplacer
-============================================
+﻿TextReplacer
+============
 
 .. currentmodule:: pybear.feature_extraction.text
 
 .. autoclass:: TextReplacer
+   :show-inheritance: False
+   :members:
 
-   
-   .. automethod:: __init__
 
-   
-   .. rubric:: Methods
+.. rubric:: Methods
 
-   .. autosummary::
-   
-      ~TextReplacer.__init__
-      ~TextReplacer.fit
-      ~TextReplacer.fit_transform
-      ~TextReplacer.get_metadata_routing
-      ~TextReplacer.get_params
-      ~TextReplacer.partial_fit
-      ~TextReplacer.score
-      ~TextReplacer.set_params
-      ~TextReplacer.transform
-   
-   
+.. autosummary::
+   :nosignatures:
 
-   
-   
-   
+   ~TextReplacer.
+
+   ~TextReplacer.
+
+   ~TextReplacer.
+
+   ~TextReplacer.
+
+   ~TextReplacer.
+
+   ~TextReplacer.
+
+   ~TextReplacer.
+
+   ~TextReplacer.
+
+   ~TextReplacer.
+
+
+

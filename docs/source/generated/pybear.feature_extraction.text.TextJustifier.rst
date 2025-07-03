@@ -1,36 +1,43 @@
-﻿pybear.feature\_extraction.text.TextJustifier
-=============================================
+﻿TextJustifier
+=============
 
 .. currentmodule:: pybear.feature_extraction.text
 
 .. autoclass:: TextJustifier
+   :show-inheritance: False
+   :members:
 
-   
-   .. automethod:: __init__
 
-   
-   .. rubric:: Methods
+.. rubric:: Methods
 
-   .. autosummary::
-   
-      ~TextJustifier.__init__
-      ~TextJustifier.fit
-      ~TextJustifier.fit_transform
-      ~TextJustifier.get_metadata_routing
-      ~TextJustifier.get_params
-      ~TextJustifier.partial_fit
-      ~TextJustifier.score
-      ~TextJustifier.set_params
-      ~TextJustifier.transform
-   
-   
+.. autosummary::
+   :nosignatures:
 
-   
-   
-   .. rubric:: Attributes
+   ~TextJustifier.
 
-   .. autosummary::
-   
-      ~TextJustifier.n_rows_
-   
-   
+   ~TextJustifier.
+
+   ~TextJustifier.
+
+   ~TextJustifier.
+
+   ~TextJustifier.
+
+   ~TextJustifier.
+
+   ~TextJustifier.
+
+   ~TextJustifier.
+
+   ~TextJustifier.
+
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :nosignatures:
+
+   ~TextJustifier.
+

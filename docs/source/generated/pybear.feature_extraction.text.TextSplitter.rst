@@ -1,30 +1,35 @@
-﻿pybear.feature\_extraction.text.TextSplitter
-============================================
+﻿TextSplitter
+============
 
 .. currentmodule:: pybear.feature_extraction.text
 
 .. autoclass:: TextSplitter
+   :show-inheritance: False
+   :members:
 
-   
-   .. automethod:: __init__
 
-   
-   .. rubric:: Methods
+.. rubric:: Methods
 
-   .. autosummary::
-   
-      ~TextSplitter.__init__
-      ~TextSplitter.fit
-      ~TextSplitter.fit_transform
-      ~TextSplitter.get_metadata_routing
-      ~TextSplitter.get_params
-      ~TextSplitter.partial_fit
-      ~TextSplitter.score
-      ~TextSplitter.set_params
-      ~TextSplitter.transform
-   
-   
+.. autosummary::
+   :nosignatures:
 
-   
-   
-   
+   ~TextSplitter.
+
+   ~TextSplitter.
+
+   ~TextSplitter.
+
+   ~TextSplitter.
+
+   ~TextSplitter.
+
+   ~TextSplitter.
+
+   ~TextSplitter.
+
+   ~TextSplitter.
+
+   ~TextSplitter.
+
+
+

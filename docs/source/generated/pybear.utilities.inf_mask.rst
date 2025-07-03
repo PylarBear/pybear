@@ -1,5 +1,5 @@
-﻿pybear.utilities.inf\_mask
-==========================
+﻿inf_mask
+========
 
 .. currentmodule:: pybear.utilities
 

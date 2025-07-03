@@ -1,43 +1,57 @@
-﻿pybear.preprocessing.SlimPolyFeatures
-=====================================
+﻿SlimPolyFeatures
+================
 
 .. currentmodule:: pybear.preprocessing
 
 .. autoclass:: SlimPolyFeatures
+   :show-inheritance: False
+   :members:
 
-   
-   .. automethod:: __init__
 
-   
-   .. rubric:: Methods
+.. rubric:: Methods
 
-   .. autosummary::
-   
-      ~SlimPolyFeatures.__init__
-      ~SlimPolyFeatures.fit
-      ~SlimPolyFeatures.fit_transform
-      ~SlimPolyFeatures.get_feature_names_out
-      ~SlimPolyFeatures.get_metadata_routing
-      ~SlimPolyFeatures.get_params
-      ~SlimPolyFeatures.partial_fit
-      ~SlimPolyFeatures.reset
-      ~SlimPolyFeatures.score
-      ~SlimPolyFeatures.set_output
-      ~SlimPolyFeatures.set_params
-      ~SlimPolyFeatures.transform
-   
-   
+.. autosummary::
+   :nosignatures:
 
-   
-   
-   .. rubric:: Attributes
+   ~SlimPolyFeatures.
 
-   .. autosummary::
-   
-      ~SlimPolyFeatures.dropped_poly_duplicates_
-      ~SlimPolyFeatures.kept_poly_duplicates_
-      ~SlimPolyFeatures.poly_combinations_
-      ~SlimPolyFeatures.poly_constants_
-      ~SlimPolyFeatures.poly_duplicates_
-   
-   
+   ~SlimPolyFeatures.
+
+   ~SlimPolyFeatures.
+
+   ~SlimPolyFeatures.
+
+   ~SlimPolyFeatures.
+
+   ~SlimPolyFeatures.
+
+   ~SlimPolyFeatures.
+
+   ~SlimPolyFeatures.
+
+   ~SlimPolyFeatures.
+
+   ~SlimPolyFeatures.
+
+   ~SlimPolyFeatures.
+
+   ~SlimPolyFeatures.
+
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :nosignatures:
+
+   ~SlimPolyFeatures.
+
+   ~SlimPolyFeatures.
+
+   ~SlimPolyFeatures.
+
+   ~SlimPolyFeatures.
+
+   ~SlimPolyFeatures.
+

@@ -1,30 +1,35 @@
-﻿pybear.feature\_extraction.text.TextNormalizer
-==============================================
+﻿TextNormalizer
+==============
 
 .. currentmodule:: pybear.feature_extraction.text
 
 .. autoclass:: TextNormalizer
+   :show-inheritance: False
+   :members:
 
-   
-   .. automethod:: __init__
 
-   
-   .. rubric:: Methods
+.. rubric:: Methods
 
-   .. autosummary::
-   
-      ~TextNormalizer.__init__
-      ~TextNormalizer.fit
-      ~TextNormalizer.fit_transform
-      ~TextNormalizer.get_metadata_routing
-      ~TextNormalizer.get_params
-      ~TextNormalizer.partial_fit
-      ~TextNormalizer.score
-      ~TextNormalizer.set_params
-      ~TextNormalizer.transform
-   
-   
+.. autosummary::
+   :nosignatures:
 
-   
-   
-   
+   ~TextNormalizer.
+
+   ~TextNormalizer.
+
+   ~TextNormalizer.
+
+   ~TextNormalizer.
+
+   ~TextNormalizer.
+
+   ~TextNormalizer.
+
+   ~TextNormalizer.
+
+   ~TextNormalizer.
+
+   ~TextNormalizer.
+
+
+

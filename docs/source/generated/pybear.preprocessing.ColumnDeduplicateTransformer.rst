@@ -1,41 +1,53 @@
-﻿pybear.preprocessing.ColumnDeduplicateTransformer
-=================================================
+﻿ColumnDeduplicateTransformer
+============================
 
 .. currentmodule:: pybear.preprocessing
 
 .. autoclass:: ColumnDeduplicateTransformer
+   :show-inheritance: False
+   :members:
 
-   
-   .. automethod:: __init__
 
-   
-   .. rubric:: Methods
+.. rubric:: Methods
 
-   .. autosummary::
-   
-      ~ColumnDeduplicateTransformer.__init__
-      ~ColumnDeduplicateTransformer.fit
-      ~ColumnDeduplicateTransformer.fit_transform
-      ~ColumnDeduplicateTransformer.get_feature_names_out
-      ~ColumnDeduplicateTransformer.get_metadata_routing
-      ~ColumnDeduplicateTransformer.get_params
-      ~ColumnDeduplicateTransformer.inverse_transform
-      ~ColumnDeduplicateTransformer.partial_fit
-      ~ColumnDeduplicateTransformer.score
-      ~ColumnDeduplicateTransformer.set_output
-      ~ColumnDeduplicateTransformer.set_params
-      ~ColumnDeduplicateTransformer.transform
-   
-   
+.. autosummary::
+   :nosignatures:
 
-   
-   
-   .. rubric:: Attributes
+   ~ColumnDeduplicateTransformer.
 
-   .. autosummary::
-   
-      ~ColumnDeduplicateTransformer.column_mask_
-      ~ColumnDeduplicateTransformer.duplicates_
-      ~ColumnDeduplicateTransformer.removed_columns_
-   
-   
+   ~ColumnDeduplicateTransformer.
+
+   ~ColumnDeduplicateTransformer.
+
+   ~ColumnDeduplicateTransformer.
+
+   ~ColumnDeduplicateTransformer.
+
+   ~ColumnDeduplicateTransformer.
+
+   ~ColumnDeduplicateTransformer.
+
+   ~ColumnDeduplicateTransformer.
+
+   ~ColumnDeduplicateTransformer.
+
+   ~ColumnDeduplicateTransformer.
+
+   ~ColumnDeduplicateTransformer.
+
+   ~ColumnDeduplicateTransformer.
+
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :nosignatures:
+
+   ~ColumnDeduplicateTransformer.
+
+   ~ColumnDeduplicateTransformer.
+
+   ~ColumnDeduplicateTransformer.
+

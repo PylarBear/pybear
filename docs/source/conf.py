@@ -28,14 +28,14 @@ extensions = [
     'sphinx.ext.autosummary',
 ]
 
+autosummary_generate = True
+
 autodoc_typehints = "none"
 autodoc_default_options = {
     "members": True,
     "undoc-members": False,
     "show-inheritance": False,
 }
-
-autosummary_generate = True
 
 # Napoleon settings
 napoleon_google_docstring = False

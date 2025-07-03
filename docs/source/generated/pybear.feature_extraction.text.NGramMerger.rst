@@ -1,38 +1,47 @@
-﻿pybear.feature\_extraction.text.NGramMerger
-===========================================
+﻿NGramMerger
+===========
 
 .. currentmodule:: pybear.feature_extraction.text
 
 .. autoclass:: NGramMerger
+   :show-inheritance: False
+   :members:
 
-   
-   .. automethod:: __init__
 
-   
-   .. rubric:: Methods
+.. rubric:: Methods
 
-   .. autosummary::
-   
-      ~NGramMerger.__init__
-      ~NGramMerger.fit
-      ~NGramMerger.fit_transform
-      ~NGramMerger.get_metadata_routing
-      ~NGramMerger.get_params
-      ~NGramMerger.partial_fit
-      ~NGramMerger.reset
-      ~NGramMerger.score
-      ~NGramMerger.set_params
-      ~NGramMerger.transform
-   
-   
+.. autosummary::
+   :nosignatures:
 
-   
-   
-   .. rubric:: Attributes
+   ~NGramMerger.
 
-   .. autosummary::
-   
-      ~NGramMerger.n_rows_
-      ~NGramMerger.row_support_
-   
-   
+   ~NGramMerger.
+
+   ~NGramMerger.
+
+   ~NGramMerger.
+
+   ~NGramMerger.
+
+   ~NGramMerger.
+
+   ~NGramMerger.
+
+   ~NGramMerger.
+
+   ~NGramMerger.
+
+   ~NGramMerger.
+
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :nosignatures:
+
+   ~NGramMerger.
+
+   ~NGramMerger.
+
