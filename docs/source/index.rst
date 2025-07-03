@@ -26,6 +26,7 @@ Contents
 --------
 
 .. toctree::
+   :titlesonly:
 
    usage
    api
