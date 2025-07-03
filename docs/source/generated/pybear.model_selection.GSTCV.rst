@@ -1,4 +1,4 @@
-pybear.model\_selection.GSTCV
+﻿pybear.model\_selection.GSTCV
 =============================
 
 .. currentmodule:: pybear.model_selection

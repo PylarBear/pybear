@@ -1,10 +1,13 @@
 preprocessing
 =============
 
+.. currentmodule:: pybear.preprocessing
+
 .. autosummary::
    :toctree: generated
+   :signatures: none
    
-   pybear.preprocessing.ColumnDeduplicateTransformer
-   pybear.preprocessing.InterceptManager
-   pybear.preprocessing.MinCountTransformer
-   pybear.preprocessing.SlimPolyFeatures
+   ColumnDeduplicateTransformer
+   InterceptManager
+   MinCountTransformer
+   SlimPolyFeatures

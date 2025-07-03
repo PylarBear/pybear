@@ -67,9 +67,8 @@ class InterceptManager(
     SetParamsMixin
 ):
 
-    """
-    InterceptManager (IM) is a scikit-style transformer that identifies
-    and manages the constant columns in a dataset.
+    """A scikit-style transformer that identifies and manages the
+    constant columns in a dataset.
 
     A dataset may contain columns with constant values for a variety of
     reasons, some intentional, some circumstantial. The use of a column
@@ -83,8 +82,8 @@ class InterceptManager(
     other undesirable effects. The analyst is often forced to address
     the issue to perform a meaningful analysis of the data.
 
-    IM has several key characteristics that make it a versatile and
-    powerful tool that can help fix this condition.
+    InterceptManager (IM) has several key characteristics that make it a
+    versatile and powerful tool that can help fix this condition.
 
     IM...
 
@@ -133,18 +132,18 @@ class InterceptManager(
     the normal numpy handling of nan-like values. See the Notes section
     below for a discussion on the handling of nan-like values.
 
-    IM also has a :param: `keep` parameter that allows the user to manage
-    the constant columns that are identified. :param: `keep` accepts
+    IM also has a `keep` parameter that allows the user to manage
+    the constant columns that are identified. :param:`keep` accepts
     several types of arguments. The 'Keep' discussion section has a list
-    of all the options that can be passed to :param: `keep`, what they
+    of all the options that can be passed to :param:`keep`, what they
     do, and how to use them.
 
-    The :meth: `partial_fit`, :meth: `fit`, and :meth: `inverse_transform`
+    The :meth:`partial_fit`, :meth:`fit`, and :meth:`inverse_transform`
     methods of IM accept data as numpy arrays, pandas dataframes, polars
-    dataframes, and scipy sparse matrices/arrays. :meth: `transform`
-    and :meth: `fit_transform` also accept these containers, but the
+    dataframes, and scipy sparse matrices/arrays. :meth:`transform`
+    and :meth:`fit_transform` also accept these containers, but the
     type of output container for these methods can be controlled by
-    the :meth: `set_output` method. The user can set the type of
+    the :meth:`set_output` method. The user can set the type of
     output container regardless of the type of input container. Output
     containers available via `set_output` are numpy arrays, pandas
     dataframes, and polars dataframes. When `set_output` is None, the
@@ -708,12 +707,10 @@ class InterceptManager(
 
         Parameters
         ----------
-        X:
-            array-like of shape (n_samples, n_features) - Required. Data
-            to find constant columns in.
-        y:
-            Optional[Union[Any, None]], default=None - Ignored. The
-            target for the data.
+        X : array_like of shape (n_samples, n_features)
+            Required. Data to find constant columns in.
+        y : Optional[Union[Any, None]], default=None
+            Ignored. The target for the data.
 
 
         Return

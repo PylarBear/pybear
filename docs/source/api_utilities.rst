@@ -1,10 +1,13 @@
 utilities
 ========= 
 
+.. currentmodule:: pybear.utilities
+
 .. autosummary::
    :toctree: generated
+   :signatures: none
    
-   pybear.utilities.time_memory_benchmark
-   pybear.utilities.nan_mask
-   pybear.utilities.inf_mask
+   inf_mask
+   nan_mask
+   time_memory_benchmark
    

@@ -28,10 +28,11 @@ extensions = [
     'sphinx.ext.autosummary',
 ]
 
+autodoc_typehints = "none"
 autodoc_default_options = {
     "members": True,
     "undoc-members": False,
-    "show-inheritance": True,
+    "show-inheritance": False,
 }
 
 autosummary_generate = True
@@ -41,7 +42,7 @@ napoleon_google_docstring = False
 napoleon_numpy_docstring = True
 napoleon_include_init_with_doc = False
 napoleon_include_private_with_doc = False
-napoleon_include_special_with_doc = True
+napoleon_include_special_with_doc = False
 napoleon_use_admonition_for_examples = False
 napoleon_use_admonition_for_notes = False
 napoleon_use_admonition_for_references = False
@@ -60,12 +61,13 @@ exclude_patterns = []
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster' # 'pydata_sphinx_theme'   # 
+html_theme = 'pydata_sphinx_theme'   #   'alabaster' # 
 html_static_path = ['_static']
 html_theme_options = {
     "logo": {"text": "pybear"},
     "navigation_with_keys": True,
-    "switcher": True,             # but user can toggle back to dark if they want
+    "secondary_sidebar_items": [],
+    "switcher": True
 }
 html_context = {
    # ...

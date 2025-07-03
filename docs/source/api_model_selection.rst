@@ -1,10 +1,13 @@
 model_selection
 ===============
 
+.. currentmodule:: pybear.model_selection
+
 .. autosummary::
    :toctree: generated
+   :signatures: none
    
-   pybear.model_selection.autogridsearch_wrapper
-   pybear.model_selection.AutoGridSearchCV
-   pybear.model_selection.AutoGSTCV
-   pybear.model_selection.GSTCV
+   autogridsearch_wrapper
+   AutoGridSearchCV
+   GSTCV
+   AutoGSTCV
