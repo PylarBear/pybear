@@ -1,5 +1,5 @@
-﻿pybear.utilities.time\_memory\_benchmark
-========================================
+﻿time_memory_benchmark
+=====================
 
 .. currentmodule:: pybear.utilities
 

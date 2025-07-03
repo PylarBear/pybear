@@ -1,37 +1,45 @@
-﻿pybear.feature\_extraction.text.TextPadder
-==========================================
+﻿TextPadder
+==========
 
 .. currentmodule:: pybear.feature_extraction.text
 
 .. autoclass:: TextPadder
+   :show-inheritance: False
+   :members:
 
-   
-   .. automethod:: __init__
 
-   
-   .. rubric:: Methods
+.. rubric:: Methods
 
-   .. autosummary::
-   
-      ~TextPadder.__init__
-      ~TextPadder.fit
-      ~TextPadder.fit_transform
-      ~TextPadder.get_metadata_routing
-      ~TextPadder.get_params
-      ~TextPadder.partial_fit
-      ~TextPadder.score
-      ~TextPadder.set_output
-      ~TextPadder.set_params
-      ~TextPadder.transform
-   
-   
+.. autosummary::
+   :nosignatures:
 
-   
-   
-   .. rubric:: Attributes
+   ~TextPadder.
 
-   .. autosummary::
-   
-      ~TextPadder.n_features_
-   
-   
+   ~TextPadder.
+
+   ~TextPadder.
+
+   ~TextPadder.
+
+   ~TextPadder.
+
+   ~TextPadder.
+
+   ~TextPadder.
+
+   ~TextPadder.
+
+   ~TextPadder.
+
+   ~TextPadder.
+
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :nosignatures:
+
+   ~TextPadder.
+

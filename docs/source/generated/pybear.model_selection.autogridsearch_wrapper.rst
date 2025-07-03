@@ -1,5 +1,5 @@
-﻿pybear.model\_selection.autogridsearch\_wrapper
-===============================================
+﻿autogridsearch_wrapper
+======================
 
 .. currentmodule:: pybear.model_selection
 

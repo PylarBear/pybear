@@ -1,42 +1,55 @@
-﻿pybear.preprocessing.InterceptManager
-=====================================
+﻿InterceptManager
+================
 
 .. currentmodule:: pybear.preprocessing
 
 .. autoclass:: InterceptManager
+   :show-inheritance: False
+   :members:
 
-   
-   .. automethod:: __init__
 
-   
-   .. rubric:: Methods
+.. rubric:: Methods
 
-   .. autosummary::
-   
-      ~InterceptManager.__init__
-      ~InterceptManager.fit
-      ~InterceptManager.fit_transform
-      ~InterceptManager.get_feature_names_out
-      ~InterceptManager.get_metadata_routing
-      ~InterceptManager.get_params
-      ~InterceptManager.inverse_transform
-      ~InterceptManager.partial_fit
-      ~InterceptManager.score
-      ~InterceptManager.set_output
-      ~InterceptManager.set_params
-      ~InterceptManager.transform
-   
-   
+.. autosummary::
+   :nosignatures:
 
-   
-   
-   .. rubric:: Attributes
+   ~InterceptManager.
 
-   .. autosummary::
-   
-      ~InterceptManager.column_mask_
-      ~InterceptManager.constant_columns_
-      ~InterceptManager.kept_columns_
-      ~InterceptManager.removed_columns_
-   
-   
+   ~InterceptManager.
+
+   ~InterceptManager.
+
+   ~InterceptManager.
+
+   ~InterceptManager.
+
+   ~InterceptManager.
+
+   ~InterceptManager.
+
+   ~InterceptManager.
+
+   ~InterceptManager.
+
+   ~InterceptManager.
+
+   ~InterceptManager.
+
+   ~InterceptManager.
+
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :nosignatures:
+
+   ~InterceptManager.
+
+   ~InterceptManager.
+
+   ~InterceptManager.
+
+   ~InterceptManager.
+

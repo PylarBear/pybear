@@ -21,3 +21,4 @@ text
    TextSplitter
    TextStatistics
    TextStripper
+   

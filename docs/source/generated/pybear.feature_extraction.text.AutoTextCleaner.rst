@@ -1,40 +1,51 @@
-﻿pybear.feature\_extraction.text.AutoTextCleaner
-===============================================
+﻿AutoTextCleaner
+===============
 
 .. currentmodule:: pybear.feature_extraction.text
 
 .. autoclass:: AutoTextCleaner
+   :show-inheritance: False
+   :members:
 
-   
-   .. automethod:: __init__
 
-   
-   .. rubric:: Methods
+.. rubric:: Methods
 
-   .. autosummary::
-   
-      ~AutoTextCleaner.__init__
-      ~AutoTextCleaner.fit
-      ~AutoTextCleaner.fit_transform
-      ~AutoTextCleaner.get_metadata_routing
-      ~AutoTextCleaner.get_params
-      ~AutoTextCleaner.partial_fit
-      ~AutoTextCleaner.score
-      ~AutoTextCleaner.set_params
-      ~AutoTextCleaner.transform
-   
-   
+.. autosummary::
+   :nosignatures:
 
-   
-   
-   .. rubric:: Attributes
+   ~AutoTextCleaner.
 
-   .. autosummary::
-   
-      ~AutoTextCleaner.after_statistics_
-      ~AutoTextCleaner.before_statistics_
-      ~AutoTextCleaner.lexicon_lookup_
-      ~AutoTextCleaner.n_rows_
-      ~AutoTextCleaner.row_support_
-   
-   
+   ~AutoTextCleaner.
+
+   ~AutoTextCleaner.
+
+   ~AutoTextCleaner.
+
+   ~AutoTextCleaner.
+
+   ~AutoTextCleaner.
+
+   ~AutoTextCleaner.
+
+   ~AutoTextCleaner.
+
+   ~AutoTextCleaner.
+
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :nosignatures:
+
+   ~AutoTextCleaner.
+
+   ~AutoTextCleaner.
+
+   ~AutoTextCleaner.
+
+   ~AutoTextCleaner.
+
+   ~AutoTextCleaner.
+

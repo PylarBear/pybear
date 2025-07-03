@@ -1,48 +1,67 @@
-﻿pybear.model\_selection.AutoGSTCV
-=================================
+﻿AutoGSTCV
+=========
 
 .. currentmodule:: pybear.model_selection
 
 .. autoclass:: AutoGSTCV
+   :show-inheritance: False
+   :members:
 
-   
-   .. automethod:: __init__
 
-   
-   .. rubric:: Methods
+.. rubric:: Methods
 
-   .. autosummary::
-   
-      ~AutoGSTCV.__init__
-      ~AutoGSTCV.decision_function
-      ~AutoGSTCV.demo
-      ~AutoGSTCV.fit
-      ~AutoGSTCV.get_metadata_routing
-      ~AutoGSTCV.get_params
-      ~AutoGSTCV.inverse_transform
-      ~AutoGSTCV.predict
-      ~AutoGSTCV.predict_log_proba
-      ~AutoGSTCV.predict_proba
-      ~AutoGSTCV.print_results
-      ~AutoGSTCV.score
-      ~AutoGSTCV.score_samples
-      ~AutoGSTCV.set_params
-      ~AutoGSTCV.transform
-      ~AutoGSTCV.visualize
-   
-   
+.. autosummary::
+   :nosignatures:
 
-   
-   
-   .. rubric:: Attributes
+   ~AutoGSTCV.
 
-   .. autosummary::
-   
-      ~AutoGSTCV.GRIDS_
-      ~AutoGSTCV.RESULTS_
-      ~AutoGSTCV.classes_
-      ~AutoGSTCV.feature_names_in_
-      ~AutoGSTCV.n_features_in_
-      ~AutoGSTCV.params_
-   
-   
+   ~AutoGSTCV.
+
+   ~AutoGSTCV.
+
+   ~AutoGSTCV.
+
+   ~AutoGSTCV.
+
+   ~AutoGSTCV.
+
+   ~AutoGSTCV.
+
+   ~AutoGSTCV.
+
+   ~AutoGSTCV.
+
+   ~AutoGSTCV.
+
+   ~AutoGSTCV.
+
+   ~AutoGSTCV.
+
+   ~AutoGSTCV.
+
+   ~AutoGSTCV.
+
+   ~AutoGSTCV.
+
+   ~AutoGSTCV.
+
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :nosignatures:
+
+   ~AutoGSTCV.
+
+   ~AutoGSTCV.
+
+   ~AutoGSTCV.
+
+   ~AutoGSTCV.
+
+   ~AutoGSTCV.
+
+   ~AutoGSTCV.
+

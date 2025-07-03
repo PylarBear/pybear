@@ -1,37 +1,45 @@
-﻿pybear.feature\_extraction.text.StopRemover
-===========================================
+﻿StopRemover
+===========
 
 .. currentmodule:: pybear.feature_extraction.text
 
 .. autoclass:: StopRemover
+   :show-inheritance: False
+   :members:
 
-   
-   .. automethod:: __init__
 
-   
-   .. rubric:: Methods
+.. rubric:: Methods
 
-   .. autosummary::
-   
-      ~StopRemover.__init__
-      ~StopRemover.fit
-      ~StopRemover.fit_transform
-      ~StopRemover.get_metadata_routing
-      ~StopRemover.get_params
-      ~StopRemover.partial_fit
-      ~StopRemover.score
-      ~StopRemover.set_params
-      ~StopRemover.transform
-   
-   
+.. autosummary::
+   :nosignatures:
 
-   
-   
-   .. rubric:: Attributes
+   ~StopRemover.
 
-   .. autosummary::
-   
-      ~StopRemover.n_rows_
-      ~StopRemover.row_support_
-   
-   
+   ~StopRemover.
+
+   ~StopRemover.
+
+   ~StopRemover.
+
+   ~StopRemover.
+
+   ~StopRemover.
+
+   ~StopRemover.
+
+   ~StopRemover.
+
+   ~StopRemover.
+
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :nosignatures:
+
+   ~StopRemover.
+
+   ~StopRemover.
+

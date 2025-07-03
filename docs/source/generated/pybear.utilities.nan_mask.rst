@@ -1,5 +1,5 @@
-﻿pybear.utilities.nan\_mask
-==========================
+﻿nan_mask
+========
 
 .. currentmodule:: pybear.utilities
 

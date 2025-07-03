@@ -1,36 +1,43 @@
-﻿pybear.feature\_extraction.text.TextJoiner
-==========================================
+﻿TextJoiner
+==========
 
 .. currentmodule:: pybear.feature_extraction.text
 
 .. autoclass:: TextJoiner
+   :show-inheritance: False
+   :members:
 
-   
-   .. automethod:: __init__
 
-   
-   .. rubric:: Methods
+.. rubric:: Methods
 
-   .. autosummary::
-   
-      ~TextJoiner.__init__
-      ~TextJoiner.fit
-      ~TextJoiner.fit_transform
-      ~TextJoiner.get_metadata_routing
-      ~TextJoiner.get_params
-      ~TextJoiner.partial_fit
-      ~TextJoiner.score
-      ~TextJoiner.set_params
-      ~TextJoiner.transform
-   
-   
+.. autosummary::
+   :nosignatures:
 
-   
-   
-   .. rubric:: Attributes
+   ~TextJoiner.
 
-   .. autosummary::
-   
-      ~TextJoiner.n_rows_
-   
-   
+   ~TextJoiner.
+
+   ~TextJoiner.
+
+   ~TextJoiner.
+
+   ~TextJoiner.
+
+   ~TextJoiner.
+
+   ~TextJoiner.
+
+   ~TextJoiner.
+
+   ~TextJoiner.
+
+
+
+
+.. rubric:: Attributes
+
+.. autosummary::
+   :nosignatures:
+
+   ~TextJoiner.
+
