@@ -1,16 +1,21 @@
 Usage
 =====
 
-.. _installation:
+pybear is a set off data analytics tools that use the scikit-learn API. It is designed to 
+enhance your data analytics experience when used in conjunction with other packages that 
+follow that same API. Some packages that follow that API include:
 
-Installation
-------------
+`lightgbm <https://lightgbm.readthedocs.io/en/latest/index.html>`_
 
-pybear is currently only available on testpypi.
-To use pybear, first install it into your Python environment using pip:
+`xgboost <https://xgboost.readthedocs.io/en/stable/>`_
 
-.. code-block:: console
+`dask-ml <https://ml.dask.org/>`_
 
-   (your-env) $ pip install -i https://test.pypi.org/simple/ pybear
+pybear drops right into workflows that use those packages. For example, all pybear 
+classes can be incorporated into a scikit `pipeline <https://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html>`_.
 
+Check out the :ref:`installation <installation>` section for information on how to 
+install pybear.
 
+See the :ref:`API <api>` section of the docs for a complete listing of the available 
+classes. 
