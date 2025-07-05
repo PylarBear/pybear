@@ -80,7 +80,7 @@ analytics functionality found in popular packages like scikit-learn and xgboost.
 
 See documentation_ for more information.
 
-Website: https://github.com/PylarBear/pybear
+Website: https://pybear.readthedocs.io/en/stable/api.html
 
 License
 -------
@@ -283,13 +283,12 @@ Help and Support
 Documentation
 ~~~~~~~~~~~~~
 
-- HTML documentation: https://pybear.readthedocs.io/ (coming soon!)
+- HTML documentation: https://pybear.readthedocs.io/en/stable/api.html
 
 Communication
 ~~~~~~~~~~~~~
 
 - GitHub Discussions: https://github.com/PylarBear/pybear/discussions
-- Website: https://github.com/PylarBear/pybear
 
 
 
