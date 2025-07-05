@@ -9,12 +9,29 @@ Welcome to the pybear documentation
 pybear is a scikit-learn-style Python computing library that augments data 
 analytics functionality found in popular packages like scikit-learn and xgboost.
 
-Check out the :doc:`usage` section for further information, including how to 
-:ref:`install <installation>` the project.
+Check out the :ref:`installation <installation>` section for information on how 
+to install pybear. See the :doc:`usage` section for further information on the 
+available modules.
 
 .. note::
 
    This project is under active development.
+
+Mission Statement
+=================
+pybear must have seamless integration into typical Python data analytics 
+workflows, therefore it uses the scikit-learn API. All pybear transformers have 
+fit and transform methods.
+
+Additionally, every pybear module seeks to deliver on 4 principles:
+
+1) handle missing data: robust handling of all nan-like values (numpy.nan, pandas.NA, etc.)
+
+2) fast processing with parallelism: use joblib when there is benefit
+
+3) bigger than memory data: every module has a partial_fit method for incremental learning
+
+4) accept all popular containers: accepts numpy, pandas, polars, and scipy sparse containers. 
 
 
 .. toctree::
@@ -28,5 +45,7 @@ Contents
 .. toctree::
    :titlesonly:
 
+   installation
    usage
    api
+   build
