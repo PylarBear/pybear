@@ -1,9 +1,9 @@
 Usage
 =====
 
-pybear is a set off data analytics tools that use the scikit-learn API. It is designed to 
-enhance your data analytics experience when used in conjunction with other packages that 
-follow that same API. Some packages that follow that API include:
+pybear is a set off data analytics tools that use the `scikit-learn <https://scikit-learn.org/stable/index.html>`_ 
+API. It is designed to enhance your data analytics experience when used in conjunction 
+with other packages that follow that same API. Some packages that follow that API include:
 
 `lightgbm <https://lightgbm.readthedocs.io/en/latest/index.html>`_
 
