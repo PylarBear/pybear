@@ -8,16 +8,16 @@
 
 import pytest
 
-from pybear.utilities._benchmarking import timer
-
 import io
 import sys
+
+from pybear.utilities._benchmarking import timer
 
 
 
 def test_returns_original_function():
 
-    dum_lambda = lambda x: 2*x + 11
+    dum_lambda = lambda x: 2 * x + 11
 
     # BLOCK stdout FROM PRINTING TO SCREEN DURING TEST BY CAPTURING
     stdout_buffer = io.StringIO()

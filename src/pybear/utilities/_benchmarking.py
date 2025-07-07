@@ -9,22 +9,22 @@
 from functools import wraps
 import numbers
 import os
-import psutil
 import time
 
 import numpy as np
+import psutil
 
 
 
 def timer(orig_func):
 
-    """ Wraps a function with a timer that displays the elapsed time of running
-    the function.
+    """ Wraps a function with a timer that displays the elapsed time of
+    running a function.
 
     Parameters
     ----------
-    orig_func:
-        callable - function to be timed when called
+    orig_func : callable
+        function to be timed when called
 
     Return
     ------
@@ -57,41 +57,41 @@ def timer(orig_func):
     return wrapper
 
 
-
 def time_memory_benchmark(
     *args,
-    number_of_trials:int=7,
-    rest_time:int=1,
+    number_of_trials:numbers.Integral = 7,
+    rest_time:numbers.Real=1,
     verbose:numbers.Real=1
 ) -> np.ndarray:
 
     """Measure the average time (seconds) and the average change in system
-    RAM (MB) when computing functions. Displays statistics to the screen and
-    returns an np.ndarray containing the raw measurements.
+    RAM (MB) when computing functions.
+
+    Displays statistics to the screen and returns an np.ndarray containing
+    the raw measurements.
 
     Parameters
     ----------
-    args:
+    *args
         tuples of ('function_name', function, ARGS_AS_LIST, KWARGS_AS_DICT)
-    number_of_trials:
-        int - number of times to run each given function. Given, for example,
-        two trials with functions f1, f2, and f3, runs are ordered as f1, f2,
-        f3, f1, f2, f3, not f1, f1, f2, f2, f3, f3.
-    rest_time:
-        int, float - time to rest in seconds before and after running a
-        function to allow for RAM equilibration. The rest time is not included
-        in the reported computation time.
-    verbose:
-        bool, int, float - print (verbose > 0) or do not print (verbose=0)
-        information to the screen during run time.
+    number_of_trials : numbers.Integral
+        number of times to run each given function. Given, for example,
+        two trials with functions f1, f2, and f3, runs are ordered as f1,
+        f2, f3, f1, f2, f3, not f1, f1, f2, f2, f3, f3.
+    rest_time : numbers.Real
+        time to rest in seconds before and after running a function to
+        allow for RAM equilibration. The rest time is not included in
+        the reported computation time.
+    verbose : numbers.Real - print (verbose > 0) or do not print
+        (verbose=0) information to the screen during run time.
 
     Return
     ------
     return
         TIME_MEM_HOLDER: ndarray of shape (2, number of functions,
         number_of_trials) - Raw measurements of time (sec) and memory
-        change (MB). Index 0 of the first axis contains time results, index 1
-        contains memory results.
+        change (MB). Index 0 of the first axis contains time results,
+        index 1 contains memory results.
 
     Examples
     --------
@@ -113,12 +113,12 @@ def time_memory_benchmark(
     ... ) #doctest:+SKIP
 
 
-    ***************************************************************************
+    ********************************************************************
     Running trial 1...
          function_a...
          function_b...
 
-    ***************************************************************************
+    ********************************************************************
     Running trial 2...
          function_a...
          function_b...
@@ -136,10 +136,10 @@ def time_memory_benchmark(
      [[0.0 0.0]
       [0.0 0.0]]]
 
-
     """
 
 
+    # validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     if len(args)==0:
         raise ValueError(f"must pass at least one tuple of values")
 
@@ -188,13 +188,10 @@ def time_memory_benchmark(
     except:
         raise ValueError(f"verbose must be a number >= 0")
 
-
-    ###########################################################################
-    ###########################################################################
-    ###########################################################################
+    # END validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
-    ###### CORE MEASUREMENT FUNCTIONS #########################################
+    ###### CORE MEASUREMENT FUNCTIONS ##################################
     def timer(user_fxn):
 
         def wrapped1(ARGS, KWARGS):
@@ -225,14 +222,14 @@ def time_memory_benchmark(
             return _time, _mem
 
         return wrapped2
-    ###### END CORE MEASUREMENT FUNCTIONS #####################################
+    ###### END CORE MEASUREMENT FUNCTIONS ##############################
+
 
     # TIME_MEM_HOLDER SHAPE:
     # axis_0 = time, mem;
     # axis_1 = number_of_functions;
     # axis_2 = number_of_trials
-    TIME_MEM_HOLDER = np.ma.empty((2, len(args), number_of_trials),
-                                  dtype=np.float64)
+    TIME_MEM_HOLDER = np.ma.empty((2, len(args), number_of_trials), dtype=np.float64)
     TIME_MEM_HOLDER.mask = True
 
 
