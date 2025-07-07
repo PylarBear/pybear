@@ -16,4 +16,5 @@ utilities
    nan_mask_string
    permuter
    time_memory_benchmark
+   timer
    union_find

@@ -7,9 +7,12 @@
 
 
 import pytest
+
 import io
 import sys
+
 import numpy as np
+
 from pybear.utilities._benchmarking import time_memory_benchmark as tmb
 
 
@@ -17,15 +20,16 @@ from pybear.utilities._benchmarking import time_memory_benchmark as tmb
 @pytest.fixture
 def good_args():
     return (
-            ('incrementer', lambda x: x + 1, [3], {}),
-            ('doubler', lambda x: 2 * x, [7], {}),
-            ('tripler', lambda x: 3 * x, [2], {}),
-            ('subtracter', lambda x: x - 1, [9], {}),
+        ('incrementer', lambda x: x + 1, [3], {}),
+        ('doubler', lambda x: 2 * x, [7], {}),
+        ('tripler', lambda x: 3 * x, [2], {}),
+        ('subtracter', lambda x: x - 1, [9], {})
     )
 
 
 
 class TestArgs:
+
 
     def test_args_must_have_quad_format(self, good_args):
         tmb(*good_args, number_of_trials=2, rest_time=0.1, verbose=0)
@@ -46,6 +50,7 @@ class TestArgs:
     @pytest.mark.parametrize('args', ('some_fxn', lambda r: np.pi * r**2, [1], {}))
     @pytest.mark.parametrize('kwargs', ('some_fxn', lambda r: np.pi * r**2, [1], {}))
     def test_arg_input_types(self, name, function, args, kwargs):
+
         if name=='some_fxn' and callable(function) and args==[1] and kwargs=={}:
             tmb(
                 (name, function, args, kwargs),
@@ -102,27 +107,29 @@ class TestVerbose:
             tmb(*good_args, number_of_trials=3, rest_time=0.02, verbose=verbose)
 
 
+class TestResults:
 
-@pytest.mark.parametrize('number_of_trials', (2,4,6))
-@pytest.mark.parametrize('number_of_fxns', (1,2,3))
-def test_results(number_of_fxns, number_of_trials, good_args):
 
-    args = [good_args[i] for i in range(number_of_fxns)]
-    RESULT = tmb(
-                 *args,
-                 number_of_trials=number_of_trials,
-                 rest_time=0.03,
-                 verbose=0
-    )
+    @pytest.mark.parametrize('number_of_trials', (2,4,6))
+    @pytest.mark.parametrize('number_of_fxns', (1,2,3))
+    def test_results(self, number_of_fxns, number_of_trials, good_args):
 
-    # MUST HAVE SHAPE:
-    # axis_0 = time, mem
-    # axis_1 = number_of_functions
-    # axis_2 = number_of_trials
-    assert RESULT.shape == (2, number_of_fxns, number_of_trials)
+        args = [good_args[i] for i in range(number_of_fxns)]
+        RESULT = tmb(
+            *args,
+            number_of_trials=number_of_trials,
+            rest_time=0.03,
+            verbose=0
+        )
 
-    # ALL TIMES MUST BE >= 0 (SOMETIMES ANOMALIES HAPPEN WITH MEMORY)
-    assert (RESULT[0, :, :] > 0).all()
+        # MUST HAVE SHAPE:
+        # axis_0 = time, mem
+        # axis_1 = number_of_functions
+        # axis_2 = number_of_trials
+        assert RESULT.shape == (2, number_of_fxns, number_of_trials)
+
+        # ALL TIMES MUST BE >= 0 (SOMETIMES ANOMALIES HAPPEN WITH MEMORY)
+        assert (RESULT[0, :, :] > 0).all()
 
 
 

@@ -50,6 +50,7 @@ pyarrow = "^17.0.0"
 sphinx = "*"
 
 
+
 [tool.poetry.group.test.dependencies]
 pytest = "*"
 pytest-cov = "*"
