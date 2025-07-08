@@ -7,7 +7,10 @@
 
 
 from typing import Optional
-from typing_extensions import Self, Union
+from typing_extensions import (
+    Self,
+    Union
+)
 from ._type_aliases import (
     XContainer,
     XWipContainer,
@@ -37,7 +40,6 @@ class TextNormalizer(
     ReprMixin,
     SetParamsMixin
 ):
-
     """
     Normalize all text in a dataset to upper-case, lower-case, or leave
     unchanged. The data can only contain strings.
@@ -61,13 +63,11 @@ class TextNormalizer(
     to enable TN to be incorporated into workflows such as scikit
     pipelines and dask_ml wrappers.
 
-
     Parameters
     ----------
-    upper:
-        Optional[Union[bool, None]] - If True, convert all text in X to
-        upper-case; if False, convert to lower-case; if None, do a no-op.
-
+    upper : Optional[Union[bool, None]]
+        If True, convert all text in X to upper-case; if False, convert
+        to lower-case; if None, do a no-op.
 
     Notes
     -----
@@ -94,13 +94,11 @@ class TextNormalizer(
     UpperType:
         Optional[Union[bool, None]]
 
-
     See Also
     --------
-    str.lower()
-    str.upper()
-    
-    
+    str.lower
+    str.upper
+
     Examples
     --------
     >>> from pybear.feature_extraction.text import TextNormalizer as TN
@@ -113,8 +111,7 @@ class TextNormalizer(
     >>> X2 = [['One', 'Two', 'Three'], ['Ichi', 'Ni', 'Sa']]
     >>> trfm.fit_transform(X2)
     [['ONE', 'TWO', 'THREE'], ['ICHI', 'NI', 'SA']]
-    
-    
+
     """
 
 
@@ -123,7 +120,7 @@ class TextNormalizer(
         *,
         upper: UpperType = True
     ) -> None:
-
+        """Initialize the TextNormalizer instance."""
         self.upper = upper
 
 
@@ -133,6 +130,7 @@ class TextNormalizer(
 
 
     def get_metadata_routing(self):
+        """get_metadata_routing is not implemented in TextNormalizer."""
         raise NotImplementedError(
             f"'get_metadata_routing' is not implemented in TextNormalizer"
         )
@@ -155,25 +153,19 @@ class TextNormalizer(
         X: XContainer,
         y: Optional[Union[any, None]] = None
     ) -> Self:
-
-        """
-        No-op batch-wise fit.
-
+        """No-op batch-wise fit.
 
         Parameters
         ----------
-        X:
-            Union[Sequence[str], Sequence[Sequence[str]]] - the data
-            whose text will be normalized.
-        y:
-            Optional[Union[any, None]], default=None - the target for
-            the data. Always ignored.
-
+        X : Union[Sequence[str], Sequence[Sequence[str]]]
+            The data whose text will be normalized.
+        y : Optional[Union[any, None]], default=None
+            The target for the data. Always ignored.
 
         Returns
         -------
-        -
-            self - the TextNormalizer instance.
+        self : object
+            The TextNormalizer instance.
 
         """
 
@@ -186,25 +178,19 @@ class TextNormalizer(
         X: XContainer,
         y: Optional[Union[any, None]] = None
     ) -> Self:
-
-        """
-        No-op one-shot fit.
-
+        """ No-op one-shot fit.
 
         Parameters
         ----------
-        X:
-            Union[Sequence[str], Sequence[Sequence[str]]] - the data
-            whose text will be normalized.
-        y:
-            Optional[Union[any, None]], default=None - the target for
-            the data. Always ignored.
-
+        X : Union[Sequence[str], Sequence[Sequence[str]]]
+            The data whose text will be normalized.
+        y : Optional[Union[any, None]], default=None
+            The target for the data. Always ignored.
 
         Returns
         -------
-        -
-            self - the TextNormalizer instance.
+        self : object
+            The TextNormalizer instance.
 
         """
 
@@ -217,26 +203,20 @@ class TextNormalizer(
         X:XContainer,
         copy:Optional[bool] = False
     ) -> XWipContainer:
-
-        """
-        Normalize the text in a dataset.
-
+        """Normalize the text in a dataset.
 
         Parameters
         ----------
-        X:
-            Union[Sequence[str], Sequence[Sequence[str]]] - the data
-            whose text will be normalized.
-        copy:
-            Optional[bool], default=False - whether to normalize the text
-            in the original X object or a deepcopy of X.
-
+        X : Union[Sequence[str], Sequence[Sequence[str]]]
+            The data whose text will be normalized.
+        copy : Optional[bool], default=False
+            whether to normalize the text in the original X object or a
+            deepcopy of X.
 
         Returns
         -------
-        -
-            Union[list[str], list[list[str]]] - the data with normalized 
-            text.
+        X_tr : Union[list[str], list[list[str]]]
+            The data with normalized text.
 
         """
 
@@ -245,20 +225,20 @@ class TextNormalizer(
         _validation(X, self.upper)
 
         if copy:
-            _X = copy_X(X)
+            X_tr = copy_X(X)
         else:
-            _X = X
+            X_tr = X
 
-        _X: XWipContainer = _map_X_to_list(_X)
+        X_tr: XWipContainer = _map_X_to_list(X_tr)
 
-        if all(map(isinstance, _X, (str for _ in _X))):
-            return _transform(_X, self.upper)
+        if all(map(isinstance, X_tr, (str for _ in X_tr))):
+            return _transform(X_tr, self.upper)
         else:
             # USE RECURSION ON 1D TO DO 2D
-            for _row_idx in range(len(_X)):
-                _X[_row_idx] = self.transform(_X[_row_idx], copy=False)
+            for _row_idx in range(len(X_tr)):
+                X_tr[_row_idx] = self.transform(X_tr[_row_idx], copy=False)
 
-            return _X
+            return X_tr
 
 
     def score(
@@ -266,24 +246,18 @@ class TextNormalizer(
         X: XContainer,
         y: Optional[Union[any, None]] = None
     ) -> None:
-
-        """
-        No-op score method.
-
+        """No-op score method.
 
         Parameters
         ----------
-        X:
-            Union[Sequence[str], Sequence[Sequence[str]]] - the data.
-        y:
-            Optional[Union[any, None]], default=None - the target for
-            the data. Always ignored.
-
+        X : Union[Sequence[str], Sequence[Sequence[str]]]
+            The data.
+        y : Optional[Union[any, None]], default=None
+            The target for the data. Always ignored.
 
         Returns
         -------
-        -
-            None
+        None
 
         """
 
@@ -291,18 +265,6 @@ class TextNormalizer(
         check_is_fitted(self)
 
         return
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

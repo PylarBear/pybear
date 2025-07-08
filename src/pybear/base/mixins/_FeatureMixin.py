@@ -6,7 +6,6 @@
 
 
 
-
 from typing import Iterable
 from typing_extensions import Union
 import numpy.typing as npt
@@ -26,36 +25,31 @@ class FeatureMixin:
         X,
         reset
     ) -> int:
-
-        """
-        Set the 'n_features_in_' attribute, or check against it.
+        """Set the 'n_features_in_' attribute, or check against it.
 
         pybear recommends calling reset=True in 'fit' and in the first
         call to 'partial_fit'. All other methods that validate 'X' should
         set 'reset=False'.
 
-
         Parameters
         ----------
-        X:
-            array-like of shape (n_samples, n_features) or (n_samples,)
-            with a 'shape' attribute - The input data.
-        n_features_in_:
-            Union[int, None] - the number of features in the data. If
-            this attribute exists, it is integer. If it does not exist,
-            it is None.
-        reset:
-            bool -
+        X : array_like of shape (n_samples, n_features) or (n_samples,)
+            The input data; with a 'shape' attribute.
+        n_features_in_ : Union[int, None]
+            The number of features in the data. If this attribute exists,
+            it is integer. If it does not exist, it is None.
+        reset : bool
             If True, the 'n_features_in_' attribute is set to 'X.shape[1]'
+
             If False:
                 if n_features_in_ exists check it is equal to 'X.shape[1]'
-                if n_features_in_ does *not* exist the check is skipped
 
+                if n_features_in_ does *not* exist the check is skipped
 
         Return
         ------
-        -
-            n_features: int - the number of features in X.
+        n_features : int
+            The number of features in X.
 
         """
 
@@ -75,9 +69,7 @@ class FeatureMixin:
         X,
         reset: bool
     ) -> npt.NDArray[object]:
-
-        """
-        Set or check the 'feature_names_in_' attribute.
+        """Set or check the 'feature_names_in_' attribute.
 
         pybear recommends setting 'reset=True' in 'fit' and in the first
         call to 'partial_fit'. All other methods that validate 'X'
@@ -113,37 +105,31 @@ class FeatureMixin:
 
             if X has a (valid) header:  Warn and return None.
 
-
         Parameters
         ----------
-        X:
-            {array-like} of shape (n_samples, n_features) or
-            (n_samples, ). The data from which to extract feature names.
-            X will provide feature names if it is a dataframe constructed
-            with a valid header of strings. Some objects that are known
-            to yield feature names are pandas dataframes, dask dataframes,
-            and polars dataframes. If X does not have a valid header then
+        X : array_like of shape (n_samples, n_features) or (n_samples, ).
+            The data from which to extract feature names. X will provide
+            feature names if it is a dataframe constructed with a valid
+            header of strings. Some objects that are known to yield
+            feature names are pandas dataframes, dask dataframes, and
+            polars dataframes. If X does not have a valid header then
             None is returned. Objects that are known to not yield feature
             names are numpy arrays, dask arrays, and scipy sparse
             matrices/arrays.                  .
-        feature_names_in_:
-            NDArray[object] - shape (n_features, ), the feature names
-            seen on the first fit, if an object with a valid header was
-            passed on the first fit. None if feature names were not seen
-            on the first fit.
-        reset:
-            bool - Whether to reset the 'feature_names_in_' attribute.
-            If False, the feature names of X will be checked for
-            consistency with feature names of data provided when reset
-            was last True.
-
+        feature_names_in_ : NDArray[object] of shape (n_features, )
+            The feature names seen on the first fit, if an object with a
+            valid header was passed on the first fit. None if feature
+            names were not seen on the first fit.
+        reset : bool
+            Whether to reset the 'feature_names_in_' attribute. If False,
+            the feature names of X will be checked for consistency with
+            feature names of data provided when reset was last True.
 
         Return
         ------
-        -
-            feature_names_in_: Union[NDArray[object], None]: the
-            validated feature names if feature names were seen the last
-            time reset was set to True. None if the estimator/transformer
+        feature_names_in_ : Union[NDArray[object], None]
+            The validated feature names if feature names were seen the
+            last time reset was True. None if the estimator/transformer
             did not see valid feature names at the first fit.
 
         """
@@ -171,9 +157,7 @@ class FeatureMixin:
         self,
         input_features: Union[Iterable[str], None]=None
     ) -> npt.NDArray[object]:
-
-        """
-        Return the feature name vector for the transformed output.
+        """Return the feature name vector for the transformed output.
 
         - If 'input_features' is 'None', then 'feature_names_in_' is
           used as feature names in. If 'feature_names_in_' is not
@@ -193,18 +177,15 @@ class FeatureMixin:
         data, then a dedicated get_feature_names_out method will need
         to be used in place of this.
 
-
         Parameters
         ----------
-        input_features:
-            Union[Iterable[str], None] - Input features.
-
+        input_features : Union[Iterable[str], None]
+            Input features.
 
         Return
         ------
-        -
-            feature_names_out: npt.NDArray[object] - The feature names
-            for the transformed output.
+        feature_names_out : npt.NDArray[object]
+            The feature names for the transformed output.
 
         """
 
@@ -215,30 +196,6 @@ class FeatureMixin:
             getattr(self, 'feature_names_in_', None),
             self.n_features_in_
         )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

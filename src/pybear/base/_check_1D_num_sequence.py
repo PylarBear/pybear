@@ -6,9 +6,15 @@
 
 
 
-from typing import Iterable, Optional
+from typing import (
+    Iterable,
+    Optional
+)
 import numpy.typing as npt
-from typing_extensions import TypeAlias, Union
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 
 import numbers
 
@@ -34,9 +40,7 @@ def check_1D_num_sequence(
     X:XContainer[numbers.Number],
     require_all_finite:Optional[bool] = False
 ) -> None:
-
-    """
-    Validate things that are expected to be 1D sequences of numbers.
+    """Validate things that are expected to be 1D sequences of numbers.
     Accepts 1D python built-ins, numpy arrays, pandas series, and polars
     series. When 'require_all_finite' is True, every element in the
     sequence must be an instance of numbers.Number; if there is a
@@ -45,16 +49,13 @@ def check_1D_num_sequence(
     the finite values must be an instance of numbers.Number. If all
     checks pass then None is returned.
 
-
     Parameters
     ----------
-    X:
-        XContainer[numbers.Number] - something that is expected to be a
-        1D sequence of numbers.
-    require_all_finite:
-        Optional[bool], default=False - if True, disallow all non-finite
-        values, such as nan-like or infinity-like values.
-
+    X : XContainer[numbers.Number]
+        something that is expected to be a 1D sequence of numbers.
+    require_all_finite : Optional[bool], default=False
+        if True, disallow all non-finite values, such as nan-like or
+        infinity-like values.
 
     Raises
     ------
@@ -63,16 +64,13 @@ def check_1D_num_sequence(
     ValueError:
         for non-finite values when 'require_all_finite' is True
 
-
     Return
     ------
-    -
-        None
-
+    None
 
     Notes
     -----
-    Type Aliases
+    **Type Aliases**
 
     PythonTypes:
         Union[list, tuple, set]
@@ -88,7 +86,6 @@ def check_1D_num_sequence(
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
-
 
     Examples
     --------

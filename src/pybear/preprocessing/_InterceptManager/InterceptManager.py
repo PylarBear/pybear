@@ -66,7 +66,6 @@ class InterceptManager(
     SetOutputMixin,
     SetParamsMixin
 ):
-
     """A scikit-style transformer that identifies and manages the
     constant columns in a dataset.
 
@@ -184,9 +183,8 @@ class InterceptManager(
     doing all partial fits consecutively, then doing all transformations
     consecutively.
 
+    **The 'keep' Parameter**
 
-    The 'keep' Parameter
-    --------------------
     IM learns which columns are constant during fitting. At the time
     of :term: transform, IM applies the instruction given to it via
     the :param: `keep` parameter. The :param: `keep` parameter takes
@@ -314,7 +312,6 @@ class InterceptManager(
     others." If IM finds that it is not constant, it will raise an
     exception because you lied to it.
 
-
     Parameters
     ----------
     keep:
@@ -323,6 +320,7 @@ class InterceptManager(
         The strategy for handling the constant columns. See 'The keep
         Parameter' section for a lengthy explanation of the 'keep'
         parameter.
+
     equal_nan:
         Optional[bool], default=True - If equal_nan is True, exclude
         nan-likes from computations that discover constant columns.
@@ -332,15 +330,16 @@ class InterceptManager(
         assume that the nan value is equal to the mean of the non-nan
         values in the same column, thus making the column non-constant.
         This is in line with the normal numpy handling of nan values.
+
     rtol:
         Optional[numbers.Real], default=1e-5 - The relative difference
         tolerance for equality. Must be a non-boolean, non-negative,
         real number. See numpy.allclose.
+
     atol:
         Optional[numbers.Real], default=1e-8 - The absolute difference
         tolerance for equality. Must be a non-boolean, non-negative,
         real number. See numpy.allclose.
-
 
     Attributes
     ----------
@@ -391,7 +390,6 @@ class InterceptManager(
         to data of the same dimension as that seen during fit, and
         the new column of constants is a feature added after :term:
         transform.
-
 
     Notes
     -----

@@ -48,7 +48,7 @@ jupyter = "*"
 notebook = "*"
 pyarrow = "^17.0.0"
 sphinx = "*"
-
+numpydoc = "*"
 
 
 [tool.poetry.group.test.dependencies]

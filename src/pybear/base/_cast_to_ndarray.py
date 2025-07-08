@@ -45,28 +45,24 @@ def cast_to_ndarray(
     X: XContainer,
     copy_X:Optional[bool] = True
 ):
-
-    """
-    Convert the container of X to numpy.ndarray. Can take python lists,
-    tuples, and sets, numpy ndarrays and masked arrays, pandas dataframes
-    and series, polars dataframes and series, and scipy sparse matrices
-    and arrays. Any nan-like values are standardized to numpy.nan.
-
+    """Convert the container of X to numpy.ndarray.
+    Can take python lists, tuples, and sets, numpy ndarrays and masked
+    arrays, pandas dataframes and series, polars dataframes and series,
+    and scipy sparse matrices and arrays. Any nan-like values are
+    standardized to numpy.nan.
 
     Parameters
     ----------
-    X:
-        array-like of shape (n_samples, n_features) or (n_samples,) -
+    X : array_like of shape (n_samples, n_features) or (n_samples,)
         The array-like data to be converted to NDArray.
-    copy_X:
-        Optional[bool], default=True - whether to copy X before casting
-        to ndarray or perform the operations directly on the passed X.
-
+    copy_X : Optional[bool], default=True
+        whether to copy X before casting to ndarray or perform the
+        operations directly on the passed X.
 
     Return
     ------
-    -
-        X: the original data converted to NDArray.
+    X:
+        the original data converted to NDArray.
 
     """
 

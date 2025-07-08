@@ -15,25 +15,16 @@ def array_sparsity(a) -> float:
     """
     Calculate the sparsity (percentage of zeros) of an array-like.
 
-
     Parameters
     -----------
-    a:
-        array-like - object for which to calculate sparsity. Must be
-        able to convert to a numpy.ndarray and must not be empty.
-
+    a : array-like
+        object for which to calculate sparsity. Must be able to convert
+        to a numpy.ndarray and must not be empty.
 
     Return
     ------
-    return
-        sparsity: float - percentage of zeros in a.
-
-
-    See Also
-    --------
-    pybear.sparse_dict.utils.sparsity for a sparse dictionary implement-
-    ation
-
+    sparsity : float
+        percentage of zeros in a.
 
     Examples
     --------

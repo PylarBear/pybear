@@ -75,7 +75,6 @@ class ReprMixin:
 
 
 class KeyValTuple(tuple):
-
     """
     Dummy class for correctly rendering key-value tuples from dicts.
 
@@ -87,7 +86,6 @@ class KeyValTuple(tuple):
 
 
 class KeyValTupleParam(KeyValTuple):
-
     """
     Dummy class for correctly rendering key-value tuples from parameters.
 
@@ -97,9 +95,7 @@ class KeyValTupleParam(KeyValTuple):
 
 
 class _EstimatorPrettyPrinter(pprint.PrettyPrinter):
-
-    """
-    Pretty Printer class for estimator objects.
+    """Pretty Printer class for estimator objects.
 
     This extends the pprint.PrettyPrinter class, because:
     - we need estimators to be printed with their parameters, e.g.
@@ -175,10 +171,9 @@ class _EstimatorPrettyPrinter(pprint.PrettyPrinter):
 
 
     def _get_threadlocal_config(self):
-
-        """
-        Get a threadlocal **mutable** configuration. If the configuration
-        does not exist, copy the default global configuration.
+        """Get a threadlocal **mutable** configuration.
+        If the configuration does not exist, copy the default global
+        configuration.
 
         """
 
@@ -205,17 +200,14 @@ class _EstimatorPrettyPrinter(pprint.PrettyPrinter):
 
 
     def get_config(self):
-
         """
         Retrieve current values for configuration set by :func: 
         'set_config'.
 
-
         Returns
         -------
-        -
-            config: dict - Keys are parameter names that can be passed
-            to :func: 'set_config'.
+        config : dict
+            Keys are parameter names that can be passed to :func: 'set_config'.
 
 
         See Also
@@ -225,13 +217,13 @@ class _EstimatorPrettyPrinter(pprint.PrettyPrinter):
         set_config: Set global scikit-learn configuration.
 
         """
+
         # Return a copy of the threadlocal configuration so that users will
         # not be able to modify the configuration with the returned dict.
         return self._get_threadlocal_config().copy()
 
 
     def _changed_params(self, estimator):
-
         """
         Return dict (param_name: value) of parameters that were given to
         estimator with non-default values.
@@ -266,25 +258,21 @@ class _EstimatorPrettyPrinter(pprint.PrettyPrinter):
 
 
     def is_scalar_nan(self, x):
-
-        """
-        Test if x is NaN.
+        """Test if x is NaN.
 
         This function is meant to overcome the issue that np.isnan does
         not allow non-numerical types as input, and that np.nan is not
         float('nan').
 
-
         Parameters
         ----------
-        x : any type
+        x : Any
             Any scalar value.
-
 
         Returns
         -------
-        -
-            bool -  Returns true if x is NaN, and false otherwise.
+        bool:
+            Returns true if x is NaN, and false otherwise.
 
         """
 
@@ -298,7 +286,6 @@ class _EstimatorPrettyPrinter(pprint.PrettyPrinter):
     def _safe_repr(
         self, object, context, maxlevels, level, changed_only=False
     ):
-
         """
         Same as the builtin _safe_repr, with added support for Estimator
         objects.
@@ -575,7 +562,6 @@ class _EstimatorPrettyPrinter(pprint.PrettyPrinter):
     def _pprint_key_val_tuple(
         self, object, stream, indent, allowance, context, level
     ):
-
         """
         Pretty printing for key-value tuples from dict or parameters.
 
@@ -601,27 +587,6 @@ class _EstimatorPrettyPrinter(pprint.PrettyPrinter):
     _dispatch = pprint.PrettyPrinter._dispatch.copy()  # type: ignore
     _dispatch[ReprMixin.__repr__] = _pprint_estimator
     _dispatch[KeyValTuple.__repr__] = _pprint_key_val_tuple
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

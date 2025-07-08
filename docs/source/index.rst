@@ -28,6 +28,7 @@ ecosystem.
 pybear runs on all actively supported versions of Python.
 
 pybear must seamlessly integrate into conventional Python data analytics workflows.
+The way pybear does this is by using the scikit-learn API.
 
 Every pybear module seeks to fulfill 4 objectives:
 

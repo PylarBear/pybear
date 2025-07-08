@@ -7,7 +7,10 @@
 
 
 from typing import Optional
-from typing_extensions import Self, Union
+from typing_extensions import (
+    Self,
+    Union
+)
 from ._type_aliases import (
     XContainer,
     XWipContainer,
@@ -59,16 +62,15 @@ class AutoTextCleaner(
     ReprMixin,
     SetParamsMixin
 ):
+    """A quick, convenient transformer for streamlining basic everyday
+    data cleaning needs.
 
-    """
-    This module is intended to be a quick, convenient transformer for
-    streamlining basic everyday data cleaning needs. It is not meant
-    to do highly specialized text cleaning operations (A transformer
-    designed to do that using the same underling pybear sub-transformers
-    might have 50 parameters; 14 is enough.) If you cannot accomplish
-    what you are trying to do with this module out of the box, then you
-    will need to construct your own workflow piece by piece with the
-    individual pybear text modules.
+    This module is not meant to do highly specialized text cleaning
+    operations (A transformer designed to do that using the same
+    underling pybear sub-transformers might have 50 parameters; 14 is
+    enough.) If you cannot accomplish what you are trying to do with
+    this module out of the box, then you will need to construct your
+    own workflow piece by piece with the individual pybear text modules.
 
     AutoTextCleaner (ATC) combines the functionality of the pybear
     text transformers into one module. In one shot you can strip,

@@ -7,7 +7,10 @@
 
 
 from typing import Optional
-from typing_extensions import Self, Union
+from typing_extensions import (
+    Self,
+    Union
+)
 from ._type_aliases import (
     XContainer,
     XWipContainer,
@@ -229,7 +232,7 @@ class TextSplitter(
 
     See Also
     --------
-    re.split()
+    re.split
 
 
     Examples

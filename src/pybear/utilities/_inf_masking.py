@@ -7,7 +7,10 @@
 
 
 from typing import Iterable
-from typing_extensions import Union, TypeAlias
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 import numpy.typing as npt
 
 from copy import deepcopy
@@ -156,12 +159,14 @@ def inf_mask(
             SparseTypes
         ]
 
-
     See Also
     --------
-    numpy.isinf, numpy.inf, numpy.PINF, numpy.NINF, math.inf, str('inf'),
-    float('inf'), 'decimal.Decimal('Infinity')
-
+    numpy.isinf
+    numpy.inf
+    numpy.PINF
+    numpy.NINF
+    math.inf
+    decimal.Decimal
 
     Examples
     --------
@@ -174,7 +179,6 @@ def inf_mask(
     array([  0.,  inf,   2.,   3., -inf])
     >>> inf_mask(X)
     array([False,  True, False, False,  True])
-
 
     """
 
@@ -304,15 +308,6 @@ def inf_mask(
         _ = _.astype(str)
         _ = (_ == 'inf') + (_ == '-inf') + (_ == 'Infinity') + (_ == '-Infinity')
         return _.astype(bool)
-
-
-
-
-
-
-
-
-
 
 
 
