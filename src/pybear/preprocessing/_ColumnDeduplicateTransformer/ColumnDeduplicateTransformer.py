@@ -61,7 +61,6 @@ class ColumnDeduplicateTransformer(
     SetOutputMixin,
     SetParamsMixin
 ):
-
     """
     ColumnDeduplicateTransformer (CDT) is a scikit-style transformer
     that removes duplicate columns from data, leaving behind one column
@@ -135,7 +134,7 @@ class ColumnDeduplicateTransformer(
     columns specified in :param: `do_not_drop` are duplicates of each
     other, the behavior is managed by :param: `conflict`.
 
-    :param: `conflict` is ignored when :param: `do_not_drop` is not
+    `conflict` is ignored when `do_not_drop` is not
     passed. Otherwise, :param: `conflict` accepts two possible values:
     'raise' or 'ignore'. This parameter instructs CDT how to deal with
     conflict between :param: `keep` and :param: `do_not_drop`.
@@ -205,31 +204,30 @@ class ColumnDeduplicateTransformer(
     will be nonsensical. pybear recommends doing all partial fits
     consecutively, then doing all transformations consecutively.
 
-
     Parameters
     ----------
-    keep:
-        Optional[Literal['first', 'last', 'random']], default='first' -
+    keep : Optional[Literal['first', 'last', 'random']], default='first'
         The strategy for keeping a single representative from a set of
         identical columns. 'first' retains the column left-most in the
         data; 'last' keeps the column right-most in the data; 'random'
         keeps a single randomly-selected column of the set of duplicates.
-    do_not_drop:
-        Optional[Union[Sequence[int], Sequence[str], None]],
+
+    do_not_drop : Optional[Union[Sequence[int], Sequence[str], None]],
         default=None -  A list of columns not to be dropped. If fitting
         is done with a container that has a header, a list of feature
         names may be provided. Otherwise, a list of column indices
         must be given. If a conflict arises, such as when two columns
         specified in :param: `do_not_drop` are duplicates of each other,
         the behavior is managed by :param: `conflict`.
-    conflict:
-        Literal['raise', 'ignore'] - Ignored when :param: `do_not_drop`
-        is not passed. Instructs CDT how to deal with a conflict between
-        the instructions in :param: `keep` and :param: `do_not_drop`. A
-        conflict arises when the instruction in :param: `keep` ('first',
-        'last', 'random') is applied and a column in :param: `do_not_drop`
-        is found to be a member of the columns to be removed. In this
-        case, when :param: `conflict` is 'raise', an exception is raised.
+
+    conflict : Literal['raise', 'ignore']
+        Ignored when :param: `do_not_drop` is not passed. Instructs CDT
+        how to deal with a conflict between the instructions
+        in :param: `keep` and :param: `do_not_drop`. A conflict arises
+        when the instruction in :param: `keep` ('first', 'last', 'random')
+        is applied and a column in :param: `do_not_drop` is found to be
+        a member of the columns to be removed. In this case,
+        when :param: `conflict` is 'raise', an exception is raised.
         When :param: `conflict` is 'ignore', there are 2 possible
         scenarios:
 
@@ -244,9 +242,9 @@ class ColumnDeduplicateTransformer(
         result as applying the :param: `keep` instruction to the entire
         set of duplicate columns. This also causes at least one member
         of the columns not to be dropped to be removed.
-    equal_nan:
-        bool, default=False - When comparing pairs of columns row by
-        row:
+
+    equal_nan : bool, default=False
+        When comparing pairs of columns row by row:
 
         If :param: `equal_nan` is True, exclude from comparison any rows
         where one or both of the values is/are nan. If one value is nan,
@@ -260,60 +258,59 @@ class ColumnDeduplicateTransformer(
         consider the pair to be not equivalent, thus making the column
         pair not equal. This is in line with the normal numpy handling
         of nan values.
-    rtol:
-        numbers.Real, default=1e-5 - The relative difference tolerance
+
+    rtol : numbers.Real, default=1e-5
+        The relative difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
+
+    atol : numbers.Real, default=1e-8 - The absolute difference tolerance
         for equality. Must be a non-boolean, non-negative, real number.
         See numpy.allclose.
-    atol:
-        numbers.Real, default=1e-8 - The absolute difference tolerance
-        for equality. Must be a non-boolean, non-negative, real number.
-        See numpy.allclose.
-    n_jobs:
-        Union[numbers.Integral, None], default=None - The number of
-        joblib Parallel jobs to use when comparing columns. The default
-        is to use processes, but can be overridden externally using a
-        joblib parallel_config context manager. The default value for
-        n_jobs is None, which uses the joblib default setting. To get
+
+    n_jobs : Union[numbers.Integral, None], default=None
+        The number of joblib Parallel jobs to use when comparing columns.
+        The default is to use processes, but can be overridden externally
+        using a joblib parallel_config context manager. The default value
+        for n_jobs is None, which uses the joblib default setting. To get
         maximum speed benefit, pybear recommends setting this to -1,
         which means use all processors.
-    job_size:
-        Optional[numbers.Integral], default=50 - The number of columns
-        to send to a joblib job. Must be an integer greater than or
-        equal to 2. This allows the user to optimize CPU utilization for
-        their particular circumstance. Long, thin datasets should use
-        fewer columns, and wide, flat datasets should use more columns.
-        Bear in mind that the columns sent to joblib jobs are deep copies
-        of the original data, and larger job sizes increase RAM usage.
-        Also note that joblib is only engaged when the number of columns
-        in the data is at least 2*job_size. For example, if job_size is
-        10, data with 20 or more columns will be processed with joblib,
-        data with 19 or fewer columns will be processed linearly.
 
+    job_size : Optional[numbers.Integral], default=50
+        The number of columns to send to a joblib job. Must be an integer
+        greater than or equal to 2. This allows the user to optimize CPU
+        utilization for their particular circumstance. Long, thin datasets
+        should use fewer columns, and wide, flat datasets should use more
+        columns. Bear in mind that the columns sent to joblib jobs are
+        deep copies of the original data, and larger job sizes increase
+        RAM usage. Also note that joblib is only engaged when the number
+        of columns in the data is at least 2*job_size. For example, if
+        job_size is 10, data with 20 or more columns will be processed
+        with joblib, data with 19 or fewer columns will be processed
+        linearly.
 
     Attributes
     ----------
-    n_features_in_:
-        int - number of features in the fitted data before deduplication.
+    n_features_in_ : int
+        number of features in the fitted data before deduplication.
 
-    feature_names_in_:
-        NDArray[str] - The names of the features as seen during fitting.
-        Only accessible if X is passed to :meth: `partial_fit`
-        or :meth: `fit` in a container that has a header.
+    feature_names_in_ : NDArray[str]
+        The names of the features as seen during fitting. Only accessible
+        if X is passed to :meth: `partial_fit` or :meth: `fit` in a
+        container that has a header.
 
-    duplicates_: list[list[int]] - a list of the groups of identical
-        columns, indicated by their zero-based column index positions
-        in the originally fit data.
+    duplicates_ : list[list[int]]
+        a list of the groups of identical columns, indicated by their
+        zero-based column index positions in the originally fit data.
 
-    removed_columns_: dict[int, int] - a dictionary whose keys are the
-        indices of duplicate columns removed from the original data,
-        indexed by their column location in the original data; the values
-        are the column index in the original data of the respective
-        duplicate that was kept.
+    removed_columns_ : dict[int, int]
+        a dictionary whose keys are the indices of duplicate columns
+        removed from the original data, indexed by their column location
+        in the original data; the values are the column index in the
+        original data of the respective duplicate that was kept.
 
-    column_mask_: NDArray[bool], shape (n_features_,) - Indicates which
-        columns of the fitted data are kept (True) and which are removed
-        (False) during :term: transform.
-
+    column_mask_ : NDArray[bool] of shape (n_features_,)
+        Indicates which columns of the fitted data are kept (True) and
+        which are removed (False) during :term: transform.
 
     Notes
     -----
@@ -384,7 +381,6 @@ class ColumnDeduplicateTransformer(
     FeatureNamesInType:
         npt.NDArray[str]
 
-
     See Also
     --------
     numpy.ndarray
@@ -393,7 +389,6 @@ class ColumnDeduplicateTransformer(
     scipy.sparse
     numpy.allclose
     numpy.array_equal
-
 
     Examples
     --------
@@ -443,7 +438,6 @@ class ColumnDeduplicateTransformer(
         n_jobs: Optional[Union[numbers.Integral, None]]=None,
         job_size: Optional[numbers.Integral]=50
     ) -> None:
-
         """Initialize the ColumnDeduplicateTransformer instance."""
 
         self.keep = keep
@@ -516,7 +510,6 @@ class ColumnDeduplicateTransformer(
         self,
         input_features:Optional[Union[Sequence[str], None]]=None
     ) -> FeatureNamesInType:
-
         """
         Get the feature names for the output of :meth: `transform`.
 
@@ -586,7 +579,6 @@ class ColumnDeduplicateTransformer(
         X: XContainer,
         y: Optional[Union[Any, None]]=None
     ) -> Self:
-
         """
         Perform incremental fitting on one or more batches of data.
         Determine the duplicate columns in the data.
@@ -734,7 +726,6 @@ class ColumnDeduplicateTransformer(
         X: XContainer,
         y: Optional[Union[Any, None]]=None
     ) -> Self:
-
         """
         Perform a single fitting on a dataset. Determine the duplicate
         columns in the data.
@@ -770,7 +761,6 @@ class ColumnDeduplicateTransformer(
         X:XContainer,
         copy:Optional[Union[bool, None]]=None
     ) -> XContainer:
-
         """
         Revert deduplicated data back to its original state. This
         operation cannot restore any nan-like values that may have been
@@ -877,7 +867,6 @@ class ColumnDeduplicateTransformer(
         X: XContainer,
         y: Optional[Union[Any, None]]=None
     ) -> None:
-
         """
         Dummy method to spoof dask Incremental and ParallelPostFit
         wrappers. Verified must be here for dask wrappers.
@@ -900,7 +889,6 @@ class ColumnDeduplicateTransformer(
         X:XContainer,
         copy:Optional[Union[bool, None]]=None
     ) -> XContainer:
-
         """
         Remove the duplicate columns from X. Apply the criteria given
         by :param: `keep`, :param: `do_not_drop`, and :param: `conflict`

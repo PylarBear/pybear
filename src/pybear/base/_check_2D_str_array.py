@@ -6,9 +6,15 @@
 
 
 
-from typing import Iterable, Optional
+from typing import (
+    Iterable,
+    Optional
+)
 import numpy.typing as npt
-from typing_extensions import TypeAlias, Union
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 
 import pandas as pd
 import polars as pl
@@ -30,27 +36,22 @@ def check_2D_str_array(
     X:XContainer[str],
     require_all_finite:Optional[bool] = False
 ) -> None:
-
-    """
-    Validate things that are expected to be 2D arrays of strings. Accepts
-    2D python built-ins, numpy arrays, pandas dataframes, and polars
-    dataframes. Python built-ins can be ragged. When 'require_all_finite'
-    is True, every element in the array must be an instance of str; if
-    there is a nan-like or infinity-like value a ValueError will be
-    raised. If 'require_all_finite' is False, non-finite values are
-    ignored and only the finite values must be an instance of str. If
-    all checks pass then None is returned.
-
+    """Validate things that are expected to be 2D arrays of strings.
+    Accepts 2D python built-ins, numpy arrays, pandas dataframes,
+    and polars dataframes. Python built-ins can be ragged. When
+    'require_all_finite' is True, every element in the array must be
+    an instance of str; if there is a nan-like or infinity-like value
+    a ValueError will be raised. If 'require_all_finite' is False,
+    non-finite values are ignored and only the finite values must be
+    an instance of str. If all checks pass then None is returned.
 
     Parameters
     ----------
-    X:
-        XContainer[str] - something that is expected to be a 2D array of
-        strings.
-    require_all_finite:
-        Optional[bool], default=False - if True, disallow all non-finite
-        values, such as nan-like or infinity-like values.
-
+    X : XContainer[str]
+        something that is expected to be a 2D array of strings.
+    require_all_finite : Optional[bool], default=False
+        if True, disallow all non-finite values, such as nan-like or
+        infinity-like values.
 
     Raises
     ------
@@ -59,16 +60,13 @@ def check_2D_str_array(
     ValueError:
         for non-finite values when 'require_all_finite' is True
 
-
     Return
     ------
-    -
-        None
-
+    None
 
     Notes
     -----
-    Type Aliases
+    **Type Aliases**
 
     PythonTypes:
         Union[list[list], tuple[tuple]]
@@ -84,7 +82,6 @@ def check_2D_str_array(
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
-
 
     Examples
     --------

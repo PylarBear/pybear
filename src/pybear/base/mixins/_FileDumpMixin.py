@@ -6,8 +6,14 @@
 
 
 
-from typing import Callable, Sequence
-from typing_extensions import TypeAlias, Union
+from typing import (
+    Callable,
+    Sequence
+)
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 import numpy.typing as npt
 
 import functools
@@ -23,8 +29,6 @@ from .._check_2D_str_array import check_2D_str_array
 
 
 
-
-
 PythonTypes: TypeAlias = Union[Sequence[str], Sequence[Sequence[str]], set]
 NumpyTypes: TypeAlias = npt.NDArray
 PandasTypes: TypeAlias = Union[pd.Series, pd.DataFrame]
@@ -33,13 +37,9 @@ XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
 
 
-
 class FileDumpMixin:
-
-    """
-    A mixin for pybear text transformers that allows the user to save
+    """A mixin for pybear text transformers that allows the user to save
     data in-situ.
-
 
     Notes
     -----
@@ -59,7 +59,6 @@ class FileDumpMixin:
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
-
 
     """
 
@@ -137,23 +136,19 @@ class FileDumpMixin:
 
 
     def _validate_X_container(self, _X: XContainer):
-
-        """
-        Validate that X is an allowed container and is 1D or 2D. This
-        checks the dimensionality of X. Must be 1D or 2D. Returns True
-        if the data is 1D, False if the data is 2D.
-
+        """Validate that X is an allowed container and is 1D or 2D.
+        This checks the dimensionality of X. Must be 1D or 2D. Returns
+        True if the data is 1D, False if the data is 2D.
 
         Parameters
         ----------
-        X:
-            XContainer - the data.
-
+        X : XContainer
+            The data.
 
         Returns
         -------
-        -
-            bool: True if 1D, False if 2D
+        bool:
+            True if 1D, False if 2D
 
         """
 
@@ -192,9 +187,6 @@ class FileDumpMixin:
 
 
         return (_dim == 1)
-
-
-
 
 
 

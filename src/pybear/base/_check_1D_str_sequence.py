@@ -6,9 +6,15 @@
 
 
 
-from typing import Optional, Iterable
+from typing import (
+    Iterable,
+    Optional
+)
 import numpy.typing as npt
-from typing_extensions import TypeAlias, Union
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 
 import numpy as np
 import pandas as pd
@@ -32,9 +38,7 @@ def check_1D_str_sequence(
     X:XContainer[str],
     require_all_finite:Optional[bool] = False
 ) -> None:
-
-    """
-    Validate things that are expected to be 1D sequences of strings.
+    """Validate things that are expected to be 1D sequences of strings.
     Accepts 1D python built-ins, numpy arrays, pandas series, and
     polars series. When 'require_all_finite' is True, every element
     in the sequence must be an instance of str; if there is a nan-like
@@ -43,16 +47,13 @@ def check_1D_str_sequence(
     only the finite values must be an instance of str. If all checks
     pass then None is returned.
 
-
     Parameters
     ----------
-    X:
-        XContainer[str] - something that is expected to be a 1D sequence
-        of strings.
-    require_all_finite:
-        Optional[bool], default=False - if True, disallow all non-finite
-        values, such as nan-like or infinity-like values.
-
+    X : XContainer[str]
+        something that is expected to be a 1D sequence of strings.
+    require_all_finite : Optional[bool], default=False
+        if True, disallow all non-finite values, such as nan-like or
+        infinity-like values.
 
     Raises
     ------
@@ -61,16 +62,13 @@ def check_1D_str_sequence(
     ValueError:
         for non-finite values when 'require_all_finite' is True
 
-
     Return
     ------
-    -
-        None
-
+    None
 
     Notes
     -----
-    Type Aliases
+    **Type Aliases**
 
     PythonTypes:
         Union[list, tuple, set]
@@ -86,7 +84,6 @@ def check_1D_str_sequence(
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
-
 
     Examples
     --------

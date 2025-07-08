@@ -4,25 +4,7 @@
 .. currentmodule:: {{ module }}
 
 .. autoclass:: {{ objname }}
-   :show-inheritance: False
    :members:
+   :inherited-members:
+   :show-inheritance: False
 
-{% if methods %}
-.. rubric:: Methods
-
-.. autosummary::
-   :nosignatures:
-{% for item in methods %}
-   ~{{ name }}.{{ item.name }}
-{% endfor %}
-{% endif %}
-
-{% if attributes %}
-.. rubric:: Attributes
-
-.. autosummary::
-   :nosignatures:
-{% for item in attributes %}
-   ~{{ name }}.{{ item.name }}
-{% endfor %}
-{% endif %}

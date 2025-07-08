@@ -17,18 +17,13 @@ class GetParamsMixin:
 
 
     def get_params(self, deep:Optional[bool]=True) -> dict[str, Any]:
-
-        """
-        Get parameters for this instance. The 'instance' may be a pybear
-        estimator, transformer, or a gridsearch module that wraps an
-        nested estimator or pipeline.
-
+        """Get parameters for this instance.
+        The 'instance' may be a pybear estimator, transformer, or a
+        gridsearch module that wraps an nested estimator or pipeline.
 
         Parameters
         ----------
-        deep:
-            Optional[bool], default=True -
-
+        deep : Optional[bool], default=True
             For instances that do not have nested instances in an
             'estimator' attribute (such as estimators or transformers),
             this parameter is ignored and the same (full) set of
@@ -52,12 +47,10 @@ class GetParamsMixin:
             in addition to the parameters of the wrapping instance. The
             estimator's parameters are prefixed with 'estimator__'.
 
-
         Return
         ------
-        -
-            params: dict[str, Any] - Parameter names mapped to their
-            values.
+        params: dict[str, Any]
+            Parameter names mapped to their values.
 
         """
 
@@ -165,12 +158,6 @@ class GetParamsMixin:
         del paramsdict1, paramsdict2
 
         return paramsdict
-
-
-
-
-
-
 
 
 

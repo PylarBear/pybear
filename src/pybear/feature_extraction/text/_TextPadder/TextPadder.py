@@ -7,7 +7,10 @@
 
 
 from typing import Optional
-from typing_extensions import Self, Union
+from typing_extensions import (
+    Self,
+    Union
+)
 from ._type_aliases import XContainer
 
 import numbers
@@ -162,7 +165,7 @@ class TextPadder(
 
     See Also
     --------
-    'itertools.zip_longest'
+    itertools.zip_longest
 
 
     Examples

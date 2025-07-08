@@ -16,11 +16,9 @@ class SetParamsMixin:
 
 
     def set_params(self, **params) -> Self:
-
-        """
-        Set the parameters of an instance or a nested instance. This
-        method works on simple estimator and transformer instances as
-        well as on nested objects (such as GridSearch instances).
+        """Set the parameters of an instance or a nested instance.
+        This method works on simple estimator and transformer instances
+        as well as on nested objects (such as GridSearch instances).
 
         Setting the parameters of simple estimators and transformers is
         straightforward. Pass the exact parameter name and its value
@@ -49,18 +47,15 @@ class SetParamsMixin:
         The parameters of steps in the pipeline can be updated using
         'estimator__<step>__<parameter>'.
 
-
         Parameters
         ----------
-        **params:
-            dict[str: Any] - the parameters to be updated and their new
-            values.
-
+        **params : dict[str: Any]
+            The parameters to be updated and their new values.
 
         Return
         ------
-        -
-            self - the instance with new parameter values.
+        self : object
+            The instance with new parameter values.
 
         """
 
