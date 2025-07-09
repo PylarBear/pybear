@@ -26,8 +26,8 @@ def logger(orig_func: callable) -> callable:
         callable - the function to be wrapped for logging
 
 
-    Return
-    ------
+    Returns
+    -------
     wrapper -
         wrapper: callable - wrapped original function
 

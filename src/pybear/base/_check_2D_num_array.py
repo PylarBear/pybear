@@ -46,12 +46,13 @@ def check_2D_num_array(
     require_all_finite:Optional[bool] = False
 ) -> None:
     """Validate things that are expected to be 2D arrays of numbers.
+
     Accepts 2D python built-ins, numpy arrays, pandas dataframes, polars
     dataframes, and all scipy sparse matrices/arrays. Python built-ins
-    can be ragged. When 'require_all_finite' is True, every element in
-    the array must be an instance of numbers.Number; if there is a
-    nan-like or infinity-like value a ValueError will be raised. If
-    'require_all_finite' is False, non-finite values are ignored and
+    can be ragged. When `require_all_finite` is True, every element in
+    the array must be an instance of numbers.Number; a ValueError will
+    be raised if there are any nan-like or infinity-like values. If
+    `require_all_finite` is False, non-finite values are ignored and
     only the finite values must be an instance of numbers.Number. If all
     checks pass then None is returned.
 
@@ -68,27 +69,28 @@ def check_2D_num_array(
     TypeError:
         for invalid container
     ValueError:
-        for non-finite values when 'require_all_finite' is True
+        for non-finite values when `require_all_finite` is True
 
-    Return
-    ------
+    Returns
+    -------
     None
 
     Notes
     -----
+
     **Type Aliases**
 
     PythonTypes:
         Union[list[list], tuple[tuple]]
 
     NumpyTypes:
-        npt.NDArray
+        numpy.ndarray
 
     PandasTypes:
-        pd.DataFrame
+        pandas.DataFrame
 
     PolarsTypes:
-        pl.DataFrame
+        polars.DataFrame
 
     SparseTypes:
         Union[
@@ -99,9 +101,7 @@ def check_2D_num_array(
         ]
 
     XContainer:
-        Union[
-            PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, SparseTypes
-        ]
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, SparseTypes]
 
     Examples
     --------
@@ -161,7 +161,6 @@ def check_2D_num_array(
         _X_object,
         _require_all_finite: Iterable[bool],
     ) -> None:
-
         """
         The errors raised below come from 1D files. Override with
         new error message for 2D. This verbiage needs to be managed to

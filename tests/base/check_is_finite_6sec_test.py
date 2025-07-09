@@ -13,12 +13,10 @@ from pybear.utilities._nan_masking import nan_mask
 import math
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 import pytest
-
-
-
 
 
 # def check_is_finite(
@@ -130,6 +128,21 @@ class TestCheckIsFiniteValidation:
 
         assert isinstance(out, type(good_X))
 
+
+    def test_accepts_polars(self, _shape):
+
+        good_X = pl.from_numpy(np.random.uniform(0, 1, _shape))
+
+        out = check_is_finite(
+            good_X,
+            allow_nan=False,
+            allow_inf=False,
+            cast_inf_to_nan=False,
+            standardize_nan=False,
+            copy_X=False
+        )
+
+        assert isinstance(out, type(good_X))
     # END X - - - - - - - - - - - - - - - -
 
     @pytest.mark.parametrize('_param',
@@ -201,7 +214,7 @@ class TestCheckIsFiniteValidation:
 
 
 
-
+# pizza dont forget about polars
 @pytest.mark.parametrize('X_format', ('np', 'pd', 'csc', 'csr', 'dia'))
 class TestCheckIsFiniteAccuracy:
 
@@ -214,6 +227,8 @@ class TestCheckIsFiniteAccuracy:
             _X_loaded = _X_np_nan_and_inf
         elif X_format == 'pd':
             _X_loaded = pd.DataFrame(_X_np_nan_and_inf)
+        elif X_format == 'pl':
+            _X_loaded = pl.from_numpy(_X_np_nan_and_inf)
         elif X_format == 'csr':
             _X_loaded = ss._csr.csr_array(_X_np_nan_and_inf)
         elif X_format == 'csc':
@@ -242,6 +257,8 @@ class TestCheckIsFiniteAccuracy:
             _X_clean = _X_np_clean
         elif X_format == 'pd':
             _X_clean = pd.DataFrame(_X_np_clean)
+        elif X_format == 'pl':
+            _X_clean = pl.from_numpy(_X_np_clean)
         elif X_format == 'csr':
             _X_clean = ss._csr.csr_array(_X_np_clean)
         elif X_format == 'csc':
@@ -280,7 +297,7 @@ class TestCheckIsFiniteAccuracy:
         if hasattr(_X_loaded, 'toarray'):
             _X_loaded = _X_loaded.toarray()
             out = out.toarray()
-        elif isinstance(_X_loaded, pd.core.frame.DataFrame):
+        elif isinstance(_X_loaded, (pd.core.frame.DataFrame, pl.DataFrame)):
             _X_loaded = _X_loaded.to_numpy()
             out = out.to_numpy()
         elif isinstance(_X_loaded, np.ndarray):
@@ -328,7 +345,7 @@ class TestCheckIsFiniteAccuracy:
         if hasattr(_X_clean, 'toarray'):
             _X_clean = _X_clean.toarray()
             out = out.toarray()
-        elif isinstance(_X_clean, pd.core.frame.DataFrame):
+        elif isinstance(_X_clean, (pd.core.frame.DataFrame, pl.DataFrame)):
             _X_clean = _X_clean.to_numpy()
             out = out.to_numpy()
         elif isinstance(_X_clean, np.ndarray):
@@ -403,7 +420,7 @@ class TestCheckIsFiniteAccuracy:
         if hasattr(_X_loaded, 'toarray'):
             _X_loaded = _X_loaded.toarray()
             out = out.toarray()
-        elif isinstance(_X_loaded, pd.core.frame.DataFrame):
+        elif isinstance(_X_loaded, (pd.core.frame.DataFrame, pl.DataFrame)):
             _X_loaded = _X_loaded.to_numpy()
             out = out.to_numpy()
         elif isinstance(_X_loaded, np.ndarray):
@@ -448,7 +465,7 @@ class TestCheckIsFiniteAccuracy:
         if hasattr(_X_loaded, 'toarray'):
             _X_loaded = _X_loaded.toarray()
             out = out.toarray()
-        elif isinstance(_X_loaded, pd.core.frame.DataFrame):
+        elif isinstance(_X_loaded, (pd.core.frame.DataFrame, pl.DataFrame)):
             _X_loaded = _X_loaded.to_numpy()
             out = out.to_numpy()
         elif isinstance(_X_loaded, np.ndarray):
@@ -474,8 +491,6 @@ class TestCheckIsFiniteAccuracy:
         ))
         # np.nan when converted to str should repr as 'nan'
         assert all(map(lambda x: x=='nan', list(map(str, outputted_infs))))
-
-
 
 
 

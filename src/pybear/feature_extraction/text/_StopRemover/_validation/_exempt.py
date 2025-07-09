@@ -14,23 +14,18 @@ from .....base._check_1D_str_sequence import check_1D_str_sequence
 
 
 def _val_exempt(_exempt: Union[Sequence[str], None]) -> None:
+    """Validate 'exempt'.
 
-    """
-    Validate 'exempt'. Must be sequence[str] or None.
-
+    Must be sequence[str] or None.
 
     Parameters
     ----------
-    _exempt:
-        Union[Sequence[str], None] - stop words that are exempt from
-        being removed.
-
+    _exempt : Union[Sequence[str], None]
+        Stop words that are exempt from being removed.
 
     Returns
     -------
-    -
-        None
-
+    None
 
     """
 

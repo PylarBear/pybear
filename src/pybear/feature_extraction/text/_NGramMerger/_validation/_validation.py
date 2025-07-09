@@ -6,7 +6,10 @@
 
 
 
-from typing import Callable, Sequence
+from typing import (
+    Callable,
+    Sequence
+)
 from typing_extensions import Union
 from .._type_aliases import XContainer
 
@@ -33,50 +36,42 @@ def _validation(
     _remove_empty_rows: bool,
     _flags: Union[numbers.Integral, None]
 ) -> None:
+    """Centralized hub for validation.
 
-    """
-    Centralized hub for validation. See the individual modules for
-    more details.
+    See the individual modules for more details.
 
     Also blocks `ngcallable`, `sep`, and `flags` when `ngrams` is None.
 
-
     Parameters
     ----------
-    _X:
-        XContainer - (possibly ragged) 2D array of strings.
-    _ngrams:
-        Union[Sequence[Sequence[Union[str, re.Pattern[str]]]], None] - A
-        sequence of sequences, where each inner sequence holds a series
+    _X : XContainer
+        (possibly ragged) 2D array of strings.
+    _ngrams : Union[Sequence[Sequence[Union[str, re.Pattern[str]]]], None]
+        A sequence of sequences, where each inner sequence holds a series
         of string literals and/or re.compile objects that specify an
         n-gram. Cannot be empty, and cannot have any n-grams with less
         than 2 entries. Can be None.
-    _ngcallable:
-        Union[Callable[[list[str]], str], None] - the callable applied
-        to ngram sequences to produce a contiguous string sequence.
-    _sep:
-        Union[str, None] - the separator that joins words in the n-grams.
-    _wrap:
-        bool - whether to look for pattern matches across the end of the
-        current line and beginning of the next line.
-    _case_sensitive:
-        bool - whether to do a case-sensitive search.
-    _remove_empty_rows:
-        bool - whether to delete any empty rows that may occur during
-        the merging process. A row could only become empty if 'wrap' is
-        True.
-    _flags:
-        Union[numbers.Integral, None] - the global flags value(s) applied
-        to the n-gram search. Must be None or an integer. The values of
-        the integers are not validated for legitimacy, any exceptions
-        would be raised by re.fullmatch.
-
+    _ngcallable : Union[Callable[[list[str]], str], None]
+        The callable applied to ngram sequences to produce a contiguous
+        string sequence.
+    _sep : Union[str, None]
+        The separator that joins words in the n-grams.
+    _wrap : bool
+        Whether to look for pattern matches across the end of the current
+        line and beginning of the next line.
+    _case_sensitive : bool
+        Whether to do a case-sensitive search.
+    _remove_empty_rows : bool
+        Whether to delete any empty rows that may occur during the
+        merging process. A row could only become empty if 'wrap' is True.
+    _flags : Union[numbers.Integral, None]
+        The global flags value(s) applied to the n-gram search. Must be
+        None or an integer. The values of the integers are not validated
+        for legitimacy, any exceptions would be raised by re.fullmatch.
 
     Returns
     -------
-    -
-        None
-
+    None
 
     """
 

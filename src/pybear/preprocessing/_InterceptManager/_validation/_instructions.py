@@ -36,8 +36,8 @@ def _val_instructions(
         int - number of features in the fitted data before transform.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

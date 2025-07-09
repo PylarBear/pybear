@@ -6,7 +6,10 @@
 
 
 
-from typing_extensions import TypeAlias, Union
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 
 import numbers
 
@@ -22,32 +25,35 @@ def _val_flags(
     _flags: Union[FlagType, list[FlagType]],
     _n_rows: numbers.Integral
 ) -> None:
+    """Validate the 'flags' parameter.
 
-    """
-    Validate the 'flags' parameter. Must be integer, None, or list of
-    integer / None. If a list, the length must match the number of rows
-    in X.
-
+    Must be integer, None, or list of integer / None. If a list, the
+    length must match the number of rows in X.
 
     Parameters
     ----------
-    _flags:
-        Union[FlagType, list[FlagType]] - the flags argument for re
-        methods/functions when re.Pattern objects are being used (either
-        globally on all the data or a row of the data.) Must be None or
-        an integer, or a list of Nones and/or integers. When passed as a
-        list, the length must match the number of rows in the data. The
-        values of the integers are not validated for legitimacy, any
-        exceptions would be raised by the re method it is passed to.
-    _n_rows:
-        numbers.Integral - the number of rows in the data.
-
+    _flags : Union[FlagType, list[FlagType]]
+        The flags argument for re methods/functions when re.Pattern
+        objects are being used (either globally on all the data or a row
+        of the data.) Must be None or an integer, or a list of Nones
+        and/or integers. When passed as a list, the length must match
+        the number of rows in the data. The values of the integers are
+        not validated for legitimacy, any exceptions would be raised by
+        the re method it is passed to.
+    _n_rows : numbers.Integral
+        The number of rows in the data.
 
     Return
     ------
-    -
-        None
+    None
 
+    Notes
+    -----
+
+    **Type Aliases**
+
+    FlagType:
+        Union[None, numbers.Integral]
 
     """
 

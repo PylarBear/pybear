@@ -6,7 +6,10 @@
 
 
 
+from typing_extensions import Any
+
 import warnings
+
 import numpy as np
 
 
@@ -14,22 +17,19 @@ import numpy as np
 # this parallels sklearn.utils.validation._get_feature_names(X), which is
 # called by the _check_feature_names method of BaseEstimator, which in
 # turn is called by the _validate_data method of BaseEstimator
-def get_feature_names(X):
+def get_feature_names(X: Any):
+    """Get feature names from X.
 
-    """
-    Get feature names from X. X must have a 'columns' attribute or a
-    __dataframe__ dunder, i.e., follows the dataframe interchange
-    protocol. Otherwise, feature names are not retrieved and None is
-    returned. If the dataframe does not have a header comprised of
-    strings (the dataframe was constructed without passing a header and
-    a default non-string header is used), a warning is raised and None
-    is returned.
-
+    X must have a 'columns' attribute or a __dataframe__ dunder, i.e.,
+    follows the dataframe interchange protocol. Otherwise, feature names
+    are not retrieved and None is returned. If the dataframe does not
+    have a header comprised of strings (the dataframe was constructed
+    without passing a header and a default non-string header is used),
+    a warning is raised and None is returned.
 
     Parameters
     ----------
-    X:
-        array-like of shape (n_samples, n_features) or (n_samples, ) -
+    X : array_like of shape (n_samples, n_features) or (n_samples, )
         Array container from which to extract feature names.
 
         Objects that have known compatibility with this module:
@@ -41,12 +41,11 @@ def get_feature_names(X):
         containers known to not yield feature names: numpy arrays, dask
         arrays, scipy sparse matrices / arrays.
 
-
     Returns
     -------
-    -
-        feature_names: Union[NDArray[object], None] - The feature names
-        of 'X'. Unrecognized array containers return None.
+    feature_names : Union[NDArray[object], None]
+        The feature names of 'X'. Unrecognized array containers return
+        None.
 
     """
 

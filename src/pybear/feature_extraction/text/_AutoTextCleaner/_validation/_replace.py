@@ -18,23 +18,24 @@ from ..._TextReplacer._validation._replace import _val_replace as _TR_val_replac
 def _val_replace(
     _replace: ReplaceType
 ) -> None:
-
-    """
-    Validate the 'replace' argument.
-
+    """Validate the 'replace' argument.
 
     Parameters
     ----------
-    _replace:
-        ReplaceType - None, a find/replace pair, or a tuple of
-        find/replace pairs.
-
+    _replace : ReplaceType
+        None, a find/replace pair, or a tuple of find/replace pairs.
 
     Returns
     -------
-    -
-        None
+    None
 
+    Notes
+    -----
+
+    **Type Aliases**
+
+    ReplaceType:
+        Union[None, PairType, tuple[PairType, ...]]
 
     """
 
@@ -50,9 +51,6 @@ def _val_replace(
 
 
     _TR_val_replace(_replace, 1)
-
-
-
 
 
 

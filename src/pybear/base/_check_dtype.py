@@ -6,8 +6,14 @@
 
 
 
-from typing import Literal, Optional
-from typing_extensions import TypeAlias, Union
+from typing import (
+    Literal,
+    Optional
+)
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 import numpy.typing as npt
 
 import numpy as np
@@ -46,42 +52,35 @@ def check_dtype(
     allowed:Optional[Literal['numeric', 'str', 'any']] = 'any',
     require_all_finite:Optional[bool] = False
 ) -> None:
+    """Check that the passed data contains a datatype that is allowed.
 
-    """
-    Check that the passed data contains a datatype that is allowed. If
-    not, raise TypeError. Allowed dtypes are 'any', 'numeric', and 'str'.
-    If all checks pass then return None.
-
+    If not, raise TypeError. Allowed dtypes are 'any', 'numeric', and
+    'str'. If all checks pass then return None.
 
     Parameters
     ----------
-    X:
-        XContainer of shape (n_samples, n_features) or (n_samples,). The
-        data to be checked for allowed datatype.
-    allowed:
-        Optional[Literal['numeric', 'str', 'any']], default='any' - the
-        allowed datatype for the data. If 'numeric', only allow values
-        that are instances of numbers.Number. If not, raise TypeError.
-        If 'str', all data in X must be and instance of str or a
-        TypeError is raised. If 'any', allow any datatype.
-    require_all_finite:
-        Optional[bool], default=False - if True, raise an exception if
-        there are any nan-like or infinity-like values in the data. This
-        means that all elements in the data must be of the required
-        dtype. If False, nan-likes and infinity-likes are allowed, and
-        all other values (the finite values) must be of the required
-        dtype.
+    X : array_like of shape (n_samples, n_features) or (n_samples,)
+        The data to be checked for allowed datatype.
+    allowed : Optional[Literal['numeric', 'str', 'any']], default='any'
+        The allowed datatype for the data. If 'numeric', only allow
+        values that are instances of numbers.Number. If not, raise
+        TypeError. If 'str', all data in `X` must be and instance of str
+        or a TypeError is raised. If 'any', allow any datatype.
+    require_all_finite : Optional[bool], default=False
+        If True, raise an exception if there are any nan-like or
+        infinity-like values in the data. This means that all elements
+        in the data must be of the required dtype. If False, nan-likes
+        and infinity-likes are allowed, and all other values (the finite
+        values) must be of the required dtype.
 
-
-    Return
-    ------
-    -
-        None
-
+    Returns
+    -------
+    None
 
     Notes
     -----
-    Type Aliases
+
+    **Type Aliases**
 
     PythonTypes:
         Union[list[list], tuple[tuple], set]
@@ -105,7 +104,6 @@ def check_dtype(
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, SparseTypes]
-
 
     Examples
     --------

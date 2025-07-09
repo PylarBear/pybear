@@ -8,9 +8,11 @@
 
 from typing import Optional
 from typing_extensions import (
+    Any,
     Self,
     Union
 )
+import numpy.typing as npt
 from ._type_aliases import (
     XContainer,
     XWipContainer,
@@ -62,7 +64,7 @@ class AutoTextCleaner(
     ReprMixin,
     SetParamsMixin
 ):
-    """A quick, convenient transformer for streamlining basic everyday
+    """A quick, convenient transformer that streamlines basic everyday
     data cleaning needs.
 
     This module is not meant to do highly specialized text cleaning
@@ -147,65 +149,59 @@ class AutoTextCleaner(
     of strings. If you pass your data as a dataframe with feature names,
     the feature names are not preserved.
 
-
     Parameters
     ----------
-    global_sep:
-        Optional[str], default=' ' - The single literal character
-        sequence that is used throughout the text cleaning process for
-        joining 1D data, splitting 2D data, and identifying wrap points
-        when justifying. A common separator (and the default) is ' '.
-    case_sensitive:
-        Optional[bool], default=True - Whether searches for the things
-        to replace, things to remove, etc., are case-sensitive. This
-        generally controls case-senstivity globally, but for those of
-        you that know regex, an IGNORECASE flag passed to `global_flags`
-        will always overrule this parameter.
-    global_flags:
-        Optional[Union[numbers.Integral, None]], default=None - The
-        regex flags for operations that do searches within the text,
+    global_sep : Optional[str], default=' '
+        The single literal character sequence that is used throughout
+        the text cleaning process for joining 1D data, splitting 2D data,
+        and identifying wrap points when justifying. A common separator
+        (and the default) is ' '.
+    case_sensitive : Optional[bool], default=True
+        Whether searches for the things to replace, things to remove,
+        etc., are case-sensitive. This generally controls case-senstivity
+        globally, but for those of you that know regex, an IGNORECASE
+        flag passed to `global_flags` will always overrule this parameter.
+    global_flags : Optional[Union[numbers.Integral, None]], default=None
+        The regex flags for operations that do searches within the text,
         like replace and remove. If you do not know regex, then you
         don't need to worry about this, just pass literal strings to
         the other parameters. While :param: `case-sensitive` generally
         controls case-sensitivity, an IGNORECASE flag passed here will
         always overrule.
-    remove_empty_rows:
-        Optional[bool], default=False - Some operations during the
-        cleaning process, such as remove character patterns and/or stop
-        words, ngram merge, and Lexicon lookup may leave some rows with
-        no strings in them. If this happens and this parameter is True,
-        then that empty row is removed from the data.
-    return_dim:
-        Optional[ReturnDimType], default=None - The desired dimension of
-        the outputted data. If None (the default), then the outputted
-        container has the same dimenstionality as the given container.
-        If 1 or 2, then that is the dimensionality of the outputted
-        container.
-    strip:
-        Optional[bool], default=False - Whether to remove leading and
-        trailing spaces from strings in the text.
-    replace:
-        Optional[ReplaceType], default=None - the search and replace
-        strategy. Pass search and replace pairs in tuples, with a literal
-        string or re.compile object as the search criteria, and a literal
-        string or callable as the replace criteria. Pass multiple search
-        and replace tuples in a single enveloping tuple. See the docs
-        for pybear TextReplacer for more information about this parameter.
-    remove:
-        Optional[RemoveType], default=None - the literal strings or regex
-        patterns to remove from the data. When passed as a single literal
-        string or re.compile object, that is applied to every string in
-        the data, and every full string that matches exactly will be
-        removed. When passed as a python tuple of character strings
-        and/or re.compile objects, each pattern is searched against
-        all the strings in the data and any exact matches are removed.
-        See the docs for pybear TextRemover for more information.
-    normalize:
-        Optional[Union[bool, None]], default=None - If True, convert all
-        text in X to upper-case; if False, convert to lower-case; if None,
-        do a no-op.
-    lexicon_lookup:
-        Optional[Union[LexiconLookupType, None]], default=None -
+    remove_empty_rows : Optional[bool], default=False
+        Some operations during the cleaning process, such as remove
+        character patterns and/or stop words, ngram merge, and Lexicon
+        lookup may leave some rows with no strings in them. If this
+        happens and this parameter is True, then that empty row is
+        removed from the data.
+    return_dim : Optional[ReturnDimType], default=None
+        The desired dimension of the outputted data. If None (the default),
+        then the outputted container has the same dimenstionality as the
+        given container. If 1 or 2, then that is the dimensionality of
+        the outputted container.
+    strip : Optional[bool], default=False
+        Whether to remove leading and trailing spaces from strings in
+        the text.
+    replace : Optional[ReplaceType], default=None
+        The search and replace strategy. Pass search and replace pairs
+        in tuples, with a literal string or re.compile object as the
+        search criteria, and a literal string or callable as the replace
+        criteria. Pass multiple search and replace tuples in a single
+        enveloping tuple. See the docs for pybear TextReplacer for more
+        information about this parameter.
+    remove : Optional[RemoveType], default=None
+        The literal strings or regex patterns to remove from the data.
+        When passed as a single literal string or re.compile object,
+        that is applied to every string in the data, and every full
+        string that matches exactly will be removed. When passed as a
+        python tuple of character strings and/or re.compile objects,
+        each pattern is searched against all the strings in the data
+        and any exact matches are removed. See the docs for pybear
+        TextRemover for more information.
+    normalize : Optional[Union[bool, None]], default=None
+        If True, convert all text in X to upper-case; if False, convert
+        to lower-case; if None, do a no-op.
+    lexicon_lookup : Optional[Union[LexiconLookupType, None]], default=None
         Remember that the pybear Lexicon is majuscule, so your text
         should be also if you choose to use this. When None, skip the
         Lexicon lookup process. Otherwise, must be a dictionary of
@@ -215,116 +211,54 @@ class AutoTextCleaner(
         used.  See :attr: `lexicon_lookup_` for more information. Also
         see the docs for pybear TextLookupRealTime for information about
         the parameters and the Lexicon lookup process.
-    remove_stops:
-        Optional[bool], default=False - whether to remove pybear-defined
-        stop words from the text.
-    ngram_merge:
-        Optional[Union[None, NGramsType]], default=None - When None, do
-        not merge ngrams. To pass parameters to this, pass a dictionary
-        with the keys 'ngrams' and 'wrap'. Set the value of 'ngrams'
-        with a sequence of sequences, where each inner sequence holds a
-        series of string literals and/or re.compile objects that specify
-        an n-gram. Cannot be empty, and cannot have any n-gram patterns
-        with less than 2 entries. The 'wrap' key takes a boolean value.
-        True will look for ngram merges around the beginnings and ends
-        of adjacent lines, False will only look for ngrams within the
-        contiguous text of one line. See pybear NGramMerger for more
-        information.
-    justify:
-        Optional[Union[numbers.Integral, None]], default=None - When None
-        do not justify the text. Otherwise, pass an integer to indicate
-        to ATC to justify the data to that character width. When this is
-        not None, i.e., the instruction to justify is given by passing
-        an integer value, ATC does not expose the :attr: `row_support_`
-        attribute.
-    get_statistics:
-        Optional[Union[None, GetStatisticsType]] - None or a dictionary
-        keyed with 'before' and 'after'. When None, do not accumulate
-        statistics about the incoming and outgoing text. When passed
-        as a dictionary, both keys must be present. With these keys, you
-        are able to enable or disable statistics logging for both
-        incoming and outgoing text. To disable either of the statistics,
-        pass None to that key. Otherwise, pass a boolean. False does not
-        disable the statistics! The boolean indicates to the respective
-        TextStatistics instance whether to retain unique strings seen
-        within itself to provide the full statistics it is capable of.
-        If True, retain uniques seen by that respective TextStatistics
-        instance. This may lead to a RAM limiting situation, especially
-        for dirty incoming text. To not retain the uniques seen within
-        the TextStatistics instance, set this to False, and some, but
-        not all, statistics will still be tracked.
-        See pybear TextStatistics for more information.
-
+    remove_stops : Optional[bool], default=False
+        Whether to remove pybear-defined stop words from the text.
+    ngram_merge : Optional[Union[None, NGramsType]], default=None
+        When None, do not merge ngrams. To pass parameters to this,
+        pass a dictionary with the keys 'ngrams' and 'wrap'. Set the
+        value of 'ngrams' with a sequence of sequences, where each inner
+        sequence holds a series of string literals and/or re.compile
+        objects that specify an n-gram. Cannot be empty, and cannot
+        have any n-gram patterns with less than 2 entries. The 'wrap'
+        key takes a boolean value. True will look for ngram merges
+        around the beginnings and ends of adjacent lines, False will
+        only look for ngrams within the contiguous text of one line.
+        See pybear NGramMerger for more information.
+    justify : Optional[Union[numbers.Integral, None]], default=None
+        When None do not justify the text. Otherwise, pass an integer
+        to indicate to ATC to justify the data to that character width.
+        When this is not None, i.e., the instruction to justify is
+        given by passing an integer value, ATC does not expose
+        the :attr: `row_support_` attribute.
+    get_statistics : Optional[Union[None, GetStatisticsType]]
+        None or a dictionary keyed with 'before' and 'after'. When None,
+        do not accumulate statistics about the incoming and outgoing
+        text. When passed as a dictionary, both keys must be present.
+        With these keys, you are able to enable or disable statistics
+        logging for both incoming and outgoing text. To disable either
+        of the statistics, pass None to that key. Otherwise, pass a
+        boolean. False does not disable the statistics! The boolean
+        indicates to the respective TextStatistics instance whether to
+        retain unique strings seen within itself to provide the full
+        statistics it is capable of. If True, retain uniques seen by
+        that respective TextStatistics instance. This may lead to a RAM
+        limiting situation, especially for dirty incoming text. To not
+        retain the uniques seen within the TextStatistics instance, set
+        this to False, and some, but not all, statistics will still be
+        tracked. See pybear TextStatistics for more information.
 
     Attributes
     ----------
-    n_rows_:
-        int - Get the `n_rows_` attribute. The total number of rows in
-        data passed to :meth: `transform` between resets. This may
-        not be the number of rows in the outputted data. Unlike most
-        other pybear text transformers that expose an `n_rows_`
-        attribute that is not cumulative, this particular attribute
-        is cumulative across multiple calls to :meth: `transform`.
-        The reason for the different behavior is that the cumulative
-        behavior here aligns this attribute with the behavior
-        of :attr: `before_statistics_` and :attr: `after_statistics_`,
-        which compile statistics cumulatively across multiple calls
-        to :meth: `transform`. This number is reset when the
-        AutoTextCleaner instance is reset by calls to :meth: `fit`.
-    row_support_:
-        npt.NDArray[bool] - Get the `row_support_` attribute. A 1D
-        boolean numpy vector indicating which rows of the data, if
-        any, were removed during the cleaning process. The length
-        must equal the number of rows in the data originally passed
-        to :meth: `transform`. A row that was removed is indicated by
-        a False in the corresponding position in the vector, and a
-        row that remains is indicated by True. This attribute only
-        reflects the last batch of data passed to :meth: `transform`;
-        it is not cumulative.
-    before_statistics_:
-        instance TextStatistics - Get the `before_statistics_` attribute.
-        If the 'before' key of the :param: `get_statistics` parameter
-        has a value of True or False, then statistics about the raw
-        data were compiled in a TextStatistics instance before the
-        transformation. This exposes that TextStatistics class (which
-        is different from the :attr: `after_statistics_` TextStatistics
-        class.) The exposed class has attributes that contain information
-        about the raw data. See the documentation for TextStatistics to
-        learn about what attributes are exposed. The statistics in this
-        attribute are reset when the AutoTextCleaner instance is reset
-        by calls to :meth: `fit`.
-    after_statistics_:
-        instance TextStatistics - Get the `after_statistics_` attribute.
-        If the 'after' key of the :param: `get_statistics` parameter
-        has a value of True or False, then statistics about the
-        transformed data were compiled in a TextStatistics instance
-        after the transformation. This exposes that TextStatistics
-        class (which is different from the :attr: `before_statistics_`
-        TextStatistics class.) The exposed class has attributes
-        that contain information about the transformed data. See the
-        documentation for TextStatistics to learn about what attributes
-        are exposed. The statistics in this attribute are reset when
-        the AutoTextCleaner instance is reset by calls to :meth: `fit`.
-    lexicon_lookup_:
-        instance TextLookupRealTime - Get the `lexicon_lookup_`
-        attribute. If :param: `lexicon_lookup` has a non-None value,
-        then information about the text-lookup process is stored in a
-        TextLookupRealTime (TLRT) instance within ATC. This attribute
-        exposes that TLRT class, which has attributes that contain
-        information about the handling of words not in the pybear
-        Lexicon. If you ran `lexicon_lookup` in manual mode, you
-        may have put a lot of effort into handing the unknown words
-        and you want access to the information. You may have instructed
-        TLRT to queue words that you want to add to the Lexicon so that
-        you can access them later and put them in the Lexicon. See the
-        documentation for TextLookupRealTime to learn about what
-        attributes are exposed. The information in TLRT is reset when
-        AutoTextCleaner is reset by calls to :meth: `fit`.
-
+    n_rows_
+    row_support_
+    before_statistics_
+    after_statistics_
+    lexicon_lookup_
 
     Notes
     -----
-    Type Aliases
+
+    **Type Aliases**
 
     PythonTypes:
         Union[Sequence[str], set[str], Sequence[Sequence[str]]]
@@ -364,16 +298,25 @@ class AutoTextCleaner(
 
     class LexiconLookupType(TypedDict):
         update_lexicon: NotRequired[bool]
+
         skip_numbers: NotRequired[bool]
-        skip_numbers: NotRequired[bool]
+
         auto_split: NotRequired[bool]
+
         auto_add_to_lexicon: NotRequired[bool]
+
         auto_delete: NotRequired[bool]
+
         DELETE_ALWAYS: NotRequired[Union[Sequence[str], None]]
+
         REPLACE_ALWAYS: NotRequired[Union[dict[str, str], None]]
+
         SKIP_ALWAYS: NotRequired[Union[Sequence[str], None]]
+
         SPLIT_ALWAYS: NotRequired[Union[dict[str, Sequence[str]], None]]
+
         remove_empty_rows: NotRequired[bool]
+
         verbose: NotRequired[bool]
     
     class NGramsType(TypedDict):
@@ -428,7 +371,6 @@ class AutoTextCleaner(
         justify:Optional[Union[numbers.Integral, None]] = None,
         get_statistics:Optional[Union[None, GetStatisticsType]] = None
     ):
-
         """Initialize the AutoTextCleaner instance."""
 
         self.global_sep = global_sep
@@ -572,114 +514,154 @@ class AutoTextCleaner(
 
 
     @property
-    def n_rows_(self):
+    def n_rows_(self) -> int:
+        """Get the `n_rows_` attribute.
+
+        The total number of rows in data passed to :meth: `transform`
+        between resets. This may not be the number of rows in the
+        outputted data. Unlike most other pybear text transformers
+        that expose an `n_rows_` attribute that is not cumulative,
+        this particular attribute is cumulative across multiple
+        calls to :meth: `transform`. The reason for the different
+        behavior is that the cumulative behavior here aligns this
+        attribute with the behavior of :attr: `before_statistics_`
+        and :attr: `after_statistics_`, which compile statistics
+        cumulatively across multiple calls to :meth: `transform`. This
+        number is reset when the AutoTextCleaner instance is reset by
+        calls to :meth: `fit`.
+
+        Returns
+        -------
+        _n_rows: int
+            The total number of rows seen by AutoTextCleaner.
+
         """
-        Get the `n_rows_` attribute. The total number of rows in
-        data passed to :meth: `transform` between resets. This may
-        not be the number of rows in the outputted data. Unlike most
-        other pybear text transformers that expose an `n_rows_`
-        attribute that is not cumulative, this particular attribute
-        is cumulative across multiple calls to :meth: `transform`.
-        The reason for the different behavior is that the cumulative
-        behavior here aligns this attribute with the behavior
-        of :attr: `before_statistics_` and :attr: `after_statistics_`,
-        which compile statistics cumulatively across multiple calls
-        to :meth: `transform`. This number is reset when the
-        AutoTextCleaner instance is reset by calls to :meth: `fit`.
-        """
+
         return getattr(self, '_n_rows')
 
 
     @property
-    def row_support_(self):
+    def row_support_(self) -> npt.NDArray[bool]:
+        """Get the `row_support_` attribute.
+
+        A 1D boolean numpy vector indicating which rows of the data,
+        if any, were removed during the cleaning process. The length
+        must equal the number of rows in the data originally passed
+        to :meth: `transform`. A row that was removed is indicated by
+        a False in the corresponding position in the vector, and a row
+        that remains is indicated by True. This attribute only reflects
+        the last batch of data passed to :meth: `transform`; it is not
+        cumulative. This attribute is not available if :param: `justify`
+        is enabled.
+
+        Returns
+        -------
+        _row_support : npt.NDArray[bool]
+            A 1D boolean numpy vector indicating which rows of the data,
+            if any, were removed during the cleaning process.
+
         """
-        Get the `row_support_` attribute. A 1D boolean numpy vector
-        indicating which rows of the data, if any, were removed during
-        the cleaning process. The length must equal the number of rows
-        in the data originally passed to :meth: `transform`. A row
-        that was removed is indicated by a False in the corresponding
-        position in the vector, and a row that remains is indicated by
-        True. This attribute only reflects the last batch of data passed
-        to :meth: `transform`; it is not cumulative. This attribute is
-        not available if :param: `justify` is enabled.
-        """
+
         return getattr(self, '_row_support')
 
 
     @property
     def before_statistics_(self):
-        """
-        Get the `before_statistics_` attribute. If the 'before' key
-        of the :param: `get_statistics` parameter has a value of True
-        or False, then statistics about the raw data were compiled
-        in a TextStatistics instance before the transformation. This
-        exposes that TextStatistics class (which is different from
-        the :attr: `after_statistics_` TextStatistics class.) The
-        exposed class has attributes that contain information about
-        the raw data. See the documentation for TextStatistics to learn
-        about what attributes are exposed. The statistics in this
+        """Get the `before_statistics_` attribute.
+
+        If the 'before' key of the :param: `get_statistics` parameter
+        has a value of True or False, then statistics about the raw
+        data were compiled in a TextStatistics instance before the
+        transformation. This exposes that TextStatistics class (which
+        is different from the :attr: `after_statistics_` TextStatistics
+        class.) The exposed class has attributes that contain information
+        about the raw data. See the documentation for TextStatistics to
+        learn about what attributes are exposed. The statistics in this
         attribute are reset when the AutoTextCleaner instance is reset
         by calls to :meth: `fit`.
+
+        Returns
+        -------
+        _before_statistics : instance TextStatistics
+            A TextStatistics instance that contains statistics about the
+            raw data before the transformation.
+
         """
+
         return getattr(self, '_before_statistics')
 
 
     @property
     def after_statistics_(self):
+        """Get the `after_statistics_` attribute.
+
+        If the 'after' key of the :param: `get_statistics` parameter
+        has a value of True or False, then statistics about the
+        transformed data were compiled in a TextStatistics instance
+        after the transformation. This exposes that TextStatistics
+        class (which is different from the :attr: `before_statistics_`
+        TextStatistics class.) The exposed class has attributes that
+        contain information about the transformed data. See the
+        documentation for TextStatistics to learn about what attributes
+        are exposed. The statistics in this attribute are reset when
+        the AutoTextCleaner instance is reset by calls to :meth: `fit`.
+
+        Returns
+        -------
+        _after_statistics : instance TextStatistics
+            A TextStatistics instance that contains statistics about the
+            processed data after the transformation.
+
         """
-        Get the `after_statistics_` attribute. If the 'after' key of
-        the :param: `get_statistics` parameter has a value of True
-        or False, then statistics about the transformed data were
-        compiled in a TextStatistics instance after the transformation.
-        This exposes that TextStatistics class (which is different from
-        the :attr: `before_statistics_` TextStatistics class.) The
-        exposed class has attributes that contain information about the
-        transformed data. See the documentation for TextStatistics to
-        learn about what attributes are exposed. The statistics in this
-        attribute are reset when the AutoTextCleaner instance is reset
-        by calls to :meth: `fit`.
-        """
+
         return getattr(self, '_after_statistics')
 
 
     @property
     def lexicon_lookup_(self):
+        """Get the `lexicon_lookup_` attribute.
+
+        If :param: `lexicon_lookup` has a non-None value, then
+        information about the text-lookup process is stored in a
+        TextLookupRealTime (TLRT) instance within ATC. This attribute
+        exposes that TLRT class, which has attributes that contain
+        information about the handling of words not in the pybear
+        Lexicon. If you ran `lexicon_lookup` in manual mode, you may
+        have put a lot of effort into handing the unknown words and
+        you want access to the information. You may have instructed
+        TLRT to queue words that you want to add to the Lexicon so that
+        you can access them later and put them in the Lexicon. See the
+        documentation for TextLookupRealTime to learn about what
+        attributes are exposed. The information in TLRT is reset when
+        AutoTextCleaner is reset by calls to :meth: `fit`.
+
+        Returns
+        -------
+        _after_statistics : instance TextLookupRealTime
+            A TextLookupRealTime instance that contains information
+            about the text-lookup process, if applicable.
+
         """
-        Get the `lexicon_lookup_` attribute. If :param: `lexicon_lookup`
-        has a non-None value, then information about the text-lookup
-        process is stored in a TextLookupRealTime (TLRT) instance
-        within ATC. This attribute exposes that TLRT class, which has
-        attributes that contain information about the handling of
-        words not in the pybear Lexicon. If you ran `lexicon_lookup`
-        in manual mode, you may have put a lot of effort into handing
-        the unknown words and you want access to the information. You
-        may have instructed TLRT to hold words that you want to add to
-        the Lexicon so that you can access them later and put them in
-        the Lexicon. See the documentation for TextLookupRealTime to
-        learn about what attributes are exposed. The information in TLRT
-        is reset when AutoTextCleaner is reset by calls to :meth: `fit`.
-        """
+
         return getattr(self, '_lexicon_lookup')
 
 
     def _reset(self) -> Self:
+        """Reset the AutoTextCleaner instance.
 
-        """
-        Reset the AutoTextCleaner instance. This clears any state
-        information that is retained during transform. This includes
-        the :attr: `row_support_` attribute, which holds transient
-        state information from the last call to :meth: `transform`.
-        This also resets attributes that hold cumulative state
-        information, i.e., compiled over many transforms. These
-        attributes are the :attr: `n_rows_` counter, and the statistics
+        This clears any state information that is retained during
+        transform. This includes the :attr: `row_support_` attribute,
+        which holds transient state information from the last call
+        to :meth: `transform`. This also resets attributes that hold
+        cumulative state information, i.e., compiled over many transforms.
+        These attributes are the :attr: `n_rows_` counter, and the statistics
         in :attr: `before_statistics_`, :attr: `after_statistics_`,
         and :attr: `lexicon_lookup_`.
 
-
         Returns
         -------
-        -
-            self - the reset AutoTextCleaner instance.
+        self : object
+            The reset AutoTextCleaner instance.
 
         """
 
@@ -696,8 +678,9 @@ class AutoTextCleaner(
 
 
     def get_metadata_routing(self):
+        """get_metadata_routing is not implemented in AutoTextCleaner."""
         raise NotImplementedError(
-            f"metadata routing is not implemented in TextRemover"
+            f"metadata routing is not implemented in AutoTextCleaner"
         )
 
 
@@ -716,60 +699,45 @@ class AutoTextCleaner(
     def partial_fit(
         self,
         X: XContainer,
-        y: Optional[Union[any, None]] = None
+        y: Optional[Any] = None
     ) -> Self:
-        """
-        No-op batch-wise fitting of the AutoTextCleaner instance.
-
+        """No-op batch-wise fitting of the AutoTextCleaner instance.
 
         Parameters
         ----------
-        X:
-            XContainer - the 1D or (possibly ragged) 2D text data.
-            Ignored.
-
-        y:
-            Optional[Union[any, None]], default=None - The target for
-            the data. Always ignored.
-
+        X : XContainer
+            The 1D or (possibly ragged) 2D text data. Ignored.
+        y : Optional[Any], default=None
+            The target for the data. Always ignored.
 
         Returns
         -------
-        -
-            self - the AutoTextCleaner instance.
+        self : object
+            The AutoTextCleaner instance.
 
         """
 
-
         return self
-
 
 
     def fit(
         self,
         X: XContainer,
-        y: Optional[Union[any, None]] = None
+        y: Optional[Any] = None
     ) -> Self:
-
-        """
-        No-op one-shot fitting of the AutoTextCleaner instance.
-
+        """No-op one-shot fitting of the AutoTextCleaner instance.
 
         Parameters
         ----------
-        X:
-            XContainer - the 1D or (possibly ragged) 2D text data.
-            Ignored.
-
-        y:
-            Optional[Union[any, None]], default=None - The target for
-            the data. Always ignored.
-
+        X : XContainer
+            The 1D or (possibly ragged) 2D text data. Ignored.
+        y : Optional[Any], default=None
+            The target for the data. Always ignored.
 
         Returns
         -------
-        -
-            self - the AutoTextCleaner instance.
+        self : object
+            The AutoTextCleaner instance.
 
         """
 
@@ -781,34 +749,24 @@ class AutoTextCleaner(
     def score(
         self,
         X: XContainer,
-        y: Optional[Union[any, None]] = None
+        y: Optional[Any] = None
     ) -> None:
-
-        """
-        No-op score method.
-
+        """No-op score method.
 
         Parameters
         ----------
-        X:
-            XContainer - the 1D or (possibly ragged) 2D text data.
-            Ignored.
-
-        y:
-            Optional[Union[any, None]], default=None - The target for
-            the data. Always ignored.
-
+        X : XContainer
+            The 1D or (possibly ragged) 2D text data. Ignored.
+        y : Optional[Any], default=None
+            The target for the data. Always ignored.
 
         Returns
         -------
-        -
-            None
+        None
 
         """
 
-
         check_is_fitted(self)
-
 
         return
 
@@ -818,26 +776,20 @@ class AutoTextCleaner(
         X: XContainer,
         copy: Optional[bool] = False
     ) -> XWipContainer:
-
-        """
-        Process the data as per the parameters.
-
+        """Process the data as per the parameters.
 
         Parameters
         ----------
-        X:
-            XContainer - the 1D or (possibly ragged) 2D text data.
-
-        copy:
-            Optional[bool], default=False - Whether to perform the
-            text cleaning operations directly on the passed X or on a
-            deepcopy of X.
-
+        X : XContainer
+            The 1D or (possibly ragged) 2D text data.
+        copy : Optional[bool], default=False
+            Whether to perform the text cleaning operations directly on
+            the passed X or on a deepcopy of X.
 
         Returns
         -------
-        -
-            Union[list[str], list[list[str]] - the processed data.
+        X_tr : Union[list[str], list[list[str]]
+            The processed data.
 
         """
 
@@ -860,22 +812,22 @@ class AutoTextCleaner(
         )
 
         if copy:
-            _X = _copy_X(X)
+            X_tr = _copy_X(X)
         else:
-            _X = X
+            X_tr = X
 
 
-        _X = _map_X_to_list(_X)
+        X_tr = _map_X_to_list(X_tr)
 
-        self._n_rows = getattr(self, '_n_rows', 0) + len(_X)
+        self._n_rows = getattr(self, '_n_rows', 0) + len(X_tr)
 
         # do not use _n_rows! it is cumulative.
-        self._row_support = np.ones(len(_X), dtype=bool)
+        self._row_support = np.ones(len(X_tr), dtype=bool)
 
 
         if (self.get_statistics or {}).get('before', None) is not None:
             # this class is always available, only fit if it is turned on
-            self._TStatStart.partial_fit(_X)
+            self._TStatStart.partial_fit(X_tr)
             # declaring this dummy controls access via @property. The TS
             # start & end instances are ALWAYS (not conditionally)
             # instantiated in init to guarantee exposure whenever reset()
@@ -888,21 +840,21 @@ class AutoTextCleaner(
         # do this before shape-shift
         if self.strip:
             # example axis cannot change
-            _X = self._TSTR.transform(_X, copy=False)
+            X_tr = self._TSTR.transform(X_tr, copy=False)
 
 
         # pre-processing shaping -- -- -- -- -- -- -- -- -- -- -- -- --
         # if there are inputs for lexicon_lookup, remove_stops, or ngram_merge,
-        # those MUST have 2D inputs (and outputs) so if _X is passed as 1D,
+        # those MUST have 2D inputs (and outputs) so if X_tr is passed as 1D,
         # must convert to 2D. (Then later deal with whatever return_dim is.)
         _was_1D, _is_1D = False, False
-        if all(map(isinstance, _X, (str for _ in _X))):
+        if all(map(isinstance, X_tr, (str for _ in X_tr))):
             _was_1D, _is_1D = True, True
 
         if any((self.lexicon_lookup, self.remove_stops, self.ngram_merge)) \
                 and _is_1D:
 
-            _X = self._TSPL.transform(_X)
+            X_tr = self._TSPL.transform(X_tr)
             # do not change _was_1D
             _is_1D = False
         # END pre-processing shaping -- -- -- -- -- -- -- -- -- -- -- --
@@ -910,17 +862,17 @@ class AutoTextCleaner(
 
         if self.strip:
             # example axis cannot change
-            _X = self._TSTR.transform(_X, copy=False)
+            X_tr = self._TSTR.transform(X_tr, copy=False)
 
 
         if self.replace:
             # example axis cannot change
-            _X = self._TREP.transform(_X, copy=False)
+            X_tr = self._TREP.transform(X_tr, copy=False)
 
 
         if self.remove:
             # has remove_empty_rows, example axis can change
-            _X = self._TREM.transform(_X)
+            X_tr = self._TREM.transform(X_tr)
             # len(TREM.row_support) must == number of Trues in self._row_support
             assert len(self._TREM.row_support_) == sum(self._row_support)
             # whatever changed in the currently outputted row_support_ only
@@ -930,12 +882,12 @@ class AutoTextCleaner(
 
         if self.normalize is not None:
             # example axis cannot change
-            _X = self._TN.transform(_X)
+            X_tr = self._TN.transform(X_tr)
 
 
         if self.lexicon_lookup:
             # has remove_empty_rows, example axis can change
-            _X = self._TL.transform(_X)
+            X_tr = self._TL.transform(X_tr)
             # this class is always available, only transforms if it is turned on.
             # declaring the _lexicon_lookup dummy controls access via @property.
             # The TextLookupRealTime instance is ALWAYS (not conditionally)
@@ -953,7 +905,7 @@ class AutoTextCleaner(
 
         if self.remove_stops:
             # has remove_empty_rows, example axis can change
-            _X = self._SR.transform(_X)
+            X_tr = self._SR.transform(X_tr)
             # len(TL.row_support) must == number of Trues in self._row_support
             assert len(self._SR.row_support_) == sum(self._row_support)
             # whatever changed in the currently outputted row_support_ only
@@ -963,7 +915,7 @@ class AutoTextCleaner(
 
         if self.ngram_merge:
             # has remove_empty_rows, example axis can change
-            _X = self._NGM.transform(_X)
+            X_tr = self._NGM.transform(X_tr)
             # len(TL.row_support) must == number of Trues in self._row_support
             assert len(self._NGM.row_support_) == sum(self._row_support)
             # whatever changed in the currently outputted row_support_ only
@@ -972,7 +924,7 @@ class AutoTextCleaner(
 
 
         if self.justify:
-            _X = self._TJU.transform(_X)
+            X_tr = self._TJU.transform(X_tr)
             warnings.warn(
                 f"\nAutoTextCleaner will not expose the :attr: `row_support_` "
                 f"attribute because 'justify' is enabled."
@@ -982,7 +934,7 @@ class AutoTextCleaner(
 
         if (self.get_statistics or {}).get('after', None) is not None:
             # this class is always available, only fit if it is turned on
-            self._TStatEnd.partial_fit(_X)
+            self._TStatEnd.partial_fit(X_tr)
             # declaring this dummy controls access via @property. The TS
             # start & end instances are ALWAYS (not conditionally)
             # instantiated in init to guarantee exposure whenever reset()
@@ -1009,14 +961,14 @@ class AutoTextCleaner(
         assert not (_need_1D and _need_2D)
 
         if _need_1D:
-            _X = self._TJO.transform(_X)
+            X_tr = self._TJO.transform(X_tr)
         elif _need_2D:
-            _X = self._TSPL.transform(_X)
+            X_tr = self._TSPL.transform(X_tr)
 
         # END final shaping -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
-        return _X
+        return X_tr
 
 
 

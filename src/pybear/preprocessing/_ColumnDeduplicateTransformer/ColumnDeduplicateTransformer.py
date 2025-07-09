@@ -293,7 +293,7 @@ class ColumnDeduplicateTransformer(
     n_features_in_ : int
         number of features in the fitted data before deduplication.
 
-    feature_names_in_ : NDArray[str]
+    feature_names_in_ : NDArray[object]
         The names of the features as seen during fitting. Only accessible
         if X is passed to :meth: `partial_fit` or :meth: `fit` in a
         container that has a header.
@@ -511,8 +511,7 @@ class ColumnDeduplicateTransformer(
         input_features:Optional[Union[Sequence[str], None]]=None
     ) -> FeatureNamesInType:
         """
-        Get the feature names for the output of :meth: `transform`.
-
+        Get the feature names for the output of :meth:`transform`.
 
         Parameters
         ----------

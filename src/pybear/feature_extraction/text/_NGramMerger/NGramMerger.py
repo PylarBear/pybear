@@ -7,7 +7,12 @@
 
 
 from typing import Optional
-from typing_extensions import Self, Union
+from typing_extensions import (
+    Any,
+    Self,
+    Union
+)
+import numpy.typing as npt
 from ._type_aliases import (
     XContainer,
     XWipContainer,
@@ -43,10 +48,8 @@ class NGramMerger(
     ReprMixin,
     SetParamsMixin
 ):
-
-    """
-    Join specified adjacent words into an N-gram unit, to be handled as
-    a single "word".
+    """Join specified adjacent words into an N-gram unit, to be handled
+    as a single "word".
 
     Sometimes in text analytics it makes sense to work with a block of
     words as a single unit rather than as stand-alone words. Perhaps you
@@ -196,75 +199,46 @@ class NGramMerger(
     the line above it. :attr: `n_rows_` must equal the number of entries
     in :attr: `row_support_`.
 
-
     Parameters
     ----------
-    ngrams:
-        Union[Sequence[Sequence[Union[str, re.Pattern[str]]]], None],
-        default=None - A sequence of sequences, where each inner sequence
-        holds a series of string literals and/or re.compile objects that
-        specify an n-gram. Cannot be empty, and cannot have any n-gram
-        patterns with less than 2 entries.
-    ngcallable:
-        Optional[Callable[[list[str]], str]], default=None - a callable
-        applied to word sequences that match an n-gram to produce a
-        single contiguous string sequence.
-    sep:
-        Optional[str], default='_' - the separator that joins words that
-        match an n-gram. This is overriden when a callable is passed
-        to :param: `ngcallable`.
-    wrap:
-        Optional[bool], default=False - whether to look for pattern
-        matches across the end of one line and into the beginning of the
-        next line.
-    case_sensitive:
-        Optional[bool], default=True - global case-sensitivity setting.
-        If True (the default) then all searches are case-sensitive. If
-        False, NGM will look for matches regardless of case. This setting
-        is overriden when IGNORECASE flags are passed in re.compile
-        objects or to :param: `flags`.
-    remove_empty_rows:
-        Optional[bool], default=False - whether to delete any empty rows
-        that may occur during the n-gram merging process. A row could
-        only become empty if :param: `wrap` is True or the data was
-        passed with an empty row already in it.
-    flags:
-        Union[numbers.Integral, None] - the global flags value(s) applied
-        to the n-gram search. Must be None or an integer. The values of
-        the integers are not validated for legitimacy, any exceptions
-        would be raised by re.fullmatch. An IGNORECASE flag passed here
-        will override :param: `case_sensitive`.
-
+    ngrams : Union[Sequence[Sequence[Union[str, re.Pattern[str]]]], None], default=None
+        A sequence of sequences, where each inner sequence holds a series
+        of string literals and/or re.compile objects that specify an
+        n-gram. Cannot be empty, and cannot have any n-gram patterns
+        with less than 2 entries.
+    ngcallable : Optional[Callable[[list[str]], str]], default=None
+        A callable applied to word sequences that match an n-gram to
+        produce a single contiguous string sequence.
+    sep : Optional[str], default='_'
+        The separator that joins words that match an n-gram. This is
+        overriden when a callable is passed to :param: `ngcallable`.
+    wrap : Optional[bool], default=False
+        Whether to look for pattern matches across the end of one line
+        and into the beginning of the next line.
+    case_sensitive : Optional[bool], default=True
+        Global case-sensitivity setting. If True (the default) then all
+        searches are case-sensitive. If False, NGM will look for matches
+        regardless of case. This setting is overriden when IGNORECASE
+        flags are passed in re.compile objects or to :param: `flags`.
+    remove_empty_rows : Optional[bool], default=False
+        Whether to delete any empty rows that may occur during the n-gram
+        merging process. A row could only become empty if :param: `wrap`
+        is True or the data was passed with an empty row already in it.
+    flags : Union[numbers.Integral, None]
+        The global flags value(s) applied to the n-gram search. Must be
+        None or an integer. The values of the integers are not validated
+        for legitimacy, any exceptions would be raised by re.fullmatch.
+        An IGNORECASE flag passed here will override :param: `case_sensitive`.
 
     Attributes
     ----------
-    n_rows_:
-        int - the number of rows in the data passed to :meth: `transform`.
-        This reflects the data that is passed, not the data that is
-        returned, which may not necessarily have the same number of
-        rows as the original data. The number of rows returned could be
-        less than the number passed if :param: `remove_empty_rows` is
-        True and there was an empty row already in the data when it was
-        passed, or :param: `wrap` is also True and all the strings on
-        one line were merged into an n-gram on the previous line.
-        `n_rows_` only reflects the last batch of data passed; it is not
-        cumulative. This attribute is only exposed after data is passed
-        to :meth: `transform`.
-    row_support_:
-        np.NDArray[bool] - a boolean 1D numpy vector of shape (n_rows_, )
-        indicating which rows of the data were kept (True) or removed
-        (False) during :term: transform. The only way an entry in
-        this vector could become False (i.e. a row was removed) is
-        if :param: `remove_empty_rows` is True and an empty row was
-        already in the data when passed, or :param: `wrap` is also True
-        and all strings on one line were merged into an n-gram on the
-        line above it. This attribute is only exposed after data is
-        passed to :meth: `transform`.
-
+    n_rows_
+    row_support_
 
     Notes
     -----
-    Type Aliases
+
+    **Type Aliases**
 
     PythonTypes:
         Sequence[Sequence[str]]
@@ -308,7 +282,6 @@ class NGramMerger(
     FlagsType:
         Optional[Union[numbers.Integral, None]]
 
-
     Examples
     --------
     >>> from pybear.feature_extraction.text import NGramMerger as NGM
@@ -334,7 +307,6 @@ class NGramMerger(
     ['405', 'EAST', '42ND', 'STREET']
     ['NEW@YORK@CITY', 'NEW@YORK', '10017', 'USA']
 
-
     """
 
 
@@ -349,7 +321,6 @@ class NGramMerger(
         remove_empty_rows:Optional[bool] = False,
         flags:FlagsType = None
     ) -> None:
-
         """Initialize the NGramMerger instance."""
 
         self.ngrams = ngrams
@@ -362,22 +333,56 @@ class NGramMerger(
 
 
     @property
-    def n_rows_(self):
+    def n_rows_(self) -> int:
+        """Get the `n_rows_` attribute.
+
+        The number of rows in the data passed to :meth: `transform`.
+        This reflects the data that is passed, not the data that is
+        returned, which may not necessarily have the same number of
+        rows as the original data. The number of rows returned could be
+        less than the number passed if :param: `remove_empty_rows` is
+        True and there was an empty row already in the data when it was
+        passed, or :param: `wrap` is also True and all the strings on
+        one line were merged into an n-gram on the previous line.
+        `n_rows_` only reflects the last batch of data passed; it is not
+        cumulative. This attribute is only exposed after data is passed
+        to :meth: `transform`.
+
+        Returns
+        -------
+        n_rows_ : int
+            The number of rows in the data passed to :meth: `transform`.
+
         """
-        Get the `n_rows_` attribute. The number of rows in the data
-        passed to :meth: `transform`.
-        """
+
         return self._n_rows
 
 
     @property
-    def row_support_(self):
-        """
-        Get the `row_support_` attribute. A boolean vector indicating
-        which rows were kept in the data during the transform process.
+    def row_support_(self) -> npt.NDArray[bool]:
+        """Get the `row_support_` attribute.
+
+        A boolean 1D numpy vector of shape (n_rows_, ) indicating
+        which rows of the data were kept (True) or removed (False)
+        during :term: transform.
+
         Only available if a transform has been performed, and only
         reflects the results of the last transform done.
+
+        The only way an entry in this vector could become False (i.e.
+        a row was removed) is if :param: `remove_empty_rows` is True
+        and an empty row was already in the data when passed,
+        or :param: `wrap` is also True and all strings on one line
+        were merged into an n-gram on the line above it.
+
+        Returns
+        -------
+        row_support_:
+            A boolean vector indicating which rows were kept in the data
+            during the transform process.
+
         """
+
         return self._row_support
 
 
@@ -403,6 +408,7 @@ class NGramMerger(
 
 
     def get_metadata_routing(self):
+        """get_metadata_routing is not implemented in NGramMerger"""
         raise NotImplementedError(
             f"'get_metadata_routing' is not implemented in NGramMerger"
         )
@@ -411,27 +417,21 @@ class NGramMerger(
     def partial_fit(
         self,
         X: XContainer,
-        y: Optional[Union[any, None]] = None
+        y: Optional[Any] = None
     ) -> Self:
-
-        """
-        No-op batch-wise fit operation.
-
+        """No-op batch-wise fit operation.
 
         Parameters
         ----------
-        X:
-            XContainer - The data. Ignored.
-        y:
-            Optional[Union[any, None]], default=None - the target for
-            the data. Always ignored.
-
+        X : XContainer
+            The data. Ignored.
+        y : Optional[Any], default=None
+            The target for the data. Always ignored.
 
         Return
         ------
-        -
-            self - the NGramMerger instance.
-
+        self : object
+            The NGramMerger instance.
 
         """
 
@@ -442,27 +442,21 @@ class NGramMerger(
     def fit(
         self,
         X: XContainer,
-        y: Optional[Union[any, None]] = None
+        y: Optional[Any] = None
     ) -> Self:
-
-        """
-        No-op one-shot fit operation.
-
+        """No-op one-shot fit operation.
 
         Parameters
         ----------
-        X:
-            XContainer - The data. Ignored.
-        y:
-            Optional[Union[any, None]], default=None - the target for
-            the data. Always ignored.
-
+        X : XContainer
+            The data. Ignored.
+        y : Optional[Union[any, None]], default=None
+            The target for the data. Always ignored.
 
         Return
         ------
-        -
-            self - the NGramMerger instance.
-
+        self : object
+            The NGramMerger instance.
 
         """
 
@@ -476,26 +470,21 @@ class NGramMerger(
         X:XContainer,
         copy:Optional[bool] = False
     ) -> XWipContainer:
-
-        """
-        Merge N-grams in a (possibly ragged) 2D array-like of strings.
-
+        """Merge N-grams in a (possibly ragged) 2D array-like of strings.
 
         Parameters
         ----------
-        X:
-            XContainer - The data.
-        copy:
-            Optional[bool], default=False - whether to directly operate
-            on the passed X or on a deepcopy of X.
-
+        X : XContainer
+            The data.
+        copy : Optional[bool], default=False
+            Whether to directly operate on the passed X or on a deepcopy
+            of X.
 
         Return
         ------
-        -
-            list[list[str]] - the data with all matching n-gram patterns
-            replaced with contiguous strings.
-
+        list[list[str]]
+            The data with all matching n-gram patterns replaced with
+            contiguous strings.
 
         """
 
@@ -550,25 +539,20 @@ class NGramMerger(
         X: XContainer,
         y: Optional[Union[any, None]] = None
     ) -> None:
+        """No-op score method.
 
-        """
-        No-op score method. Needs to be here for dask_ml wrappers.
-
+        Needs to be here for dask_ml wrappers.
 
         Parameters
         ----------
-        X:
-            XContainer - The data. Ignored.
-        y:
-            Optional[Union[any, None]], default=None - the target for
-            the data. Always ignored.
-
+        X : XContainer
+            The data. Ignored.
+        y : Optional[Union[any, None]], default=None
+            The target for the data. Always ignored.
 
         Return
         ------
-        -
-            None
-
+        None
 
         """
 

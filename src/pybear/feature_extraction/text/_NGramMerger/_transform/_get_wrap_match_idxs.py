@@ -20,41 +20,35 @@ def _get_wrap_match_idxs(
     _wrap_match_idx: Sequence[numbers.Integral],
     _n_len: numbers.Integral
 ) -> tuple[list[int], list[int]]:
-
-    """
+    """Create 2 separate lists of indices.
     Can only access this module if there was a match in the wrap region.
-    Create 2 separate lists. The first list contains the indices in the
-    ORIGINAL first line where the pattern match partially overlays. The
-    second list contain the indices in the ORIGINAL second line where
-    the match partially overlays. Need to know these things to mutate
-    the original lines.
-
+    The first list contains the indices in the ORIGINAL first line where
+    the pattern match partially overlays. The second list contain the
+    indices in the ORIGINAL second line where the match partially
+    overlays. Need to know these things to mutate the original lines.
 
     Parameters
     ----------
-    _first_line:
-        Sequence[str] - the active line in transform that is being
-        searched for n-grams.
-    _start_idx:
-        numbers.Integral - the index in the first line where the wrap
-        region started. python range rules apply.
-    _end_idx:
-        numbers.Integral - the index in the second line where the wrap
-        region ended. python range rules apply.
-    _wrap_match_idx:
-        Sequence[numbers.Integral] - the index in the wrap region object
-        where an n-gram pattern match started. cannot be empty if this
-        module is accessed.
-    _n_len:
-        the length of the n-gram pattern that is currently being searched
+    _first_line : Sequence[str]
+        The active line in transform that is being searched for n-grams.
+    _start_idx : numbers.Integral
+        The index in the first line where the wrap region started. Python
+        range rules apply.
+    _end_idx : numbers.Integral
+        The index in the second line where the wrap region ended. Python
+        range rules apply.
+    _wrap_match_idx : Sequence[numbers.Integral]
+        The index in the wrap region object where an n-gram pattern match
+        started. cannot be empty if this module is accessed.
+    _n_len : numbers.Integral
+        The length of the n-gram pattern that is currently being searched
         for in transform.
-
 
     Returns
     -------
-    -
-        tuple[list[int], list[int]] - the indices in the original first
-        line and original second line where the pattern match overlays.
+    tuple[list[int], list[int]]
+        The indices in the original first line and original second line
+        where the pattern match overlays.
 
     """
 
@@ -121,10 +115,6 @@ def _get_wrap_match_idxs(
 
 
     return sorted(_first_line_idxs), sorted(_second_line_idxs)
-
-
-
-
 
 
 

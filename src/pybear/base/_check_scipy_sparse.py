@@ -5,7 +5,11 @@
 #
 
 
-from typing import Literal, Iterable
+
+from typing import (
+    Literal,
+    Iterable
+)
 from typing_extensions import Union
 
 import scipy.sparse as ss
@@ -20,7 +24,6 @@ def check_scipy_sparse(
         Iterable[Literal["csr", "csc", "coo", "dia", "lil", "dok", "bsr"]]
     ]
 ) -> None:
-
     """
     Check whether a passed data container is a scipy sparse matrix /
     array, and if it is, check the type against the allowed types
@@ -30,28 +33,23 @@ def check_scipy_sparse(
     container, do not recast the passed container to a valid scipy sparse
     container but raise a TypeError.
 
-
     Parameters
     ----------
-    X:
-        Any - The data to be checked whether it is an allowed scipy
-        sparse matrix / array. This parameter is not checked for being
-        a valid data container. It only undergoes checks if it is a
-        scipy sparse container.
-    allowed:
-        Union[Literal[False], None, Iterable[Literal["csr", "csc",
-        "coo", "dia", "lil", "dok", "bsr"]]] - If None or False,
-        disallow any scipy sparse containers. Otherwise, a vector-like
-        iterable of literals indicating the types of scipy sparse
-        matrices / arrays that are allowed. If a disallowed scipy sparse
-        type is passed it is not recast to a valid type, but a TypeError
-        is raised.
+    X : Any
+        The data to be checked whether it is an allowed scipy sparse
+        matrix / array. This parameter is not checked for being a valid
+        data container. It only undergoes checks if it is a scipy sparse
+        container.
+    allowed : Union[Literal[False], None, Iterable[str]]
+        If None or False, disallow any scipy sparse containers. Otherwise,
+        a vector-like iterable of literals indicating the types of scipy
+        sparse matrices / arrays that are allowed. If a disallowed scipy
+        sparse type is passed it is not recast to a valid type, but a
+        TypeError is raised.
 
-
-    Return
-    ------
-    -
-        None
+    Returns
+    -------
+    None
 
     """
 

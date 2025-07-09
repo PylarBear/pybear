@@ -17,30 +17,26 @@ from ..._NGramMerger._validation._ngrams import _val_ngrams
 def _val_ngram_merge(
     _ngram_merge: Union[None, NGramsType]
 ) -> None:
+    """Validate ngram_merge.
 
-    """
-    Validate ngram_merge. Can be None. Otherwise, a dictionary keyed with
-    'ngrams' and 'wrap'. 'ngrams' is a sequence holding series of string
-    literals and/or re.compile objects that specify an n-gram. 'wrap' is
-    a boolean indicating whether to look for ngrams across the beginnings
-    and ends of adjacent lines.
-
+    Can be None. Otherwise, a dictionary keyed with 'ngrams' and 'wrap'.
+    'ngrams' is a sequence holding series of string literals and/or
+    re.compile objects that specify an n-gram. 'wrap' is a boolean
+    indicating whether to look for ngrams across the beginnings and ends
+    of adjacent lines.
 
     Parameters
     ----------
-    _ngram_merge:
-        Union[None, NGramsType] - Can beNone. A dictionary keyed with
-        'ngrams' and  'wrap'. 'ngrams' is a sequence of sequences, where
-        each inner sequence holds a series of string literals and/or
-        re.compile objects that specify an n-gram. Cannot be empty, and
-        cannot have any n-grams with less than 2 entries. 'wrap' must
-        be boolean.
-
+    _ngram_merge : Union[None, NGramsType]
+        Can be None. A dictionary keyed with 'ngrams' and  'wrap'.
+        'ngrams' is a sequence of sequences, where each inner sequence
+        holds a series of string literals and/or re.compile objects that
+        specify an n-gram. Cannot be empty, and cannot have any n-grams
+        with less than 2 entries. 'wrap' must be boolean.
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 

@@ -6,7 +6,7 @@
 
 
 
-from typing import Callable, Sequence
+from typing import Callable
 from typing_extensions import Union
 
 
@@ -14,24 +14,20 @@ from typing_extensions import Union
 def _val_ngcallable(
     _ngcallable: Union[Callable[[list[str]], str], None]
 ) -> None:
+    """Validate the ngram callable.
 
-    """
-    Validate the ngram callable. Must be a callable or None. The output
-    and signature of the callable are not validated.
-
+    Must be a callable or None. The output and signature of the callable
+    are not validated.
 
     Parameters
     ----------
-    _ngcallable:
-        Union[Callable[[list[str]], str], None] - the callable applied
-        to ngram sequences to produce a contiguous string sequence.
-
+    _ngcallable : Union[Callable[[list[str]], str], None]
+        The callable applied to ngram sequences to produce a contiguous
+        string sequence.
 
     Returns
     -------
-    -
-        None
-
+    None
 
     """
 

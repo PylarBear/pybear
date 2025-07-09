@@ -14,30 +14,26 @@ def _match_finder(
     _line: list[str],
     _ngram: tuple[re.Pattern[str], ...],
 ) -> list[int]:
+    """Slide along a sequence of strings looking for matches against an
+    n-gram pattern.
 
-    """
-    Slide along a sequence of strings looking for matches against an
-    n-gram pattern. When one is found, record the first index position
-    of the sequence that matches. Sequences cannot overlap.
-
+    When one is found, record the first index position of the sequence
+    that matches. Sequences cannot overlap.
 
     Parameters
     ----------
-    _line:
-        list[str] - A single 1D sequence of strings.
-    _ngram:
-        tuple[re.Pattern[str], ...] - A single n-gram sequence containing
-        re.compile objects that specify an n-gram pattern. The 'ngram'
-        parameter must have gone through by _special_param_conditioner.
-        Cannot have less than 2 entries.
-
+    _line : list[str]
+        A single 1D sequence of strings.
+    _ngram : tuple[re.Pattern[str], ...]
+        A single n-gram sequence containing re.compile objects that
+        specify an n-gram pattern. The 'ngram' parameter must have gone
+        through by _special_param_conditioner. Cannot have less than 2
+        entries.
 
     Returns
     -------
-    -
-        list[int] - the starting indices of sequences that match the
-        n-gram pattern.
-
+    list[int]
+        The starting indices of sequences that match the n-gram pattern.
 
     """
 

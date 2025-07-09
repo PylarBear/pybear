@@ -72,8 +72,8 @@ def _find_constants(
         numpy.allclose.
     
     
-    Return
-    ------
+    Returns
+    -------
     -
         _new_constants: ConstantColumnsType - dictionary of the indices
         of the columns of constants and the values in them for the

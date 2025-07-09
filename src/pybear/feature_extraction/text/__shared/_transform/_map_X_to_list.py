@@ -7,7 +7,10 @@
 
 
 from typing import Sequence
-from typing_extensions import TypeAlias, Union
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 import numpy.typing as npt
 
 import pandas as pd
@@ -45,29 +48,26 @@ Dim2Types: TypeAlias = Union[
 def _map_X_to_list(
     _X: Union[Dim1Types, Dim2Types]
 ) -> Union[list[str], list[list[str]]]:
-
     """
     Convert the given 1D or (possibly ragged) 2D container of strings
     into list[str] for 1D or list[list[str]] for 2D.
 
-    
     Parameters
     ----------
-    _X:
-        Union[Dim1Types, Dim2Types] - the 1D or (possibly ragged) 2D
-        data container to be converted to list[str] or list[list[str]].
-
+    _X : Union[Dim1Types, Dim2Types]
+        The 1D or (possibly ragged) 2D data container to be converted to
+        list[str] or list[list[str]].
 
     Returns
     -------
-    -
-        Union[list[str], list[list[str]]] - the data container mapped
-        to list[str] for 1D or list[list[str]] for 2D containers.
-
+    _X : Union[list[str], list[list[str]]]
+        The data container mapped to list[str] for 1D or list[list[str]]
+        for 2D containers.
 
     Notes
     -----
-    Type Aliases
+
+    ** Type Aliases **
 
     Python1DTypes:
         Union[list[str], tuple[str], set[str]]
@@ -98,7 +98,6 @@ def _map_X_to_list(
 
     Dim2Types:
         Union[Python2DTypes, Numpy2DTypes, Pandas2DTypes, Polars2DTypes]
-
 
     """
 

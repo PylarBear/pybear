@@ -27,8 +27,8 @@ def check_pipeline(
         sklearn.pipeline.Pipeline - a Pipeline instance.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

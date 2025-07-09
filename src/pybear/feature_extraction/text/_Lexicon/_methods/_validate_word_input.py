@@ -6,7 +6,10 @@
 
 
 
-from typing import Sequence, Optional
+from typing import (
+    Optional,
+    Sequence
+)
 from typing_extensions import Union
 
 from ...alphanumeric_str import alphabet_str
@@ -20,39 +23,33 @@ def _validate_word_input(
     character_validation: Optional[bool] = True,
     majuscule_validation: Optional[bool] = True
 ) -> None:
+    """Validate the 'WORDS' argument passed to pybear Lexicon methods.
 
-    """
-    Validate the 'WORDS' argument passed to pybear Lexicon methods.
     WORDS must be a string or a 1D sequence of strings. Read about
     'character_validation' and 'majuscule_validation' in the Parameters
     section.
 
-
     Parameters
     ----------
-    WORDS:
-        Union[str, Sequence[str]] - the word or sequence of words to
-        append to the pybear lexicon.
-    character_validation:
-        Optional[bool], default = True - whether to apply pybear lexicon
-        character validation to the word or sequence of words. pybear
-        lexicon allows only the 26 letters in the English language, no
-        others. No spaces, no hypens, no apostrophes. If True, any
-        non-alpha characters will raise an exception during validation.
-        If False, any string character is accepted.
-    majuscule_validation:
-        Optional[bool], default = True - whether to apply pybear lexicon
-        majuscule validation to the word or sequence of words. The pybear
-        lexicon requires all characters be majuscule, i.e., EVERYTHING
-        MUST BE UPPER-CASE. If True, any non-majuscule characters will
-        raise an exception during validation. If False, any case is
+    WORDS : Union[str, Sequence[str]]
+        The word or sequence of words to append to the pybear lexicon.
+    character_validation : Optional[bool], default = True
+        Whether to apply pybear lexicon character validation to the word
+        or sequence of words. pybear lexicon allows only the 26 letters
+        in the English language, no others. No spaces, no hypens, no
+        apostrophes. If True, any non-alpha characters will raise an
+        exception during validation. If False, any string character is
         accepted.
-
+    majuscule_validation : Optional[bool], default = True
+        Whether to apply pybear lexicon majuscule validation to the word
+        or sequence of words. The pybear lexicon requires all characters
+        be majuscule, i.e., EVERYTHING MUST BE UPPER-CASE. If True,
+        any non-majuscule characters will raise an exception during
+        validation. If False, any case is accepted.
 
     Return
     ------
-    -
-        None
+    None
 
     """
 
@@ -118,11 +115,6 @@ def _validate_word_input(
                         f"str.upper() version of themselves. Got '{_char}' "
                         f"in '{_word}'."
                     )
-
-
-
-
-
 
 
 

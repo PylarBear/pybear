@@ -67,8 +67,8 @@ def _validation(
         numpy.allclose.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

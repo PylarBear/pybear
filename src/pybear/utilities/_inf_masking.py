@@ -120,8 +120,8 @@ def inf_mask(
         the object for which to mask infinity-like representations.
 
 
-    Return
-    ------
+    Returns
+    -------
     mask:
         NDArray[bool], of shape (n_samples, n_features), (n_samples, ),
         or of shape (n_non_zero_values, ), indicating infinity-like

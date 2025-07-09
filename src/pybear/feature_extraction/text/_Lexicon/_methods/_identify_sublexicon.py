@@ -6,7 +6,10 @@
 
 
 
-from typing import Sequence, Optional
+from typing import (
+    Optional,
+    Sequence
+)
 from typing_extensions import Union
 
 import numpy as np
@@ -20,23 +23,18 @@ def _identify_sublexicon(
     WORDS: Union[str, Sequence[str]],
     file_validation: Optional[bool] = True
 ) -> list[str]:
+    """Identify the files that need to be accessed to make changes to
+    the pybear lexicon.
 
-    """
-    Identify the files that need to be accessed to make changes to the
-    pybear lexicon. These should be found by the first letter of the
-    word(s) in WORDS.
-
+    These should be found by the first letter of the word(s) in WORDS.
 
     Parameters
     ----------
-    WORDS:
-        Union[str, Sequence[str]] - the word or sequence of words passed
-        to a pybear Lexicon method.
-    file_validation:
-        Optional[bool], default = True - whether to block first characters
-        that are not allowed in the formal pybear lexicon. I.e., only
-        allow ABCDEF..... etc.
-
+    WORDS : Union[str, Sequence[str]]
+        The word or sequence of words passed to a pybear Lexicon method.
+    file_validation : Optional[bool], default = True
+        Whether to block first characters that are not allowed in the
+        formal pybear lexicon. I.e., only allow ABCDEF..... etc.
 
     """
 
@@ -74,15 +72,6 @@ def _identify_sublexicon(
 
 
     return _unq_first_chars
-
-
-
-
-
-
-
-
-
 
 
 

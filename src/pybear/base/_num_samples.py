@@ -6,35 +6,31 @@
 
 
 
+def num_samples(X) -> int:
+    """Return the number of samples in an array-like X.
 
-def num_samples(OBJECT) -> int:
+    X must have a 'shape' attribute.
 
-    """
-    Return the number of samples in an array-like OBJECT.
-
-    OBJECT must have a 'shape' attribute.
-
-    numpy & pandas: OBJECT must be 1 or 2 dimensional.
-    scipy: OBJECT must be 2 dimensional.
-    If OBJECT is a 1D vector (i.e., len(shape)==1), return len(OBJECT).
-
+    numpy & pandas: X must be 1 or 2 dimensional.
+    scipy: X must be 2 dimensional.
+    If X is a 1D vector (i.e., len(shape)==1), return len(X).
 
     Parameters
     ----------
-    OBJECT:
-        array-like that has a 'shape' attribute - object to find the
-        number of samples in.
+    X : array_like
+        Object to find the number of samples in, that has a 'shape'
+        attribute.
 
-
-    Return
-    ------
-    -
-        rows: int - Number of samples.
+    Returns
+    -------
+    rows: int
+        Number of samples.
 
     """
 
+
     try:
-        OBJECT.shape
+        X.shape
     except:
         raise ValueError(
             f"\nThe passed object does not have a 'shape' attribute. \nAll "
@@ -44,7 +40,7 @@ def num_samples(OBJECT) -> int:
         )
 
 
-    if hasattr(OBJECT, 'toarray') and len(OBJECT.shape) != 2:  # is scipy sparse
+    if hasattr(X, 'toarray') and len(X.shape) != 2:  # is scipy sparse
         # there is inconsistent behavior with scipy array/matrix and 1D.
         # in some cases scipy.csr_array is allowing 1D to be passed and
         # in other cases it is not. scipy.csr_matrix takes a 1D and reports
@@ -54,18 +50,15 @@ def num_samples(OBJECT) -> int:
         )
 
 
-    if len(OBJECT.shape) == 1:
-        return len(OBJECT)
-    elif len(OBJECT.shape) == 2:
-        return OBJECT.shape[0]
+    if len(X.shape) == 1:
+        return len(X)
+    elif len(X.shape) == 2:
+        return X.shape[0]
     else:
         raise ValueError(
-            f"The passed object has {len(OBJECT.shape)} dimensions. pybear "
+            f"The passed object has {len(X.shape)} dimensions. pybear "
             f"requires that all data-bearing objects be 1 or 2 dimensional."
         )
-
-
-
 
 
 

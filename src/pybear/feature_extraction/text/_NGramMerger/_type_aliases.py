@@ -6,8 +6,15 @@
 
 
 
-from typing import Callable, Sequence, Optional
-from typing_extensions import TypeAlias, Union
+from typing import (
+    Callable,
+    Optional,
+    Sequence
+)
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 import numpy.typing as npt
 
 import numbers

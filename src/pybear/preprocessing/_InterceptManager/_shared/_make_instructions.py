@@ -63,8 +63,8 @@ def _make_instructions(
         int - number of features in the fitted data before transform.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _instructions: InstructionType - instructions for keeping,
         deleting, or adding constant columns to be applied during

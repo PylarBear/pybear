@@ -13,24 +13,26 @@ from .._type_aliases import ReturnDimType
 def _val_return_dim(
     _return_dim: ReturnDimType
 ) -> None:
-
-    """
-    Validate 'return_dim', must be None, 1, or 2.
-
+    """Validate 'return_dim', must be None, 1, or 2.
 
     Parameters
     ----------
-    _return_dim:
-        ReturnDimType - the dimensionality of the container to return
-        the cleaned data in, regardless of the input dimension. If None,
-        return the output with the same dimensionality as given.
-
+    _return_dim : ReturnDimType
+        The dimensionality of the container to return the cleaned data
+        in, regardless of the input dimension. If None, return the output
+        with the same dimensionality as given.
 
     Returns
     -------
-    -
-        None
+    None
 
+    Notes
+    -----
+
+    **Type Aliases**
+
+    ReturnDimType:
+        Union[None, Literal[1, 2]]
 
     """
 

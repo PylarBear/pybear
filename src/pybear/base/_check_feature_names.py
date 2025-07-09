@@ -6,8 +6,10 @@
 
 
 
-
-from typing_extensions import Union
+from typing_extensions import (
+    Any,
+    Union
+)
 import numpy.typing as npt
 
 import warnings
@@ -20,79 +22,70 @@ from ._get_feature_names import get_feature_names
 # this parallels the check_feature_names method of sklearn BaseEstimator
 # which is called by the _validate_data method of sklearn BaseEstimator
 def check_feature_names(
-    X,
+    X: Any,
     feature_names_in_: Union[npt.NDArray[object], None],
     reset: bool
 ) -> Union[npt.NDArray[object], None]:
+    """Set or check the `feature_names_in_` attribute.
 
-
-    """
-    Set or check the 'feature_names_in_' attribute.
-
-    pybear recommends setting 'reset=True' in 'fit' and in the first
-    call to 'partial_fit'. All other methods that validate 'X' should
-    set 'reset=False'.
+    pybear recommends setting 'reset=True' in :meth:`fit` and in the
+    first call to :meth:`partial_fit`. All other methods that validate
+    `X` should set 'reset=False'.
 
     If reset is True:
-        Get the feature names from X and return. If X does not have
-        valid string feature names, return None. feature_names_in_ does
-        not matter.
+        Get the feature names from `X` and return. If `X` does not have
+        valid string feature names, return None. `feature_names_in_`
+        does not matter.
 
     If reset is False:
-        When feature_names_in_ exists and the checks of this module are
-        satisfied then feature_names_in_ is always returned. If
-        feature_names_in_ does not exist and the checks of this module
+        When `feature_names_in_` exists and the checks of this module are
+        satisfied then `feature_names_in_` is always returned. If
+        `feature_names_in_` does not exist and the checks of this module
         are satisfied then None is always returned regardless of any
-        header that the current X may have.
+        header that the current `X` may have.
 
-        If feature_names_in_ exists (a header was seen on first fit):
+        If `feature_names_in_` exists (a header was seen on first fit) and:
+            `X` has a (valid) header:
+            Validate that the feature names of `X` (if any) have the
+            exact names and order as those seen during fit. If they are
+            equal, return the feature names; if they are not equal, raise
+            ValueError.
 
-        if X has a (valid) header:
-        Validate that the feature names of X (if any) have the exact
-        names and order as those seen during fit. If they are equal,
-        return the feature names; if they are not equal, raise
-        ValueError.
+            `X` does not have a (valid) header:
+            Warn and return `feature_names_in_`.
 
-        if X does not have a (valid) header:
-        Warn and return feature_names_in_.
+        If `feature_names_in_` does not exist (a header was not seen on
+            first fit) and:
 
-        If feature_names_in_ does not exist (a header was not seen on
-        the first fit):
+            `X` does not have a (valid) header: return None
 
-        if X does not have a (valid) header: return None
-
-        if X has a (valid) header:  Warn and return None.
-
+            `X` has a (valid) header:  Warn and return None.
 
     Parameters
     ----------
-    X:
-        {array-like} of shape (n_samples, n_features) or (n_samples, ).
-        The data from which to extract feature names. X will provide
+    X : array_like of shape (n_samples, n_features) or (n_samples, )
+        The data from which to extract feature names. `X` will provide
         feature names if it is a dataframe constructed with a valid
         header of strings. Some objects that are known to yield feature
         names are pandas dataframes, dask dataframes, and polars
-        dataframes. If X does not have a valid header then None is
+        dataframes. If `X` does not have a valid header then None is
         returned. Objects that are known to not yield feature names are
         numpy arrays, dask arrays, and scipy sparse matrices/arrays.                  .
-    feature_names_in_:
-        NDArray[object] - shape (n_features, ), the feature names seen
-        on the first fit, if an object with a valid header was passed on
-        the first fit. None if feature names were not seen on the first
-        fit.
-    reset:
-        bool - Whether to reset the 'feature_names_in_' attribute. If
-        False, the feature names of X will be checked for consistency
-        with feature names of data provided when reset was last True.
+    feature_names_in_ : NDArray[object] of shape (n_features, )
+        The feature names seen on the first fit, if an object with a
+        valid header was passed on the first fit. None if feature names
+        were not seen on the first fit.
+    reset : bool
+        Whether to reset the `feature_names_in_` attribute. If False,
+        the feature names of `X` will be checked for consistency with
+        feature names of data provided when reset was last True.
 
-
-    Return
-    ------
-    -
-        feature_names_in_: Union[NDArray[object], None]: the validated
-        feature names if feature names were seen the last time reset was
-        set to True. None if the estimator/transformer did not see valid
-        feature names at the first fit.
+    Returns
+    -------
+    feature_names_in_ : Union[NDArray[object], None]
+        The validated feature names if feature names were seen the last
+        time reset was set to True. None if the estimator/transformer
+        did not see valid feature names at the first fit.
 
     """
 
@@ -103,7 +96,7 @@ def check_feature_names(
     fni: Union[npt.NDArray[object], None] = feature_names_in_
 
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     # currently no validation of X is being done.
     # anticipate that this module might see...
@@ -144,7 +137,7 @@ def check_feature_names(
 
     assert isinstance(reset, bool)
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     if reset:
         return pfn
@@ -217,11 +210,6 @@ def check_feature_names(
 
 
     raise ValueError(base_err_msg + addon)
-
-
-
-
-
 
 
 

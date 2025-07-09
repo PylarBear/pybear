@@ -26,8 +26,8 @@ def timer(orig_func):
     orig_func : callable
         function to be timed when called
 
-    Return
-    ------
+    Returns
+    -------
     wrapper:
         wrapped original function
 
@@ -85,8 +85,8 @@ def time_memory_benchmark(
     verbose : numbers.Real - print (verbose > 0) or do not print
         (verbose=0) information to the screen during run time.
 
-    Return
-    ------
+    Returns
+    -------
     return
         TIME_MEM_HOLDER: ndarray of shape (2, number of functions,
         number_of_trials) - Raw measurements of time (sec) and memory

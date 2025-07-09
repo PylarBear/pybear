@@ -47,8 +47,8 @@ def _merge_constants(
         numpy.allclose.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _final_constants: ConstantColumnsType - the compiled column
         indices and values of constant columns found over all partial

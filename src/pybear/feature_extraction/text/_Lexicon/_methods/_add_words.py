@@ -6,7 +6,10 @@
 
 
 
-from typing import Sequence, Optional
+from typing import (
+    Optional,
+    Sequence
+)
 from typing_extensions import Union
 
 import os
@@ -27,82 +30,75 @@ def _add_words(
     majuscule_validation: Optional[bool] = True,
     file_validation: Optional[bool] = True
 ) -> None:
+    """Silently update the pybear lexicon text files with the given words.
 
-    """
-        Silently update the pybear lexicon text files with the given
-        words. Words that are already in the lexicon are silently
-        ignored. This is very much a case-sensitive operation.
+    Words that are already in the lexicon are silently ignored. This is
+    very much a case-sensitive operation.
 
-        The 'validation' parameters allow you to disable the pybear
-        lexicon rules. The pybear lexicon does not allow any characters
-        that are not one of the 26 letters of the English alphabet.
-        Numbers, spaces, and punctuation, for example, are not allowed
-        in the formal pybear lexicon. Also, the pybear lexicon requires
-        that all entries in the lexicon be MAJUSCULE, i.e., upper-case.
-        The published pybear lexicon will always follow these rules.
-        When the validation is used it ensures the integrity of the
-        lexicon. However, the user can override this validation for
-        local copies of pybear by setting 'character_validation',
-        'majuscule_validation', and / or 'file_validation' to False. If
-        you want your lexicon to have strings that contain numbers,
-        spaces, punctuation, and have different cases, then set the
-        validation to False and add your strings to the lexicon via this
-        method.
+    The 'validation' parameters allow you to disable the pybear lexicon
+    rules. The pybear lexicon does not allow any characters that are
+    not one of the 26 letters of the English alphabet. Numbers, spaces,
+    and punctuation, for example, are not allowed in the formal pybear
+    lexicon. Also, the pybear lexicon requires that all entries in the
+    lexicon be MAJUSCULE, i.e., upper-case. The published pybear
+    lexicon will always follow these rules. When the validation is
+    used it ensures the integrity of the lexicon. However, the user can
+    override this validation for local copies of pybear by setting
+    'character_validation', 'majuscule_validation', and / or
+    'file_validation' to False. If you want your lexicon to have strings
+    that contain numbers, spaces, punctuation, and have different cases,
+    then set the validation to False and add your strings to the lexicon
+    via this method.
 
-        pybear stores words in the lexicon text files based on the first
-        character of the string. So a word like 'APPLE' is stored in a
-        file named 'lexicon_A' (this is the default pybear way.) A word
-        like 'apple' would be stored in a file named 'lexicon_a'. Keep
-        in mind that the pybear lexicon is built with all capitalized
-        words and file names and these are the only ones that exist out
-        of the box. If you were to turn off the 'majuscule_validation'
-        and 'file_validation' and pass the word 'apple' to this method,
-        it will NOT append 'APPLE' to the 'lexicon_A' file, a new lexicon
-        file called 'lexicon_a' will be created and the word 'apple'
-        will be put into it.
+    pybear stores words in the lexicon text files based on the first
+    character of the string. So a word like 'APPLE' is stored in a
+    file named 'lexicon_A' (this is the default pybear way.) A word
+    like 'apple' would be stored in a file named 'lexicon_a'. Keep in
+    mind that the pybear lexicon is built with all capitalized words
+    and file names and these are the only ones that exist out of the
+    box. If you were to turn off the 'majuscule_validation' and
+    'file_validation' and pass the word 'apple' to this method, it
+    will NOT append 'APPLE' to the 'lexicon_A' file, a new lexicon
+    file called 'lexicon_a' will be created and the word 'apple' will
+    be put into it.
 
-        The Lexicon instance reloads the lexicon from disk and refills
-        the attributes when update is complete.
-
+    The Lexicon instance reloads the lexicon from disk and refills
+    the attributes when update is complete.
 
     Parameters
     ----------
-    WORDS:
-        Union[str, Sequence[str]] - the word or words to be added to the
-        pybear lexicon. Cannot be an empty string or an empty sequence.
-        Words that are already in the lexicon are silently ignored.
-    lexicon_folder_path:
-        str - the path to the directory that holds the lexicon text
-        files.
-    character_validation:
-        Optional[bool], default = True - whether to apply pybear lexicon
-        character validation to the word or sequence of words. pybear
-        lexicon allows only the 26 letters in the English language, no
-        others. No spaces, no hyphens, no apostrophes. If True, any
-        non-alpha characters will raise an exception during validation.
-        If False, any string character is accepted.
-    majuscule_validation:
-        Optional[bool], default = True - whether to apply pybear lexicon
-        majuscule validation to the word or sequence of words. The pybear
-        lexicon requires all characters be majuscule, i.e., EVERYTHING
-        MUST BE UPPER-CASE. If True, any non-majuscule characters will
-        raise an exception during validation. If False, any case is
+    WORDS : Union[str, Sequence[str]] - the word or words to be added
+        to the pybear lexicon. Cannot be an empty string or an empty
+        sequence. Words that are already in the lexicon are silently
+        ignored.
+    lexicon_folder_path : str - the path to the directory that holds
+        the lexicon text files.
+    character_validation : Optional[bool], default = True
+        Whether to apply pybear lexicon character validation to the word
+        or sequence of words. pybear lexicon allows only the 26 letters
+        in the English language, no others. No spaces, no hyphens, no
+        apostrophes. If True, any non-alpha characters will raise an
+        exception during validation. If False, any string character is
         accepted.
-    file_validation:
-        Optional[bool], default = True - whether to apply pybear lexicon
-        file name validation to the word or sequence of words. The formal
-        pybear lexicon only allows words to start with the 26 upper-case
-        letters of the English alphabet (which then dictates the file
-        name in which it will be stored). If True, any disallowed
-        characters in the first position will raise an exception during
-        validation. If False, any character is accepted, which may then
-        necessitate that a file be created.
-
+    majuscule_validation : Optional[bool], default = True
+        Whether to apply pybear lexicon majuscule validation to the word
+        or sequence of words. The pybear lexicon requires all characters
+        be majuscule, i.e., EVERYTHING MUST BE UPPER-CASE. If True,
+        any non-majuscule characters will raise an exception during
+        validation. If False, any case is accepted.
+    file_validation : Optional[bool], default = True
+        Whether to apply pybear lexicon file name validation to the
+        word or sequence of words. The formal pybear lexicon only allows
+        words to start with the 26 upper-case letters of the English
+        alphabet (which then dictates the file name in which it will
+        be stored). If True, any disallowed characters in the first
+        position will raise an exception during validation. If False,
+        any character is accepted, which may then necessitate that a
+        file be created.
 
     Return
     ------
-    -
-        None
+    None
 
     """
 
@@ -192,8 +188,6 @@ def _add_words(
 
 
     print(f'\n*** Lexicon update successful. ***\n')
-
-
 
 
 

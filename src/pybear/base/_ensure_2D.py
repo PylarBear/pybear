@@ -16,35 +16,29 @@ def ensure_2D(
     X,
     copy_X:bool=True
 ):
+    """Ensure that X has 2-dimensional shape, i.e., len(X.shape) == 2.
 
-    """
-    Ensure that X has 2-dimensional shape, i.e., len(X.shape) == 2.
     If X is a 1D vector, assume the vector is a single feature of
     samples, not a single sample of features. X must have a 'shape'
     attribute. The only time copy_X matters is if copy_X is True and X
     is 1-dimensional. This module does not accept python builtin
     iterables like list, set, and tuple.
 
-
     Parameters
     ----------
-    X:
-        {array-like} of shape (n_samples, n_features) or (n_samples,) -
+    X : array_like of shape (n_samples, n_features) or (n_samples,)
         The data to be put into a 2-dimensional container.
-    copy:
-        bool - whether to copy X or operate directly on the passed X.
+    copy : bool
+        Whether to copy X or operate directly on the passed X.
 
-
-    Return
-    ------
-    X:
-        {array-like} of shape (n_samples, n_features) - The data in
-        a 2-dimensional container.
-
+    Returns
+    -------
+    X : array_like of shape (n_samples, n_features)
+        The data in a 2-dimensional container.
 
     """
 
-    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     try:
         # bypass dok check, it is a python dict and wont pass
         if isinstance(X, (ss.dok_array, ss.dok_matrix)):
@@ -67,7 +61,7 @@ def ensure_2D(
     if not isinstance(copy_X, bool):
         raise TypeError(f"'copy_X' must be boolean.")
 
-    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     _dim = len(X.shape)
@@ -101,35 +95,6 @@ def ensure_2D(
             f"ensure_2D: 'X' must be 2D or less, got {_dim}. Cannot "
             f"convert 3D+ to 2D."
         )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

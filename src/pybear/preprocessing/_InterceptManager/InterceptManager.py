@@ -645,8 +645,8 @@ class InterceptManager(
                 exactly match the features in feature_names_in_.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             feature_names_out: FeatureNamesInType - The feature names of
             the transformed data.
@@ -711,8 +711,8 @@ class InterceptManager(
             Ignored. The target for the data.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             self - the fitted InterceptManager instance.
 
@@ -881,8 +881,8 @@ class InterceptManager(
             target for the data.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             self - the fitted InterceptManager instance.
 
@@ -1057,8 +1057,8 @@ class InterceptManager(
             a deepcopy of X before the transform.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             X_tr: array-like of shape (n_samples, n_transformed_features)
             - The transformed data.

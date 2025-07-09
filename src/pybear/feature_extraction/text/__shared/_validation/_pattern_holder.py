@@ -7,7 +7,10 @@
 
 
 from typing import Optional
-from typing_extensions import TypeAlias, Union
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 
 import numbers
 import re
@@ -26,9 +29,8 @@ def _val_pattern_holder(
     _n_rows: numbers.Integral,
     _name: Optional[str] = 'unnamed patterns'
 ) -> None:
+    """Validate 'pattern_holder'.
 
-    """
-    Validate 'pattern_holder'.
     Must be:
     None,
     a literal string,
@@ -41,40 +43,36 @@ def _val_pattern_holder(
     by the re method/function they are being passed to. If passed as a
     list, the number of entries must equal the number of rows in X.
 
-
     Parameters
     ----------
-    _pattern_holder:
-        RemoveType - the literal strings or re.compile objects used to
-        match patterns in the data. When None, no matches are sought. If
-        a single literal or re.compile object, that is searched on the
-        entire dataset. If a tuple of string literals and/or re.compile
-        objects, then each of them is searched on the entire dataset.
-        When passed as a list, the number of entries must equal the
-        number of rows in the data, and the entries are applied to the
-        corresponding row in the data. The list must be a sequence of
-        Nones, string literals, re.compile objects and/or tuples of
-        string literals / re.compile objects.
-    _n_rows:
-        numbers.Integral - the number of rows in the data.
-
+    _pattern_holder : PatternHolderType
+        The literal strings or re.compile objects used to match patterns
+        in the data. When None, no matches are sought. If a single
+        literal or re.compile object, that is searched on the entire
+        dataset. If a tuple of string literals and/or re.compile objects,
+        then each of them is searched on the entire dataset. When passed
+        as a list, the number of entries must equal the number of rows
+        in the data, and the entries are applied to the corresponding
+        row in the data. The list must be a sequence of Nones, string
+        literals, re.compile objects and/or tuples of string literals /
+        re.compile objects.
+    _n_rows : numbers.Integral
+        The number of rows in the data.
 
     Return
     ------
-    -
-        None
-
+    None
 
     Notes
     -----
-    Type Aliases
+
+    **Type Aliases**
 
     PatternType:
         Union[None, str, re.Pattern[str], tuple[Union[str, re.Pattern[str]], ...]]
 
     PatternHolderType:
         Union[PatternType, list[PatternType]]
-
 
     """
 
@@ -140,12 +138,6 @@ def _val_pattern_holder(
 
 
     del _val_helper, _err_msg
-
-
-
-
-
-
 
 
 

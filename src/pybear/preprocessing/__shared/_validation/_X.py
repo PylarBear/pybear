@@ -35,8 +35,8 @@ def _val_X(
         array-like of shape (n_samples, n_features) - the data.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

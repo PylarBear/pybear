@@ -43,7 +43,7 @@ class FileDumpMixin:
 
     Notes
     -----
-    Type Aliases
+    **Type Aliases**
 
     PythonTypes:
         Union[Sequence[str], Sequence[Sequence[str]], set[str]]

@@ -80,8 +80,8 @@ def _parallel_constant_finder(
         numpy.allclose.
 
 
-    Return
-    ------
+    Returns
+    -------
     _constants:
         list[Union[uuid.uuid4, Any]] - a list of the results for each
         column in _chunk. if a column is not constant, returns a uuid4

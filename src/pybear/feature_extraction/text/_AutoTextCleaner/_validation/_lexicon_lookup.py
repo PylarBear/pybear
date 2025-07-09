@@ -14,28 +14,42 @@ from .._type_aliases import LexiconLookupType
 def _val_lexicon_lookup(
     _lexicon_lookup: Union[LexiconLookupType, None]
 ) -> None:
+    """Validate 'lexicon_lookup'.
 
-
-    """
-    Validate 'lexicon_lookup'. Must be None or a dictionary of parameters
-    for TextLookupRealTime.
-
+    Must be None or a dictionary of parameters for TextLookupRealTime.
 
     Parameters
     ----------
-    _lexicon_lookup:
-        Union[LexiconLookupType, None] - If None, do not look up the
-        words in the text against the Lexicon. Otherwise, a dictionary
-        of parameters that indicate how TextLookupRealTime should handle
-        the lookup. For a human-less lookup experience, use 'auto_add'
-        or 'auto_delete'.
-
+    _lexicon_lookup : Union[LexiconLookupType, None]
+        If None, do not look up the words in the text against the Lexicon.
+        Otherwise, a dictionary of parameters that indicate how
+        TextLookupRealTime should handle the lookup. For a human-less
+        lookup experience, use 'auto_add' or 'auto_delete'.
 
     Returns
     -------
-    -
-        None
+    None
 
+    Notes
+    -----
+
+    **Type Aliases**
+
+    class LexiconLookupType(TypedDict):
+
+        update_lexicon: NotRequired[bool]
+
+        skip_numbers: NotRequired[bool]
+        skip_numbers: NotRequired[bool]
+        auto_split: NotRequired[bool]
+        auto_add_to_lexicon: NotRequired[bool]
+        auto_delete: NotRequired[bool]
+        DELETE_ALWAYS: NotRequired[Union[Sequence[str], None]]
+        REPLACE_ALWAYS: NotRequired[Union[dict[str, str], None]]
+        SKIP_ALWAYS: NotRequired[Union[Sequence[str], None]]
+        SPLIT_ALWAYS: NotRequired[Union[dict[str, Sequence[str]], None]]
+        remove_empty_rows: NotRequired[bool]
+        verbose: NotRequired[bool]
 
     """
 

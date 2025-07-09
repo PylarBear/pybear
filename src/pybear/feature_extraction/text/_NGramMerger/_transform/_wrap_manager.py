@@ -6,7 +6,10 @@
 
 
 
-from typing import Callable, Sequence
+from typing import (
+    Callable,
+    Sequence
+)
 from typing_extensions import Union
 
 import re
@@ -32,50 +35,43 @@ def _wrap_manager(
     _ngcallable: Union[Callable[[list[str]], str], None],
     _sep: Union[str, None]
 ) -> tuple[list[str], list[str]]:
+    """Define a wrap region and look in it for any n-gram matches.
 
-    """
-    If the user has indicated to look for n-grams around the ends and
-    beginnings of lines, define a wrap region and look in it for any
-    n-gram matches. If there are any matches, make the changes to the 2
-    impacted lines and return them.
-
+    Only if the user has indicated to look for n-grams around the ends
+    and beginnings of lines. If there are any matches, make the changes
+    to the 2 impacted lines and return them.
 
     Parameters
     ----------
-    _first_line:
-        list[str] - the current line being searched for ngram patterns
+    _first_line : list[str]
+        The current line being searched for ngram patterns
         in :meth: `transform`.
-    _second_line:
-        list[str] - the line below the current line being searched for
-        ngram patterns in :meth: `transform`.
-    _first_hits:
-        Sequence[numbers.Integral] - the first indices of any matching
-        n-gram patterns found in the current line during the normal
-        linear n-gram search.
-    _second_hits
-        Sequence[numbers.Integral] - the first indices of any matching
-        n-gram patterns found in the line below the current line during
-        the normal linear n-gram search.
-    _ngram:
-        tuple[re.Pattern[str], ...] - A single n-gram sequence containing
-        re.compile objects that specify an n-gram pattern. Cannot have
-        less than 2 entries.
-    _ngcallable:
-        Union[Callable[[list[str]], str], None] - the callable applied
-        to sequences that match an n-gram pattern to produce a single
-        contiguous string.
-    _sep:
-        Union[str, None] - the user defined separator to join the words
-        with, if _ngcallable is not given. If no separator is defined by
-        the user, use the default separator.
-
+    _second_line : list[str]
+        The line below the current line being searched for ngram patterns
+        in :meth: `transform`.
+    _first_hits : Sequence[numbers.Integral]
+        The first indices of any matching n-gram patterns found in the
+        current line during the normal linear n-gram search.
+    _second_hits : Sequence[numbers.Integral]
+        The first indices of any matching n-gram patterns found in the
+        line below the current line during the normal linear n-gram
+        search.
+    _ngram : tuple[re.Pattern[str], ...]
+        A single n-gram sequence containing re.compile objects that
+        specify an n-gram pattern. Cannot have less than 2 entries.
+    _ngcallable : Union[Callable[[list[str]], str], None]
+        The callable applied to sequences that match an n-gram pattern
+        to produce a single contiguous string.
+    _sep : Union[str, None]
+        The user defined separator to join the words with, if _ngcallable
+        is not given. If no separator is defined by the user, use the
+        default separator.
 
     Returns
     -------
-    -
-        tuple[list[str], list[str]] - the current line and the line below
-        it with any wrap-region ngrams joined into a contiguous string
-        in the current line.
+    tuple[list[str], list[str]]
+        The current line and the line below it with any wrap-region
+        ngrams joined into a contiguous string in the current line.
 
     """
 

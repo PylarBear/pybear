@@ -13,26 +13,21 @@ import numpy as np
 def _check_order(
     lexicon_: list[str]
 ) -> list[str]:
+    """Determine if the lexicon files are out of alphabetical order.
 
-    """
-    Determine if words in the lexicon files are out of alphabetical
-    order by comparing the words as stored against a sorted vector of
-    the words. Displays any out-of-order words to screen and return a
-    python list of the words.
-
+    Compare the words as stored against a sorted vector of the words.
+    Displays any out-of-order words to screen and return a python list
+    of the words.
 
     Parameters
     ----------
-    lexicon_:
-        list[str] - the python list containing the pybear lexicon.
-
+    lexicon_ : list[str]
+        The python list containing the pybear lexicon.
 
     Return
     ------
-    -
-        OUT_OF_ORDER: list[str] - vector of any out of sequence words in
-        the lexicon.
-
+    OUT_OF_ORDER : list[str]
+        Vector of any out of sequence words in the lexicon.
 
     """
 

@@ -17,9 +17,8 @@ from ...__shared._validation._pattern_holder import _val_pattern_holder
 def _val_remove(
     _remove: RemoveType
 ) -> None:
+    """Validate '_remove'.
 
-    """
-    Validate '_remove'.
     Must be:
     None,
     a literal string,
@@ -30,25 +29,28 @@ def _val_remove(
     Regex patterns are not validated here, any exception would be raised
     by the re method/function they are being passed to.
 
-
     Parameters
     ----------
-    _remove:
-        RemoveType - the literal strings or re.compile objects used to
-        match patterns in the data. When None, no matches are sought. If
-        a single literal or re.compile object, that is searched on the
-        entire dataset. If a tuple of string literals and/or re.compile
-        objects, then each of them is searched on the entire dataset.
-
+    _remove : RemoveType
+        The literal strings or re.compile objects used to match patterns
+        in the data. When None, no matches are sought. If a single
+        literal or re.compile object, that is searched on the entire
+        dataset. If a tuple of string literals and/or re.compile objects,
+        then each of them is searched on the entire dataset.
 
     Return
     ------
-    -
-        None
+    None
 
+    Notes
+    -----
+
+    **Type Aliases**
+
+    RemoveType:
+        Union[None, FindType, tuple[FindType, ...]]
 
     """
-
 
 
     # _val_pattern_holder allows lists. we just want the None/str/re.Pattern/tuple

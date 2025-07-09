@@ -54,7 +54,6 @@ RemoveType: TypeAlias = Union[None, FindType, tuple[FindType, ...]]
 class LexiconLookupType(TypedDict):
     update_lexicon: NotRequired[bool]
     skip_numbers: NotRequired[bool]
-    skip_numbers: NotRequired[bool]
     auto_split: NotRequired[bool]
     auto_add_to_lexicon: NotRequired[bool]
     auto_delete: NotRequired[bool]

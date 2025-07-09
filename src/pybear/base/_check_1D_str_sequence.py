@@ -39,11 +39,12 @@ def check_1D_str_sequence(
     require_all_finite:Optional[bool] = False
 ) -> None:
     """Validate things that are expected to be 1D sequences of strings.
+
     Accepts 1D python built-ins, numpy arrays, pandas series, and
-    polars series. When 'require_all_finite' is True, every element
-    in the sequence must be an instance of str; if there is a nan-like
-    or infinity-like value a ValueError will be raised.
-    If 'require_all_finite' is False, non-finite values are ignored and
+    polars series. When `require_all_finite` is True, every element
+    in the sequence must be an instance of str; a ValueError will be
+    raised if there are any nan-like or infinity-like values.
+    If `require_all_finite` is False, non-finite values are ignored and
     only the finite values must be an instance of str. If all checks
     pass then None is returned.
 
@@ -60,27 +61,28 @@ def check_1D_str_sequence(
     TypeError:
         for invalid container
     ValueError:
-        for non-finite values when 'require_all_finite' is True
+        for non-finite values when `require_all_finite` is True
 
-    Return
-    ------
+    Returns
+    -------
     None
 
     Notes
     -----
+
     **Type Aliases**
 
     PythonTypes:
         Union[list, tuple, set]
 
     NumpyTypes:
-        npt.NDArray
+        numpy.ndarray
 
     PandasTypes:
-        pd.Series
+        pandas.Series
 
     PolarsTypes:
-        pl.Series
+        polars.Series
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
