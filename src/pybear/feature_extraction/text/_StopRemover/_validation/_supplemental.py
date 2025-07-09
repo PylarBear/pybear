@@ -14,23 +14,18 @@ from .....base._check_1D_str_sequence import check_1D_str_sequence
 
 
 def _val_supplemental(_supplemental: Union[Sequence[str], None]) -> None:
+    """Validate 'supplemental'.
 
-    """
-    Validate 'supplemental'. Must be sequence[str] or None.
-
+    Must be sequence[str] or None.
 
     Parameters
     ----------
-    _supplemental:
-        Union[Sequence[str], None] - stop words that are supplemental
-        from being removed.
-
+    _supplemental : Union[Sequence[str], None]
+        Stop words that are supplemental from being removed.
 
     Returns
     -------
-    -
-        None
-
+    None
 
     """
 

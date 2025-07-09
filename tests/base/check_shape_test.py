@@ -16,13 +16,11 @@ import pytest
 
 
 
-
-
 class TestCheckShape:
 
 
     # def check_shape(
-    #     OBJECT,
+    #     X,
     #     min_features: numbers.Integral=1,
     #     max_features: Union[numbers.Integral, None]=None,
     #     min_samples: numbers.Integral=1,
@@ -343,30 +341,6 @@ class TestCheckShape:
                     _X,
                     min_samples=min_samples
                 )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

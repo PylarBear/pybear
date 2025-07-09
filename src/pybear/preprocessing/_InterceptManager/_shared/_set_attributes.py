@@ -41,8 +41,8 @@ def _set_attributes(
         int - number of features in the fitted data before transform.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         tuple[
             kept_columns_: KeptColumnsType,

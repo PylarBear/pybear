@@ -51,13 +51,11 @@ def _validation(
     _justify: Union[None, numbers.Integral],
     _get_statistics: Union[None, GetStatisticsType]
 ) -> None:
+    """Validate the parameters for AutoTextCleaner.
 
-
-    """
-    Validate the parameters for AutoTextCleaner. The brunt of the
-    validation is handled by the submodules. See them for more
-    information. This is a centralized hub for all the submodules.
-
+    The brunt of the validation is handled by the submodules. See them
+    for more information. This is a centralized hub for all the
+    submodules.
 
     Parameters
     ----------
@@ -92,12 +90,9 @@ def _validation(
     _get_statistics:
         Union[None, GetStatisticsType]
 
-
     Returns
     -------
-    -
-        None
-
+    None
 
     """
 
@@ -133,9 +128,6 @@ def _validation(
     _val_any_integer(_justify, 'justify', _can_be_None=True)
 
     _val_get_statistics(_get_statistics)
-
-
-
 
 
 

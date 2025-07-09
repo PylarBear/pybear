@@ -23,36 +23,30 @@ def _special_param_conditioner(
     _case_sensitive: bool,
     _flags: Union[numbers.Integral, None]
 ) -> NGramsWipType:
-
-    """
-    Convert any literal strings in the ngrams to re.compile objects and
-    apply any flags from 'case_sensitive' and 'flags' to all the compile
-    objects, including those ngram patterns that may have already been
-    passed as re.compile.
-
+    """Convert any literal strings in the ngrams to re.compile objects
+    and apply any flags from 'case_sensitive' and 'flags' to all the
+    compile objects, including those ngram patterns that may have
+    already been passed as re.compile.
 
     Parameters
     ----------
-    _ngrams:
-        Union[Sequence[Sequence[Union[str, re.Pattern[str]]]], None] - A
-        sequence of sequences, where each inner sequence holds a series
+    _ngrams : Union[Sequence[Sequence[Union[str, re.Pattern[str]]]], None]
+        A sequence of sequences, where each inner sequence holds a series
         of string literals and/or re.compile objects that specify an
         n-gram. Cannot be empty, and cannot have any n-grams with less
         than 2 entries. Can be None.
-    _case_sensitive:
-        bool - whether to do a case-sensitive search.
-    _flags:
-        Union[numbers.Integral, None] - the global flags value(s) applied
-        to the n-gram search. Must be None or an integer.
-
+    _case_sensitive : bool
+        Whether to do a case-sensitive search.
+    _flags : Union[numbers.Integral, None]
+        The global flags value(s) applied to the n-gram search. Must be
+        None or an integer.
 
     Returns
     -------
-    -
-        Union[None, list[tuple[re.Pattern[str], ...]]] - the ngrams with
-        any literal strings converted to re.compile and any flags from
-        'case_sensitive' and 'flags' applied to the compile objects.
-
+    Union[None, list[tuple[re.Pattern[str], ...]]]
+        The ngrams with any literal strings converted to re.compile and
+        any flags from 'case_sensitive' and 'flags' applied to the
+        compile objects.
 
     """
 

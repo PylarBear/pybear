@@ -24,38 +24,32 @@ def _transform(
     _remove_empty_rows: bool,
     _n_jobs: Union[numbers.Integral, None]
 ) -> tuple[list[list[str]], npt.NDArray[bool]]:
+    """Remove stop words from X.
 
-    """
-    Remove stop words from X. If required, remove any rows made empty by
-    the stop word removal process. Return a boolean numpy vector
-    indicating which rows were kept (True) after the empty row removal
-    process.
-
+    If required, remove any rows made empty by the stop word removal
+    process. Return a boolean numpy vector indicating which rows were
+    kept (True) after the empty row removal process.
 
     Parameters
     ----------
-    _X:
-        list[list[str]] - the text data.
-    _callable:
-        Callable[[str, str], bool] - the umpire function for determining
-        if a token in X is a match against a stop word.
-    _stop_words:
-        list[str] - the list of stop words from pybear.Lexicon
-    _remove_empty_rows:
-        bool - Whether to remove any empty rows that might result from
-        the stop word removal process.
-    _n_jobs:
-        Union[numbers.Integral, None] - the number of rows to search in
-        parallel for stop words.
-
+    _X : list[list[str]]
+        The text data.
+    _callable : Callable[[str, str], bool]
+        The umpire function for determining if a token in X is a match
+        against a stop word.
+    _stop_words : list[str]
+        The list of stop words from pybear.Lexicon.
+    _remove_empty_rows : bool
+        Whether to remove any empty rows that might result from the stop
+        word removal process.
+    _n_jobs : Union[numbers.Integral, None] - the number of rows to
+        search in parallel for stop words.
 
     Returns
     -------
-    -
-        X: tuple[list[list[str]], npt.NDArray[bool]] - the data with
-        stop words removed, a boolean numpy vector indicating with rows
-        were kept from the original data (True).
-
+    tuple[list[list[str]], npt.NDArray[bool]]
+        The data with stop words removed and a boolean numpy vector
+        indicating with rows were kept from the original data (True).
 
     """
 
@@ -67,27 +61,23 @@ def _transform(
         _line: list[str],
         _stop_words: list[str]
     ) -> list[str]:
-
-        """
-        Parallelized function for finding stop words in one row of X.
-
+        """Parallelized function for finding stop words in one row of X.
 
         Parameters
         ----------
         _callable:
-            the umpire function that determines if a word in X is a stop
+            The umpire function that determines if a word in X is a stop
             word.
-        _line:
-            list[str] - a single line in X; the line currently being
-            searched for stop words and having them removed.
-        _stop_words:
-            list[str] - the list of stop words from pybear.Lexicon.
-
+        _line : list[str]
+            A single line in X; the line currently being searched for
+            stop words and having them removed.
+        _stop_words : list[str]
+            The list of stop words from pybear.Lexicon.
 
         Returns
         -------
-        -
-            list[str]: a single row of X with stop words removed.
+        list[str]
+            A single row of X with stop words removed.
 
         """
 
@@ -124,21 +114,6 @@ def _transform(
 
 
     return _X, _row_support
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

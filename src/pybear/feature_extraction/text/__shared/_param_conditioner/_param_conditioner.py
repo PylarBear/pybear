@@ -7,7 +7,10 @@
 
 
 from typing import Optional
-from typing_extensions import TypeAlias, Union
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 
 import numbers
 import re
@@ -44,46 +47,61 @@ def _param_conditioner(
     _n_rows: numbers.Integral,
     _name: Optional[str] = 'unnamed pattern holder'
 ) -> WipPatternHolderType:
-
     """
     Use the parameters to convert all literal strings to re.compile and
     apply the flags implied by _case_sensitive and _flags.
 
-
     Parameters
     ----------
-    _pattern_holder:
-        PatternHolderType - the string search criteria as passed by the
-        user.
-    _case_sensitive:
-        CaseSensitiveType - the case-sensitive strategy as passed by the
-        user.
-    _flags:
-        FlagsType - the flags for searches as passed by the user.
-    _order_matters:
-        bool - when '_pattern_holder' is or has in it a tuple of literal
+    _pattern_holder : PatternHolderType
+        The string search criteria as passed by the user.
+    _case_sensitive : CaseSensitiveType
+        The case-sensitive strategy as passed by the user.
+    _flags : FlagsType
+        The flags for searches as passed by the user.
+    _order_matters : bool
+        When '_pattern_holder' is or has in it a tuple of literal
         strings and/or re.compiles, whether the order of operations and
         redundancy are important. If not important, any redundancy can
         be eliminated with python sets and order can change without
         consequence.
-    _n_rows:
-        numbers.Integral - the number of rows in the data. if _flags,
-        _pattern_holder, and/or _case_sensitive were passed as a list,
-        the length of them was already validated against this number.
-    _name:
-        Optional[str], default = 'unnamed pattern holder' - the name of
-        the corresponding pattern-holder param in the home module, like
-        'split', 'replace', 'ngrams', etc.
-
+    _n_rows : numbers.Integral
+        The number of rows in the data. if _flags, _pattern_holder,
+        and/or _case_sensitive were passed as a list, the length of them
+        was already validated against this number.
+    _name : Optional[str], default = 'unnamed pattern holder'
+        The name of the corresponding pattern-holder param in the home
+        module, like 'split', 'replace', 'ngrams', etc.
 
     Returns
     -------
-    -
-        _compile_holder: WipPatternHolderType - the search criteria for
-            the data. Could be a single None, as single re.Pattern, a
-            single tuple of re.Patterns, or a list comprised of any of
-            those things.
+    _compile_holder: WipPatternHolderType
+        The search criteria for the data. Could be a single None, as
+        single re.Pattern, a single tuple of re.Patterns, or a list
+        comprised of any of those things.
 
+    Notes
+    -----
+
+    **Type Aliases**
+
+    PatternType:
+        Union[None, str, re.Pattern[str], tuple[Union[str, re.Pattern[str]], ...]]
+    PatternHolderType:
+        Union[PatternType, list[PatternType]]
+
+    WipPatternType:
+        Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]
+    WipPatternHolderType:
+        Union[WipPatternType, list[WipPatternType]]
+
+    CaseSensitiveType:
+        Union[bool, list[Union[bool, None]]]
+
+    FlagType:
+        Union[None, numbers.Integral]
+    FlagsType:
+        Union[FlagType, list[FlagType]]
 
     """
 
@@ -175,10 +193,6 @@ def _param_conditioner(
 
 
     return _compile_holder
-
-
-
-
 
 
 

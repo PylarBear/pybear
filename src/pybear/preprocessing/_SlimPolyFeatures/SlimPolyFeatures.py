@@ -631,8 +631,8 @@ class SlimPolyFeatures(
         See the main SPF docs for a full description.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             poly_combinations_: Union[CombinationsType, None] - The
             polynomial column combinations from X that are in the
@@ -670,8 +670,8 @@ class SlimPolyFeatures(
         See the main SPF docs for a full description.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             poly_duplicates_: Union[PolyDuplicatesType, None] - the
             groups of identical polynomial features.
@@ -700,8 +700,8 @@ class SlimPolyFeatures(
         See the main SPF docs for a full description.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             kept_poly_duplicates_: Union[KeptPolyDuplicatesType, None] -
             keys: the poly combinations that were kept out of the groups
@@ -732,8 +732,8 @@ class SlimPolyFeatures(
         See the main SPF docs for a full description.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             dropped_poly_duplicates_: Union[DroppedPolyDuplicatesType,
             None] - keys: the poly combinations that were dropped from
@@ -766,8 +766,8 @@ class SlimPolyFeatures(
         See the main SPF docs for a full description.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             poly_constants_: Union[PolyConstantsType, None] - keys: the
             poly combinations that produced a column of constants;
@@ -868,8 +868,8 @@ class SlimPolyFeatures(
                 exactly match the features in feature_names_in_.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             feature_names_out: FeatureNamesInType - The feature names of
             the transformed data.
@@ -948,8 +948,8 @@ class SlimPolyFeatures(
             target for the data.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             self - the fitted SlimPolyFeatures instance.
 
@@ -1261,8 +1261,8 @@ class SlimPolyFeatures(
             target for the data.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             self - the fitted SlimPolyFeatures instance.
 

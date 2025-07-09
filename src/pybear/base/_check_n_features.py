@@ -17,36 +17,31 @@ def check_n_features(
     n_features_in_: Union[int, None],
     reset: bool
 ) -> int:
-
-    """
-    Set the 'n_features_in_' attribute, or check against it.
+    """Set the 'n_features_in_' attribute, or check against it.
 
     pybear recommends calling reset=True in 'fit' and in the first call
     to 'partial_fit'. All other methods that validate 'X' should set
     'reset=False'.
 
-
     Parameters
     ----------
-    X:
-        array-like of shape (n_samples, n_features) or (n_samples,) with
-        a 'shape' attribute - The input data.
-    n_features_in_:
-        Union[int, None] - the number of features in the data. If this
-        attribute exists, it is integer. If it does not exist, it is
-        None.
-    reset:
-        bool -
+    X : array_like of shape (n_samples, n_features) or (n_samples,)
+        The input data, with a 'shape' attribute.
+    n_features_in_ : Union[int, None]
+        The number of features in the data. If this attribute exists,
+        it is integer. If it does not exist, it is None.
+    reset : bool
         If True, the 'n_features_in_' attribute is set to 'X.shape[1]'
+
         If False:
             if n_features_in_ exists check it is equal to 'X.shape[1]'
+
             if n_features_in_ does *not* exist the check is skipped
 
-
-    Return
-    ------
-    -
-        n_features: int - the number of features in X.
+    Returns
+    -------
+    n_features : int
+        The number of features in X.
 
     """
 
@@ -72,12 +67,6 @@ def check_n_features(
 
     # if get to here, n_features must == n_features_in__
     return int(n_features)
-
-
-
-
-
-
 
 
 

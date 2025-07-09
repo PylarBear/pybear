@@ -11,18 +11,17 @@ import numpy as np
 
 
 def array_sparsity(a) -> float:
-
     """
     Calculate the sparsity (percentage of zeros) of an array-like.
 
     Parameters
     -----------
-    a : array-like
+    a : array_like
         object for which to calculate sparsity. Must be able to convert
         to a numpy.ndarray and must not be empty.
 
-    Return
-    ------
+    Returns
+    -------
     sparsity : float
         percentage of zeros in a.
 

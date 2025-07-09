@@ -53,8 +53,8 @@ class SetOutputMixin:
 
             -None: Transform configuration is unchanged
 
-        Return
-        ------
+        Returns
+        -------
         self : object
             This instance.
 

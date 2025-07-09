@@ -14,28 +14,20 @@ def _val_any_string(
     _name:Optional[str] = 'unnamed string',
     _can_be_None:Optional[bool] = False
 ) -> None:
-
-    """
-    Validate that a parameter is a string, or None if allowed to be None.
-
+    """Validate that a parameter is a string, or None if allowed to be None.
 
     Parameters
     ----------
-    _str:
-        str - the object to be validated as a string (or None).
-    _name:
-        Optional[str], default='unnamed string' - the name of the
-        parameter being validated.
-    _can_be_None:
-        Optional[bool[ - whether None can be accepted in place of a
-        string.
-
+    _str : str
+        The object to be validated as a string (or None).
+    _name : Optional[str], default='unnamed string'
+        The name of the parameter being validated.
+    _can_be_None : Optional[bool]
+        Whether None can be accepted in place of a string.
 
     Returns
     -------
-    -
-        None
-
+    None
 
     """
 
@@ -57,10 +49,6 @@ def _val_any_string(
 
     if not isinstance(_str, str):
         raise TypeError(f"'{_name}' must be a string. got {type(_str)}.")
-
-
-
-
 
 
 

@@ -40,8 +40,8 @@ def _transform(
         constant columns.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _X: array-like of shape (n_samples, n_transformed_features) -
         The transformed data.

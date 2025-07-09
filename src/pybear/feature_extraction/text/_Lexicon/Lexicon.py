@@ -6,7 +6,10 @@
 
 
 
-from typing import Optional, Sequence
+from typing import (
+    Optional,
+    Sequence
+)
 from typing_extensions import Union
 
 import re
@@ -26,12 +29,11 @@ from ._methods._find_duplicates import _find_duplicates
 
 
 class Lexicon(TextStatistics):
+    """The pybear lexicon of words in the English language.
 
-    """
-    The pybear lexicon of words in the English language. Not exhaustive,
-    though attempts have been made. This serves as a list of words in
-    the English language for text-cleaning purposes. Lexicon also has an
-    attribute for pybear-defined stop words.
+    Not exhaustive, though attempts have been made. This serves as a
+    list of words in the English language for text-cleaning purposes.
+    Lexicon also has an attribute for pybear-defined stop words.
 
     The published pybear Lexicon only allows the 26 letters of the
     English alphabet and all must be capitalized. Other characters, such
@@ -64,40 +66,16 @@ class Lexicon(TextStatistics):
     characters, upper or lower case, and allows Lexicon to create new
     text files for itself.
 
-
     Attributes
     ----------
-    size_:
-        int - The number of words in the pybear English language Lexicon.
-    lexicon_:
-        list[str] - A list of all the words in the pybear Lexicon.
-    stop_words_:
-        list[str] - A list of pybear stop words. The words are the most
-        frequent words in an arbitrary multi-million-word corpus scraped
-        from the internet.
-    overall_statistics_:
-        dict[str: numbers.Real] - A dictionary that holds information
-        about all the words in the Lexicon instance. Available statistics
-        are size, uniques count (should be the same as size), average
-        word length, standard deviation of word length, maximum word
-        length, and minimum word length.
-    string_frequency_:
-        dict[str, int] - A dictionary that holds the unique words in the
-        Lexicon and the respective frequency. For the pybear Lexicon,
-        the frequency of every word should be one.
-    startswith_frequency_:
-        dict[str, int] - A dictionary that holds the unique first
-        characters for all the words in the Lexicon (expected to be all
-        26 letters of the English alphabet) and their frequencies in the
-        first position. That is, the 'A' key will report the number of
-        words in the Lexicon that start with 'A'.
-    character_frequency_:
-        dict[str, int] - A dictionary that holds all the unique single
-        characters and their frequencies for all the words in the Lexicon
-        instance.
-    uniques_:
-        list[str] - Same as lexicon_.
-
+    size_
+    lexicon_
+    stop_words_
+    overall_statistics_
+    string_frequency_
+    startswith_frequency_
+    character_frequency_
+    uniques_
 
     Examples
     --------
@@ -118,11 +96,11 @@ class Lexicon(TextStatistics):
     >>> Lex.lookup_substring('TCHSTR')
     ['LATCHSTRING', 'LATCHSTRINGS']
 
-
     """
 
 
     def __init__(self) -> None:
+        """Initialize the Lexicon instance."""
 
         super().__init__(store_uniques=True)
 
@@ -157,12 +135,33 @@ class Lexicon(TextStatistics):
 
 
     @property
-    def lexicon_(self):
+    def lexicon_(self) -> list[str]:
+        """A list of all the words in the pybear Lexicon.
+
+        Returns
+        -------
+        uniques: list[str]
+            A list of all the words in the pybear Lexicon.
+
+        """
+
         return self.uniques_
 
 
     @property
-    def stop_words_(self):
+    def stop_words_(self) -> list[str]:
+        """The list of pybear stop words.
+
+        The words are the most frequent words in an arbitrary
+        multi-million-word corpus scraped from the internet.
+
+        Returns
+        -------
+        _stop_words : list[str]
+            The list of pybear stop words.
+
+        """
+
         return self._stop_words
 
 
@@ -205,34 +204,30 @@ class Lexicon(TextStatistics):
         self,
         pattern: Union[str, re.Pattern[str]]
     ) -> list[str]:
+        """Use string literals or regular expressions to look for substring
+        matches in the Lexicon.
 
-        """
-        Use string literals or regular expressions to look for substring
-        matches in the Lexicon. 'pattern' can be a literal string or a
-        regular expression in a re.compile object. Return a list of all
-        words in the Lexicon that contain the given substring pattern.
-        Returns an empty list if there are no matches.
+        `pattern` can be a literal string or a regular expression in a
+        re.compile object. Return a list of all words in the Lexicon
+        that contain the given substring pattern. Returns an empty list
+        if there are no matches.
 
         pybear Lexicon forces this search to be case-sensitive. If you
         pass a re.compile object with an IGNORECASE flag, this method
         strips that flag and leaves the other flags intact.
 
-
         Parameters
         ----------
-        pattern:
-            Union[str, re.Pattern[str]] - character sequence or regular
-            expression in a re.compile object to be looked up against
-            the pybear Lexicon.
-
+        pattern : Union[str, re.Pattern[str]]
+            Character sequence or regular expression in a re.compile
+            object to be looked up against the pybear Lexicon.
 
         Return
         ------
-        -
-            list[str] - list of all words in the pybear Lexicon that
-            contain the given character substring. Returns an empty list
-            if there are no matches.
-
+        list[str]
+            List of all words in the pybear Lexicon that contain the
+            given character substring. Returns an empty list if there
+            are no matches.
 
         """
 
@@ -250,37 +245,31 @@ class Lexicon(TextStatistics):
         self,
         pattern: Union[str, re.Pattern[str]]
     ) -> list[str]:
+        """Use string literals or regular expressions to look for full
+        word matches in the Lexicon.
 
-        """
-        Use string literals or regular expressions to look for full word
-        matches in the Lexicon. 'pattern' can be a literal string or a
-        regular expression in a re.compile object. Return a list of all
-        words in the Lexicon that completely match the given pattern.
-        Returns an empty list if there are no matches.
+        `pattern` can be a literal string or a regular expression in a
+        re.compile object. Return a list of all words in the Lexicon
+        that completely match the given pattern. Returns an empty list
+        if there are no matches.
 
         pybear Lexicon forces this search to be case-sensitive. If you
         pass a re.compile object with an IGNORECASE flag, this method
         strips that flag and leaves the other flags intact.
 
-
         Parameters
         ----------
-        pattern:
-            Union[str, re.Pattern[str]] - character sequence or regular
-            expression in a re.compile object to be looked up against
-            the pybear Lexicon.
-
+        pattern : Union[str, re.Pattern[str]]
+            Character sequence or regular expression in a re.compile
+            object to be looked up against the pybear Lexicon.
 
         Return
         ------
-        -
-            list[str] - list of all full words in the pybear Lexicon
-            that match the pattern. Returns an empty list if there are
-            no matches.
-
+        list[str]
+            List of all full words in the pybear Lexicon that match the
+            pattern. Returns an empty list if there are no matches.
 
         """
-
 
         # take out any IGNORECASE flag from a re.compile
         if isinstance(pattern, re.Pattern):
@@ -292,17 +281,15 @@ class Lexicon(TextStatistics):
 
 
     def find_duplicates(self) -> dict[str, numbers.Integral]:
+        """Find any duplicates in the Lexicon.
 
-        """
-        Find any duplicates in the Lexicon. If any, display to screen
-        and return as python dictionary with frequencies.
-
+        If any, display to screen and return as python dictionary with
+        frequencies.
 
         Return
         ------
-        -
-            Duplicates: dict[str, numbers.Integral] - any duplicates in
-            the pybear lexicon and their frequencies.
+        dict[str, numbers.Integral]
+            Any duplicates in the pybear lexicon and their frequencies.
 
         """
 
@@ -310,19 +297,16 @@ class Lexicon(TextStatistics):
 
 
     def check_order(self) -> list[str]:
+        """Determine if the lexicon files are out of alphabetical order.
 
-        """
-        Determine if words stored in the Lexicon files are out of
-        alphabetical order by comparing the words as stored against a
-        sorted list of the words. Displays any out-of-order words to
-        screen and returns a python list of the words.
-
+        Compare the words as stored against a sorted vector of the words.
+        Displays any out-of-order words to screen and return a python list
+        of the words.
 
         Return
         ------
-        -
-            list[str] - vector of any out-of-sequence words in the
-            Lexicon.
+        list[str]
+            Vector of any out-of-sequence words in the Lexicon.
 
         """
 
@@ -336,11 +320,10 @@ class Lexicon(TextStatistics):
         majuscule_validation: Optional[bool] = True,
         file_validation: Optional[bool] = True
     ) -> None:
+        """Silently update the pybear Lexicon text files with the given words.
 
-        """
-        Silently update the pybear Lexicon text files with the given
-        words. Words that are already in the Lexicon are silently
-        ignored. This is very much a case-sensitive operation.
+        Words that are already in the Lexicon are silently ignored. This
+        is very much a case-sensitive operation.
 
         The 'validation' parameters allow you to disable the pybear
         Lexicon rules. The pybear Lexicon does not allow any characters
@@ -375,45 +358,38 @@ class Lexicon(TextStatistics):
         The Lexicon instance reloads the Lexicon from disk and refills
         the attributes when update is complete.
 
-
         Parameters
         ----------
-        WORDS:
-            Union[str, Sequence[str]] - the word or words to be added to
-            the pybear Lexicon. Cannot be an empty string or an empty
-            sequence. Words that are already in the Lexicon are silently
-            ignored.
-        character_validation:
-            Optional[bool], default = True - whether to apply pybear
-            Lexicon character validation to the word or sequence of
-            words. pybear Lexicon allows only the 26 letters in the
-            English language, no others. No spaces, no hyphens, no
-            apostrophes. If True, any non-alpha characters will raise
-            an exception during validation. If False, any string
-            character is accepted.
-        majuscule_validation:
-            Optional[bool], default = True - whether to apply pybear
-            Lexicon majuscule validation to the word or sequence of
-            words. The pybear Lexicon requires all characters be
-            majuscule, i.e., EVERYTHING MUST BE UPPER-CASE. If True,
-            any non-majuscule characters will raise an exception during
-            validation. If False, any case is accepted.
-        file_validation:
-            Optional[bool], default = True - whether to apply pybear
-            Lexicon file name validation to the word or sequence of
-            words. The formal pybear Lexicon only allows words to start
-            with the 26 upper-case letters of the English alphabet (which
-            then dictates the file name in which it will be stored). If
-            True, any disallowed characters in the first position will
-            raise an exception during validation. If False, any character
-            is accepted, which may then necessitate that a file be
-            created.
-
+        WORDS : Union[str, Sequence[str]]
+            The word or words to be added to the pybear Lexicon. Cannot
+            be an empty string or an empty sequence. Words that are
+            already in the Lexicon are silently ignored.
+        character_validation : Optional[bool], default = True
+            Whether to apply pybear Lexicon character validation to the
+            word or sequence of words. pybear Lexicon allows only the 26
+            letters in the English language, no others. No spaces, no
+            hyphens, no apostrophes. If True, any non-alpha characters
+            will raise an exception during validation. If False, any
+            string character is accepted.
+        majuscule_validation : Optional[bool], default = True
+            Whether to apply pybear Lexicon majuscule validation to the
+            word or sequence of words. The pybear Lexicon requires all
+            characters be majuscule, i.e., EVERYTHING MUST BE UPPER-CASE.
+            If True, any non-majuscule characters will raise an exception
+            during validation. If False, any case is accepted.
+        file_validation : Optional[bool], default = True
+            Whether to apply pybear Lexicon file name validation to the
+            word or sequence of words. The formal pybear Lexicon only
+            allows words to start with the 26 upper-case letters of the
+            English alphabet (which then dictates the file name in which
+            it will be stored). If True, any disallowed characters in the
+            first position will raise an exception during validation. If
+            False, any character is accepted, which may then necessitate
+            that a file be created.
 
         Return
         ------
-        -
-            None
+        None
 
         """
 
@@ -435,25 +411,19 @@ class Lexicon(TextStatistics):
         self,
         WORDS: Union[str, Sequence[str]]
     ):
-
-        """
-        Remove the given word(s) from the pybear Lexicon text files.
+        """Remove the given word(s) from the pybear Lexicon text files.
         Case sensitive! Any words that are not in the pybear Lexicon are
         silently ignored.
 
-
         Parameters
         ----------
-        WORDS:
-            Union[str, Sequence[str]] - the word or words to remove from
-            the pybear Lexicon. Cannot be an empty string or an empty
-            sequence.
-
+        WORDS : Union[str, Sequence[str]]
+            The word or words to remove from the pybear Lexicon. Cannot
+            be an empty string or an empty sequence.
 
         Return
         ------
-        -
-            None
+        None
 
         """
 

@@ -6,8 +6,14 @@
 
 
 
-from typing import Iterable, Callable
-from typing_extensions import Union, TypeAlias
+from typing import (
+    Callable,
+    Iterable
+)
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 
 AllFunc: TypeAlias = Callable[[Iterable], bool]
 AnyFunc: TypeAlias = Callable[[Iterable], bool]
@@ -21,6 +27,7 @@ def is_fitted(
 
     """
     Determine if an estimator/transformer is fitted and return a boolean.
+
     'True' means fitted and 'False' means not fitted.
 
     This algorithm looks for 3 things, in the presented order.
@@ -33,27 +40,22 @@ def is_fitted(
     3) has an attribute that ends with an underscore and does not start
     with double underscore.\\\n
 
-
     Parameters
     ----------
-    estimator:
-        estimator/transformer instance - Estimator/transformer instance
-        for which the check is performed.
+    estimator : estimator/transformer instance
+        Estimator/transformer instance for which the check is performed.
 
-    attributes:
-        Union[str, Iterable[str], None], default=None - Attribute name(s)
-        given as string or a list/tuple of strings Eg.: "coef_" or
-        ["coef_", "estimator_", ...]
+    attributes : Union[str, Iterable[str], None], default=None
+        Attribute name(s) given as string or a list/tuple of strings
+        Eg.: "coef_" or ["coef_", "estimator_", ...]
 
     all_or_any : callable, {all, any}, default=all
         Specifies whether all or any of the given attributes must exist.
 
-
     Returns
     -------
-    -
-        fitted : bool - Whether the estimator/transformer is fitted.
-
+    fitted : bool
+        Whether the estimator/transformer is fitted.
 
     Examples
     --------
@@ -72,7 +74,7 @@ def is_fitted(
     """
 
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     if not hasattr(estimator, 'fit'):
         raise ValueError(
@@ -101,7 +103,7 @@ def is_fitted(
             f"python built-in function 'any'."
         )
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     if hasattr(estimator, "__pybear_is_fitted__"):

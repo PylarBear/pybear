@@ -14,27 +14,33 @@ from .._type_aliases import GetStatisticsType
 def _val_get_statistics(
     _get_statistics: Union[None, GetStatisticsType]
 ) -> None:
+    """Validate 'get_statistics'.
 
-    """
-    Validate 'get_statistics'. Must be None or a dictionary with 'before'
-    and 'after' keys. The values for the keys must be None or bool.
-
+    Must be None or a dictionary with 'before' and 'after' keys. The
+    values for the keys must be None or bool.
 
     Parameters
     ----------
-    _get_statistics:
-        Union[None, GetStatisticsType] - a dictionary indicating if
-        TextStatistics is to accumulate statistics on the incoming
-        and/or outgoing data, and if so, whether to store uniques. When
-        'store_uniques' is True there is risk of memory explosion,
-        especially for the incoming TextStatistics.
-
+    _get_statistics : Union[None, GetStatisticsType]
+        A dictionary indicating if TextStatistics is to accumulate
+        statistics on the incoming and/or outgoing data, and if so,
+        whether to store uniques. When 'store_uniques' is True there
+        is risk of memory explosion, especially for the incoming
+        TextStatistics.
 
     Returns
     -------
-    -
-        None
+    None
 
+    Notes
+    -----
+
+    **Type Aliases**
+
+    class GetStatisticsType(TypedDict):
+        before: Required[Union[None, bool]]
+
+        after: Required[Union[None, bool]]
 
     """
 
@@ -62,11 +68,6 @@ def _val_get_statistics(
     for _key in ['before', 'after']:
         if not isinstance(_get_statistics[_key], (type(None), bool)):
             raise TypeError(err_msg)
-
-
-
-
-
 
 
 

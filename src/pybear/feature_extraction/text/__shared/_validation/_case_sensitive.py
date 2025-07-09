@@ -6,7 +6,10 @@
 
 
 
-from typing_extensions import TypeAlias, Union
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 
 import numbers
 
@@ -19,28 +22,30 @@ def _val_case_sensitive(
     _case_sensitive: CaseSensitiveType,
     _n_rows: numbers.Integral
 ) -> None:
+    """Validate 'case_sensitive'.
 
-    """
-    Validate 'case_sensitive'. Must be boolean or a list-like of
-    booleans and/or Nones. If list-like, the number of entries must
-    equal the number of rows in the data.
-
+    Must be boolean or a list-like of booleans and/or Nones. If list-like,
+    the number of entries must equal the number of rows in the data.
 
     Parameters
     ----------
-    _case_sensitive:
-        Union[bool, list[Union[bool, None]]] - whether to do a
-        case-sensitive search. If a list-like, the entries are applied
-        to the corresponding row in the data.
-    _n_rows:
-        numbers.Integral - the number of rows in the data.
-
+    _case_sensitive : Union[bool, list[Union[bool, None]]]
+        Whether to do a case-sensitive search. If a list-like, the
+        entries are applied to the corresponding row in the data.
+    _n_rows : numbers.Integral
+        The number of rows in the data.
 
     Returns
     -------
-    -
-        None
+    None
 
+    Notes
+    -----
+
+    **Type Aliases**
+
+    CaseSensitiveType:
+        Union[bool, list[Union[bool, None]]]
 
     """
 

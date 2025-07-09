@@ -11,25 +11,25 @@ import numbers
 
 
 
-def validate_user_str(user_prompt:str, options:str) -> str:
-
+def validate_user_str(
+    user_prompt:str,
+    options:str
+) -> str:
     """
     Validation of a single user-entered alpha character against a list
     of allowed characters. Not case sensitive.
 
-
     Parameters
     ----------
-    user_prompt:
-        str -  text string displayed to the user at prompt
-    options:
-        str - a single text string containing the allowed characters
-
+    user_prompt : str
+        Text string displayed to the user at prompt.
+    options : str
+        A single text string containing the allowed characters.
 
     Returns
     -------
-    user_input:
-        str - validated user selection
+    user_input : str
+        Validated user selection
 
     """
 
@@ -48,26 +48,26 @@ def validate_user_str(user_prompt:str, options:str) -> str:
     return user_input
 
 
-def validate_user_str_cs(user_prompt:str, options:str) -> str:
-
+def validate_user_str_cs(
+    user_prompt:str,
+    options:str
+) -> str:
     """
     Validation of a single user-entered alpha character against a list
     of allowed characters. Case sensitive.
 
-
     Parameters
     ----------
-    user_prompt:
-        str - text string displayed to the user at prompt
-    options:
-        str - a single text string containing the allowed characters.
-        Case sensitive.
-
+    user_prompt : str
+        Text string displayed to the user at prompt.
+    options : str
+        A single text string containing the allowed characters. Case
+        sensitive.
 
     Returns
     -------
-    user_input:
-        str - validated user selection
+    user_input : str
+        Validated user selection
 
     """
 
@@ -89,27 +89,25 @@ def validate_user_str_cs(user_prompt:str, options:str) -> str:
 def validate_user_mstr(
     user_prompt:str,
     options:str,
-    max_len:int=2
+    max_len:numbers.Integral=2
 ) -> str:
-
     """
     String validation for multiple alpha character user entry that
     screens by len of entry and allowed options.
 
-
     Parameters
     ----------
-    user_prompt:
-        str -  text string displayed to the user at prompt
-    options:
-        str - a single text string containing the allowed characters
-    max_len:
-        int, default = 2 - maximum number of allowed selections
+    user_prompt : str
+        Text string displayed to the user at prompt
+    options : str
+        A single text string containing the allowed characters
+    max_len : numbers.Integral, default = 2
+        maximum number of allowed selections
 
     Returns
     -------
-    user_input:
-        str - validated user selection(s)
+    user_input : str
+        Validated user selection(s)
 
     """
 
@@ -139,25 +137,24 @@ def validate_user_mstr(
 
 def validate_user_int(
     user_prompt:str,
-    min:int = float('-inf'),
-    max:int = float('inf')
+    min:numbers.Real = float('-inf'),
+    max:numbers.Real = float('inf')
 ) -> int:
-
     """Integer validation for user entry within allowed range.
 
     Parameters
     ----------
-    user_prompt:
-        str -  text string displayed to the user at prompt
-    min:
-        [int,float], default = float('-inf') - minimum allowed entry
-    max:
-        [int,float], default = float('inf') - maximum allowed entry
+    user_prompt : str
+        Text string displayed to the user at prompt
+    min : numbers.Real, default = float('-inf')
+        Minimum allowed entry
+    max : numbers.Real, default = float('inf')
+        Maximum allowed entry
 
     Returns
     -------
-    user_input -
-        user_input: int - validated user entry
+    user_input : int
+        Validated user entry
 
     """
 
@@ -196,25 +193,24 @@ def validate_user_int(
 
 def validate_user_float(
     user_prompt:str,
-    min:float=float('-inf'),
-    max:float=float('inf')
+    min:numbers.Real=float('-inf'),
+    max:numbers.Real=float('inf')
 ) -> float:
-
     """Number validation for user float entry within allowed range.
 
     Parameters
     ----------
-    user_prompt:
-        str -  text string displayed to the user at prompt
-    min:
-        float, default = float('-inf') - minimum allowed entry
-    max:
-        float, default = float('inf') - maximum allowed entry
+    user_prompt : str
+        Text string displayed to the user at prompt.
+    min : numbers.Real, default = float('-inf')
+        Minimum allowed entry.
+    max : numbers.Real, default = float('inf')
+        Maximum allowed entry.
 
     Returns
     -------
-    user_input -
-        user_input: str - validated user entry
+    user_input : str
+        Validated user entry
 
     """
 
@@ -244,18 +240,17 @@ def validate_user_float(
 
 
 def user_entry(prompt: str):
-
     """String validation for user-entered string.
 
     Parameters
     ----------
-    user_prompt:
-        str -  text string displayed to the user at prompt
+    user_prompt : str
+        Text string displayed to the user at prompt.
 
     Return
     ------
-    user_entry -
-        user_entry: str - validated user entry
+    user_entry : str
+        Validated user entry.
 
     """
 
@@ -272,57 +267,41 @@ def user_entry(prompt: str):
 
 
 class ValidateUserDate:
-
     """ Prompt the user for a date entry and optionally validate the input.
 
     Parameters
     ----------
-    user_prompt:
-        str - text string displayed to the user at prompt
-    user_verify:
-        bool - default = False, perform validation on the entry
-    format:
-        str - default = 'MM/DD/YYYY', the date format
-    min:
-        str - default = '01/01/1900', the earliest allowed date
-    max:
-        str - default = '12/31/2099', the latest allowed date
+    user_prompt : str
+        Text string displayed to the user at prompt.
+    user_verify : bool, default = False
+        Perform validation on the entry.
+    format : str - default = 'MM/DD/YYYY'
+        The date format.
+    min : str - default = '01/01/1900'
+        The earliest allowed date.
+    max : str - default = '12/31/2099'
+        The latest allowed date.
 
     Attributes
     ----------
-    user_prompt:
-        str - text string displayed to the user at prompt
-    user_verify:
-        bool - default = False, perform validation on the entry
-    format:
-        str - the date format
-    min:
-        str - the earliest allowed date
-    max:
-        str - the latest allowed date
-    user_input:
-        str - raw date entered by user
-    datetime_input_date:
-        date - formatted date
-    datetime_min_date:
-        str - the earliest allowed date
-    datetime_max_date:
-        str - the latest allowed date
-    startYYYY:
-        int - deprecated.
-    startMM:
-        int - deprecated.
-    startDD:
-        int - deprecated.
-    endYYYY:
-        int - deprecated.
-    endMM:
-        int - deprecated.
-    endDD:
-        int - deprecated.
-
-    Examples
-    --------
+    user_prompt : str
+        Text string displayed to the user at prompt.
+    user_verify : bool - default = False
+        Perform validation on the entry.
+    format : str
+        The date format.
+    min : str
+        The earliest allowed date
+    max : str
+        The latest allowed date.
+    user_input : str
+        Raw date entered by user.
+    datetime_input_date : date
+        Formatted date.
+    datetime_min_date : str
+        The earliest allowed date.
+    datetime_max_date : str
+        The latest allowed date.
 
     """
 
@@ -455,7 +434,8 @@ class ValidateUserDate:
 
         Returns
         ------
-        user_input: str - raw date entered by user
+        user_input : str
+            Raw date entered by user.
 
         """
 
@@ -472,7 +452,8 @@ class ValidateUserDate:
 
         Returns
         ------
-        datetime_input_date: str - formatted date
+        datetime_input_date : str
+            Formatted date.
 
         """
 

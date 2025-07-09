@@ -39,8 +39,6 @@ Going forward, contributions must uphold the original mission statement.
 Functional Code
 ~~~~~~~~~~~~~~~
 
-The scope of pybear is Python data analytics.
-
 All modules must follow the appropriate scikit-learn API for their type 
 (e.g. transformer, estimator).
 
@@ -94,12 +92,14 @@ respective modules. Functions must at least have the "Parameters", "Returns" and
 are expected, and must be accurate and consistent with the source code. See the 
 `Type Hints`_ section for continuation of docstring guidance.
 
-There is a dual mandate that docs must render correctly in PyCharm tooltips and 
-on the `pybear website <https://pybear.readthedocs.io/en/stable/>`__. pybear
-uses sphinx to automatically render docstrings and publish them to Read The
-Docs. Generally, docstrings written in the numpydocs reStructuredText format
-that render correctly in PyCharm tooltips also render correctly on Read The
-Docs.
+There is a dual mandate that docs must render accurately and aesthetically in
+PyCharm tooltips and on the `pybear website <https://pybear.readthedocs.io/en/stable/>`__.
+pybear uses sphinx with the numpydoc extension to automatically render docstrings
+and publish them to Read The Docs. Unfortunately, there is not a one-to-one
+relationship between the PyCharm linters and sphinx, meaning, that formatting
+that displays perfectly with sphinx is not-so-perfect for PyCharm, and vice-versa.
+pybear seeks to optimize sphinx first (i.e., follow the numpydoc standard exactly),
+but try to reasonably accommodate the PyCharm linters when possible.
 
 These guidelines must be followed for every module and submodule, whether public 
 or private.

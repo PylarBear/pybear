@@ -27,11 +27,11 @@ def _transform(
     _wrap: bool,
     _remove_empty_rows: bool
 ) -> tuple[list[list[str]], npt.NDArray[bool]]:
+    """Scan over the full dataset looking for patterns that match the
+    given ngrams.
 
-    """
-    Scan over the full dataset looking for patterns that match the given
-    ngrams. When there is a match, merge the words into a single
-    contiguous string mapped from the words.
+    When there is a match, merge the words into a single contiguous
+    string mapped from the words.
 
     Merge ngrams that match ngram patterns using the following hierarchy:
 
@@ -41,36 +41,33 @@ def _transform(
 
     by the default separator
 
-
     Parameters
     ----------
-    _X:
-        list[list[str]] - (possibly ragged) 2D array of strings.
-    _ngrams:
-        NGramsWipType - The n-gram sequences to look for in the data.
-        Each individual n-gram must be a tuple of re.compile objects
-        that specify an n-gram pattern. Cannot be empty, and cannot have
-        any ngrams that have less than 2 entries.
-    _ngcallable:
-        Union[Callable[[list[str]], str], None] - the callable applied
-        to sequences that match an n-gram pattern to produce a single
-        contiguous string.
-    _sep:
-        Union[str, None] - the user defined separator to join the words
-        with, if _ngcallable is not given. If no separator is defined by
-        the user, use the default separator.
-    _wrap:
-        bool - whether to look for pattern matches across the end of the
+    _X : list[list[str]]
+        (possibly ragged) 2D array of strings.
+    _ngrams : NGramsWipType
+        The n-gram sequences to look for in the data. Each individual
+        n-gram must be a tuple of re.compile objects that specify an
+        n-gram pattern. Cannot be empty, and cannot have any ngrams
+        that have less than 2 entries.
+    _ngcallable : Union[Callable[[list[str]], str], None]
+        The callable applied to sequences that match an n-gram pattern
+        to produce a single contiguous string.
+    _sep : Union[str, None]
+        The user defined separator to join the words with, if _ngcallable
+        is not given. If no separator is defined by the user, use the
+        default separator.
+    _wrap : bool
+        Whether to look for pattern matches across the end of the
         current line and beginning of the next line.
-    _remove_empty_rows:
-        bool - whether to delete any empty rows that may occur during
-        the merging process. A row could only become empty if 'wrap' is
+    _remove_empty_rows : bool
+        Whether to delete any empty rows that may occur during the
+        merging process. A row could only become empty if 'wrap' is
         True or the original data had an empty row already in it.
-
 
     Returns
     -------
-    -
+    tuple[list[list[str]], NDArray[bool]]
         list[list[str]] - the data with all matching n-gram patterns
         replaced with contiguous strings.
 
@@ -78,6 +75,14 @@ def _transform(
         indicates what rows of the data were kept (True) and what rows
         were removed (False)  during transform. A row can only be removed
         from the data if 'wrap' is True.
+
+    Notes
+    -----
+
+    **Type Aliases**
+
+    NGramsWipType:
+        Union[None, list[tuple[re.Pattern[str], ...]]]
 
     """
 

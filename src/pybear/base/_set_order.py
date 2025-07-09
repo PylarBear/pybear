@@ -21,10 +21,9 @@ def set_order(
     order: Literal['C', 'F']="C",
     copy_X: bool=True
 ) -> npt.NDArray:
+    """Set the memory layout of X. X must be a numpy ndarray.
 
-    """
-    Set the memory layout of X. X must be a numpy ndarray. 'C' is
-    row-major order, 'F' is column major order.
+    'C' is row-major order, 'F' is column major order.
 
     For 1D and trivial 2D (shape=(10, 1) or (1, 10)) numpy arrays, the
     'flags' attribute will report both C_CONTIGUOUS and F_CONTIGUOUS as
@@ -33,28 +32,26 @@ def set_order(
     F_CONTIGUOUS are True because there is no ambiguity in accessing
     elements — the memory layout trivially satisfies both definitions.
 
-
     Parameters
     ----------
-    X:
-        NDArray - the numpy array for which to set the memory layout.
-    order:
-        Literal['c', 'C', 'f', 'F'] - the memory layout for X. 'C' is
-        row-major order, 'F' is column-major order.
-    copy_X:
-        bool - whether to make a copy of X when setting the memory
-        layout or operate directly on the passed X.
+    X : NDArray
+        The numpy array for which to set the memory layout.
+    order : Literal['c', 'C', 'f', 'F']
+        The memory layout for X. 'C' is row-major order, 'F' is
+        column-major order.
+    copy_X : bool
+        Whether to make a copy of X when setting the memory layout or
+        operate directly on the passed X.
 
-
-    Return
-    ------
-    -
-        X: NDArray - X in the desired memory layout.
+    Returns
+    -------
+    X : NDArray
+        X in the desired memory layout.
 
     """
 
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     if not isinstance(X, np.ndarray):
         raise TypeError(f"'X' must be a numpy ndarray.")
 
@@ -72,7 +69,7 @@ def set_order(
     if not isinstance(copy_X, bool):
         raise TypeError(f"'copy_X' must be boolean.")
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     if copy_X:
         _X = _copy_X(X)

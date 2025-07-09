@@ -57,8 +57,8 @@ def _get_active_combos(
         that was kept.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _active_combos: CombinationsType - the tuples of column index
         combinations to be kept in the outputted polynomial expansion.

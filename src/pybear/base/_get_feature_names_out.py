@@ -22,8 +22,7 @@ def get_feature_names_out(
     n_features_in_: numbers.Integral
 ) -> npt.NDArray[object]:
 
-    """
-    Return the feature name vector for the transformed output.
+    """Return the feature name vector for the transformed output.
 
     - If 'input_features' is 'None', then 'feature_names_in_' is
       used as feature names in. If 'feature_names_in_' is not defined,
@@ -32,24 +31,21 @@ def get_feature_names_out(
     - If 'input_features' is an array-like, then 'input_features' must
       match 'feature_names_in_' if 'feature_names_in_' is defined.
 
-
     Parameters
     ----------
-    _input_features:
-        Union[Iterable[str], None] - Input features.
-    feature_names_in_:
-        Union[npt.NDArray[object], None] - The names of the features as
-        seen during fitting. Only available if X is passed to :meth:
-        `partial_fit` or :meth: `fit` in a container that has a header.
-    n_features_in_:
-        numbers.Integral - The number of features in X.
+    _input_features : Union[Iterable[str], None]
+        Input features.
+    feature_names_in_ : Union[npt.NDArray[object], None]
+        The names of the features as seen during fitting. Only available
+        if X is passed to :meth: `partial_fit` or :meth: `fit` in a
+        container that has a header.
+    n_features_in_ : numbers.Integral
+        The number of features in X.
 
-
-    Return
-    ------
-    -
-        _feature_names_out: npt.NDArray[object] - The feature names for
-        the transformed output.
+    Returns
+    -------
+    _feature_names_out : npt.NDArray[object]
+        The feature names for the transformed output.
 
     """
 

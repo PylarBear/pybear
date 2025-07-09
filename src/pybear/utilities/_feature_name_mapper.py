@@ -60,7 +60,7 @@ def feature_name_mapper(
 
 
     Returns
-    ----------
+    -------
     -
         indices: npt.NDArray[np.int32) - the given feature names mapped
         to index positions.

@@ -46,8 +46,8 @@ def remove_characters(
         are to be removed; cannot be passed if allowed_chars is passed.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         X: Union[list[str], list[list[str]], npt.NDArray[str]] - the
         data with unwanted characters removed.

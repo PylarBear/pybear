@@ -7,35 +7,31 @@
 
 
 
-def num_features(OBJECT) -> int:
+def num_features(X) -> int:
+    """Return the number of features in an array-like X.
 
-    """
-    Return the number of features in an array-like OBJECT.
+    X must have a 'shape' attribute.
 
-    OBJECT must have a 'shape' attribute.
-
-    numpy & pandas: OBJECT must be 1 or 2 dimensional.
-    scipy: OBJECT must be 2 dimensional.
-    If OBJECT is a 1D vector (i.e., len(shape)==1), return 1.
-
+    numpy & pandas: X must be 1 or 2 dimensional.
+    scipy: X must be 2 dimensional.
+    If X is a 1D vector (i.e., len(shape)==1), return 1.
 
     Parameters
     ----------
-    OBJECT:
-        array-like of shape (n_samples, n_features) or (n_samples,) that
-        has a 'shape' attribute - object to find the number of features
-        in.
+    X : array_like of shape (n_samples, n_features) or (n_samples,)
+        Object to find the number of features in, that has a 'shape'
+        attribute.
 
-
-    Return
-    ------
-    -
-        features: int - Number of features.
+    Returns
+    -------
+    features : int
+        Number of features.
 
     """
 
+
     try:
-        OBJECT.shape
+        X.shape
     except:
         raise ValueError(
             f"\nThe passed object does not have a 'shape' attribute. "
@@ -45,7 +41,7 @@ def num_features(OBJECT) -> int:
         )
 
 
-    if hasattr(OBJECT, 'toarray') and len(OBJECT.shape) != 2:  # is scipy sparse
+    if hasattr(X, 'toarray') and len(X.shape) != 2:  # is scipy sparse
         # there is inconsistent behavior with scipy array/matrix and 1D.
         # in some cases scipy.csr_array is allowing 1D to be passed and
         # in other cases it is not. scipy.csr_matrix takes a 1D and reports
@@ -55,13 +51,13 @@ def num_features(OBJECT) -> int:
         )
 
 
-    if len(OBJECT.shape) == 1:
+    if len(X.shape) == 1:
         return 1
-    elif len(OBJECT.shape) == 2:
-        return int(OBJECT.shape[1])
+    elif len(X.shape) == 2:
+        return int(X.shape[1])
     else:
         raise ValueError(
-            f"The passed object has {len(OBJECT.shape)} dimensions. pybear "
+            f"The passed object has {len(X.shape)} dimensions. pybear "
             f"requires that all data-bearing objects be 1 or 2 dimensional."
         )
 

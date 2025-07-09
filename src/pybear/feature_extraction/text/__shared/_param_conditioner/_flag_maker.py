@@ -6,7 +6,10 @@
 
 
 
-from typing_extensions import TypeAlias, Union
+from typing_extensions import (
+    TypeAlias, 
+    Union
+)
 
 import numbers
 import re
@@ -26,7 +29,6 @@ def _flag_maker(
     _case_sensitive: CaseSensitiveType,
     _flags: FlagsType
 ) -> list[Union[list[None], list[re.Pattern[str]]]]:
-
     """
     Use flags inferred from _case_sensitive and any user-passed flags
     to put flags in the re.compile objects in _compile_holder. All string
@@ -34,26 +36,32 @@ def _flag_maker(
     re.compile. _compile_holder can only contain [None]s and
     list[re.Pattern]s.
 
-
     Parameters
     ----------
-    _compile_holder:
-        RemoveType - the string searching criteria converted entirely so
-        that row-wise, _compile_holder is comprised of list[re.Pattern]s
-        and [None]s.
-    _case_sensitive:
-        CaseSensitiveType - the case-sensitive strategy as passed by the
-        user.
-    _flags:
-        FlagsType - the flags for searches as passed by the user.
-
+    _compile_holder : RemoveType
+        The string searching criteria converted entirely so that row-wise,
+        _compile_holder is comprised of list[re.Pattern]s and [None]s.
+    _case_sensitive : CaseSensitiveType
+        The case-sensitive strategy as passed by the user.
+    _flags : FlagsType
+        The flags for searches as passed by the user.
 
     Returns
     -------
-    -
-        list[Union[list[None], list[re.Pattern[str]]]] - _compile_holder
-        object with the appropriate flags now in every re.compile object.
+    _compile_holder : list[Union[list[None], list[re.Pattern[str]]]]
+        _compile_holder object with the appropriate flags now in every
+        re.compile object.
 
+    Notes
+    -----
+    
+    **Type Aliases**
+    CaseSensitiveType:
+        Union[bool, list[Union[bool, None]]]
+    FlagType:
+        Union[None, numbers.Integral]
+    FlagsType:
+        Union[FlagType, list[FlagType]]
 
     """
 
@@ -66,7 +74,7 @@ def _flag_maker(
     # if _case_sensitive and/or _flags are lists, the length was validated
     # against the data previously.
 
-    # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     # get the setting for case_sensitive for the row in _X. if cs is list,
     # a value could be None or bool: set None to True

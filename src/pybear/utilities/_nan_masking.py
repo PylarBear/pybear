@@ -66,8 +66,8 @@ def nan_mask_numerical(
         the object for which to locate nan-like representations.
 
 
-    Return
-    ------
+    Returns
+    -------
     mask:
         NDArray[bool] of shape (n_samples, n_features) or (n_samples, )
         or (n_non_zero_values, ), indicating nan-like representations in
@@ -240,8 +240,8 @@ def nan_mask_string(
         to locate nan-like representations.
 
 
-    Return
-    ------
+    Returns
+    -------
     mask:
         NDArray[bool] of shape (n_samples, n_features) or (n_samples),
         indicating nan-like representations in 'obj' via the value
@@ -405,8 +405,8 @@ def nan_mask(
         representations.
 
 
-    Return
-    ------
+    Returns
+    -------
     mask:
         NDArray[bool] of shape (n_samples, n_features), (n_samples,) or
         (n_non_zero_values, ), indicating the locations of nan-like

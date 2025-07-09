@@ -45,11 +45,11 @@ class GetParamsMixin:
             object is a pipeline, the parameters of the pipeline and the
             parameters of each of the steps in the pipeline are returned
             in addition to the parameters of the wrapping instance. The
-            estimator's parameters are prefixed with 'estimator__'.
+            estimator's parameters are prefixed with `estimator__`.
 
-        Return
-        ------
-        params: dict[str, Any]
+        Returns
+        -------
+        params : dict[str, Any]
             Parameter names mapped to their values.
 
         """

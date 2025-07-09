@@ -49,8 +49,8 @@ def _columns_getter(
         extract from _X.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _columns: NDArray[Any] - The column(s) from _X corresponding to
         the given index/indices.

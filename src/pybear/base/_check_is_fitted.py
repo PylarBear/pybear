@@ -11,8 +11,14 @@ from ..base.exceptions import NotFittedError
 
 from inspect import isclass
 
-from typing import Iterable, Callable
-from typing_extensions import Union, TypeAlias
+from typing import (
+    Callable,
+    Iterable
+)
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 
 
 AllFunc: TypeAlias = Callable[[Iterable], bool]
@@ -27,9 +33,7 @@ def check_is_fitted(
     msg: Union[str, None]=None,
     all_or_any: Union[AllFunc, AnyFunc]=all
 ) -> None:
-
-    """
-    Perform _is_fitted validation on an estimator/transformer.
+    """Perform _is_fitted validation on an estimator/transformer.
 
     Checks if the estimator/transformer is fitted by looking for 3
     things, in the presented order, via the pybear _is_fitted function.
@@ -47,30 +51,28 @@ def check_is_fitted(
     the message given by :param: msg or the default message if :param:
     msg is not passed.
 
-
     Parameters
     ----------
-    estimator:
-        estimator/transformer instance - Estimator/tranformer instance
-        for which the validation is performed.
+    estimator: estimator/transformer instance
+        Estimator/tranformer instance for which the validation is
+        performed.
 
-    attributes : Union[str, Iterable[str], None], default=None -
+    attributes : Union[str, Iterable[str], None], default=None
         Attribute name(s) given as string or a list/tuple of strings
         Eg.: "coef_" or ["coef_", "estimator_", ...].
 
     msg : str, default=None
-        The default error message is, "This {estimator} instance is
+        The default error message is, "This {name} instance is
         not fitted yet. Call 'fit' with appropriate arguments before
         using this estimator."
 
-        For custom messages if "%(name)s" is present in the message
+        For custom messages, if {name} is present in the message
         string, it is substituted for the estimator name.
 
-        Eg. : "Estimator, %(name)s, must be fitted before sparsifying".
+        Eg. : "Estimator, {name}, must be fitted before sparsifying".
 
     all_or_any : callable, {all, any}, default=all
         Specify whether all or any of the given attributes must exist.
-
 
     Raises
     ------
@@ -84,7 +86,6 @@ def check_is_fitted(
 
     NotFittedError
         If the estimator/transformer fails all 3 checks for being fit.
-
 
     Examples
     --------
@@ -106,7 +107,7 @@ def check_is_fitted(
 
     """
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     if isclass(estimator):
         raise ValueError(f"{estimator} is a class, not an instance.")
@@ -143,14 +144,13 @@ def check_is_fitted(
             f"python built-in function 'any'."
         )
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-
+    name = type(estimator).__name__
 
     default_msg = (
-        f"This {type(estimator).__name__} instance is not fitted yet."
-        f"\nCall 'fit' with appropriate arguments before using this "
-        f"estimator."
+        f"This {name} instance is not fitted yet. \nCall 'fit' with "
+        f"appropriate arguments before using this estimator."
     )
 
     if not is_fitted(estimator, attributes, all_or_any):

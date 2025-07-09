@@ -20,34 +20,29 @@ def view_text_snippet(
     _idx: numbers.Integral,
     _span: numbers.Integral = 9
 ) -> str:
+    """Highlights the word of interest (which is given by the 'idx' value)
+    in a series of words.
 
-    """
-    Highlights the word of interest (which is given by the 'idx' value)
-    in a series of words. For example, in a simple case that avoids edge
-    effects, a span of 9 would show 4 strings to the left of the target
-    string in lower-case, the target string itself capitalized, then the
-    4 strings to the right of the target string in lower-case.
-
+    For example, in a simple case that avoids edge effects, a span of 9
+    would show 4 strings to the left of the target string in lower-case,
+    the target string itself capitalized, then the 4 strings to the right
+    of the target string in lower-case.
 
     Parameters
     ----------
-    _VECTOR:
-        Sequence[str] - the sequence of strings that provides a
-        subsequence of strings to highlight. Cannot be empty.
-    _idx:
-        numbers.Integral - the index of the string in the sequence of
-        strings to highlight.
-    _span:
-        Optional[numbers.Integral], default = 9 - the number of strings
-        in the sequence of strings to select when highlighting one
-        particular central string.
+    _VECTOR : Sequence[str]
+        The sequence of strings that provides a subsequence of strings
+        to highlight. Cannot be empty.
+    _idx : numbers.Integral
+        The index of the string in the sequence of strings to highlight.
+    _span : Optional[numbers.Integral], default = 9
+        The number of strings in the sequence of strings to select when
+        highlighting one particular central string.
 
-
-    Return
-    ------
-    -
-        str: the highlighted portion of the string sequence.
-
+    Returns
+    -------
+    str:
+        The highlighted portion of the string sequence.
 
     """
 

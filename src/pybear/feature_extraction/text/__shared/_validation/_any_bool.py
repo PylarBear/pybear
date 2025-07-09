@@ -15,28 +15,21 @@ def _val_any_bool(
     _name:Optional[str] = 'unnamed boolean',
     _can_be_None:Optional[bool] = False
 ) -> None:
-
-    """
-    Validate '_bool'. Must be boolean.
-
+    """Validate '_bool'. Must be boolean.
 
     Parameters
     ----------
-    _bool:
-        bool - something that can only be boolean.
-    _name:
-        Optional[str], default='unnamed boolean' - the name of the
-        parameter being validated as boolean, or None if allowed.
-    _can_be_None:
-        Optional[bool], default=False - whether the boolean value is
-        allowed to be passed as None.
-
+    _bool : bool
+        Something that can only be boolean.
+    _name : Optional[str], default='unnamed boolean'
+        The name of the parameter being validated as boolean, or None if
+        allowed.
+    _can_be_None : Optional[bool], default=False
+        Warnings the boolean value is allowed to be passed as None.
 
     Returns
     -------
-    -
-        None
-
+    None
 
     """
 

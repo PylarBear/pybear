@@ -7,7 +7,10 @@
 
 
 from typing import Optional
-from typing_extensions import Self, Union
+from typing_extensions import (
+    Self,
+    Union
+)
 from ._type_aliases import (
     XContainer,
     OverallStatisticsType
@@ -251,8 +254,14 @@ class TextStatistics(
     # @properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
     @property
     def size_(self) -> int:
+        """The number of strings fitted on the TextStatistics instance.
 
-        """The number of strings fitted on the TextStatistics instance."""
+        Returns
+        -------
+        size : int
+            The number of strings fitted on the TextStatistics instance.
+
+        """
 
         check_is_fitted(self)
 

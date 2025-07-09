@@ -18,33 +18,25 @@ from ._identify_sublexicon import _identify_sublexicon
 
 
 
-
 def _delete_words(
     WORDS: Union[str, Sequence[str]],
     lexicon_folder_path: str
 ) -> None:
-
-    """
-    Remove the given word(s) from the pybear lexicon text files.
+    """Remove the given word(s) from the pybear lexicon text files.
     Case sensitive! Any words that are not in the pybear lexicon are
     silently ignored.
 
-
     Parameters
     ----------
-    WORDS:
-        Union[str, Sequence[str]] - the word or words to remove from
-        the pybear lexicon. Cannot be an empty string or an empty
-        sequence.
-    lexicon_folder_path:
-        str - the path to the directory that holds the lexicon text
-        files.
-
+    WORDS : Union[str, Sequence[str]]
+        The word or words to remove from the pybear lexicon. Cannot be
+        an empty string or an empty sequence.
+    lexicon_folder_path : str
+        The path to the directory that holds the lexicon text files.
 
     Return
     ------
-    -
-        None
+    None
 
     """
 

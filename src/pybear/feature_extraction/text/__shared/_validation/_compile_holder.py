@@ -7,47 +7,53 @@
 
 
 from typing import Optional
-from typing_extensions import Union
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 
 import re
 import numbers
 
 
 
+PatternType: TypeAlias = Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]
+
+
+
 def _val_compile_holder(
-    _ch: Union[None, re.Pattern[str], tuple[re.Pattern[str], ...],
-            list[Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]]],
+    _ch: Union[PatternType, list[PatternType]],
     _n_rows: numbers.Integral,
     _name: Optional[str] = 'unnamed compile holder'
 ) -> None:
+    """Validate the WIP parameter 'compile_holder'.
 
-    """
-    Validate the WIP parameter 'compile_holder'. Must be None, re.Pattern,
-    a tuple of re.Patterns, or a list of Nones, re.Patterns, and/or
-    tuples of re.Patterns. This object is almost 100% 'data-agnostic',
-    meaning it doesn't know anything about the data, like dimensionality
-    or what is in it, except the number of rows in it.
-
+    Must be None, re.Pattern, a tuple of re.Patterns, or a list of Nones,
+    re.Patterns, and/or tuples of re.Patterns. This object is almost 100%
+    'data-agnostic', meaning it doesn't know anything about the data,
+    like dimensionality or what is in it, except the number of rows in it.
 
     Parameters
     ----------
-    _ch:
-        Union[None, re.Pattern[str], tuple[re.Pattern[str], ...],
-        list[Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]]] -
-        the regex pattern(s) to search for in text data.
-    _n_rows:
-        numbers.Integral - the number of rows in the data passed to
-        transform.
-    _name:
-        Optional[str], default = 'unnamed compile holder' - the name of
-        the corresponding pattern-holder param in the home module, like
-        'split', 'replace', 'ngrams', etc.
-
+    _ch : Union[PatternType, list[PatternType]]
+        The regex pattern(s) to search for in text data.
+    _n_rows : numbers.Integral
+        The number of rows in the data passed to transform.
+    _name : Optional[str], default = 'unnamed compile holder'
+        The name of the corresponding pattern-holder param in the home
+        module, like 'split', 'replace', 'ngrams', etc.
 
     Returns
     -------
-    -
-        None
+    None
+
+    Notes
+    -----
+
+    **Type Aliases**
+
+    PatternType:
+        Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]
 
     """
 

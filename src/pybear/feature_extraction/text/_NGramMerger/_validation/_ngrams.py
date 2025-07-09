@@ -16,26 +16,22 @@ import re
 def _val_ngrams(
     _ngrams: Union[Sequence[Sequence[Union[str, re.Pattern[str]]]], None]
 ) -> None:
+    """Validate ngrams.
 
-    """
-    Validate ngrams. The series of string literals and/or re.compile
-    objects that specify an n-gram. Can be None.
-
+    The series of string literals and/or re.compile objects that specify
+    an n-gram. Can be None.
 
     Parameters
     ----------
-    _ngrams:
-        Union[Sequence[Sequence[Union[str, re.Pattern[str]]]], None] - A
-        sequence of sequences, where each inner sequence holds a series
+    _ngrams : Union[Sequence[Sequence[Union[str, re.Pattern[str]]]], None]
+        A sequence of sequences, where each inner sequence holds a series
         of string literals and/or re.compile objects that specify an
         n-gram. Cannot be empty, and cannot have any n-grams with less
         than 2 entries. Can be None.
 
-
     Returns
     -------
-    -
-        None
+    None
 
     """
 

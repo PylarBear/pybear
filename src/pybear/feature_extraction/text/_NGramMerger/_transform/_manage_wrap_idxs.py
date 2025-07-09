@@ -18,39 +18,35 @@ def _manage_wrap_idxs(
     _second_hits: Sequence[numbers.Integral],
     _n_len: numbers.Integral
 ) -> tuple[int, int]:
-
-    """
-    Determine which part of the end of the first line and which part
+    """Determine which part of the end of the first line and which part
     of the start of the second line can be used to do a wrap-region
-    search for n-grams. For both lines, the wrap region cannot include
-    any indices that are part of another ngram previously found in the
-    normal linear search for ngram patterns.
+    search for n-grams.
 
+    For both lines, the wrap region cannot include any indices that are
+    part of another ngram previously found in the normal linear search
+    for ngram patterns.
 
     Parameters
     ----------
-    _first_line:
-        Sequence[str] - the active line in transform that is being
-        searched for n-grams.
-    _first_hits:
-        Sequence[numbers.Integral] - the first indices of n-gram patterns
-        that were found during the normal linear search of first_line.
-    _second_hits:
-        Sequence[numbers.Integral] - the first indices of n-gram patterns
-        that were found during the normal linear search of the line in
-        the data that is after first_line.
-    _n_len:
-        the length of the n-gram pattern that is currently being searched
+    _first_line : Sequence[str]
+        The active line in transform that is being searched for n-grams.
+    _first_hits : Sequence[numbers.Integral]
+        The first indices of n-gram patterns that were found during the
+        normal linear search of first_line.
+    _second_hits : Sequence[numbers.Integral]
+        The first indices of n-gram patterns that were found during the
+        normal linear search of the line in the data that is after
+        first_line.
+    _n_len : numbers.Integral
+        The length of the n-gram pattern that is currently being searched
         for in transform.
-
 
     Returns
     -------
-    -
-        tuple[int, int] - the index in the first line that starts the
-        wrap region and the index in second line that marks the end of
-        the wrap region. python range rules apply.
-
+    tuple[int, int]
+        The index in the first line that starts the wrap region and the
+        index in second line that marks the end of the wrap region.
+        Python range rules apply.
 
     """
 

@@ -6,7 +6,10 @@
 
 
 
-from typing_extensions import Union, TypeAlias
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 import numpy.typing as npt
 
 import numpy as np
@@ -33,8 +36,6 @@ SparseTypes: TypeAlias = Union[
 
 
 
-
-
 def check_is_finite(
     X: Union[npt.NDArray, pd.DataFrame, SparseTypes],
     allow_nan:bool = True,
@@ -43,60 +44,52 @@ def check_is_finite(
     standardize_nan:bool = True,
     copy_X:bool = True
 ) -> Union[npt.NDArray, pd.DataFrame, SparseTypes]:
+    """Look for any nan-like and/or infinity-like values in `X`.
 
-    """
-    Look for any nan-like and/or infinity-like values in X. If any of
-    these are disallowed then raise a ValueError if any are present.
+    If any of these are disallowed then raise a ValueError if any are
+    present.
 
-    If :param: 'cast_inf_to_nan' is True, all infinity-like values will
-    be cast to np.nan, otherwise they are left as is.
+    If `cast_inf_to_nan` is True, all infinity-like values will be cast
+    to np.nan, otherwise they are left as is.
 
-    If :param: 'standardize_nan' is True, all nan-like values will be
-    cast to np.nan, otherwise they are left as is.
+    If `standardize_nan` is True, all nan-like values will be cast to
+    np.nan, otherwise they are left as is.
 
-    X cannot be a python builtin iterable, like list or set. X must have
+    `X` cannot be a python builtin iterable, like list or set. X must have
     a copy method.
-
 
     Parameters
     ----------
-    X:
-        Union[numpy.ndarray, pandas.DataFrame, scipy.sparse] of shape
-        (n_samples, n_features) or (n_samples,) - the data to be searched
-        for nan-like and infinity-like values.
-    allow_nan:
-        bool, default=True - If nan-like values are found and this
-        parameter is set to False then raise a ValueError.
-    allow_inf:
-        bool, default=True - If infinity-like values are found and this
-        parameter is set to False then raise a ValueError.
-    cast_inf_to_nan:
-        bool, default=True - if True, all infinity-like values will be
-        cast to np.nan.
-    standardize_nan:
-        bool, default=True, - if True, all nan-like values will be cast
-        to np.nan.
-    copy_X:
-        bool - If True, make a copy of X if any infinity-likes are cast
-        to np.nan or if any nan-likes are cast to np.nan. If False,
-        operate directly on the passed X object. Only applicable if
-        either cast_inf_to_nan or cast_nan_to_inf is True and there are
+    X : array_like of shape (n_samples, n_features) or (n_samples,)
+        The data to be searched for nan-like and infinity-like values.
+    allow_nan : bool, default=True
+        If nan-like values are found and this parameter is set to False
+        then raise a ValueError.
+    allow_inf : bool, default=True
+        If infinity-like values are found and this parameter is set to
+        False then raise a ValueError.
+    cast_inf_to_nan : bool, default=True
+        If True, all infinity-like values will be cast to np.nan.
+    standardize_nan : bool, default=True
+        If True, all nan-like values will be cast to np.nan.
+    copy_X : bool
+        If True, make a copy of `X` if any infinity-likes are cast to
+        np.nan or if any nan-likes are cast to np.nan. If False, operate
+        directly on the passed `X` object. Only applicable if either
+        `cast_inf_to_nan` or `cast_nan_to_inf` is True and there are
         infinity-like or nan-like values in the data.
 
-
-    Return
-    ------
-    -
-        X: the originally passed data with all checks performed and any
+    Returns
+    -------
+    X : the originally passed data with all checks performed and any
         replacements made.
-
 
     """
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    if not hasattr(X, 'copy'):
-        raise TypeError(f"'X' must have a 'copy' method.")
+    if not hasattr(X, 'copy') and not hasattr(X, 'clone'):
+        raise TypeError(f"'X' must have a 'copy' or 'clone' method.")
 
     if isinstance(X, (dict, str, list, set, tuple)):
         raise TypeError(
@@ -202,17 +195,6 @@ def check_is_finite(
 
 
     return _X
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -247,8 +247,8 @@ class NanStandardizer(
             directly in the original X or in a deepcopy of X.
 
 
-        Return
-        ------
+        Returns
+        -------
         _X:
             array-like of shape (n_samples, n_features), (n_samples,) -
             The data with new values in the locations previously occupied

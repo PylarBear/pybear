@@ -21,8 +21,8 @@ def permuter(vector_of_vectors) -> list:
     vector_of_vectors:
         array-like - vector of vectors of non-zero length
 
-    Return
-    ------
+    Returns
+    -------
     -
         permutations : list of shape (number of possible combinations,
                         number of vectors)

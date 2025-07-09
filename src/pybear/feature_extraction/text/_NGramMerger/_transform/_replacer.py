@@ -6,7 +6,10 @@
 
 
 
-from typing import Callable, Sequence
+from typing import (
+    Callable,
+    Sequence
+)
 from typing_extensions import Union
 
 import re
@@ -20,9 +23,7 @@ def _replacer(
     _ngcallable: Union[Callable[[list[str]], str], None],
     _sep: Union[str, None]
 ) -> list[str]:
-
-    """
-    Using the pattern match indices found by _match_finder, at those
+    """Using the pattern match indices found by _match_finder, at those
     indices in _line replace the words with the contiguous string mapped
     from the words.
 
@@ -34,34 +35,28 @@ def _replacer(
 
     by the default separator
 
-
     Parameters
     ----------
-    _line:
-        list[str] - A single 1D sequence of strings.
-    _ngram:
-        tuple[re.Pattern[str], ...] - A single n-gram sequence containing
-        re.compile objects that specify an n-gram pattern. Cannot have
-        less than 2 entries.
-    _hits:
-        Sequence[int] - the starting indices of sequences in _line that
-        match the n-gram pattern.
-    _ngcallable:
-        Union[Callable[[list[str]], str], None] - the callable applied
-        to sequences that match an n-gram pattern to produce a single
-        contiguous string.
-    _sep:
-        Union[str, None] - the user defined separator to join the words
-        with. If no separator is defined by the user, use the default
-        separator.
-
+    _line : list[str]
+        A single 1D sequence of strings.
+    _ngram : tuple[re.Pattern[str], ...]
+        A single n-gram sequence containing re.compile objects that
+        specify an n-gram pattern. Cannot have less than 2 entries.
+    _hits : Sequence[int]
+        The starting indices of sequences in _line that match the n-gram
+        pattern.
+    _ngcallable : Union[Callable[[list[str]], str], None]
+        The callable applied to sequences that match an n-gram pattern
+        to produce a single contiguous string.
+    _sep : Union[str, None]
+        The user defined separator to join the words with. If no
+        separator is defined by the user, use the default separator.
 
     Returns
     -------
-    -
-        list[str] - the sequence of strings with all matching n-gram
-        patterns replaced with contiguous strings.
-
+    list[str]
+        The sequence of strings with all matching n-gram patterns
+        replaced with contiguous strings.
 
     """
 

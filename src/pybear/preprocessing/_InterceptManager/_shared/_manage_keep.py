@@ -126,8 +126,8 @@ def _manage_keep(
         static on calls to :meth: `transform`.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         __keep: Union[dict[int, Any], int, Literal['none']] - _keep
         converted to integer for callable, 'first', 'last', 'random', or

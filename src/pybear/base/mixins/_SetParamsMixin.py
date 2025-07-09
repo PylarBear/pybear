@@ -52,8 +52,8 @@ class SetParamsMixin:
         **params : dict[str: Any]
             The parameters to be updated and their new values.
 
-        Return
-        ------
+        Returns
+        -------
         self : object
             The instance with new parameter values.
 

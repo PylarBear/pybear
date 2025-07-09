@@ -25,9 +25,7 @@ def _val_any_integer(
     _can_be_bool:Optional[bool] = False,
     _can_be_None:Optional[bool] = False
 ) -> None:
-
-    """
-    Validate any integer or sequence of integers.
+    """Validate any integer or sequence of integers.
 
     Must be an integer.
 
@@ -44,31 +42,24 @@ def _val_any_integer(
     If '_int' is a sequence, then every value in it must obey the given
     rules.
 
-
     Parameters
     ----------
-    _int:
-        Union[numbers.Integral, Sequence[numbers.Integral]],
-    _min:
-        Optional[numbers.Real], default=float('-inf') - the minimum
-        allowed value '_int' can take.
-    _max:
-        Optional[numbers.Real], default=float('inf') - the maximum
-        allowed value '_int' can take.
-    _disallowed:
-        Optional[Sequence[numbers.Integral]], default=[] - values that
-        '_int' is not allowed to take.
-    _can_be_bool:
-        Optional[bool], default=False - If True, '_int' can be boolean.
-    _can_be_None:
-        Optional[bool], default=False - If True, '_int' can be None.
-
+    _int : Union[numbers.Integral, Sequence[numbers.Integral]]
+        Number to be validated whether it is an integer.
+    _min : Optional[numbers.Real], default=float('-inf')
+        The minimum allowed value '_int' can take.
+    _max : Optional[numbers.Real], default=float('inf')
+        The maximum allowed value '_int' can take.
+    _disallowed : Optional[Sequence[numbers.Integral]], default=[]
+        Values that '_int' is not allowed to take.
+    _can_be_bool : Optional[bool], default=False
+        If True, '_int' can be boolean.
+    _can_be_None : Optional[bool], default=False
+        If True, '_int' can be None.
 
     Returns
     -------
-    -
-        None
-
+    None
 
     """
 
@@ -184,11 +175,6 @@ def _val_any_integer(
             raise _t from None
         elif any(_value_errors):
             raise _v from None
-
-
-
-
-
 
 
 

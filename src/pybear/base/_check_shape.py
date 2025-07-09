@@ -17,74 +17,65 @@ from ._num_samples import num_samples
 
 
 def check_shape(
-    OBJECT,
+    X,
     min_features: numbers.Integral=1,
     max_features: Union[numbers.Integral, None]=None,
     min_samples: numbers.Integral=1,
     sample_check: Union[numbers.Integral, None]=None,
     allowed_dimensionality: Iterable[numbers.Integral] = (1, 2)
 ) -> tuple[int, ...]:
-
-    """
-    Check the shape of a data-bearing object against user-defined
+    """Check the shape of a data-bearing object against user-defined
     criteria.
-    OBJECT must have a 'shape' method.
-    The number of samples in OBJECT must be greater than or equal to
+
+    X must have a 'shape' method.
+    The number of samples in X must be greater than or equal to
     min_samples.
     If sample_check is not None (must be an integer greater than or equal
-    to min_samples), the number of samples in OBJECT must equal
-    sample_check.
-    The number of features in OBJECT must be greater than or equal to
+    to min_samples), the number of samples in X must equal sample_check.
+    The number of features in X must be greater than or equal to
     min_features.
     If max_features is not None (must be an integer greater than or equal
-    to min_features), then number of features in OBJECT cannot exceed
+    to min_features), then number of features in X cannot exceed
     max_features.
-    The dimensionality of OBJECT must be one of the allowed values in
+    The dimensionality of X must be one of the allowed values in
     allowed_dimensionality.
-
 
     Parameters
     ----------
-    OBJECT:
-        {array-like} - The data-bearing object for which to get and
-        validate the shape. Must have a 'shape' attribute.
-    min_features:
-        numbers.Integral - The minimum number of features required in
-        OBJECT; must be greater than or equal to zero.
-    max_features:
-        Union[numbers.Integral, None] - The maximum number of features
-        allowed in OBJECT; if not None, must be greater than or equal to
-        min_features. If None, then there is no restriction on the
-        maximum number of features in OBJECT.
-    min_samples:
-        numbers.Integral - The minimum number of samples required
-        in OBJECT; must be greater than or equal to zero. Ignored
-        if :param: `sample_check` is not None.
-    sample_check:
-        Union[numbers.Integral, None] - The exact number of samples
-        allowed in OBJECT. If not None, must be a non-negative integer.
-        Use this to check, for example, that the number of samples in y
-        equals the number of samples in X. If None, this check is not
-        performed.
-    allowed_dimensionality:
-        Iterable[numbers.Integral] - The allowed dimensionalities of
-        OBJECT. All entries must be greater than zero and less than or
-        equal to two.
+    X : array_like
+        The data-bearing object for which to get and validate the shape.
+        Must have a 'shape' attribute.
+    min_features : numbers.Integral
+        The minimum number of features required in X; must be greater
+        than or equal to zero.
+    max_features : Union[numbers.Integral, None]
+        The maximum number of features allowed in X; if not None, must
+        be greater than or equal to min_features. If None, then there is
+        no restriction on the maximum number of features in X.
+    min_samples : numbers.Integral
+        The minimum number of samples required in X; must be greater
+        than or equal to zero. Ignored if :param: `sample_check` is not
+        None.
+    sample_check : Union[numbers.Integral, None]
+        The exact number of samples allowed in X. If not None, must be a
+        non-negative integer. Use this to check, for example, that the
+        number of samples in y equals the number of samples in X. If
+        None, this check is not performed.
+    allowed_dimensionality : Iterable[numbers.Integral]
+        The allowed dimensionalities of X. All entries must be greater
+        than zero and less than or equal to two.
 
-
-    Return
-    ------
-    -
-        _shape: tuple[int, ...] - the shape of OBJECT.
-
+    Returns
+    -------
+    _shape : tuple[int, ...]
+        The shape of X.
 
     """
 
 
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-    if not hasattr(OBJECT, 'shape'):
+    if not hasattr(X, 'shape'):
         raise TypeError("the passed object must have a 'shape' attribute.")
 
     err_msg = f"'min_features' must be a non-negative integer"
@@ -151,17 +142,17 @@ def check_shape(
         raise TypeError(err_msg)
     allowed_dimensionality = __
     del __
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    if len(OBJECT.shape) not in allowed_dimensionality:
+    if len(X.shape) not in allowed_dimensionality:
         raise ValueError(
             f"The dimensionality of the passed object must be in "
-            f"{allowed_dimensionality}. Got {len(OBJECT.shape)}."
+            f"{allowed_dimensionality}. Got {len(X.shape)}."
         )
 
-    _samples = num_samples(OBJECT)
-    _features = num_features(OBJECT)
+    _samples = num_samples(X)
+    _features = num_features(X)
 
     if sample_check is not None:
         if _samples != sample_check:
@@ -191,19 +182,7 @@ def check_shape(
         )
 
 
-    return OBJECT.shape
-
-
-
-
-
-
-
-
-
-
-
-
+    return X.shape
 
 
 

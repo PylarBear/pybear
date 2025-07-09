@@ -16,27 +16,24 @@ def serial_index_mapper(
     positions:[list,tuple],
     n_jobs:int=None
 ) -> list:
-
-    """
-    Map serial index positions to their zero-based Cartesian coordinates
-    in an object of the given shape.
-
+    """Map serial index positions to their zero-based Cartesian
+    coordinates in an object of the given shape.
 
     Parameters
     ----------
-    shape:
-        tuple of integers - the dimensions of the object to map into.
-    positions:
-        array-like of integers - vector of serialized index positions.
-    n_jobs:
-        int, default=None - Number of CPU cores used when parallelizing
-        over positions during mapping. None means 1 unless in a
-        joblib.parallel_backend context. -1 means using all processors.
+    shape : tuple of integers
+        The dimensions of the object to map into.
+    positions : array_like of integers
+        Vector of serialized index positions.
+    n_jobs : int, default=None
+        Number of CPU cores used when parallelizing over positions during
+        mapping. None means 1 unless in a joblib.parallel_backend context.
+        -1 means using all processors.
 
-    Return
-    ------
-    -
-        coordinates: list of tuples containing zero-based Cartesian
+    Returns
+    -------
+    coordinates:
+        list of tuples containing zero-based Cartesian
         coordinates for each given serialized index position.
 
 

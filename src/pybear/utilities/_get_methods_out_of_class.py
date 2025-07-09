@@ -19,8 +19,8 @@ def get_methods_out_of_class(MyClass) -> list:
     MyClass:
         class - object for which to find methods. Connot be instantiated.
 
-    Return
-    ------
+    Returns
+    -------
     methods_list:
         list - a list of the methods in the class as strings
 

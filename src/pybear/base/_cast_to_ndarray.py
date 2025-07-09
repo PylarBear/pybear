@@ -42,10 +42,11 @@ XContainer: TypeAlias = \
 
 
 def cast_to_ndarray(
-    X: XContainer,
+    X:XContainer,
     copy_X:Optional[bool] = True
-):
-    """Convert the container of X to numpy.ndarray.
+) -> npt.NDArray:
+    """Convert the container of `X` to numpy.ndarray.
+
     Can take python lists, tuples, and sets, numpy ndarrays and masked
     arrays, pandas dataframes and series, polars dataframes and series,
     and scipy sparse matrices and arrays. Any nan-like values are
@@ -56,13 +57,41 @@ def cast_to_ndarray(
     X : array_like of shape (n_samples, n_features) or (n_samples,)
         The array-like data to be converted to NDArray.
     copy_X : Optional[bool], default=True
-        whether to copy X before casting to ndarray or perform the
-        operations directly on the passed X.
+        Whether to copy `X` before casting to ndarray or perform the
+        operations directly on the passed `X`.
 
-    Return
-    ------
-    X:
-        the original data converted to NDArray.
+    Returns
+    -------
+    X : numpy.ndarray
+        The original data converted to NDArray.
+
+    Notes
+    -----
+
+    **Type Aliases**
+
+    PythonTypes:
+        Union[list, tuple, set]
+
+    NumpyTypes:
+        Union[npt.NDArray, np.ma.MaskedArray]
+
+    PandasTypes:
+        Union[pd.Series, pd.DataFrame]
+
+    PolarsTypes:
+        Union[pl.Series, pl.DataFrame]
+
+    SparseTypes:
+        Union[
+            ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
+            ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
+            ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
+            ss.bsr_matrix, ss.bsr_array
+        ]
+
+    XContainer:
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, SparseTypes]
 
     """
 

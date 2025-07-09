@@ -64,8 +64,8 @@ def _val_keep_and_columns(
         searched for constant columns.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 
