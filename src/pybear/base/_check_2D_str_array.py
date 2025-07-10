@@ -10,10 +10,15 @@ from typing import (
     Iterable,
     Optional
 )
-import numpy.typing as npt
 from typing_extensions import (
     TypeAlias,
     Union
+)
+from .__type_aliases import (
+    Python2DTypes,
+    Numpy2DTypes,
+    Pandas2DTypes,
+    Polars2DTypes
 )
 
 import pandas as pd
@@ -22,13 +27,9 @@ import polars as pl
 from ._check_1D_str_sequence import check_1D_str_sequence
 
 
-PythonTypes: TypeAlias = Union[list[list], tuple[tuple]]
-NumpyTypes: TypeAlias = npt.NDArray
-PandasTypes: TypeAlias = pd.DataFrame
-PolarsTypes: TypeAlias = pl.DataFrame
 
 XContainer: TypeAlias = \
-    Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+    Union[Python2DTypes, Numpy2DTypes, Pandas2DTypes, Polars2DTypes]
 
 
 
@@ -70,20 +71,20 @@ def check_2D_str_array(
 
     **Type Aliases**
 
-    PythonTypes:
+    Python2DTypes:
         Union[list[list], tuple[tuple]]
 
-    NumpyTypes:
-        npt.NDArray
+    Numpy2DTypes:
+        numpy.ndarray
 
-    PandasTypes:
-        pd.DataFrame
+    Pandas2DTypes:
+        pandas.core.frame.DataFrame
 
-    PolarsTypes:
-        pl.DataFrame
+    Polars2DTypes:
+        polars.dataframe.DataFrame
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+        Union[Python2DTypes, Numpy2DTypes, Pandas2DTypes, Polars2DTypes]
 
     Examples
     --------

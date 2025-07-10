@@ -7,7 +7,10 @@
 
 
 from typing import Optional
-from typing_extensions import Self, Union
+from typing_extensions import (
+    Self,
+    Union
+)
 from ._type_aliases import (
     XContainer,
     XWipContainer,
@@ -46,11 +49,11 @@ class TextRemover(
     ReprMixin,
     SetParamsMixin
 ):
+    """Remove full strings (not substrings) from text data.
 
-    """
-    Remove full strings (not substrings) from text data. Identify full
-    strings to remove by literal string equality or by regular expression
-    fullmatch. Remove any and all matches completely from the data.
+    Identify full strings to remove by literal string equality or by
+    regular expression fullmatch. Remove any and all matches completely
+    from the data.
 
     One particularly useful application is to take out empty or gibberish
     strings in data read in from a file. Another is to remove strings
@@ -132,69 +135,65 @@ class TextRemover(
     these attributes are cumulative, they only reflect the last dataset
     passed to transform.
 
-
     Parameters
     ----------
-    remove:
-        Optional[RemoveType], default=None - the literal strings or regex
-        patterns to remove from the data. When passed as a single literal
-        string or re.compile object, that is applied to every string in
-        the data, and every full string that matches exactly will be
-        removed. When passed as a python tuple of character strings
-        and/or re.compile objects, each pattern is searched against
-        all the strings in the data and any exact matches are removed.
-        If passed as a list, the number of entries must match the number
-        of rows in X, and each string, re.compile, or tuple is applied
-        to the corresponding row in the data. If any entry in the list
-        is None, the corresponding row in the data is ignored.
-    case_sensitive:
-        Optional[CaseSensitiveType] - global setting for case-sensitivity.
-        If True (the default) then all searches are case-sensitive. If
-        False, TR will look for matches regardless of case. This setting
-        is overriden when IGNORECASE flags are passed in re.compile
-        objects or to :param: `flags`.
-    remove_empty_rows:
-        Optional[bool], default=False - whether to remove rows that become
-        empty when data is passed in a 2D container. This does not apply
-        to 1D data. If True, TR will remove any empty rows from the data
-        and that row will be indicated in the :attr: `row_support_` mask
-        by a False in that position. If False, empty rows are not removed
-        from the data.
-    flags:
-        Optional[FlagsType] - the flags value(s) for the full string
-        searches. Internally, TR does all its searching for strings
-        with re.fullmatch, therefore flags can be passed whether you are
-        searching for literal strings or regex patterns. If you do not
-        know regular expressions, then you do not need to worry about
-        this parameter. If None, the default flags for re.fullmatch()
-        are used globally. If a single flags object, that is applied
-        globally. If passed as a list, the number of entries must match
-        the number of rows in the data. Flags objects and Nones in the
-        list follow the same rules stated above, but at the row level.
-        If IGNORECASE is passed here as a global setting or in a list
-        it overrides the :param: `case_sensitive` 'True' setting.
-
+    remove : Optional[RemoveType], default=None
+        The literal strings or regex patterns to remove from the data.
+        When passed as a single literal string or re.compile object,
+        that is applied to every string in the data, and every full
+        string that matches exactly will be removed. When passed as a
+        python tuple of character strings and/or re.compile objects,
+        each pattern is searched against all the strings in the data
+        and any exact matches are removed. If passed as a list, the
+        number of entries must match the number of rows in X, and each
+        string, re.compile, or tuple is applied to the corresponding row
+        in the data. If any entry in the list is None, the corresponding
+        row in the data is ignored.
+    case_sensitive : Optional[CaseSensitiveType]
+        Global setting for case-sensitivity. If True (the default)
+        then all searches are case-sensitive. If False, TR will look
+        for matches regardless of case. This setting is overriden
+        when IGNORECASE flags are passed in re.compile objects or
+        to :param: `flags`.
+    remove_empty_rows : Optional[bool], default=False
+        Whether to remove rows that become empty when data is passed in
+        a 2D container. This does not apply to 1D data. If True, TR
+        will remove any empty rows from the data and that row will be
+        indicated in the :attr: `row_support_` mask by a False in that
+        position. If False, empty rows are not removed from the data.
+    flags : Optional[FlagsType]
+        The flags value(s) for the full string searches. Internally,
+        TR does all its searching for strings with re.fullmatch,
+        therefore flags can be passed whether you are searching for
+        literal strings or regex patterns. If you do not know regular
+        expressions, then you do not need to worry about this parameter.
+        If None, the default flags for re.fullmatch() are used globally.
+        If a single flags object, that is applied globally. If passed
+        as a list, the number of entries must match the number of rows
+        in the data. Flags objects and Nones in the list follow the
+        same rules stated above, but at the row level. If IGNORECASE
+        is passed here as a global setting or in a list it overrides
+        the :param: `case_sensitive` 'True' setting.
 
     Attributes
     ----------
-    n_rows_:
-        int - the number of rows in the data passed to :meth: `transform`.
+    n_rows_ : int
+        The number of rows in the data passed to :meth:`transform`.
         This reflects the data that is passed, not the data that is
         returned, which may not necessarily have the same number of
         rows as the original data. Only available if a transform has
         been performed, and only reflects the results of the last
         transform done, it is not cumulative.
-    row_support_:
-        RowSupportType - A boolean vector indicating which rows were
-        kept (True) or removed (False) during the transform process.
-        Only available if a transform has been performed, and only
-        reflects the results of the last transform done, it is not
-        cumulative.
-
+    row_support_ : RowSupportType
+        A boolean vector indicating which rows were kept (True) or
+        removed (False) during the transform process. Only available
+        if a transform has been performed, and only reflects the results
+        of the last transform done, it is not cumulative.
 
     Notes
     -----
-    Type Aliases
+
+    **Type Aliases**
 
     PythonTypes:
         Union[Sequence[str], Sequence[Sequence[str]], set[str]]
@@ -238,12 +237,10 @@ class TextRemover(
     RowSupportType:
         npt.NDArray[bool]
 
-
     See Also
     --------
     list.remove
     re.fullmatch
-
 
     Examples
     --------
@@ -258,7 +255,6 @@ class TextRemover(
     >>> trfm.fit_transform(X)
     [['a'], ['f'], ['g', 'h']]
 
-
     """
 
 
@@ -270,6 +266,7 @@ class TextRemover(
         remove_empty_rows: Optional[bool] = False,
         flags: FlagsType = None
     ) -> None:
+        """Initialize the TextRemover instance."""
 
         self.remove = remove
         self.case_sensitive = case_sensitive
@@ -283,25 +280,26 @@ class TextRemover(
 
     @property
     def n_rows_(self):
-        """
-        Get the 'n_rows_' attribute. The number of rows in the data
-        passed to transform.
+        """Get the 'n_rows_' attribute.
+        The number of rows in the data passed to transform.
         """
         return self._n_rows
 
 
     @property
     def row_support_(self):
-        """
-        Get the row_support_ attribute. A boolean vector indicating
-        which rows were kept in the data during the transform process.
-        Only available if a transform has been performed, and only
-        reflects the results of the last transform done.
+        """Get the row_support_ attribute.
+
+        A boolean vector indicating which rows were kept in the data
+        during the transform process. Only available if a transform has
+        been performed, and only reflects the results of the last
+        transform done.
         """
         return self._row_support
 
 
     def get_metadata_routing(self):
+        """metadata routing is not implemented in TextRemover"""
         raise NotImplementedError(
             f"metadata routing is not implemented in TextRemover"
         )
@@ -324,10 +322,7 @@ class TextRemover(
         X: XContainer,
         y: Optional[Union[any, None]] = None
     ) -> Self:
-
-        """
-        Batch-wise no-op fit operation.
-
+        """Batch-wise no-op fit operation.
 
         Parameters
         ----------

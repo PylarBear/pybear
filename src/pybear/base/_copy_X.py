@@ -68,13 +68,13 @@ def copy_X(
         Union[list, tuple, set]
 
     NumpyTypes:
-        Union[npt.NDArray[Union[numbers.Number, str]], np.ma.MaskedArray]
+        Union[numpy.ndarray, numpy.ma.MaskedArray]
 
     PandasTypes:
-        Union[pd.Series, pd.DataFrame]
+        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
 
     PolarsTypes:
-        Union[pl.Series, pl.DataFrame]
+        Union[polars.series.Series, polars.dataframe.DataFrame]
 
     SparseTypes:
         Union[

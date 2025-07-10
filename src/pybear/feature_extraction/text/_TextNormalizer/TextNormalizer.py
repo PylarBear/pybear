@@ -8,6 +8,7 @@
 
 from typing import Optional
 from typing_extensions import (
+    Any,
     Self,
     Union
 )
@@ -40,11 +41,12 @@ class TextNormalizer(
     ReprMixin,
     SetParamsMixin
 ):
-    """
-    Normalize all text in a dataset to upper-case, lower-case, or leave
-    unchanged. The data can only contain strings.
+    """Normalize all text in a dataset to upper-case, lower-case, or
+    leave unchanged.
 
-    TextNormalizer accepts 1D list-like vectors of strings, such as
+    The data can only contain strings.
+
+    TextNormalizer (TN) accepts 1D list-like vectors of strings, such as
     python lists, tuples, and sets, numpy vectors, pandas series, and
     polars series. TN also accepts 2D array-like containers such as
     (possibly ragged) nested 2D python objects, numpy arrays, pandas
@@ -53,15 +55,15 @@ class TextNormalizer(
     always constructed with python lists, and have shape identical to
     the shape of the inputted data.
 
-    TextNormalizer (TN) is a scikit-style transformer with partial_fit,
-    fit, transform, fit_transform, get_params, set_params, and score
-    methods. An instance is always in a 'fitted' state, and checks for
-    fittedness will always return True. This is because TN technically
-    does not need to be fit; it already knows everything it needs to
-    know to do transforms from the single parameter. The partial_fit,
-    fit, and score methods are no-op; they exist to fulfill the API and
-    to enable TN to be incorporated into workflows such as scikit
-    pipelines and dask_ml wrappers.
+    TN is a scikit-style transformer with partial_fit, fit, transform,
+    fit_transform, get_params, set_params, and score methods. An
+    instance is always in a 'fitted' state, and checks for fittedness
+    will always return True. This is because TN technically does not
+    need to be fit; it already knows everything it needs to know to do
+    transforms from the single parameter. The partial_fit, fit, and
+    score methods are no-op; they exist to fulfill the API and to enable
+    TN to be incorporated into workflows such as scikit pipelines and
+    dask_ml wrappers.
 
     Parameters
     ----------
@@ -151,7 +153,7 @@ class TextNormalizer(
     def partial_fit(
         self,
         X: XContainer,
-        y: Optional[Union[any, None]] = None
+        y: Optional[Any] = None
     ) -> Self:
         """No-op batch-wise fit.
 
@@ -176,7 +178,7 @@ class TextNormalizer(
     def fit(
         self,
         X: XContainer,
-        y: Optional[Union[any, None]] = None
+        y: Optional[Any] = None
     ) -> Self:
         """ No-op one-shot fit.
 
@@ -244,7 +246,7 @@ class TextNormalizer(
     def score(
         self,
         X: XContainer,
-        y: Optional[Union[any, None]] = None
+        y: Optional[Any] = None
     ) -> None:
         """No-op score method.
 

@@ -25,7 +25,7 @@ class SetParamsMixin:
         as a keyword argument to the set_params method call. Or use
         ** dictionary unpacking on a dictionary keyed with exact
         parameter names and the new parameter values as the dictionary
-        values. Valid parameter keys can be listed with get_params().
+        values. Valid parameter keys can be listed with :meth:`get_params`.
 
         Setting the parameters of a GridSearch instance (but not the
         nested instance) can be done in the same way as above. The

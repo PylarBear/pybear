@@ -7,7 +7,10 @@
 
 
 from typing import Optional
-from typing_extensions import Self, Union
+from typing_extensions import (
+    Any,
+    Self
+)
 from ._type_aliases import (
     XContainer,
     XWipContainer
@@ -37,10 +40,9 @@ class TextStripper(
     ReprMixin,
     SetParamsMixin
 ):
+    """Strip leading and trailing spaces from 1D or 2D text data.
 
-    """
-    Strip leading and trailing spaces from 1D or 2D text data. The data
-    can only contain strings.
+    The data can only contain strings.
 
     TextStripper is a scikit-style transformer that has partial_fit, fit,
     transform, fit_transform, set_params, get_params, and score methods.
@@ -69,6 +71,9 @@ class TextStripper(
 
     Notes
     -----
+
+    **Type Aliases**
+
     PythonTypes:
         Union[Sequence[str], Sequence[Sequence[str]]]
 
@@ -76,10 +81,10 @@ class TextStripper(
         npt.NDArray[str]
 
     PandasTypes:
-        Union[pd.Series, pd.DataFrame]
+        Union[panda.core.series.Series, pandas.core.frame.DataFrame]
 
     PolarsTypes:
-        Union[pl.Series, pl.DataFrame]
+        Union[polars.series.Series, polars.dataframe.DataFrame]
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
@@ -99,13 +104,11 @@ class TextStripper(
     >>> trfm.fit_transform(X)
     [['w', '', 'x'], ['y', 'z']]
 
-
     """
 
 
     def __init__(self):
         """Initialize the TextStripper instance."""
-
         pass
 
 
@@ -114,6 +117,7 @@ class TextStripper(
 
 
     def get_metadata_routing(self):
+        """'get_metadata_routing' is not implemented in TextStripper"""
         raise NotImplementedError(
             f"'get_metadata_routing' is not implemented in TextStripper"
         )
@@ -122,27 +126,22 @@ class TextStripper(
     def partial_fit(
         self,
         X: XContainer,
-        y: Optional[Union[any, None]] = None
+        y: Optional[Any] = None
     ) -> Self:
-
-        """
-        No-op batch-wise fit.
-
+        """No-op batch-wise fit.
 
         Parameters
         ----------
-        X:
-            XContainer - the data whose text will be stripped of leading
-            and trailing spaces. Ignored.
-        y:
-            Optional[Union[any, None]], default=None - the target for
-            the data. Always ignored.
-
+        X : XContainer
+            The data whose text will be stripped of leading and trailing
+            spaces. Ignored.
+        y : Optional[Any], default=None
+            The target for the data. Always ignored.
 
         Returns
         -------
-        -
-            self - the TextStripper instance.
+        self : object
+            The TextStripper instance.
 
         """
 
@@ -153,27 +152,22 @@ class TextStripper(
     def fit(
         self,
         X: XContainer,
-        y: Optional[Union[any, None]] = None
+        y: Optional[Any] = None
     ) -> Self:
-
-        """
-        No-op one-shot fit.
-
+        """No-op one-shot fit.
 
         Parameters
         ----------
-        X:
-            XContainer - the data whose text will be stripped of leading
-            and trailing spaces. Ignored.
-        y:
-            Optional[Union[any, None]], default=None - the target for
-            the data. Always ignored.
-
+        X : XContainer
+            The data whose text will be stripped of leading and trailing
+            spaces. Ignored.
+        y : Optional[Any], default=None
+            The target for the data. Always ignored.
 
         Returns
         -------
-        -
-            self - the TextStripper instance.
+        self : object
+            The TextStripper instance.
 
         """
 
@@ -186,26 +180,21 @@ class TextStripper(
         X:XContainer,
         copy:Optional[bool] = False
     ) -> XWipContainer:
-
-        """
-        Remove the leading and trailing spaces from 1D or 2D text data.
-
+        """Remove the leading and trailing spaces from 1D or 2D text data.
 
         Parameters
         ----------
-        X:
-            XContainer - the data whose text will be stripped of leading
-            and trailing spaces.
-        copy:
-            Optional[bool], default=False - whether to strip the text
-            in the original X object or a deepcopy of X.
-
+        X : XContainer
+            The data whose text will be stripped of leading and trailing
+            spaces.
+        copy : Optional[bool], default=False
+            Whether to strip the text in the original X object or a
+            deepcopy of X.
 
         Returns
         -------
-        -
-            XWipContainer - the data with stripped text.
-
+        X_tr: XWipContainer
+            The data with stripped text.
 
         """
 
@@ -214,40 +203,34 @@ class TextStripper(
         _val_1D_2D_X(X, _require_all_finite=False)
 
         if copy:
-            _X = copy_X(X)
+            X_tr = copy_X(X)
         else:
-            _X = X
+            X_tr = X
 
 
-        _X: XWipContainer = _map_X_to_list(_X)
+        X_tr: XWipContainer = _map_X_to_list(X_tr)
 
 
-        return _transform(_X)
+        return _transform(X_tr)
 
 
     def score(
         self,
         X: XContainer,
-        y: Optional[Union[any, None]] = None
+        y: Optional[Any] = None
     ) -> None:
-
-        """
-        No-op score method.
-
+        """No-op score method.
 
         Parameters
         ----------
-        X:
-            XContainer - the data. Ignored.
-        y:
-            Optional[Union[any, None]], default=None - the target for
-            the data. Always ignored.
-
+        X : XContainer
+            The data. Ignored.
+        y : Optional[Any], default=None
+            The target for the data. Always ignored.
 
         Returns
         -------
-        -
-            None
+        None
 
         """
 
@@ -255,10 +238,6 @@ class TextStripper(
         check_is_fitted(self)
 
         return
-
-
-
-
 
 
 

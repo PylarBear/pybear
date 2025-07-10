@@ -14,7 +14,11 @@ from typing_extensions import (
     TypeAlias,
     Union
 )
-import numpy.typing as npt
+from ..__type_aliases import (
+    NumpyTypes,
+    PandasTypes,
+    PolarsTypes
+)
 
 import functools
 
@@ -29,10 +33,8 @@ from .._check_2D_str_array import check_2D_str_array
 
 
 
-PythonTypes: TypeAlias = Union[Sequence[str], Sequence[Sequence[str]], set]
-NumpyTypes: TypeAlias = npt.NDArray
-PandasTypes: TypeAlias = Union[pd.Series, pd.DataFrame]
-PolarsTypes: TypeAlias = Union[pl.Series, pl.DataFrame]
+PythonTypes: TypeAlias = Union[Sequence[str], Sequence[Sequence[str]], set[str]]
+
 XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
 
@@ -52,10 +54,10 @@ class FileDumpMixin:
         npt.NDArray[str]
 
     PandasTypes:
-        Union[pd.Series, pd.DataFrame]
+        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
 
     PolarsTypes:
-        Union[pl.Series, pl.DataFrame]
+        Union[polars.series.Series, polars.dataframe.DataFrame]
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
@@ -64,7 +66,7 @@ class FileDumpMixin:
 
 
     def _dump_to_file_wrapper(foo) -> Callable[[XContainer], None]:
-        """Wrapper function for dumping X to csv or txt."""
+        """Wrapper function for dumping `X` to csv or txt."""
 
         @functools.wraps(foo)
         def _writer_function(self, _X: XContainer) -> None:
@@ -109,7 +111,7 @@ class FileDumpMixin:
 
     @_dump_to_file_wrapper
     def dump_to_csv(self, _X: list[str], filename: str) -> None:
-        """Dump X to csv."""
+        """Dump `X` to csv."""
 
         print(f'\nSaving data to csv...')
 
@@ -122,7 +124,7 @@ class FileDumpMixin:
 
     @_dump_to_file_wrapper
     def dump_to_txt(self, _X: list[str], filename: str) -> None:
-        """Dump X to txt."""
+        """Dump `X` to txt."""
 
 
         print(f'\nSaving data to txt file...')
@@ -136,8 +138,8 @@ class FileDumpMixin:
 
 
     def _validate_X_container(self, _X: XContainer):
-        """Validate that X is an allowed container and is 1D or 2D.
-        This checks the dimensionality of X. Must be 1D or 2D. Returns
+        """Validate that `X` is an allowed container and is 1D or 2D.
+        This checks the dimensionality of `X`. Must be 1D or 2D. Returns
         True if the data is 1D, False if the data is 2D.
 
         Parameters

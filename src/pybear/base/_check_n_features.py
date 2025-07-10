@@ -6,9 +6,22 @@
 
 
 
-from typing_extensions import Union
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
+from .__type_aliases import (
+    NumpyTypes,
+    PandasTypes,
+    PolarsTypes,
+    ScipySparseTypes
+)
 
 from ._num_features import num_features
+
+
+XContainer: TypeAlias = \
+    Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
 
 
 
@@ -20,7 +33,7 @@ def check_n_features(
     """Set the 'n_features_in_' attribute, or check against it.
 
     pybear recommends calling reset=True in 'fit' and in the first call
-    to 'partial_fit'. All other methods that validate 'X' should set
+    to 'partial_fit'. All other methods that validate `X` should set
     'reset=False'.
 
     Parameters
@@ -41,7 +54,32 @@ def check_n_features(
     Returns
     -------
     n_features : int
-        The number of features in X.
+        The number of features in `X`.
+
+    Notes
+    -----
+
+    **Type Aliases**
+
+    NumpyTypes:
+        numpy.ndarray
+
+    PandasTypes:
+        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+
+    PolarsTypes:
+        Union[polars.series.Series, polars.dataframe.DataFrame]
+
+    ScipySparseTypes:
+        Union[
+            ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
+            ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
+            ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
+            ss.bsr_matrix, ss.bsr_array
+        ]
+
+    XContainer:
+        Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
 
     """
 

@@ -17,30 +17,30 @@ import numbers
 
 
 def get_feature_names_out(
-    _input_features: Union[Iterable[str], None],
+    input_features: Union[Iterable[str], None],
     feature_names_in_: Union[npt.NDArray[object], None],
     n_features_in_: numbers.Integral
 ) -> npt.NDArray[object]:
 
     """Return the feature name vector for the transformed output.
 
-    - If 'input_features' is 'None', then 'feature_names_in_' is
-      used as feature names in. If 'feature_names_in_' is not defined,
+    - If `input_features` is None, then `feature_names_in_` is
+      used as the feature names. If `feature_names_in_` is not defined,
       then the following input feature names are generated:
       '["x0", "x1", ..., "x(n_features_in_ - 1)"]'.
-    - If 'input_features' is an array-like, then 'input_features' must
-      match 'feature_names_in_' if 'feature_names_in_' is defined.
+    - If `input_features` is an array-like, then `input_features` must
+      match `feature_names_in_` if `feature_names_in_` is defined.
 
     Parameters
     ----------
-    _input_features : Union[Iterable[str], None]
+    input_features : Union[Iterable[str], None]
         Input features.
     feature_names_in_ : Union[npt.NDArray[object], None]
         The names of the features as seen during fitting. Only available
-        if X is passed to :meth: `partial_fit` or :meth: `fit` in a
+        if `X` is passed to :meth:`partial_fit` or :meth:`fit` in a
         container that has a header.
     n_features_in_ : numbers.Integral
-        The number of features in X.
+        The number of features in `X`.
 
     Returns
     -------
@@ -53,13 +53,13 @@ def get_feature_names_out(
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     try:
-        if isinstance(_input_features, type(None)):
+        if isinstance(input_features, type(None)):
             raise UnicodeError
-        iter(_input_features)
-        if isinstance(_input_features, (str, dict)):
+        iter(input_features)
+        if isinstance(input_features, (str, dict)):
             raise Exception
         if not all(map(
-                isinstance, _input_features, (str for _ in _input_features)
+                isinstance, input_features, (str for _ in input_features)
         )):
             raise Exception
     except UnicodeError:
@@ -85,22 +85,22 @@ def get_feature_names_out(
 
 
     # this code parallels sklearn.utils.validation _check_feature_names_in()
-    if _input_features is not None:
+    if input_features is not None:
 
-        if len(_input_features) != n_features_in_:
+        if len(input_features) != n_features_in_:
             raise ValueError(
                 "input_features should have length equal to number of "
-                f"features ({n_features_in_}), got {len(_input_features)}"
+                f"features ({n_features_in_}), got {len(input_features)}"
             )
 
         if feature_names_in_ is not None:
 
-            if not np.array_equal(_input_features, feature_names_in_):
+            if not np.array_equal(input_features, feature_names_in_):
                 raise ValueError(
-                    f"_input_features is not equal to feature_names_in_"
+                    f"input_features is not equal to feature_names_in_"
                 )
 
-        _X_feature_names = _input_features
+        _X_feature_names = input_features
 
     elif feature_names_in_ is not None:   # and input_features is None
         _X_feature_names = feature_names_in_

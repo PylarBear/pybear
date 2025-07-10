@@ -6,7 +6,10 @@
 
 
 
-from typing import Sequence, Literal
+from typing import (
+    Literal,
+    Sequence
+)
 
 import io
 import glob
@@ -338,9 +341,6 @@ class TestFileDumpMixin:
         _files = glob.glob(os.path.join(os.curdir, "*.*"))
         assert not any(map(lambda x: f"testfile_{_format}.txt" in x, _files))
         del _files
-
-
-
 
 
 

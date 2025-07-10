@@ -20,27 +20,32 @@ def _validation(
     _X: XContainer,
     _upper: UpperType
 ) -> None:
+    """Centralized hub for validation.
 
-
-    """
-    Centralized hub for validation. See the individual modules for more
-    details.
-
+    See the individual modules for more details.
 
     Parameters:
     -----------
-    _X:
-        XContainer - the data.
-    _upper:
-        UpperType - if True, covert all text to upper-case; if False,
-        convert all text to lower-case; if None, do a no-op.
-
+    _X : XContainer
+        The data.
+    _upper : UpperType
+        If True, covert all text to upper-case; if False, convert all
+        text to lower-case; if None, do a no-op.
 
     Return
     ------
-    -
-        None
+    None
 
+    Notes
+    -----
+
+    **Type Aliases**
+
+    XContainer:
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+
+    UpperType:
+        Optional[Union[bool, None]]
 
     """
 

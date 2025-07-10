@@ -19,9 +19,6 @@ import pytest
 
 
 
-
-
-
 class TestIsFitted:
 
 
@@ -321,21 +318,6 @@ class TestIsFitted:
         assert out is est_is_fitted
 
     # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

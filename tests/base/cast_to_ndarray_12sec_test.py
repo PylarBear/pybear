@@ -367,11 +367,11 @@ class TestCastToNDArray:
 
 
         try:
-            _og_dtypes = _ref_X.dtypes
+            _og_dtype = _ref_X.dtype
             _ref_X.astype(np.float64)
             _ref_X[nan_mask(_ref_X)] = np.nan
-            _ref_X.dtypes = _og_dtypes
-            del _og_dtypes
+            _ref_X.dtype = _og_dtype
+            del _og_dtype
         except:
             # only kicks out to here if non-numeric
             try:
@@ -423,10 +423,10 @@ class TestCastToNDArray:
             pytest.skip(reason=f'int dtypes cant take nan')
         # END skip impossible ** * ** * ** * ** * ** * ** * ** * ** * **
 
-        _X_base_pd = _X_factory(
+        _X_base_pl = _X_factory(
             _dupl=None,
             _has_nan=_has_nan,
-            _format='pd',
+            _format='pl',
             _dtype=_dtype,
             _columns=None,
             _constants=None,
@@ -434,17 +434,15 @@ class TestCastToNDArray:
             _shape=_shape
         )
 
-        _X_base_pd[nan_mask(_X_base_pd)] = None
-
         if _dim == 1:
-            _ref_X = _X_base_pd.iloc[:, 0].copy().to_numpy()
+            _ref_X = _X_base_pl[:, 0].to_numpy()
             assert isinstance(_ref_X, np.ndarray)
-            _X = pl.from_pandas(_X_base_pd.copy())[:, 0]
+            _X = _X_base_pl[:, 0]
             assert isinstance(_X, pl.Series)
         elif _dim == 2:
-            _ref_X = _X_base_pd.copy().to_numpy()
+            _ref_X = _X_base_pl.clone().to_numpy()
             assert isinstance(_ref_X, np.ndarray)
-            _X = pl.from_pandas(_X_base_pd.copy())
+            _X = _X_base_pl
             assert isinstance(_X, pl.DataFrame)
         else:
             raise Exception
@@ -452,13 +450,16 @@ class TestCastToNDArray:
 
         try:
             _og_dtype = _ref_X.dtype
-            _ref_X = _ref_X.astype(pl.Float64)
+            _ref_X = _ref_X.astype(np.float64)
             _ref_X[nan_mask(_ref_X)] = np.nan
             _ref_X = _ref_X.astype(_og_dtype)
             del _og_dtype
         except:
             # only kicks into here if non-numeric
-            _ref_X[nan_mask(_ref_X)] = np.nan
+            try:
+                _ref_X[nan_mask(_ref_X)] = np.nan
+            except:
+                pass
 
         if _dim == 1:
             assert isinstance(_X, pl.Series)

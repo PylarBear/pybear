@@ -103,7 +103,7 @@ class TestCheckIsFiniteValidation:
             )
 
 
-    @pytest.mark.parametrize('X_format', ('np', 'pd', 'csr', 'coo'))
+    @pytest.mark.parametrize('X_format', ('np', 'pd', 'pl', 'csr', 'coo'))
     def test_accepts_good_X(self, _X_factory, X_format, _shape):
 
         good_X = _X_factory(
@@ -128,21 +128,6 @@ class TestCheckIsFiniteValidation:
 
         assert isinstance(out, type(good_X))
 
-
-    def test_accepts_polars(self, _shape):
-
-        good_X = pl.from_numpy(np.random.uniform(0, 1, _shape))
-
-        out = check_is_finite(
-            good_X,
-            allow_nan=False,
-            allow_inf=False,
-            cast_inf_to_nan=False,
-            standardize_nan=False,
-            copy_X=False
-        )
-
-        assert isinstance(out, type(good_X))
     # END X - - - - - - - - - - - - - - - -
 
     @pytest.mark.parametrize('_param',
@@ -214,8 +199,7 @@ class TestCheckIsFiniteValidation:
 
 
 
-# pizza dont forget about polars
-@pytest.mark.parametrize('X_format', ('np', 'pd', 'csc', 'csr', 'dia'))
+@pytest.mark.parametrize('X_format', ('np', 'pd', 'pl', 'csc', 'csr', 'dia'))
 class TestCheckIsFiniteAccuracy:
 
 

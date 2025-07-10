@@ -38,17 +38,17 @@ def check_is_fitted(
     Checks if the estimator/transformer is fitted by looking for 3
     things, in the presented order, via the pybear _is_fitted function.
 
-    The estimator/transformer is fitted if it:\\\n
-    1) has a __pybear_is_fitted__ dunder method and it returns boolean
-    True\\\n
-    2) has any or all attributes given by :param: 'attributes', if it is
-    passed; if not passed, this step is skipped\\\n
-    3) has an attribute that ends with an underscore and does not start
-    with double underscore.\\\n
+    The estimator/transformer is fitted if it:
+        1) has a __pybear_is_fitted__ dunder method and it returns
+            boolean True
+        2) has any or all attributes given by :param: 'attributes', if
+            it is passed; if not passed, this step is skipped
+        3) has an attribute that ends with an underscore and does not
+            start with double underscore.
 
     If none of these things are true, the estimator/transformer is not
-    fitted and raises a :class: pybear.exceptions.NotFittedError with
-    the message given by :param: msg or the default message if :param:
+    fitted and raises a :class:`pybear.exceptions.NotFittedError` with
+    the message given by :param:`msg` or the default message if :param:
     msg is not passed.
 
     Parameters

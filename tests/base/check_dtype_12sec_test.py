@@ -122,7 +122,7 @@ class TestCheckDtype:
             'py_set': 'np',
             'np': 'np',
             'pd': 'pd',
-            'pl': 'np',
+            'pl': 'pl',
             'csr': 'csr',
             'csc': 'csc',
             'coo': 'coo'
@@ -198,25 +198,22 @@ class TestCheckDtype:
         elif _format == 'np':
             if _dim == 1:
                 _X_wip = _X_wip[:, 0]
-            elif _dim == 2:
-                pass
         elif _format == 'pd':
             if _dim == 1:
                 _X_wip = _X_wip.iloc[:, 0].squeeze()
         elif _format == 'pl':
             if _dim == 1:
-                _X_wip = pl.Series(_X_wip[:, 0])
-            elif _dim == 2:
-                _X_wip = pl.DataFrame(_X_wip)
+                _X_wip = _X_wip[:, 0]
+                assert isinstance(_X_wip, pl.series.Series)
         elif _format == 'csr':
             # can only be 2D
-            _X_wip = ss.csr_array(_X_wip)
+            assert isinstance(_X_wip, ss._csr.csr_array)
         elif _format == 'csc':
             # can only be 2D
-            _X_wip = ss.csc_array(_X_wip)
+            assert isinstance(_X_wip, ss._csc.csc_array)
         elif _format == 'coo':
             # can only be 2D
-            _X_wip = ss.coo_array(_X_wip)
+            assert isinstance(_X_wip, ss._coo.coo_array)
         else:
             raise Exception
         # END build X -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -284,7 +281,7 @@ class TestCheckDtype:
         )
 
         # need to control the dispersion of shape, so that if there are
-        # any nans, there is at least on in each row. see the notes in
+        # any nans, there is at least one in each row. see the notes in
         # the 'shape' fixture.
         _X_wip = _X_wip.transpose()    # transpose() works for np, pd, ss
 
@@ -306,25 +303,23 @@ class TestCheckDtype:
         elif _format == 'np':
             if _dim == 1:
                 _X_wip = _X_wip[:, 0]
-            elif _dim == 2:
-                pass
         elif _format == 'pd':
             if _dim == 1:
                 _X_wip = _X_wip.iloc[:, 0].squeeze()
         elif _format == 'pl':
             if _dim == 1:
                 _X_wip = pl.Series(_X_wip[:, 0])
-            elif _dim == 2:
-                _X_wip = pl.DataFrame(_X_wip)
         elif _format == 'csr':
             # can only be 2D
-            _X_wip = ss.csr_array(_X_wip)
+            # csr become csc because of transpose
+            assert isinstance(_X_wip, ss._csc.csc_array)
         elif _format == 'csc':
             # can only be 2D
-            _X_wip = ss.csc_array(_X_wip)
+            # csc become csr because of transpose
+            assert isinstance(_X_wip, ss._csr.csr_array)
         elif _format == 'coo':
             # can only be 2D
-            _X_wip = ss.coo_array(_X_wip)
+            assert isinstance(_X_wip, ss._coo.coo_array)
         else:
             raise Exception
         # END build X -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -448,16 +443,12 @@ class TestCheckDtype:
         elif _format == 'np':
             if _dim == 1:
                 _X_wip = _X_wip[:, 0]
-            elif _dim == 2:
-                pass
         elif _format == 'pd':
             if _dim == 1:
                 _X_wip = _X_wip.iloc[:, 0].squeeze()
         elif _format == 'pl':
             if _dim == 1:
                 _X_wip = pl.Series(_X_wip[:, 0])
-            elif _dim == 2:
-                _X_wip = pl.DataFrame(_X_wip)
         else:
             raise Exception
         # END build X -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --

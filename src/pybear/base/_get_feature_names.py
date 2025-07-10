@@ -18,7 +18,7 @@ import numpy as np
 # called by the _check_feature_names method of BaseEstimator, which in
 # turn is called by the _validate_data method of BaseEstimator
 def get_feature_names(X: Any):
-    """Get feature names from X.
+    """Get feature names from `X`.
 
     X must have a 'columns' attribute or a __dataframe__ dunder, i.e.,
     follows the dataframe interchange protocol. Otherwise, feature names
@@ -44,7 +44,7 @@ def get_feature_names(X: Any):
     Returns
     -------
     feature_names : Union[NDArray[object], None]
-        The feature names of 'X'. Unrecognized array containers return
+        The feature names of `X`. Unrecognized array containers return
         None.
 
     """

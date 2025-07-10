@@ -12,15 +12,15 @@ class FitTransformMixin:
     def fit_transform(self, X, y=None, **fit_params):
         """Fit to data, then transform it.
 
-        Fits transformer to 'X' and 'y' with optional parameters
-        'fit_params' and returns a transformed version of 'X'.
+        Fits transformer to `X` and `y` with optional parameters
+        `fit_params` and returns a transformed version of `X`.
 
         Parameters
         ----------
         X : array_like of shape (n_samples, n_features)
             Input samples.
 
-        y : array_like of shape (n_samples,) or (n_samples, n_outputs),
+        y : array_like of shape (n_samples, n_outputs) or (n_samples,),
             default=None - Target values (None for unsupervised
             transformations).
 

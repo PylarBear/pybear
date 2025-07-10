@@ -5,7 +5,9 @@
 #
 
 
-
+import numpy as np
+import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 from ._copy_X import copy_X as _copy_X
@@ -16,12 +18,12 @@ def ensure_2D(
     X,
     copy_X:bool=True
 ):
-    """Ensure that X has 2-dimensional shape, i.e., len(X.shape) == 2.
+    """Ensure that `X` has 2-dimensional shape, i.e., len(X.shape) == 2.
 
-    If X is a 1D vector, assume the vector is a single feature of
-    samples, not a single sample of features. X must have a 'shape'
-    attribute. The only time copy_X matters is if copy_X is True and X
-    is 1-dimensional. This module does not accept python builtin
+    If `X` is a 1D vector, assume the vector is a single feature of
+    samples, not a single sample of features. `X` must have a 'shape'
+    attribute. The only time `copy_X` matters is if `copy_X` is True and
+    `X` is 1-dimensional. This module does not accept python builtin
     iterables like list, set, and tuple.
 
     Parameters
@@ -29,7 +31,7 @@ def ensure_2D(
     X : array_like of shape (n_samples, n_features) or (n_samples,)
         The data to be put into a 2-dimensional container.
     copy : bool
-        Whether to copy X or operate directly on the passed X.
+        Whether to copy `X` or operate directly on the passed `X`.
 
     Returns
     -------
@@ -72,22 +74,23 @@ def ensure_2D(
         )
     elif _dim == 1:
 
-        if not hasattr(X, 'copy'):
-            raise ValueError(f"'X' must have a 'copy' method.")
+        if not hasattr(X, 'copy') and not hasattr(X, 'clone'):
+            raise ValueError(f"'X' must have a 'copy' or 'clone', method.")
 
         if copy_X:
             _X = _copy_X(X)
         else:
             _X = X
 
-        # dataframes dont have reshape
-        try:
+        if isinstance(_X, (np.ndarray, np.ma.MaskedArray)):
             return _X.reshape((-1, 1))
-        except:
-            try:
-                return _X.to_frame()
-            except:
-                raise ValueError(f"ensure_2D: unable to cast X to 2D")
+        elif isinstance(_X, pd.core.series.Series):
+            return _X.to_frame()
+        elif isinstance(_X, pl.series.Series):
+            return pl.DataFrame(_X)
+        # should not have scipy sparse here
+        else:
+            raise ValueError(f"ensure_2D: unable to cast X to 2D")
     elif _dim == 2:
         return X
     elif _dim > 2:

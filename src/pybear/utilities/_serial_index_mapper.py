@@ -6,6 +6,8 @@
 
 
 
+import numbers
+
 import numpy as np
 import joblib
 
@@ -48,89 +50,84 @@ def serial_index_mapper(
 
     """
 
-    # shape ** * ** * ** * ** * **
+    # shape ** * ** * ** * ** * ** ** * ** * ** * ** * ** ** * ** * ** *
     err_msg = (f"'shape' must be non-empty one-dimensional array-like containing "
                f"non-negative integers")
 
-    if isinstance(shape, (dict, str, type(None))):
-        raise TypeError(err_msg)
-
     try:
+        if isinstance(shape, (dict, str, type(None))):
+            raise Exception
         shape = np.array(list(shape))
-    except:
+        if len(shape) == 0:
+            raise UnicodeError
+        if not np.array_equiv(shape, shape.ravel()):
+            raise UnicodeError
+        if not all(map(isinstance, shape, (numbers.Integral for i in shape))):
+            raise UnicodeError
+        if any([i < 0 for i in shape]):
+            raise UnicodeError
+    except UnicodeError:
+        raise ValueError(err_msg)
+    except Exception as e:
         raise TypeError(err_msg)
 
-    if len(shape) == 0:
-        raise ValueError(err_msg)
-
-    if not np.array_equiv(shape, shape.ravel()):
-        raise ValueError(err_msg)
-
-    if not all(
-        ['INT' in _ for _ in np.char.upper(list(map(str, (map(type, shape)))))]
-    ):
-        raise ValueError(err_msg)
-
-    if any([i < 0 for i in shape]):
-        raise ValueError(err_msg)
 
     del err_msg
 
-    # END shape ** * ** * ** * ** * **
+    # END shape ** * ** * ** * ** * ** * ** * ** * ** * ** ** * ** * **
 
-    # positions ** * ** * ** * ** * ** * **
+    # positions ** * ** * ** * ** * ** * ** * ** * ** * ** * ** ** * **
     err_msg = (f"'positions' must be non-empty one-dimensional array-like "
                f"containing integers")
 
-    if isinstance(positions, (dict, str, type(None))):
-        raise TypeError(err_msg)
-
     try:
+        if isinstance(positions, (dict, str, type(None))):
+            raise Exception
         positions = np.array(list(positions))
-    except:
+        if len(positions) == 0:
+            raise UnicodeError
+        if not np.array_equiv(positions, positions.ravel()):
+            raise UnicodeError
+        if not all(map(isinstance, positions, (numbers.Integral for i in positions))):
+            raise UnicodeError
+    except UnicodeError:
+        raise ValueError(err_msg)
+    except Exception as e:
         raise TypeError(err_msg)
 
-    if len(positions) == 0:
-        raise ValueError(err_msg)
+    del err_msg
 
-    if not np.array_equiv(positions, positions.ravel()):
-        raise ValueError(err_msg)
 
-    if not all(
-        ['INT' in _ for _ in np.char.upper(list(map(str, (map(type, positions)))))]
-    ):
-        raise ValueError(err_msg)
+    if any(map(lambda x: x < 0 or x > np.prod(shape), positions)):
+        raise ValueError(
+            f"a serialized index position is out of bounds for an object "
+            f"of size {np.prod(shape)}"
+        )
 
-    _size = np.prod(shape)
-    for _ in positions:
-        if _ < 0:
-            raise ValueError(err_msg)
-        if _ >= _size:
-            raise ValueError(f"serialized index position {_} is out of bounds "
-                             f"for an object of size {_size}")
+    # END positions ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    del err_msg, _size
-    # END positions ** * ** * ** * ** * ** * **
-
-    # n_jobs ** * ** * ** * ** * ** * ** * ** *
-    if n_jobs is None:
-        n_jobs = 1
+    # n_jobs ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     err_msg = f"n_jobs must be an integer in range -1 to 32 but not 0"
+
     try:
+        if n_jobs is None:
+            n_jobs = 1
+            raise MemoryError
         float(n_jobs)
-    except:
+        if not int(n_jobs) == n_jobs:
+            raise UnicodeError
+        n_jobs = int(n_jobs)
+        if n_jobs == 0 or n_jobs < -1:
+            raise UnicodeError
+    except MemoryError:
+        pass
+    except UnicodeError:
+        raise ValueError(err_msg)
+    except Exception as e:
         raise TypeError(err_msg)
 
-    if not int(n_jobs) == n_jobs:
-        raise ValueError(err_msg)
-
-    n_jobs = int(n_jobs)
-
-    if n_jobs not in list(range(1, 33)) + [-1]:
-        raise ValueError(err_msg)
-
-    # END n_jobs ** * ** * ** * ** * ** * ** * ** *
+    # END n_jobs ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     def _recursive(_posn, _coordinates, ctr):

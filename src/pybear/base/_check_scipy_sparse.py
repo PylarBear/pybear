@@ -10,32 +10,36 @@ from typing import (
     Literal,
     Iterable
 )
-from typing_extensions import Union
+from typing_extensions import (
+    Any,
+    Union
+)
 
 import scipy.sparse as ss
 
 
 
 def check_scipy_sparse(
-    X,
+    X: Any,
     allowed: Union[
         Literal[False],
         None,
         Iterable[Literal["csr", "csc", "coo", "dia", "lil", "dok", "bsr"]]
     ]
 ) -> None:
-    """
-    Check whether a passed data container is a scipy sparse matrix /
-    array, and if it is, check the type against the allowed types
-    specified by the user in :param: allowed. If X is not a scipy sparse
-    container, skip all checks and return None. If X is an allowed
-    scipy sparse container, return None. If X is a disallowed scipy
-    container, do not recast the passed container to a valid scipy sparse
-    container but raise a TypeError.
+    """Check whether a passed data container is a scipy sparse matrix /
+    array.
+
+    If it is, check the type against the allowed types specified by the
+    user in :param: allowed. If `X` is not a scipy sparse container,
+    skip all checks and return None. If `X` is an allowed scipy sparse
+    container, return None. If `X` is a disallowed scipy container, do
+    not recast the passed container to a valid scipy sparse container
+    but raise a TypeError.
 
     Parameters
     ----------
-    X : Any
+    X : array_like of shape (n_samples, n_features) or (n_samples, )
         The data to be checked whether it is an allowed scipy sparse
         matrix / array. This parameter is not checked for being a valid
         data container. It only undergoes checks if it is a scipy sparse
@@ -121,15 +125,6 @@ def check_scipy_sparse(
             )
 
         del allowed_dtypes
-
-
-
-
-
-
-
-
-
 
 
 

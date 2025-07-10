@@ -6,15 +6,30 @@
 
 
 
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
+from .__type_aliases import (
+    NumpyTypes,
+    PandasTypes,
+    PolarsTypes,
+    ScipySparseTypes
+)
 
-def num_features(X) -> int:
-    """Return the number of features in an array-like X.
+XContainer: TypeAlias = \
+    Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+
+
+
+def num_features(X: XContainer) -> int:
+    """Return the number of features in an array-like `X`.
 
     X must have a 'shape' attribute.
 
-    numpy & pandas: X must be 1 or 2 dimensional.
-    scipy: X must be 2 dimensional.
-    If X is a 1D vector (i.e., len(shape)==1), return 1.
+    numpy, pandas, & polars: `X` must be 1 or 2 dimensional.
+    scipy: `X` must be 2 dimensional.
+    If `X` is a 1D vector (i.e., len(shape)==1), return 1.
 
     Parameters
     ----------
@@ -27,6 +42,31 @@ def num_features(X) -> int:
     features : int
         Number of features.
 
+    Notes
+    -----
+
+    **Type Aliases**
+
+    NumpyTypes:
+        numpy.ndarray
+
+    PandasTypes:
+        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+
+    PolarsTypes:
+        Union[polars.series.Series, polars.dataframe.DataFrame]
+
+    ScipySparseTypes:
+        Union[
+            ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
+            ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
+            ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
+            ss.bsr_matrix, ss.bsr_array
+        ]
+
+    XContainer:
+        Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+
     """
 
 
@@ -35,9 +75,9 @@ def num_features(X) -> int:
     except:
         raise ValueError(
             f"\nThe passed object does not have a 'shape' attribute. "
-            f"\nAll pybear estimators and transformers require data-bearing "
+            f"\nMost pybear estimators and transformers require data-bearing "
             f"objects to have a 'shape' attribute, like numpy arrays, pandas "
-            f"dataframes, and scipy sparse matrices / arrays."
+            f"dataframes, polars dataframes, and scipy sparse matrices / arrays."
         )
 
 
@@ -70,9 +110,6 @@ def num_features(X) -> int:
     # if isinstance(X[0], (str, bytes, dict)):
     #     message += f" where the samples are of type {type(X[0]).__qualname__}"
     #     raise TypeError(message)
-
-
-
 
 
 

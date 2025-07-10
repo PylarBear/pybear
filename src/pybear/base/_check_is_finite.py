@@ -14,6 +14,7 @@ import numpy.typing as npt
 
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 from ..utilities._nan_masking import nan_mask
@@ -55,8 +56,8 @@ def check_is_finite(
     If `standardize_nan` is True, all nan-like values will be cast to
     np.nan, otherwise they are left as is.
 
-    `X` cannot be a python builtin iterable, like list or set. X must have
-    a copy method.
+    `X` cannot be a python builtin iterable, like list or set. `X` must
+    have a copy method.
 
     Parameters
     ----------
@@ -86,7 +87,7 @@ def check_is_finite(
 
     """
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     if not hasattr(X, 'copy') and not hasattr(X, 'clone'):
         raise TypeError(f"'X' must have a 'copy' or 'clone' method.")
@@ -116,7 +117,7 @@ def check_is_finite(
             f"must also be False."
         )
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     # if allowing everything and not changing anything, just skip out
     if all((allow_nan, allow_inf)) and not any((cast_inf_to_nan, standardize_nan)):
@@ -184,12 +185,28 @@ def check_is_finite(
     if has_nan and standardize_nan:
         if hasattr(_X, 'toarray'):   # scipy sparse
             _X.data[NAN_MASK] = np.nan
+        elif hasattr(_X, 'clone'):  # polars
+            _columns = _X.columns
+            _dtypes = _X.dtypes
+            _X = _X.to_numpy()
+            _X[NAN_MASK] = np.nan
+            _X = pl.from_numpy(_X, schema=_columns)
+            _X = _X.cast(dict((zip(_columns, _dtypes))))
+            del _columns, _dtypes
         else:
             _X[NAN_MASK] = np.nan
 
     if has_inf and cast_inf_to_nan:
         if hasattr(_X, 'toarray'):  # scipy sparse
             _X.data[INF_MASK] = np.nan
+        elif hasattr(_X, 'clone'):  # polars
+            _columns = _X.columns
+            _dtypes = _X.dtypes
+            _X = _X.to_numpy()
+            _X[INF_MASK] = np.nan
+            _X = pl.from_numpy(_X, schema=_columns)
+            _X = _X.cast(dict((zip(_columns, _dtypes))))
+            del _columns, _dtypes
         else:
             _X[INF_MASK] = np.nan
 

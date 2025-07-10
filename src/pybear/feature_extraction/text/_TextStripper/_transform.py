@@ -13,22 +13,25 @@ from ._type_aliases import XWipContainer
 def _transform(
     _X: XWipContainer
 ) -> XWipContainer:
-
-    """
-    Strip leading and trailing spaces from 1D and 2D text data.
-
+    """Strip leading and trailing spaces from 1D and 2D text data.
 
     Parameters
     ----------
-    _X:
-        XWipContainer - the data whose text will be stripped.
-
+    _X : XWipContainer
+        The data whose text will be stripped.
 
     Return
     ------
-    _X:
-        XWipContainer - the data with leading and trailing spaces removed.
+    _X : XWipContainer
+        The data with leading and trailing spaces removed.
 
+    Notes
+    -----
+
+    **Type Aliases**
+
+    XWipContainer:
+        Union[list[str], list[list[str]]]
 
     """
 

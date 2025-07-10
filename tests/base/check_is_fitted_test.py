@@ -197,11 +197,11 @@ class TestIsFitted:
             all_or_any=all
         )
 
-    # end test validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-    # ** * ** * ** ** * ** * ** ** * ** * ** ** * ** * ** ** * ** * ** ** * **
-    # ** * ** * ** ** * ** * ** ** * ** * ** ** * ** * ** ** * ** * ** ** * **
+    # end test validation ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # ** * ** * ** ** * ** * ** ** * ** * ** ** * ** * ** ** * ** * **
+    # ** * ** * ** ** * ** * ** ** * ** * ** ** * ** * ** ** * ** * **
 
-    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
     # dunder
 
     @staticmethod
@@ -250,9 +250,9 @@ class TestIsFitted:
             elif _msg is None:
                 assert "Call 'fit' with appropriate arguments" in str(exc)
 
-    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
-    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
     # attributes
 
     @staticmethod
@@ -302,7 +302,7 @@ class TestIsFitted:
                     all_or_any=_any_or_all
                 )
 
-    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
+    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
     # trailing underscore
 
     @staticmethod
@@ -348,44 +348,7 @@ class TestIsFitted:
                     all_or_any=all
                 )
 
-    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
 
 

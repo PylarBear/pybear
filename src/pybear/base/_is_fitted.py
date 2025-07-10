@@ -32,13 +32,15 @@ def is_fitted(
 
     This algorithm looks for 3 things, in the presented order.
 
-    The estimator/transformer is fitted if it:\\\n
-    1) has a __pybear_is_fitted__ dunder method and it returns boolean
-    True\\\n
-    2) has any or all attributes given by :param: 'attributes', if it is
-    passed; if not passed, this step is skipped\\\n
-    3) has an attribute that ends with an underscore and does not start
-    with double underscore.\\\n
+    The estimator/transformer is fitted if it:
+        1) has a __pybear_is_fitted__ dunder method and it returns
+            boolean True
+
+        2) has any or all attributes given by :param: `attributes`, if
+            it is passed; if not passed, this step is skipped
+
+        3) has an attribute that ends with an underscore and does not
+            start with double underscore.
 
     Parameters
     ----------

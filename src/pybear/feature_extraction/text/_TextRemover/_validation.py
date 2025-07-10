@@ -30,41 +30,32 @@ def _validation(
     _remove_empty_rows: RemoveEmptyRowsType,
     _flags: FlagsType
 ) -> None:
+    """Centralized hub for validation.
 
-
-    """
-    Centralized hub for validation. See the individual modules for more
-    details.
+    See the individual modules for more details.
 
     Beyond the individual modules' validation, this module also checks:
     1) cannot pass anything to 'flags' if 'remove' is None
     2) cannot pass a list to 'case_sensitive' if 'remove' is None
 
-
     Parameters:
     -----------
-    _X:
-        XContainer - the data. 1D or (possible ragged) 2D array of
-        strings.
-    _remove:
-        RemoveType - the string literals or re.compile patterns to look
-        for and remove.
-    _case_sensitive:
-        CaseSensitiveType - whether to make searches for strings to
-        remove case-sensitive.
-    _remove_empty_rows:
-        RemoveEmptyRowsType - whether to remove empty rows from 2D data.
-        This does not apply to 1D data, by definition rows will always
-        be removed from 1D data.
-    _flags:
-        FlagsType - externally provided flags if using re.compile objects.
-
+    _X : XContainer
+        The data. 1D or (possible ragged) 2D array of strings.
+    _remove : RemoveType
+        The string literals or re.compile patterns to look for and remove.
+    _case_sensitive : CaseSensitiveType
+        Whether to make searches for strings to remove case-sensitive.
+    _remove_empty_rows : RemoveEmptyRowsType
+        Whether to remove empty rows from 2D data. This does not apply
+        to 1D data, by definition rows will always be removed from 1D
+        data.
+    _flags : FlagsType
+        Externally provided flags if using re.compile objects.
 
     Return
     ------
-    -
-        None
-
+    None
 
     """
 
@@ -107,12 +98,6 @@ def _validation(
     #########
     if _remove is None and _flags is not None:
         raise ValueError(f"cannot pass 'flags' if 'remove' is not passed.")
-
-
-
-
-
-
 
 
 

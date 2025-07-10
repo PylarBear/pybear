@@ -15,8 +15,10 @@ import numpy.typing as npt
 
 import uuid
 import warnings
+
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 
@@ -46,7 +48,7 @@ def _X_factory():
     def foo(
         _dupl:list[list[int]]=None,
         _has_nan:Union[int, bool]=False,
-        _format:Literal['np', 'pd', 'csc', 'csr', 'coo']='np',
+        _format:Literal['np', 'pd', 'pl', 'csc', 'csr', 'coo']='np',
         _dtype:Literal['flt','int','str','obj','hybrid']='flt',
         _columns:Union[Iterable[str], None]=None,
         _constants:Union[Iterable[int], None]=None,
@@ -72,7 +74,7 @@ def _X_factory():
         if not isinstance(_has_nan, bool):
             assert int(_has_nan) == _has_nan, f"'_has_nan' must be bool or int >= 0"
         assert _has_nan >= 0, f"'_has_nan' must be bool or int >= 0"
-        assert _format in ['np', 'pd', 'csc', 'csr', 'coo']
+        assert _format in ['np', 'pd', 'pl', 'csc', 'csr', 'coo']
         assert _dtype in ['flt','int','str','obj','hybrid']
         assert isinstance(_columns, (list, np.ndarray, type(None)))
         if _columns is not None:
@@ -158,11 +160,9 @@ def _X_factory():
                 pass
 
 
-        if _format == 'np':
-            pass
-        elif _format == 'pd':
+        if _format == 'pd':
             X = pd.DataFrame(data=X, columns=_columns)
-        # do conversion to sparse after nan sprinkle
+        # do conversion to sparse/polars after nan sprinkle
 
 
         if _has_nan:
@@ -206,7 +206,9 @@ def _X_factory():
             del _sprinkles
 
         # do this after sprinkling the nans
-        if _format == 'csc':
+        if _format == 'pl':
+            X = pl.from_numpy(X, schema=list(_columns) if _columns is not None else _columns)
+        elif _format == 'csc':
             X = ss.csc_array(X)
         elif _format == 'csr':
             X = ss.csr_array(X)
@@ -217,12 +219,6 @@ def _X_factory():
         return X
 
     return foo
-
-
-
-
-
-
 
 
 

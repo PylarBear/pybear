@@ -10,10 +10,16 @@ from typing import (
     Iterable,
     Optional
 )
-import numpy.typing as npt
 from typing_extensions import (
     TypeAlias,
     Union
+)
+from .__type_aliases import (
+    Python2DTypes,
+    Numpy2DTypes,
+    Pandas2DTypes,
+    Polars2DTypes,
+    ScipySparseTypes
 )
 
 import numbers
@@ -25,19 +31,9 @@ import scipy.sparse as ss
 from ._check_1D_num_sequence import check_1D_num_sequence
 
 
-PythonTypes: TypeAlias = Union[list[list], tuple[tuple]]
-NumpyTypes: TypeAlias = npt.NDArray
-PandasTypes: TypeAlias = pd.DataFrame
-PolarsTypes: TypeAlias = pl.DataFrame
-SparseTypes: TypeAlias = Union[
-    ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
-    ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
-    ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
-    ss.bsr_matrix, ss.bsr_array
-]
 
 XContainer: TypeAlias = \
-    Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, SparseTypes]
+    Union[Python2DTypes, Numpy2DTypes, Pandas2DTypes, Polars2DTypes, ScipySparseTypes]
 
 
 
@@ -80,19 +76,19 @@ def check_2D_num_array(
 
     **Type Aliases**
 
-    PythonTypes:
+    Python2DTypes:
         Union[list[list], tuple[tuple]]
 
-    NumpyTypes:
+    Numpy2DTypes:
         numpy.ndarray
 
-    PandasTypes:
-        pandas.DataFrame
+    Pandas2DTypes:
+        pandas.core.frame.DataFrame
 
-    PolarsTypes:
-        polars.DataFrame
+    Polars2DTypes:
+        polars.dataframe.DataFrame
 
-    SparseTypes:
+    ScipySparseTypes:
         Union[
             ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
             ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
@@ -101,7 +97,10 @@ def check_2D_num_array(
         ]
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, SparseTypes]
+        Union[
+            Python2DTypes, Numpy2DTypes, Pandas2DTypes,
+            Polars2DTypes, ScipySparseTypes
+        ]
 
     Examples
     --------

@@ -10,12 +10,10 @@ from pybear.base._check_scipy_sparse import check_scipy_sparse
 
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 import pytest
-
-
-
 
 
 
@@ -77,7 +75,7 @@ class TestCheckScipySparse:
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-    @pytest.mark.parametrize('X_format', ('np', 'pd', 'csr', 'coo', 'lil'))
+    @pytest.mark.parametrize('X_format', ('np', 'pd', 'pl', 'csr', 'coo', 'lil'))
     @pytest.mark.parametrize('allowed',
         (('lil', 'dok', 'bsr'), {'csr', 'csc', 'coo'}, None, False)
     )
@@ -91,6 +89,8 @@ class TestCheckScipySparse:
             _X_wip = _X
         elif X_format == 'pd':
             _X_wip = pd.DataFrame(_X)
+        elif X_format == 'pl':
+            _X_wip = pl.from_numpy(_X)
         elif X_format == 'csr':
             _X_wip = ss._csr.csr_array(_X)
         elif X_format == 'csc':
@@ -124,12 +124,6 @@ class TestCheckScipySparse:
             else:
                 with pytest.raises(TypeError):
                     check_scipy_sparse(_X_wip, allowed)
-
-
-
-
-
-
 
 
 

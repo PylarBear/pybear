@@ -19,26 +19,20 @@ def variable_finder(
     text:Optional[str] = None,
     filepath:Optional[str] = None
 ) -> list[str]:
-
-    """
-    Search a string OR a text files for substrings that appear to be
+    """Search a string OR a text files for substrings that appear to be
     variable declarations.
-
 
     Parameters
     ----------
-    text:
-        Optional[str] - the text to search for variable names.
-    filepath:
-        Optional[str] - the file path to open and search for variable
-        names.
-
+    text : Optional[str]
+        The text to search for variable names.
+    filepath : Optional[str]
+        The file path to open and search for variable names.
 
     Returns
     -------
-    -
-        list[str] - list of variable names found in the passed string or
-        file.
+    out : list[str]
+        List of variable names found in the passed string or file.
 
     """
 

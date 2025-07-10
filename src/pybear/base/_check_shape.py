@@ -7,7 +7,16 @@
 
 
 from typing import Iterable
-from typing_extensions import Union
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
+from .__type_aliases import (
+    NumpyTypes,
+    PandasTypes,
+    PolarsTypes,
+    ScipySparseTypes
+)
 
 import numbers
 
@@ -15,9 +24,13 @@ from ._num_features import num_features
 from ._num_samples import num_samples
 
 
+XContainer: TypeAlias = \
+    Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+
+
 
 def check_shape(
-    X,
+    X: XContainer,
     min_features: numbers.Integral=1,
     max_features: Union[numbers.Integral, None]=None,
     min_samples: numbers.Integral=1,
@@ -27,48 +40,73 @@ def check_shape(
     """Check the shape of a data-bearing object against user-defined
     criteria.
 
-    X must have a 'shape' method.
-    The number of samples in X must be greater than or equal to
+    `X` must have a 'shape' method.
+    The number of samples in `X` must be greater than or equal to
     min_samples.
     If sample_check is not None (must be an integer greater than or equal
-    to min_samples), the number of samples in X must equal sample_check.
-    The number of features in X must be greater than or equal to
+    to min_samples), the number of samples in `X` must equal sample_check.
+    The number of features in `X` must be greater than or equal to
     min_features.
     If max_features is not None (must be an integer greater than or equal
-    to min_features), then number of features in X cannot exceed
+    to min_features), then number of features in `X` cannot exceed
     max_features.
-    The dimensionality of X must be one of the allowed values in
+    The dimensionality of `X` must be one of the allowed values in
     allowed_dimensionality.
 
     Parameters
     ----------
-    X : array_like
+    X : array_like or shape (n_samples, n_features) or (n_samples,)
         The data-bearing object for which to get and validate the shape.
         Must have a 'shape' attribute.
     min_features : numbers.Integral
-        The minimum number of features required in X; must be greater
+        The minimum number of features required in `X`; must be greater
         than or equal to zero.
     max_features : Union[numbers.Integral, None]
-        The maximum number of features allowed in X; if not None, must
+        The maximum number of features allowed in `X`; if not None, must
         be greater than or equal to min_features. If None, then there is
-        no restriction on the maximum number of features in X.
+        no restriction on the maximum number of features in `X`.
     min_samples : numbers.Integral
-        The minimum number of samples required in X; must be greater
+        The minimum number of samples required in `X`; must be greater
         than or equal to zero. Ignored if :param: `sample_check` is not
         None.
     sample_check : Union[numbers.Integral, None]
-        The exact number of samples allowed in X. If not None, must be a
-        non-negative integer. Use this to check, for example, that the
-        number of samples in y equals the number of samples in X. If
+        The exact number of samples allowed in `X`. If not None, must be
+        a non-negative integer. Use this to check, for example, that the
+        number of samples in y equals the number of samples in `X`. If
         None, this check is not performed.
     allowed_dimensionality : Iterable[numbers.Integral]
-        The allowed dimensionalities of X. All entries must be greater
+        The allowed dimensionalities of `X`. All entries must be greater
         than zero and less than or equal to two.
 
     Returns
     -------
     _shape : tuple[int, ...]
-        The shape of X.
+        The shape of `X`.
+
+    Notes
+    -----
+
+    **Type Aliases**
+
+    NumpyTypes:
+        numpy.ndarray
+
+    PandasTypes:
+        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+
+    PolarsTypes:
+        Union[polars.series.Series, polars.dataframe.DataFrame]
+
+    ScipySparseTypes:
+        Union[
+            ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
+            ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
+            ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
+            ss.bsr_matrix, ss.bsr_array
+        ]
+
+    XContainer:
+        Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
 
     """
 

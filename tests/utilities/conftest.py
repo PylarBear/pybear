@@ -17,13 +17,14 @@ import warnings
 
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 
 FormatType: TypeAlias = Literal[
-    'np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
-    'lil_matrix', 'bsr_matrix', 'csr_array', 'csc_array', 'coo_array',
-    'dia_array', 'lil_array', 'bsr_array'
+    'np', 'pd', 'pl', 'csr_matrix', 'csc_matrix', 'coo_matrix',
+    'dia_matrix', 'lil_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
+    'coo_array', 'dia_array', 'lil_array', 'bsr_array'
 ]
 
 
@@ -77,11 +78,11 @@ def _X_factory(_shape):
             assert int(_has_nan) == _has_nan, \
                 f"'_has_nan' must be bool or int >= 0"
         assert _has_nan >= 0, f"'_has_nan' must be bool or int >= 0"
-        assert _format in ['np', 'pd', 'csr_matrix', 'csc_matrix', 'coo_matrix',
-            'dia_matrix', 'lil_matrix', 'bsr_matrix', 'dok_matrix', 'csr_array',
-            'csc_array', 'coo_array', 'dia_array', 'lil_array', 'bsr_array',
-            'dok_array'
-        ], f"'_format' must be 'np', 'pd', or any scipy sparse except dok"
+        assert _format in ['np', 'pd', 'pl', 'csr_matrix', 'csc_matrix',
+            'coo_matrix', 'dia_matrix', 'lil_matrix', 'bsr_matrix', 'dok_matrix',
+            'csr_array', 'csc_array', 'coo_array', 'dia_array', 'lil_array',
+            'bsr_array', 'dok_array'
+        ], f"'_format' must be 'np', 'pd', 'pl', or any scipy sparse except dok"
         assert _dtype in ['flt','int','str','obj','hybrid']
         assert isinstance(_columns, (list, np.ndarray, type(None)))
         if _columns is not None:
@@ -93,7 +94,7 @@ def _X_factory(_shape):
         assert isinstance(_zeros, (float, int))
         assert 0 <= _zeros <= 1, f"zeros must be 0 <= x <= 1"
 
-        if _format not in ('np', 'pd', 'lil_matrix', 'dok_matrix',
+        if _format not in ('np', 'pd', 'pl', 'lil_matrix', 'dok_matrix',
             'lil_array', 'dok_array') and _dtype in ('str', 'obj', 'hybrid'):
             raise ValueError(
                 f"cannot create scipy sparse with str, obj, or hybrid dtypes"
@@ -110,7 +111,7 @@ def _X_factory(_shape):
         # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
         if _dtype == 'flt':
-            X = np.random.uniform(0,1, _shape)
+            X = np.random.uniform(0, 1, _shape)
             if _zeros:
                 for _col_idx in range(_shape[1]):
                     X[_idx_getter(_shape[0], _zeros), _col_idx] = 0
@@ -158,11 +159,9 @@ def _X_factory(_shape):
                 pass
 
 
-        if _format == 'np':
-            pass
-        elif _format == 'pd':
+        if _format == 'pd':
             X = pd.DataFrame(data=X, columns=_columns)
-        # do conversion to sparse after nan sprinkle
+        # do conversion to sparse/polars after nan sprinkle
 
 
         if _has_nan:
@@ -213,6 +212,8 @@ def _X_factory(_shape):
             pass
         elif _format == 'pd':
             pass
+        elif _format == 'pl':
+            X = pl.from_numpy(X, schema={None: None}.get(_columns, list(_columns)))
         elif _format == 'csr_matrix':
             X = ss._csr.csr_matrix(X)
         elif _format == 'csc_matrix':
