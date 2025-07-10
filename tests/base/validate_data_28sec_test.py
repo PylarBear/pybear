@@ -12,6 +12,7 @@ from pybear.utilities._inf_masking import inf_mask
 
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 import math
 
@@ -891,7 +892,7 @@ class TestValidateDataAccuracy(Fixtures):
             )
 
 
-    @pytest.mark.parametrize('_X_format', ('np', 'pd', 'csr', 'csc', 'coo'))
+    @pytest.mark.parametrize('_X_format', ('np', 'pd', 'pl', 'csr', 'csc', 'coo'))
     @pytest.mark.parametrize('_cast_to_ndarray', (True, False))
     @pytest.mark.parametrize('_has_nan', (True, False))
     @pytest.mark.parametrize('_order', ('C', 'F'))
@@ -955,7 +956,7 @@ class TestValidateDataAccuracy(Fixtures):
                     assert out.flags['F_CONTIGUOUS'] is True
 
 
-    @pytest.mark.parametrize('_X_format', ('np', 'pd', 'csc', 'csr'))
+    @pytest.mark.parametrize('_X_format', ('np', 'pd', 'pl', 'csc', 'csr'))
     @pytest.mark.parametrize('_accept_sparse', (False, None, ('csc', 'dia', 'coo')))
     def test_accept_sparse(self, _X_factory, _X_format, _accept_sparse):
 
@@ -1013,7 +1014,7 @@ class TestValidateDataAccuracy(Fixtures):
                 assert isinstance(out, np.ndarray)
 
 
-    @pytest.mark.parametrize('_X_format', ('np',  'pd', 'csr', 'csc', 'coo'))
+    @pytest.mark.parametrize('_X_format', ('np',  'pd', 'pl', 'csr', 'csc', 'coo'))
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj'))
     @pytest.mark.parametrize('_shape', ((10, ), (1, 10), (10, 1), (10, 10)))
     @pytest.mark.parametrize('_allowed_dimensionality', ((1,), (2,), (1,2)))
@@ -1027,7 +1028,7 @@ class TestValidateDataAccuracy(Fixtures):
         if len(_shape)==1 and _X_format in ['csr', 'csc', 'coo']:
             pytest.skip(reason=f"impossible condition, scipy must be 2D")
 
-        if _X_format not in ['np', 'pd'] and _dtype in ['str', 'obj']:
+        if _X_format not in ['np', 'pd', 'pl'] and _dtype in ['str', 'obj']:
             pytest.skip(reason=f"scipy can only be numeric")
 
         # END skip impossible conditons -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -1052,6 +1053,13 @@ class TestValidateDataAccuracy(Fixtures):
                 _X_wip = pd.Series(_base_X)
             elif len(_base_X.shape)==2:
                 _X_wip = pd.DataFrame(_base_X)
+            else:
+                raise Exception
+        elif _X_format == 'pl':
+            if len(_base_X.shape)==1:
+                _X_wip = pl.Series(_base_X)
+            elif len(_base_X.shape)==2:
+                _X_wip = pl.from_numpy(_base_X)
             else:
                 raise Exception
         elif _X_format == 'csr':
@@ -1107,7 +1115,7 @@ class TestValidateDataAccuracy(Fixtures):
             assert out.shape == _X_wip.shape
 
 
-    @pytest.mark.parametrize('_X_format', ('np', 'pd', 'csr', 'csc', 'coo'))
+    @pytest.mark.parametrize('_X_format', ('np', 'pd', 'pl', 'csr', 'csc', 'coo'))
     @pytest.mark.parametrize('_start_dim', ('1D', '2D'))
     @pytest.mark.parametrize('_ensure_2D', (True, False))
     def test_ensure_2D(
@@ -1126,7 +1134,9 @@ class TestValidateDataAccuracy(Fixtures):
             if _X_format == 'np':
                 _X_wip = _X_np.copy()[:, 0].ravel()
             elif _X_format == 'pd':
-                _X_wip = pd.DataFrame(_X_np).iloc[:, 0].squeeze()
+                _X_wip = pd.Series(_X_np[:, 0])
+            elif _X_format == 'pl':
+                _X_wip = pl.Series(_X_np[:, 0])
             else:
                 raise Exception
         elif _start_dim == '2D':
@@ -1134,6 +1144,8 @@ class TestValidateDataAccuracy(Fixtures):
                 _X_wip = _X_np.copy()
             elif _X_format == 'pd':
                 _X_wip = pd.DataFrame(_X_np)
+            elif _X_format == 'pl':
+                _X_wip = pl.DataFrame(_X_np)
             elif _X_format == 'csr':
                 _X_wip = ss.csr_array(_X_np)
             elif _X_format == 'csc':
@@ -1170,6 +1182,9 @@ class TestValidateDataAccuracy(Fixtures):
                 elif _X_format == 'pd':
                     assert isinstance(out, pd.core.frame.DataFrame)
                     assert out.shape == (_X_np.shape[0], 1)
+                elif _X_format == 'pl':
+                    assert isinstance(out, pl.DataFrame)
+                    assert out.shape == (_X_np.shape[0], 1)
                 else:
                     # scipy sparse should skip above
                     raise Exception
@@ -1182,7 +1197,7 @@ class TestValidateDataAccuracy(Fixtures):
 
 
 
-    @pytest.mark.parametrize('_X_format', ('np', 'pd', 'csc', 'csr'))
+    @pytest.mark.parametrize('_X_format', ('np', 'pd', 'pl', 'csc', 'csr'))
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_allowed_dtype', ('numeric', 'any'))
     def test_dtype(
@@ -1191,7 +1206,7 @@ class TestValidateDataAccuracy(Fixtures):
 
         # skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        if _dtype in ('str', 'obj', 'hybrid') and _X_format not in ('np', 'pd'):
+        if _dtype in ('str', 'obj', 'hybrid') and _X_format not in ('np', 'pd', 'pl'):
             pytest.skip(reason=f"impossible condition, scipy must be numeric")
 
         # END skip impossible conditons -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -1409,7 +1424,7 @@ class TestValidateDataAccuracy(Fixtures):
         assert all(map(lambda x: x=='nan', list(map(str, outputted_nans))))
 
 
-    @pytest.mark.parametrize('_X_format', ('np', 'pd', 'csr', 'csc', 'coo'))
+    @pytest.mark.parametrize('_X_format', ('np', 'pd', 'pl', 'csr', 'csc', 'coo'))
     @pytest.mark.parametrize('_dtype', ('flt', 'int', 'str', 'obj'))
     @pytest.mark.parametrize('_shape',
         ((1, ), (10, ), (1, 10), (10, 1), (2, 10), (10, 2), (10, 10))
@@ -1428,7 +1443,7 @@ class TestValidateDataAccuracy(Fixtures):
         if len(_shape)==1 and _X_format in ['csr', 'csc', 'coo']:
             pytest.skip(reason=f"impossible condition, scipy must be 2D")
 
-        if _X_format not in ['np', 'pd'] and _dtype in ['str', 'obj']:
+        if _X_format not in ['np', 'pd', 'pl'] and _dtype in ['str', 'obj']:
             pytest.skip(reason=f"scipy can only be numeric")
 
         # END skip impossible conditons -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -1453,6 +1468,13 @@ class TestValidateDataAccuracy(Fixtures):
                 _X_wip = pd.Series(_base_X)
             elif len(_base_X.shape)==2:
                 _X_wip = pd.DataFrame(_base_X)
+            else:
+                raise Exception
+        elif _X_format == 'pl':
+            if len(_base_X.shape)==1:
+                _X_wip = pl.Series(_base_X)
+            elif len(_base_X.shape)==2:
+                _X_wip = pl.DataFrame(_base_X)
             else:
                 raise Exception
         elif _X_format == 'csr':

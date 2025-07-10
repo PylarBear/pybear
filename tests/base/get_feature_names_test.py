@@ -64,7 +64,9 @@ class TestGetFeatureNames:
         )
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd_series', 'pd', 'pl', 'csr'))
+    @pytest.mark.parametrize('_format',
+        ('np', 'pd_series', 'pd', 'pl', 'pl_series', 'csr')
+    )
     @pytest.mark.parametrize('_columns_is_passed', (True, False))
     def test_accuracy(
         self, _shape, _columns, _X_np, _format, _columns_is_passed
@@ -81,12 +83,15 @@ class TestGetFeatureNames:
                 _X_wip = _X_wip.iloc[:, 0].squeeze()
         elif _format == 'csr':
             _X_wip = ss._csr.csr_array(_X_np)
-        elif _format == 'pl':
+        elif _format in ['pl', 'pl_series']:
             _X_wip = pl.DataFrame(
                 data=_X_np,
                 schema=_columns.tolist() if _columns_is_passed else None,
                 orient='row'
             )
+            if _format == 'pl_series':
+                _X_wip = _X_wip[:, 0]
+                assert isinstance(_X_wip, pl.series.Series)
         else:
             raise Exception
 

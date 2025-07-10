@@ -21,13 +21,14 @@ from pybear.utilities._nan_masking import nan_mask
 
 
 class SetOutputMixin:
-    """This mixin provides the 'set_output' method to pybear transformers.
-    Use 'set_output' to set the container of the output for :meth:`transform`
-    and :meth:`fit_transform` (when the FitTransformMixin is used.) Use
-    the _set_output_for_transform method to decorate `transform` in the
-    child class. This rendition of 'set_output' does not require that
-    the 'get_feature_names_out' method exist. If there is no
-    'get_feature_names_out' method, range(X.shape[1]) is passed to
+    """This mixin provides the `set_output` method to pybear transformers.
+
+    Use `set_output` to set the container of the output for :meth:`transform`
+    and :meth:`fit_transform` (when FitTransformMixin is used.) Use
+    the `_set_output_for_transform` method to decorate `transform` in
+    the child class. This rendition of `set_output` does not require that
+    the `get_feature_names_out` method exist. If there is no
+    `get_feature_names_out` method, range(X.shape[1]) is passed to
     pandas/polars for column names.
     """
 
@@ -42,8 +43,8 @@ class SetOutputMixin:
         Parameters
         ----------
         transform : Union[Literal['default', 'pandas', 'polars'], None],
-            default = None - Configure the output of transform and
-            fit_transform.
+            default = None
+            Configure the output of transform and fit_transform.
 
             -'default': Default output format of a transformer (numpy array)
 
@@ -86,8 +87,9 @@ class SetOutputMixin:
     def _set_output_for_transform(foo):
         """
         This method decorates :meth:`transform` in pybear transformers.
+
         When SetOutputMixin is passed to a child transformer, decorate the
-        'transform' method with @SetOutputMixin._set_output_for_transform.
+        `transform` method with @SetOutputMixin._set_output_for_transform.
 
         """
 

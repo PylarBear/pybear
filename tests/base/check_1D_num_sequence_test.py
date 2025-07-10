@@ -6,14 +6,14 @@
 
 
 
-import pytest
+from pybear.base._check_1D_num_sequence import check_1D_num_sequence
 
 import numpy as np
 import pandas as pd
 import polars as pl
 import scipy.sparse as ss
 
-from pybear.base._check_1D_num_sequence import check_1D_num_sequence
+import pytest
 
 
 

@@ -8,14 +8,14 @@
 
 from pybear.base._check_n_features import check_n_features
 
-import numpy as np
-import pandas as pd
-import scipy.sparse as ss
 import uuid
 
+import numpy as np
+import pandas as pd
+import polars as pl
+import scipy.sparse as ss
+
 import pytest
-
-
 
 
 
@@ -37,15 +37,13 @@ class TestCheckNFeaturesIn:
     #             n_features_in_ is not set
 
 
-    @pytest.mark.parametrize('X_format', ('np', 'pd', 'csc'))
+    @pytest.mark.parametrize('X_format', ('np', 'pd', 'pl', 'csc'))
     @pytest.mark.parametrize('X_shape',
         ((10, 5), (13, 8), (4, 25), (17, 17), (55, ))
     )
     @pytest.mark.parametrize('n_features_in_', (1, 4, 7, 10, 13, 17, 22, None))
     @pytest.mark.parametrize('_reset',  (True, False))
-    def test_check_n_features(
-        self, X_format, X_shape, n_features_in_, _reset
-    ):
+    def test_check_n_features(self, X_format, X_shape, n_features_in_, _reset):
 
         # skip impossible conditions - - - - - - - - - - - - - - - - - -
         if X_format == 'csc' and len(X_shape) != 2:
@@ -57,15 +55,14 @@ class TestCheckNFeaturesIn:
         if len(X_shape) == 1:
             _columns = ['y']
         else:
-            _columns = [str(uuid.uuid4)[:4] for _ in range(X_shape[1])]
+            _columns = [str(uuid.uuid4())[:8] for _ in range(X_shape[1])]
 
         if X_format == 'np':
             _X = _base_X.copy()
         elif X_format == 'pd':
-            _X = pd.DataFrame(
-                data=_base_X.copy(),
-                columns=_columns
-            )
+            _X = pd.DataFrame(data=_base_X, columns=_columns)
+        elif X_format == 'pl':
+            _X = pl.from_numpy(_base_X, schema=list(_columns))
         elif X_format == 'csc':
             _X = ss.csc_array(_base_X)
         else:
@@ -137,33 +134,6 @@ class TestCheckNFeaturesIn:
                             n_features_in_,
                             _reset
                         )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

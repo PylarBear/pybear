@@ -17,26 +17,29 @@ def _transform(
     _X: XWipContainer,
     _upper: UpperType
 ) -> XWipContainer:
-
-    """
-    Convert all string characters to upper-case, lower-case, or do a
+    """Convert all string characters to upper-case, lower-case, or do a
     no-op.
-
 
     Parameters
     ----------
-    _X:
-        XWipContainer - the data.
-    _upper:
-        Union[bool, None] - what case to set the type to. If True, set
-        to upper-case; if False, set to lower-case; if None, do a no-op.
-
+    _X : XWipContainer
+        The data.
+    _upper : Union[bool, None]
+        What case to set the type to. If True, set to upper-case; if
+        False, set to lower-case; if None, do a no-op.
 
     Returns
     -------
-    _X
-        XContainer - the data with normalized text.
+    _X : XContainer
+        The data with normalized text.
 
+    Notes
+    -----
+
+    **Type Aliases**
+
+    XWipContainer:
+        Union[list[str], list[list[str]]]
 
     """
 

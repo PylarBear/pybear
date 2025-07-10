@@ -10,6 +10,7 @@ from pybear.base._set_order import set_order
 
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 import pytest
@@ -28,7 +29,7 @@ class TestSetOrder:
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    @pytest.mark.parametrize('non_ndarray', ('pd', 'csr', 'csc'))
+    @pytest.mark.parametrize('non_ndarray', ('pd', 'pl', 'csr', 'csc'))
     def test_rejects_non_ndarray(self, non_ndarray):
 
         _shape = (20, 5)
@@ -37,6 +38,8 @@ class TestSetOrder:
 
         if non_ndarray == 'pd':
             bad_X = pd.DataFrame(data=_base_X)
+        elif non_ndarray == 'pl':
+            bad_X = pl.from_numpy(_base_X)
         elif non_ndarray == 'csr':
             bad_X = ss.csr_array(_base_X)
         elif non_ndarray == 'csc':
@@ -141,11 +144,6 @@ class TestSetOrder:
             assert X.flags['C_CONTIGUOUS'] is True
         if order == 'F':
             assert X.flags['F_CONTIGUOUS'] is True
-
-
-
-
-
 
 
 

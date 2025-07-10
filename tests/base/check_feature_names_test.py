@@ -10,6 +10,7 @@ from pybear.base._check_feature_names import check_feature_names
 
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 import pytest
@@ -24,7 +25,7 @@ class TestCheckFeatureNames:
     #     reset: bool
     # ) -> Union[npt.NDArray[object], None]:
 
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     @staticmethod
     @pytest.fixture
@@ -44,16 +45,16 @@ class TestCheckFeatureNames:
 
         return np.random.randint(0, 10, _shape)
 
-    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # X -- - -- - -- - -- - -- - -- - -- - -- - -- - -- - -- - -- - -- - -- -
+    # X -- - -- - -- - -- - -- - -- - -- - -- - -- - -- - -- - -- - -- -
     # currently there is no validation for X
-    # END X -- - -- - -- - -- - -- - -- - -- - -- - -- - -- - -- - -- - -- -
+    # END X -- - -- - -- - -- - -- - -- - -- - -- - -- - -- - -- - -- -
 
-    # feature_names_in_ -- - -- - -- - -- - -- - -- - -- - -- - -- - -- - -- -
+    # feature_names_in_ -- - -- - -- - -- - -- - -- - -- - -- - -- - --
     @pytest.mark.parametrize('junk_feature_names_in',
         (-1, 0, 1, True, False, np.pi, {'a': 1}, 'junk', min, lambda x: x)
     )
@@ -91,7 +92,7 @@ class TestCheckFeatureNames:
             reset=True
         )
 
-    # END feature_names_in_ -- - -- - -- - -- - -- - -- - -- - -- - -- - -- - -- -
+    # END feature_names_in_ -- - -- - -- - -- - -- - -- - -- - -- - -- -
 
     # reset -- - -- - -- - -- - -- - -- - -- - -- - -- - -- - -- - -- -
     @pytest.mark.parametrize('junk_reset',
@@ -116,13 +117,13 @@ class TestCheckFeatureNames:
         )
     # END reset -- - -- - -- - -- - -- - -- - -- - -- - -- - -- - -- -
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    # accuracy ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # accuracy ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'csr'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'csr'))
     @pytest.mark.parametrize('_columns_is_passed_on_X', (True, False))
     @pytest.mark.parametrize('_previously_saw_feature_names', (True, False))
     def test_reset_True_always_returns_currently_seen_feature_names(
@@ -139,6 +140,11 @@ class TestCheckFeatureNames:
                 data=_X_np,
                 columns=_columns if _columns_is_passed_on_X else None
             )
+        elif _format == 'pl':
+            _X_wip = pl.from_numpy(
+                data=_X_np,
+                schema=list(_columns) if _columns_is_passed_on_X else None
+            )
         elif _format == 'csr':
             _X_wip = ss.csr_array(_X_np)
         else:
@@ -150,15 +156,16 @@ class TestCheckFeatureNames:
             reset=True  # <+========================
         )
 
-        # the only thing that should return an actual header is for pd DF
-        # and _columns_is_passed_on_X is True
-        if _format == 'pd' and _columns_is_passed_on_X:
+        # the only thing that should return an actual header is for DF
+        if _format in ['pd', 'pl'] and _columns_is_passed_on_X:
             assert np.array_equal(out, _columns)
+        elif _format == 'pl':   # could only be explicit columns not passed
+            assert np.array_equal(out, [f'column_{i}' for i in range(_X_np.shape[1])])
         else:
             assert out is None
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'csr'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'csr'))
     @pytest.mark.parametrize('_columns_is_passed_on_X', (True, False))
     def test_reset_False_no_feature_names_at_first_fit(
         self, _X_np, _columns, _format, _columns_is_passed_on_X
@@ -174,15 +181,19 @@ class TestCheckFeatureNames:
                 data=_X_np,
                 columns=_columns if _columns_is_passed_on_X else None
             )
+        elif _format == 'pl':
+            _X_wip = pl.from_numpy(
+                data=_X_np,
+                schema=list(_columns) if _columns_is_passed_on_X else None
+            )
         elif _format == 'csr':
             _X_wip = ss.csr_array(_X_np)
         else:
             raise Exception
 
-        # the only thing that should return an actual header is for pd DF
-        # and _columns_is_passed_on_X is True, and this should warn because
-        # feature names were not previously seen
-        if _format == 'pd' and _columns_is_passed_on_X:
+        # the only thing that should return an actual header is for DF
+        # this should warn because feature names were not previously seen
+        if (_format == 'pd' and _columns_is_passed_on_X) or _format == 'pl':
             with pytest.warns():
                 out = check_feature_names(
                     _X_wip,
@@ -199,7 +210,7 @@ class TestCheckFeatureNames:
         assert out is None
 
 
-    @pytest.mark.parametrize('_format', ('np', 'pd', 'csr'))
+    @pytest.mark.parametrize('_format', ('np', 'pd', 'pl', 'csr'))
     @pytest.mark.parametrize('_columns_is_passed_on_X', (True, False))
     def test_reset_False_feature_names_at_first_fit(
         self, _X_np, _columns, _format, _columns_is_passed_on_X
@@ -215,14 +226,19 @@ class TestCheckFeatureNames:
                 data=_X_np,
                 columns=_columns if _columns_is_passed_on_X else None
             )
+        elif _format == 'pl':
+            _X_wip = pl.from_numpy(
+                data=_X_np,
+                schema=list(_columns) if _columns_is_passed_on_X else None
+            )
         elif _format == 'csr':
             _X_wip = ss.csr_array(_X_np)
         else:
             raise Exception
 
-        # the only thing that should return an actual header is for pd DF
-        # and _columns_is_passed_on_X is True, and this should not warn
-        if _format == 'pd' and _columns_is_passed_on_X:
+        # the only thing that should return an actual header is for DF
+        # this should not warn
+        if (_format in ['pd', 'pl'] and _columns_is_passed_on_X):
             out = check_feature_names(
                 _X_wip,
                 feature_names_in_=_columns,  # <+========================
@@ -232,7 +248,17 @@ class TestCheckFeatureNames:
             # this verifies that the correct header is returned when
             # feature_names_in_ exists and the currently seen header matches
             assert np.array_equal(out, _columns)
+        elif _format == 'pl':   # could only be explicit columns not passed
 
+            _default_columns = [f'column_{i}' for i in range(_X_np.shape[1])]
+
+            out = check_feature_names(
+                _X_wip,
+                feature_names_in_=_default_columns,  # <+========================
+                reset=False  # <+========================
+            )
+
+            assert np.array_equal(out, _default_columns)
         else:
             with pytest.warns():
                 out = check_feature_names(
@@ -282,16 +308,6 @@ class TestCheckFeatureNames:
                     feature_names_in_=_previously_seen_features,
                     reset=False
                 )
-
-
-
-
-
-
-
-
-
-
 
 
 

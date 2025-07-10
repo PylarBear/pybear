@@ -19,7 +19,7 @@ class GetParamsMixin:
     def get_params(self, deep:Optional[bool]=True) -> dict[str, Any]:
         """Get parameters for this instance.
         The 'instance' may be a pybear estimator, transformer, or a
-        gridsearch module that wraps an nested estimator or pipeline.
+        gridsearch module that wraps a nested estimator or pipeline.
 
         Parameters
         ----------

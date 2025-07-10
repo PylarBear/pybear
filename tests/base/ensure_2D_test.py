@@ -10,6 +10,7 @@ from pybear.base._ensure_2D import ensure_2D
 
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.sparse as ss
 
 import pytest
@@ -20,7 +21,7 @@ import pytest
 class TestEnsure2D:
 
 
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     @staticmethod
     @pytest.fixture(scope='module')
     def build_scipy_sparse():
@@ -62,7 +63,7 @@ class TestEnsure2D:
 
         return foo
 
-    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
     @pytest.mark.parametrize('junk_object',
@@ -87,7 +88,7 @@ class TestEnsure2D:
 
 
     @pytest.mark.parametrize('X_format',
-        ('np', 'pd', 'csr_array', 'csr_matrix', 'csc_array', 'csc_matrix',
+        ('np', 'pd', 'pl', 'csr_array', 'csr_matrix', 'csc_array', 'csc_matrix',
          'coo_array', 'coo_matrix', 'dia_array', 'dia_matrix', 'lil_array',
          'lil_matrix', 'dok_array', 'dok_matrix', 'bsr_array', 'bsr_matrix')
     )
@@ -99,6 +100,8 @@ class TestEnsure2D:
             _X = _base_X
         elif X_format == 'pd':
             _X = pd.DataFrame(data=_base_X)
+        elif X_format == 'pl':
+            _X = pl.from_numpy(_base_X)
         elif 'array' in X_format or 'matrix' in X_format:
             _X = build_scipy_sparse(_base_X, X_format)
         else:
@@ -141,7 +144,7 @@ class TestEnsure2D:
 
 
     @pytest.mark.parametrize('X_format',
-        ('np', 'pd', 'csr_array', 'csr_matrix', 'csc_array', 'csc_matrix',
+        ('np', 'pd', 'pl', 'csr_array', 'csr_matrix', 'csc_array', 'csc_matrix',
          'coo_array', 'coo_matrix', 'dia_array', 'dia_matrix', 'lil_array',
          'lil_matrix', 'dok_array', 'dok_matrix', 'bsr_array', 'bsr_matrix')
     )
@@ -149,7 +152,7 @@ class TestEnsure2D:
     def test_accuracy(self, X_format, dim, build_scipy_sparse):
 
         # skip impossible conditions - - - - - - - - - - - - - - - - - -
-        if X_format not in ['np', 'pd'] and dim == 1:
+        if any(i in X_format for i in ['array', 'matrix']) and dim == 1:
             pytest.skip(f"scipy sparse can only be 2D")
         # END skip impossible conditions - - - - - - - - - - - - - - - -
 
@@ -171,6 +174,11 @@ class TestEnsure2D:
                 _X = pd.Series(data=_base_X)
             elif dim == 2:
                 _X = pd.DataFrame(data=_base_X)
+        elif X_format == 'pl':
+            if dim == 1:
+                _X = pl.Series(_base_X)
+            elif dim == 2:
+                _X = pl.from_numpy(data=_base_X)
         elif 'array' in X_format or 'matrix' in X_format:
             _X = build_scipy_sparse(_base_X, X_format)
             if dim == 1:
@@ -184,6 +192,9 @@ class TestEnsure2D:
         if X_format == 'pd':
             # anything 2D in pandas is always DF
             assert isinstance(out, pd.core.frame.DataFrame)
+        elif X_format == 'pl':
+            # anything 2D in polars is always DF
+            assert isinstance(out, pl.DataFrame)
         else:
             assert type(out) == type(_X)
 
@@ -194,7 +205,7 @@ class TestEnsure2D:
         # convert out to np for array_equal
         if X_format == 'np':
             pass
-        elif X_format == 'pd':
+        elif X_format in ['pd', 'pl']:
             out = out.to_numpy()
         elif hasattr(out, 'toarray'):   # scipy sparse
             out = out.toarray()

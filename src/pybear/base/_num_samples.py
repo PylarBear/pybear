@@ -6,18 +6,34 @@
 
 
 
-def num_samples(X) -> int:
-    """Return the number of samples in an array-like X.
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
+from .__type_aliases import (
+    NumpyTypes,
+    PandasTypes,
+    PolarsTypes,
+    ScipySparseTypes
+)
 
-    X must have a 'shape' attribute.
+XContainer: TypeAlias = \
+    Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
 
-    numpy & pandas: X must be 1 or 2 dimensional.
-    scipy: X must be 2 dimensional.
-    If X is a 1D vector (i.e., len(shape)==1), return len(X).
+
+
+def num_samples(X: XContainer) -> int:
+    """Return the number of samples in an array-like `X`.
+
+    `X` must have a 'shape' attribute.
+
+    numpy, pandas, & polars: `X` must be 1 or 2 dimensional.
+    scipy: `X` must be 2 dimensional.
+    If `X` is a 1D vector (i.e., len(shape)==1), return len(X).
 
     Parameters
     ----------
-    X : array_like
+    X : array_like of shape (n_samples, n_features) or (n_samples,)
         Object to find the number of samples in, that has a 'shape'
         attribute.
 
@@ -26,6 +42,31 @@ def num_samples(X) -> int:
     rows: int
         Number of samples.
 
+    Notes
+    -----
+
+    **Type Aliases**
+
+    NumpyTypes:
+        numpy.ndarray
+
+    PandasTypes:
+        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+
+    PolarsTypes:
+        Union[polars.series.Series, polars.dataframe.DataFrame]
+
+    ScipySparseTypes:
+        Union[
+            ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
+            ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
+            ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
+            ss.bsr_matrix, ss.bsr_array
+        ]
+
+    XContainer:
+        Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+
     """
 
 
@@ -33,10 +74,10 @@ def num_samples(X) -> int:
         X.shape
     except:
         raise ValueError(
-            f"\nThe passed object does not have a 'shape' attribute. \nAll "
-            f"pybear estimators and transformers require data-bearing objects "
-            f"to have a 'shape' attribute, like numpy array, pandas dataframes, "
-            f"and scipy sparse matrices / arrays."
+            f"\nThe passed object does not have a 'shape' attribute. "
+            f"\nMost pybear estimators and transformers require data-bearing "
+            f"objects to have a 'shape' attribute, like numpy arrays, pandas "
+            f"dataframes, polars dataframes, and scipy sparse matrices / arrays."
         )
 
 
@@ -53,7 +94,7 @@ def num_samples(X) -> int:
     if len(X.shape) == 1:
         return len(X)
     elif len(X.shape) == 2:
-        return X.shape[0]
+        return int(X.shape[0])
     else:
         raise ValueError(
             f"The passed object has {len(X.shape)} dimensions. pybear "

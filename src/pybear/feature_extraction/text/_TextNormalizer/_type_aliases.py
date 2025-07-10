@@ -6,8 +6,14 @@
 
 
 
-from typing import Optional, Sequence
-from typing_extensions import TypeAlias, Union
+from typing import (
+    Optional,
+    Sequence
+)
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 import numpy.typing as npt
 
 import pandas as pd

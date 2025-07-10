@@ -6,15 +6,12 @@
 
 
 
-
 from pybear.base.mixins._FitTransformMixin import FitTransformMixin
 
 
 import numpy as np
 
 import pytest
-
-
 
 
 
@@ -101,17 +98,6 @@ class TestFitTransformMixin:
                 assert np.min(out) >= 11 and np.max(out) <= 12
             elif not _fit_params_is_passed:
                 assert np.min(out) >= 10 and np.max(out) <= 11
-
-
-
-
-
-
-
-
-
-
-
 
 
 

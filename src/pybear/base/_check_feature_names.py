@@ -137,7 +137,7 @@ def check_feature_names(
 
     assert isinstance(reset, bool)
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *f
 
     if reset:
         return pfn

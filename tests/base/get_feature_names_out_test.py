@@ -9,10 +9,10 @@
 from pybear.base._get_feature_names_out import get_feature_names_out
 
 import uuid
+
 import numpy as np
 
 import pytest
-
 
 
 
@@ -84,7 +84,7 @@ class TestGetXFeatureNamesOut:
         # test input_features bad len vs _n_features_in (too short)
         with pytest.raises(ValueError):
             get_feature_names_out(
-                _input_features=_feature_names_in,
+                input_features=_feature_names_in,
                 feature_names_in_= \
                     np.hstack((_feature_names_in, _feature_names_in)),
                 n_features_in_=_n_features_in*2
@@ -94,7 +94,7 @@ class TestGetXFeatureNamesOut:
         # test input_features bad len vs _n_features_in (too long)
         with pytest.raises(ValueError):
             get_feature_names_out(
-                _input_features=_feature_names_in,
+                input_features=_feature_names_in,
                 feature_names_in_=_feature_names_in[:_n_features_in//2],
                 n_features_in_=_n_features_in//2,
             )
@@ -103,7 +103,7 @@ class TestGetXFeatureNamesOut:
         # test input_features != feature_names_in_ (len too short)
         with pytest.raises(ValueError):
             get_feature_names_out(
-                _input_features=_feature_names_in[:len(_feature_names_in)//2],
+                input_features=_feature_names_in[:len(_feature_names_in)//2],
                 feature_names_in_=_feature_names_in,
                 n_features_in_=_n_features_in,
             )
@@ -112,7 +112,7 @@ class TestGetXFeatureNamesOut:
         # test input_features != feature_names_in_ (different names)
         with pytest.raises(ValueError):
             get_feature_names_out(
-                _input_features=[
+                input_features=[
                     str(uuid.uuid4())[:5] for _ in range(_n_features_in)
                 ],
                 feature_names_in_=_feature_names_in,
@@ -132,7 +132,7 @@ class TestGetXFeatureNamesOut:
 
         if _input_features_is_passed and _feature_names_in_is_passed:
             out = get_feature_names_out(
-                _input_features=_input_features,
+                input_features=_input_features,
                 feature_names_in_=_feature_names_in,
                 n_features_in_=_n_features_in,
             )
@@ -145,7 +145,7 @@ class TestGetXFeatureNamesOut:
                 [str(uuid.uuid4())[:5] for i in range(_n_features_in)]
 
             out = get_feature_names_out(
-                _input_features=_input_features,
+                input_features=_input_features,
                 feature_names_in_=None,
                 n_features_in_=_n_features_in,
             )
@@ -153,7 +153,7 @@ class TestGetXFeatureNamesOut:
 
         elif not _input_features_is_passed and _feature_names_in_is_passed:
             out = get_feature_names_out(
-                _input_features=None,
+                input_features=None,
                 feature_names_in_=_feature_names_in,
                 n_features_in_=_n_features_in,
             )
@@ -161,7 +161,7 @@ class TestGetXFeatureNamesOut:
 
         elif not _input_features_is_passed and not _feature_names_in_is_passed:
             out = get_feature_names_out(
-                _input_features=None,
+                input_features=None,
                 feature_names_in_=None,
                 n_features_in_=_n_features_in,
             )

@@ -21,7 +21,7 @@ def set_order(
     order: Literal['C', 'F']="C",
     copy_X: bool=True
 ) -> npt.NDArray:
-    """Set the memory layout of X. X must be a numpy ndarray.
+    """Set the memory layout of `X`. `X` must be a numpy ndarray.
 
     'C' is row-major order, 'F' is column major order.
 
@@ -37,16 +37,16 @@ def set_order(
     X : NDArray
         The numpy array for which to set the memory layout.
     order : Literal['c', 'C', 'f', 'F']
-        The memory layout for X. 'C' is row-major order, 'F' is
+        The memory layout for `X`. 'C' is row-major order, 'F' is
         column-major order.
     copy_X : bool
-        Whether to make a copy of X when setting the memory layout or
-        operate directly on the passed X.
+        Whether to make a copy of `X` when setting the memory layout or
+        operate directly on the passed `X`.
 
     Returns
     -------
     X : NDArray
-        X in the desired memory layout.
+        `X` in the desired memory layout.
 
     """
 

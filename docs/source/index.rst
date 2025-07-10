@@ -16,6 +16,8 @@ See the :doc:`usage` section for ideas about when and where to use pybear.
 
 See the :doc:`api` section for further information on the available modules.
 
+View on `GitHub <https://github.com/PylarBear/pybear>`_
+
 .. note::
 
    This project is under active development.
@@ -30,7 +32,7 @@ pybear runs on all actively supported versions of Python.
 pybear must seamlessly integrate into conventional Python data analytics workflows.
 The way pybear does this is by using the scikit-learn API.
 
-Every pybear module seeks to fulfill 4 objectives:
+Every pybear estimator/transformer seeks to fulfill 4 objectives:
 
 1) handle missing data: robust handling of all nan-like values (numpy.nan, pandas.NA, etc.)
 

@@ -51,17 +51,17 @@ def validate_data(
 ):
 
     """
-    Validate characteristics of X and apply some select transformative
+    Validate characteristics of `X` and apply some select transformative
     operations.
 
-    This module is intended for validation of X in methods of pybear
+    This module is intended for validation of `X` in methods of pybear
     estimators and transformers, but can be used in stand-alone
     applications.
 
     All the functionality carried out in this module is executed by
     individual modules, that is, this module is basically a central hub
     that unifies all the separate operations. Some of the individual
-    modules may have particular requirements of X such as a specific
+    modules may have particular requirements of `X` such as a specific
     container like a numpy array, or that the container expose methods
     like 'copy' or attributes like 'shape'. See the individual modules
     for specifics.

@@ -42,14 +42,16 @@ Functional Code
 All modules must follow the appropriate scikit-learn API for their type 
 (e.g. transformer, estimator).
 
-All major modules must accept numpy ndarrays, pandas dataframes, polars dataframes,
-and all scipy sparse matrix/array formats (as of the time of this writing there
-are seven.) Some modules may also accept Python lists, tuples, and sets, if there
+All major modules must always accept numpy ndarrays, pandas dataframes, and
+polars dataframes. They must also accept all scipy sparse matrix/array formats
+(as of the time of this writing there are seven) when the data is strictly
+numeric. Some modules may also accept Python lists, tuples, and sets, if there
 is a good reason (consider ragged arrays in pybear text analytics, which uses
 Python built-ins.) pybear generally encourages the use of memory-optimized
-containers over Python built-ins. Any containers beyond the the ones listed here,
-especially if they require importing a new package, should be avoided unless
-there is a compelling case for the addition.
+containers over Python built-ins except in the case of text analytics. Any
+containers beyond the the ones listed here, especially if they require
+importing a new package, should be avoided unless there is a compelling case
+for the addition.
 
 All modules must robustly handle any nan-like values that could be found in the
 containers listed above (e.g, numpy.nan, pandas.NA). pybear recommends using

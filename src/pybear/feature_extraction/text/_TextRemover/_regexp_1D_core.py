@@ -23,34 +23,31 @@ def _regexp_1D_core(
     _rr: WipRemoveType,
     _from_2D: bool
 ) -> tuple[list[str], RowSupportType]:
+    """Remove unwanted strings from a 1D list of strings using regular
+    expressions.
 
-    """
-    Remove unwanted strings from a 1D list of strings using regular
-    expressions. 'remove' passed as literal strings and 'case_sensitive'
-    were converted to re.compile in _param_conditioner().
-
+    'remove' passed as literal strings and 'case_sensitive' were
+    converted to re.compile in _param_conditioner().
 
     Parameters
     ----------
-     _X:
-        list[str] - a python list of tokenized strings.
-    _rr:
-        WipRemoveType - the pattern(s) by which to identify strings to
-        be removed.
-    _from_2D:
-        bool - whether this is a row from 2D data. If False, the data
-        was passed as 1D and _X is the X passed to transform. If _X is a
+     _X : list[str]
+        A python list of tokenized strings.
+    _rr : WipRemoveType
+        The pattern(s) by which to identify strings to be removed.
+    _from_2D : bool
+        Whether this is a row from 2D data. If False, the data was
+        passed as 1D and _X is the X passed to transform. If _X is a
         row from 2D data, then _rr as list is disallowed.
-
 
     Return
     ------
-    -
-        tuple[list[str], RowSupportType]: the data with unwanted strings
-        removed and a boolean vector indicating which indices of the
-        data were kept. If the X passed to transform was 1D, this is
-        ultimately the row_support_ attribute that is visible through
-        the API. If X was 2D, this should be discarded.
+    tuple[list[str], RowSupportType]:
+        the data with unwanted strings removed and a boolean vector
+        indicating which indices of the data were kept. If the X passed
+        to transform was 1D, this is ultimately the row_support_
+        attribute that is visible through the API. If X was 2D, this
+        should be discarded.
 
     """
 
