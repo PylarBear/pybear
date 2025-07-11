@@ -66,7 +66,8 @@ pybear
 .. |JoblibVersion| replace:: >=1.3.0
 .. |NumpyVersion| replace:: >=1.26.0
 .. |PandasVersion| replace:: >=2.2.2
-.. |PolarsVersion| replace:: >=X.X.X
+.. |PolarsVersion| replace:: >=1.19.0
+.. |PytestVersion| replace:: >=X.X.X
 .. |ScipyVersion| replace:: >=X.X.X
 .. |ScikitLearnVersion| replace:: >=1.1.3
 .. |TypingExtensionsVersion| replace:: >=4.7.0
@@ -109,6 +110,10 @@ pybear requires:
 pybear 0.2 is tested via GitHub Actions to run on Linux, Windows, and MacOS,
 with Python versions 3.9, 3.10, 3.11, and 3.12. pybear is not tested on earlier
 versions, but some features may work.
+
+If you want to test pybear yourself, you will need:
+
+- pytest (|PytestVersion|)
 
 User installation
 ~~~~~~~~~~~~~~~~~
