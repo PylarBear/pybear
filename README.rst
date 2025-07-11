@@ -63,7 +63,7 @@ pybear
 .. _documentation: https://pybear.readthedocs.io/
 
 .. |PythonVersion| replace:: >=3.9, <3.14
-.. |JoblibVersion| replace:: >=X.X.X
+.. |JoblibVersion| replace:: >=1.3.0
 .. |NumpyVersion| replace:: >=1.26.0
 .. |PandasVersion| replace:: >=X.X.X
 .. |PolarsVersion| replace:: >=X.X.X
