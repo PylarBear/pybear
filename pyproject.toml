@@ -32,7 +32,7 @@ python = "^3.9, <3.14"
 joblib = ">=1.5.0"
 numpy = ">=1.26.0"
 pandas = ">=2.2.2"
-polars = "1.19.0"
+polars = "1.9.0"
 psutil = "*"
 scipy = [
     { version = "<1.14.0", markers = "python_version < '3.10'" },
