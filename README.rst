@@ -65,7 +65,7 @@ pybear
 .. |PythonVersion| replace:: >=3.9, <3.14
 .. |JoblibVersion| replace:: >=1.3.0
 .. |NumpyVersion| replace:: >=1.26.0
-.. |PandasVersion| replace:: >=2.3.0
+.. |PandasVersion| replace:: >=2.2.2
 .. |PolarsVersion| replace:: >=X.X.X
 .. |ScipyVersion| replace:: >=X.X.X
 .. |ScikitLearnVersion| replace:: >=1.1.3
