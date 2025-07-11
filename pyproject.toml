@@ -29,7 +29,7 @@ include = [
 [tool.poetry.dependencies]
 # These packages are mandatory and form the core of this package’s distribution.
 python = "^3.9, <3.14"
-joblib = "1.1.0"
+joblib = "1.2.0"
 numpy = ">=1.26.0"
 pandas = "*"
 polars = "*"
