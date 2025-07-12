@@ -56,7 +56,7 @@ class TestNumSamples:
         if len(X_shape) == 1:
             _columns = ['y']
         else:
-            _columns = [str(uuid.uuid4())[:4] for _ in range(X_shape[1])]
+            _columns = [str(uuid.uuid4())[:8] for _ in range(X_shape[1])]
 
         if X_format == 'np':
             _X = _base_X.copy()
