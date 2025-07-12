@@ -220,34 +220,30 @@ class TestNanMasking:
 
         # END skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- -- --
 
+        # avoid the junky pd issue and build off np
         _X = _X_factory(
             _dupl=None,
-            _format='pd',
+            _format='np',
             _dtype=X_dtype,
             _has_nan=_has_nan,
-            _columns=_master_columns[:_shape[1]],
+            _columns=None,
             _zeros=None,
             _shape=_shape
         )
 
-        if _dim == 1:
-            _X = _X.iloc[:, 0].squeeze()
+        # TypeError: 'float' object cannot be converted to 'PyString'
+        if X_dtype == 'hybrid':
+            _X = _X.astype(str)
 
-        # polars cant take 'nan' 'NaN' 'NAN' '<NA>' -- map these to None
-        _X[_X == 'nan'] = None
-        _X[_X == 'NaN'] = None
-        _X[_X == 'NAN'] = None
-        _X[_X == '<NA>'] = None
-
-        _X = pl.from_pandas(
+        _X = pl.from_numpy(
             data=_X,
+            schema=list(_master_columns[:_shape[1]]),
             schema_overrides=None,
-            rechunk=True,
-            nan_to_null=True,
-            include_index=False
+            orient=None
         )
 
         if _dim == 1:
+            _X = _X[:, 0]
             assert isinstance(_X, pl.Series)
 
         OUT = nan_mask(_X)
