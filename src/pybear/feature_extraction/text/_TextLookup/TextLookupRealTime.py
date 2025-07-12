@@ -53,7 +53,7 @@ class TextLookupRealTime(_TextLookupMixin):
     Options include replacing, removing, splitting, or skipping the word,
     or staging it to add to the pybear :class:`Lexicon`.
 
-    TextLookupRealTime (TLRT) has a dual-functionality :meth:transform`
+    TextLookupRealTime (TLRT) has a dual-functionality :meth:`transform`
     method. TLRT can operate autonomously on your data for a completely
     hands-free experience, or can be driven in a fully interactive
     transform process. The interactive mode is a menu-driven process
@@ -189,9 +189,9 @@ class TextLookupRealTime(_TextLookupMixin):
     methods. It also has partial_fit, fit, and score methods, which are
     no-ops. TLRT technically does not need to be fit for 2 reasons.
     First, in autonomous mode, TLRT already knows everything it needs to
-    do transformations from the parameters and the Lexicon. Secondly, in
-    manual mode the user interacts with the data during transform, not
-    (partial_)fit. These no-op methods are available to fulfill the
+    do transformations from the parameters and the `Lexicon`. Secondly,
+    in manual mode the user interacts with the data during transform,
+    not (partial_)fit. These no-op methods are available to fulfill the
     scikit transformer API and make TLRT suitable for incorporation into
     larger workflows, such as Pipelines and dask_ml wrappers.
 
@@ -199,189 +199,170 @@ class TextLookupRealTime(_TextLookupMixin):
     technically always in a 'fitted' state and ready to transform
     data. Checks for fittedness will always return True.
 
-    TLRT exposes 2 attributes after a call to :meth: `transform`. First,
-    the :attr: `n_rows_` attribute is the number of rows of text seen in
+    TLRT exposes 2 attributes after a call to `transform`. First,
+    the :attr:`n_rows_` attribute is the number of rows of text seen in
     the original data but is not necessarily the number of rows in the
-    outputted data. TLRT also has a :attr: `row_support_` attribute that
+    outputted data. TLRT also has a :attr:`row_support_` attribute that
     is a boolean vector of shape (n_rows, ) that indicates which rows of
     the original data were kept during the transform process (True) and
     which were deleted (False). The only way that an entry could become
-    False is if :param: `remove_empty_rows` is True and a row becomes
-    empty when handling unknown words. :attr: `row_support_` only
-    reflects the last dataset passed to transform.
-
+    False is if `remove_empty_rows` is True and a row becomes empty when
+    handling unknown words. `row_support_` only reflects the last dataset
+    passed to transform.
 
     Parameters
     ----------
-    update_lexicon:
-        Optional[bool], default=False - whether to queue words that
-        are not in the pybear Lexicon for later addition to the Lexicon.
-        This applies to both autonomous and interactive modes. If False,
-        TLRT will never put a word in :attr: `LEXICON_ADDENDUM_` and
-        will never prompt you with the option.
-    skip_numbers:
-        Optional[bool], default=True - When True, TLRT will try to do
-        python float(word) on the word and, if it can be cast to a float,
-        TLRT will skip it and go to the next word. If False, TLRT will
-        handle it like any other word. There are no numbers in the formal
-        pybear Lexicon so TLRT will always flag them and handle them
-        autonomously or prompt the user for an action. Since they are
-        handled like any other word, it would be possible to stage them
-        for addition to your local copy of the Lexicon.
-    auto_split:
-        Optional[bool], default=True - TLRT will first look if the word
-        is in any of the holder objects for special instructions, then
-        look to see if the word is in the Lexicon. If not, the next step
-        otherwise would be auto-add to Lexicon, auto-delete, or go into
-        manual mode. This functionality is a last-ditch effort to see if
-        a word is an erroneous compounding of 2 words that are in the
-        Lexicon. if :param: `auto_split` is True, TLRT will iteratively
-        split any word of 4 or more characters from after the second
-        character to before the second to last character and see if
-        both halves are in the Lexicon. When/if the first match is
-        found, TLRT will remove the original word, split it, and insert
-        in the original place the 2 halves that were found to be in the
-        Lexicon. If False, TLRT will skip this process and go straight
-        to auto-add, auto-delete, or manual mode.
-    auto_add_to_lexicon:
-        Optional[bool], default=False - :param: `update_lexicon` must be
-        True to use this. Cannot be True if :param: `auto_delete` is
-        True. When this parameter is True, TLRT operates in 'auto-mode',
-        where the user will not be prompted for decisions. When TLRT
-        encounters a word that is not in the Lexicon, the word will
-        silently be staged in the :attr: `LEXICON_ADDENDUM_` attribute
-        to be added to the Lexicon later.
-    auto_delete:
-        Optional[bool], default=False - If :param: `update_lexicon`
-        or :param: `auto_add_to_lexicon` are True then this cannot be
-        True . When this parameter is True, TLRT operates in 'auto-mode',
-        where the user will not be prompted for decisions. When TLRT
-        encounters a word that is not in the Lexicon, the word will be
-        silently deleted from the text body.
-    DELETE_ALWAYS:
-        Optional[Union[Sequence[str], None]], default=None - A list of
-        words that will always be deleted by TLRT, even if they are in
-        the Lexicon. In both manual and auto modes, TLRT will silently
-        delete the word(s), no questions asked. What is passed here
-        becomes the seed for the :attr: `DELETE_ALWAYS_` attribute,
-        which may have more words added to it during run-time in manual
-        mode. Auto-mode will never add more words to this list.
-    REPLACE_ALWAYS:
-        Optional[Union[dict[str, str], None]], default=None - A
-        dictionary with words expected to be in the text body as keys
+    update_lexicon : Optional[bool], default=False
+        Whether to queue words that are not in the pybear `Lexicon` for
+        later addition to the `Lexicon`. This applies to both autonomous
+        and interactive modes. If False, TLRT will never put a word
+        in :attr:`LEXICON_ADDENDUM_` and will never prompt you with the
+        option.
+    skip_numbers : Optional[bool], default=True
+        When True, TLRT will try to do Python float(word) on the word
+        and, if it can be cast to a float, TLRT will skip it and go to
+        the next word. If False, TLRT will handle it like any other word.
+        There are no numbers in the formal pybear `Lexicon` so TLRT will
+        always flag them and handle them autonomously or prompt the user
+        for an action. Since they are handled like any other word, it
+        would be possible to stage them for addition to your local copy
+        of the `Lexicon`.
+    auto_split : Optional[bool], default=True
+        TLRT will first look if the word is in any of the holder
+        objects for special instructions, then look to see if the word
+        is in the `Lexicon`. If not, the next step otherwise would be
+        auto-add to `Lexicon`, auto-delete, or go into manual mode. This
+        functionality is a last-ditch effort to see if a word is an
+        erroneous compounding of 2 words that are in the `Lexicon`. if
+        `auto_split` is True, TLRT will iteratively split any word of
+        4 or more characters from after the second character to before
+        the second to last character and see if both halves are in the
+        `Lexicon`. When/if the first match is found, TLRT will remove
+        the original word, split it, and insert in the original place
+        the 2 halves that were found to be in the `Lexicon`. If False,
+        TLRT will skip this process and go straight to auto-add,
+        auto-delete, or manual mode.
+    auto_add_to_lexicon : Optional[bool], default=False
+        `update_lexicon` must be True to use this. Cannot be True
+        if `auto_delete` is True. When this parameter is True, TLRT
+        operates in 'auto-mode', where the user will not be prompted
+        for decisions. When TLRT encounters a word that is not in
+        the `Lexicon`, the word will silently be staged in the
+        `LEXICON_ADDENDUM_` attribute to be added to the `Lexicon` later.
+    auto_delete : Optional[bool], default=False
+        If `update_lexicon` or `auto_add_to_lexicon` are True then this
+        cannot be True . When this parameter is True, TLRT operates in
+        'auto-mode', where the user will not be prompted for decisions.
+        When TLRT encounters a word that is not in the Lexicon, the word
+        will be silently deleted from the text body.
+    DELETE_ALWAYS : Optional[Union[Sequence[str], None]], default=None
+        A list of words that will always be deleted by TLRT, even if
+        they are in the `Lexicon`. In both manual and auto modes, TLRT
+        will silently delete the word(s), no questions asked. What is
+        passed here becomes the seed for the :attr:`DELETE_ALWAYS_`
+        attribute, which may have more words added to it during run-time
+        in manual mode. Auto-mode will never add more words to this list.
+    REPLACE_ALWAYS : Optional[Union[dict[str, str], None]], default=None
+        A dictionary with words expected to be in the text body as keys
         and their respective single-word replacements as values. TLRT
-        will replace these words even if they are in the Lexicon. For
+        will replace these words even if they are in the `Lexicon`. For
         both auto and manual mode, TLRT will not prompt the user for
         any more information, it will silently replace the word. What is
-        passed here becomes the seed for the :attr: `REPLACE_ALWAYS_`
+        passed here becomes the seed for the :attr:`REPLACE_ALWAYS_`
         attribute, which may have more word/replacement pairs added to
         it during run-time in manual mode. Auto-mode will never add more
         entries to this dictionary.
-    SKIP_ALWAYS:
-        Optional[Union[Sequence[str], None]], default=None - A list
-        of words that will always be ignored by TLRT, even if they
-        are not in the Lexicon. For both auto and manual mode, TLRT
+    SKIP_ALWAYS : Optional[Union[Sequence[str], None]], default=None
+        A list of words that will always be ignored by TLRT, even if they
+        are not in the `Lexicon`. For both auto and manual mode, TLRT
         will not prompt the user for any more information, it will
         silently skip the word. What is passed here becomes the seed
-        for the :attr: `SKIP_ALWAYS_` attribute, which may have more
-        words added to it during run-time in manual mode. Auto-mode
-        will never add more words to this list.
-    SPLIT_ALWAYS:
-        Optional[Union[dict[str, Sequence[str]], None]], default=None -
+        for the :attr:`SKIP_ALWAYS_` attribute, which may have more words
+        added to it during run-time in manual mode. Auto-mode will never
+        add more words to this list.
+    SPLIT_ALWAYS : Optional[Union[dict[str, Sequence[str]], None]], default=None
         A dictionary with words expected to be in the text body as keys
         and their respective multi-word lists of replacements as values.
         TLRT will remove the original word and insert these words into
         the text body starting in its position even if the original
-        word is in the Lexicon. For both auto and manual mode, TLRT
+        word is in the `Lexicon`. For both auto and manual mode, TLRT
         will not prompt the user for any more information, it will
         silently split the word. What is passed here becomes the seed
-        for the :attr: `SPLIT_ALWAYS_` attribute, which may have more
+        for the :attr:`SPLIT_ALWAYS_` attribute, which may have more
         word/replacement pairs added to it during run-time in manual
         mode. Auto-mode will never add entries to this dictionary.
-    remove_empty_rows:
-        Optional[bool], default=False - whether to remove any rows
-        that may have been made empty during the lookup process.
-        If :param: `remove_empty_rows` is True and rows are deleted, the
-        user can find supplemental information in :attr: `row_support_`,
-        which indicates through booleans which rows were kept (True) and
-        which rows were removed (False).
-    verbose:
-        Optional[bool], default=False - whether to display helpful
-        information during the transform process. This applies to both
-        auto and manual modes.
-
+    remove_empty_rows : Optional[bool], default=False
+        Whether to remove any rows that may have been made empty
+        during the lookup process. If `remove_empty_rows` is True and
+        rows are deleted, the user can find supplemental information
+        in :attr:`row_support_`, which indicates through booleans which
+        rows were kept (True) and which rows were removed (False).
+    verbose : Optional[bool], default=False
+        Whether to display helpful information during the transform
+        process. This applies to both auto and manual modes.
 
     Attributes
     ----------
-    n_rows_:
-        int - the number of rows in the last set of data passed
-        to :meth: `transform`. Not necessarily the number of rows in the
-        outputted data.
-    row_support_:
-        numpy.ndarray[bool] - A 1D boolean vector of shape (n_rows, ) that
-        indicates which rows have been kept in the data. Only reflects
-        the last dataset passed to :meth: `transform`.
-    LEXICON_ADDENDUM_:
-        list[str] - can only have words in it if :param: `update_lexicon`
-        is True. If in auto mode (:param: `auto_add_to_lexicon` is True),
-        anything encountered in the text that is not in the Lexicon is
-        added to this list. In manual mode, if the user selects to 'add
-        to lexicon' then the word is put in this list. TLRT does not
-        automatically add new words to the actual Lexicon directly. TLRT
-        stages new words in :attr: `LEXICON_ADDENDUM_` and at the end of
-        a session prints them to the screen and makes them available in
-        this attribute.
-    KNOWN_WORDS_:
-        list[str] - This is a WIP object used by TLRT to determine "what
-        is in the Lexicon." At instantiation, this is just a copy of the
-        'lexicon_' attribute of the pybear Lexicon class.
-        If :param: `update_lexicon` is True, any words to be added to
-        the Lexicon are inserted at the front of this list (in addition
-        to also being put in :attr: `LEXICON_ADDENDUM_`.)
-        If :param: `auto_add_to_lexicon` is True, then words are
-        inserted into this list silently during the auto-transform
-        process.
-        If :param: `auto_add_to_lexicon` is False, words are inserted
-        into this list if the user selects 'add to lexicon'.
-    DELETE_ALWAYS_:
-        list[str] - A list of words that will always be deleted from the 
-        text body by TLRT, even if they are in the Lexicon. This list is
-        comprised of any words passed to :param: `DELETE_ALWAYS` at
-        instantiation and any words added to this list in manual mode
-        when the user selects 'delete always'. Unknown words are not
-        added to this list in auto-mode.
-    REPLACE_ALWAYS_:
-        dict[str, str] - A dictionary with words expected to be in the
-        text body as keys and their respective single-word replacements
-        as values. TLRT will replace these words even if they are in the
-        Lexicon. This holds anything passed to :param: `REPLACE_ALWAYS`
-        at instantiation and anything added to it during run-time in
-        manual mode. In manual mode, when the user selects 'replace
-        always', the next time TLRT sees the word it will not prompt
-        the user for any more information, it will silently replace the
-        word. When in auto mode, TLRT will not add any entries to this
-        dictionary.
-    SKIP_ALWAYS_:
-        list[str] - A list of words that are always ignored by TLRT,
-        even if they are not in the Lexicon. This list holds any words
-        passed to the :param: `SKIP_ALWAYS` parameter at instantiation
-        and any words added to it when the user selects 'skip always' in
-        manual mode. In manual mode, the next time TLRT sees a word that
-        is in this list it will not prompt the user again, it will
-        silently skip the word. TLRT does not make additions to this
-        list in auto mode.
-    SPLIT_ALWAYS_:
-        dict[str, Sequence[str]] - Similar to :attr: `REPLACE_ALWAYS_`,
-        a dictionary with words expected to be in the text body as keys
-        and their respective multi-word lists of replacements as values.
-        TLRT will sub these words in even if the original word is in the
-        Lexicon.
-        This dictionary holds anything passed to :param: `SPLIT_ALWAYS`
-        at instantiation and any splits made when 'split always' is
+    n_rows_ : int
+        The number of rows in the last data passed to :meth:`transform`.
+        Not necessarily the number of rows in the outputted data.
+    row_support_ : npt.NDArray[bool] - A 1D boolean vector of shape
+        (n_rows, ) that indicates which rows have been kept in the data.
+        Only reflects the last dataset passed to `transform`.
+    LEXICON_ADDENDUM_ : list[str]
+        Can only have words in it if `update_lexicon` is True. If in
+        auto mode (`auto_add_to_lexicon` is True), anything encountered
+        in the text that is not in the Lexicon is added to this list. In
+        manual mode, if the user selects to 'add to lexicon' then the
+        word is put in this list. TLRT does not automatically add new
+        words to the actual `Lexicon` directly. TLRT stages new words
+        in `LEXICON_ADDENDUM_` and at the end of a session prints them
+        to the screen and makes them available in this attribute.
+    KNOWN_WORDS_ : list[str]
+        This is a WIP object used by TLRT to determine "what is in the
+        `Lexicon`." At instantiation, this is just a copy of the
+        'lexicon_' attribute of the pybear `Lexicon` class. If
+        `update_lexicon` is True, any words to be added to the `Lexicon`
+        are inserted at the front of this list (in addition to also being
+        put in :attr:`LEXICON_ADDENDUM_`.) If `auto_add_to_lexicon` is
+        True, then words are inserted into this list silently during the
+        auto-transform process. If `auto_add_to_lexicon` is False, words
+        are inserted into this list if the user selects 'add to lexicon'.
+    DELETE_ALWAYS_ : list[str]
+        A list of words that will always be deleted from the  text body
+        by TLRT, even if they are in the Lexicon. This list is comprised
+        of any words passed to `DELETE_ALWAYS` at instantiation and any
+        words added to this list in manual mode when the user selects
+        'delete always'. Unknown words are not added to this list in
+        auto-mode.
+    REPLACE_ALWAYS_ : dict[str, str]
+        A dictionary with words expected to be in the text body as keys
+        and their respective single-word replacements as values. TLRT
+        will replace these words even if they are in the `Lexicon`.
+        This holds anything passed to `REPLACE_ALWAYS` at instantiation
+        and anything added to it during run-time in manual mode. In
+        manual mode, when the user selects 'replace always', the next
+        time TLRT sees the word it will not prompt the user for any more
+        information, it will silently replace the word. When in auto
+        mode, TLRT will not add any entries to this dictionary.
+    SKIP_ALWAYS_ : list[str]
+        A list of words that are always ignored by TLRT, even if they
+        are not in the Lexicon. This list holds any words passed to the
+        `SKIP_ALWAYS` parameter at instantiation and any words added to
+        it when the user selects 'skip always' in manual mode. In manual
+        mode, the next time TLRT sees a word that is in this list it
+        will not prompt the user again, it will silently skip the word.
+        TLRT does not make additions to this list in auto mode.
+    SPLIT_ALWAYS_ : dict[str, Sequence[str]]
+        Similar to :attr:`REPLACE_ALWAYS_`, a dictionary with words
+        expected to be in the text body as keys and their respective
+        multi-word lists of replacements as values. TLRT will sub these
+        words in even if the original word is in the `Lexicon`. This
+        dictionary holds anything passed to `SPLIT_ALWAYS` at
+        instantiation and any splits made when 'split always' is
         selected in manual mode. In manual mode, the next time TLRT sees
         the old word in the text body it will silently make the split.
         TLRT does not add anything to this dictionary in auto mode.
-
 
     Notes
     -----
@@ -405,7 +386,6 @@ class TextLookupRealTime(_TextLookupMixin):
 
     RowSupportType:
         numpy.ndarray[bool]
-
 
     Examples
     --------
@@ -446,8 +426,7 @@ class TextLookupRealTime(_TextLookupMixin):
         remove_empty_rows: Optional[bool] = False,
         verbose: Optional[bool] = False
     ) -> None:
-
-        """Initialize the TextLookupRealTime instance."""
+        """Initialize the `TextLookupRealTime` instance."""
 
         # must have a & w in it for _split_or_replace_handler (mixin)
         self._LEX_LOOK_DICT = {
@@ -481,11 +460,18 @@ class TextLookupRealTime(_TextLookupMixin):
 
 
     @property
-    def n_rows_(self):
+    def n_rows_(self) -> int:
+        """Get the `n_rows_` attribute.
+
+        The number of rows in the data passed to :meth:`transform`.
+
+        Returns
+        -------
+        n_rows_ : int
+            The number of rows in the data passed to `transform`.
+
         """
-        Get the 'n_rows_' attribute. The number of rows in the data
-        passed to :meth: `transform`.
-        """
+
         return self._n_rows
 
 
@@ -508,29 +494,23 @@ class TextLookupRealTime(_TextLookupMixin):
     def partial_fit(
         self,
         X: XContainer,
-        y: Optional[Union[any, None]] = None
+        y: Optional[Any] = None
     ) -> Self:
-
-        """
-        No-op batch-wise fit method.
-
+        """No-op batch-wise fit method.
 
         Parameters
         ----------
-        X:
-            XContainer - the (possibly ragged) 2D container of text to
-            have its contents cross-referenced against the pybear
-            Lexicon. Ignored.
-        y:
-            Optional[Union[any, None]], default=None - the target for
-            the data. Always ignored.
-
+        X : XContainer
+            The (possibly ragged) 2D container of text to have its
+            contents cross-referenced against the pybear `Lexicon`.
+            Ignored.
+        y : Optional[Any], default=None
+            The target for the data. Always ignored.
 
         Returns
         -------
-        -
-            self: the TextLookupRealTime instance.
-
+        self : object
+            The `TextLookupRealTime` instance.
 
         """
 
@@ -540,29 +520,23 @@ class TextLookupRealTime(_TextLookupMixin):
     def fit(
         self,
         X: XContainer,
-        y: Optional[Union[any, None]] = None
+        y: Optional[Any] = None
     ) -> Self:
-
-        """
-        No-op one-shot fit method.
-
+        """No-op one-shot fit method.
 
         Parameters
         ----------
-        X:
-            XContainer - the (possibly ragged) 2D container of text to
-            have its contents cross-referenced against the pybear
-            Lexicon. Ignored.
-        y:
-            Optional[Union[any, None]], default=None - the target for
-            the data. Always ignored.
-
+        X : XContainer
+            The (possibly ragged) 2D container of text to have its
+            contents cross-referenced against the pybear `Lexicon`.
+            Ignored.
+        y : Optional[Union[any, None]], default=None
+            The target for the data. Always ignored.
 
         Returns
         -------
-        -
-            self: the TextLookupRealTime instance.
-
+        self : object
+            The `TextLookupRealTime` instance.
 
         """
 
@@ -576,29 +550,23 @@ class TextLookupRealTime(_TextLookupMixin):
         X:XContainer,
         copy:Optional[bool] = False
     ):
-
         """
-        Scan tokens in X and either autonomously handle tokens not in
-        the pybear Lexicon or prompt for handling.
-
+        Scan tokens in `X` and either autonomously handle tokens not in
+        the pybear `Lexicon` or prompt for handling.
 
         Parameters
         ----------
-        X:
-            XContainer - The data in (possibly ragged) 2D array-like
-            format.
-        copy:
-            Optional[bool], default=False - whether to make substitutions
-            and deletions directly on the passed X or a deepcopy of X.
-
+        X : XContainer
+            The data in (possibly ragged) 2D array-like format.
+        copy : Optional[bool], default=False
+            Whether to make substitutions and deletions directly on the
+            passed `X` or a deepcopy of `X`.
 
         Returns
         -------
-        -
-            list[list[str]] - the data with user-entered, auto-replaced,
-            or deleted tokens in place of tokens not in the pybear
-            Lexicon.
-
+        X_tr : list[list[str]]
+            The data with user-entered, auto-replaced, or deleted tokens
+            in place of tokens not in the pybear `Lexicon`.
 
         """
 
@@ -620,15 +588,15 @@ class TextLookupRealTime(_TextLookupMixin):
         )
 
         if copy:
-            _X = copy_X(X)
+            X_tr = copy_X(X)
         else:
-            _X = X
+            X_tr = X
 
 
         # we know from validation X is legit 2D
-        _X: WipXContainer = _map_X_to_list(_X)
+        X_tr: WipXContainer = _map_X_to_list(X_tr)
 
-        self._n_rows = len(_X)
+        self._n_rows = len(X_tr)
 
         # Manage attributes -- -- -- -- -- -- -- -- -- -- -- -- -- --
         self._DELETE_ALWAYS = \
@@ -679,16 +647,16 @@ class TextLookupRealTime(_TextLookupMixin):
         _quit = False
         _n_edits = 0
         _word_counter = 0
-        self._row_support: npt.NDArray[bool] = np.ones((len(_X), )).astype(bool)
-        for _row_idx in range(len(_X)-1, -1, -1) if not _abort else []:
+        self._row_support: npt.NDArray[bool] = np.ones((len(X_tr), )).astype(bool)
+        for _row_idx in range(len(X_tr)-1, -1, -1) if not _abort else []:
 
             if self.verbose:
-                print(f'\nStarting row {_row_idx+1} of {len(_X)} working backwards')
+                print(f'\nStarting row {_row_idx+1} of {len(X_tr)} working backwards')
                 print(f'\nCurrent state of ')
                 self._display_lexicon_update()
 
             # GO THRU BACKWARDS BECAUSE A SPLIT OR DELETE WILL CHANGE X
-            for _word_idx in range(len(_X[_row_idx])-1, -1, -1):
+            for _word_idx in range(len(X_tr[_row_idx])-1, -1, -1):
 
                 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
                 # Manage in-situ save option if in manual edit mode.
@@ -704,9 +672,9 @@ class TextLookupRealTime(_TextLookupMixin):
                             'CTA'
                         )
                         if _opt == 'C':
-                            self.dump_to_csv(_X)
+                            self.dump_to_csv(X_tr)
                         elif _opt == 'T':
-                            self.dump_to_txt(_X)
+                            self.dump_to_txt(X_tr)
                         elif _opt == 'A':
                             pass
                         else:
@@ -718,9 +686,9 @@ class TextLookupRealTime(_TextLookupMixin):
 
                 _word_counter += 1
                 if self.verbose and _word_counter % 1000 == 0:
-                    print(f'\nWord {_word_counter:,} of {sum(map(len, _X)):,}...')
+                    print(f'\nWord {_word_counter:,} of {sum(map(len, X_tr)):,}...')
 
-                _word = _X[_row_idx][_word_idx]
+                _word = X_tr[_row_idx][_word_idx]
 
                 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
                 # short-circuit for things already known or learned in-situ
@@ -734,7 +702,7 @@ class TextLookupRealTime(_TextLookupMixin):
                     # this may have had words in it from the user at init
                     if self.verbose:
                         print(f'\n*** ALWAYS DELETE *{_word}* ***\n')
-                    _X[_row_idx].pop(_word_idx)
+                    X_tr[_row_idx].pop(_word_idx)
                     continue
 
                 if _word in self._REPLACE_ALWAYS:
@@ -744,8 +712,8 @@ class TextLookupRealTime(_TextLookupMixin):
                             f'\n*** ALWAYS REPLACE *{_word}* WITH '
                             f'*{self._REPLACE_ALWAYS[_word]}* ***\n'
                         )
-                    _X[_row_idx] = self._split_or_replace_handler(
-                        _X[_row_idx], _word_idx, [self._REPLACE_ALWAYS[_word]]
+                    X_tr[_row_idx] = self._split_or_replace_handler(
+                        X_tr[_row_idx], _word_idx, [self._REPLACE_ALWAYS[_word]]
                     )
                     continue
 
@@ -756,8 +724,8 @@ class TextLookupRealTime(_TextLookupMixin):
                             f'\n*** ALWAYS SPLIT *{_word}* WITH '
                             f'*{"*, *".join(self._SPLIT_ALWAYS[_word])}* ***\n'
                         )
-                    _X[_row_idx] = self._split_or_replace_handler(
-                        _X[_row_idx], _word_idx, self._SPLIT_ALWAYS[_word]
+                    X_tr[_row_idx] = self._split_or_replace_handler(
+                        X_tr[_row_idx], _word_idx, self._SPLIT_ALWAYS[_word]
                     )
                     continue
 
@@ -789,11 +757,11 @@ class TextLookupRealTime(_TextLookupMixin):
                 # LOOK FOR FIRST VALID SPLIT IF len(word) >= 4
                 if self.auto_split and len(_word) >= 4:
                     _NEW_WORDS = _auto_word_splitter(
-                        _word_idx, _X[_row_idx], self._KNOWN_WORDS, self.verbose
+                        _word_idx, X_tr[_row_idx], self._KNOWN_WORDS, self.verbose
                     )
                     if len(_NEW_WORDS) > 0:
-                        _X[_row_idx] = self._split_or_replace_handler(
-                            _X[_row_idx],
+                        X_tr[_row_idx] = self._split_or_replace_handler(
+                            X_tr[_row_idx],
                             _word_idx,
                             _NEW_WORDS
                         )
@@ -832,7 +800,7 @@ class TextLookupRealTime(_TextLookupMixin):
                 if self.auto_delete:
                     if self.verbose:
                         print(f'\n*** AUTO-DELETE *{_word}* ***\n')
-                    _X[_row_idx].pop(_word_idx)
+                    X_tr[_row_idx].pop(_word_idx)
                     continue
                 # END short-circuit for auto-delete -- -- -- -- -- -- --
 
@@ -856,14 +824,14 @@ class TextLookupRealTime(_TextLookupMixin):
 
                 if len(_word) >= 4:
                     _NEW_WORDS = _quasi_auto_word_splitter(
-                        _word_idx, _X[_row_idx], self._KNOWN_WORDS, self.verbose
+                        _word_idx, X_tr[_row_idx], self._KNOWN_WORDS, self.verbose
                     )
                     # if the user did not opt to take any of splits (or
                     # if there werent any), then _NEW_WORDS is empty, and
                     # the user is forced into the manual menu.
                     if len(_NEW_WORDS) > 0:
-                        _X[_row_idx] = self._split_or_replace_handler(
-                            _X[_row_idx],
+                        X_tr[_row_idx] = self._split_or_replace_handler(
+                            X_tr[_row_idx],
                             _word_idx,
                             _NEW_WORDS
                         )
@@ -879,7 +847,7 @@ class TextLookupRealTime(_TextLookupMixin):
                     del _NEW_WORDS
                 # END quasi-automate split recommendation -- -- -- -- --
 
-                print(f"\n{view_text_snippet(_X[_row_idx], _word_idx, _span=7)}")
+                print(f"\n{view_text_snippet(X_tr[_row_idx], _word_idx, _span=7)}")
                 print(f"\n*{_word}* IS NOT IN LEXICON\n")
                 _opt = self._LexLookupMenu.choose('Select option')
 
@@ -900,7 +868,7 @@ class TextLookupRealTime(_TextLookupMixin):
                         self._DELETE_ALWAYS.append(_word)
                         if self.verbose:
                             print(f'\n*** ALWAYS DELETE *{_word}* ***\n')
-                    _X[_row_idx].pop(_word_idx)
+                    X_tr[_row_idx].pop(_word_idx)
                 elif _opt in 'ef':   # 'e': 'Replace once', 'f': 'Replace always',
                     _new_word = _word_editor(
                         _word,
@@ -919,8 +887,8 @@ class TextLookupRealTime(_TextLookupMixin):
                                 f'\n*** ALWAYS REPLACE *{_word}* WITH '
                                 f'*{_new_word}* ***\n'
                             )
-                    _X[_row_idx] = self._split_or_replace_handler(
-                        _X[_row_idx], _word_idx, [_new_word]
+                    X_tr[_row_idx] = self._split_or_replace_handler(
+                        X_tr[_row_idx], _word_idx, [_new_word]
                     )
                     del _new_word
                 elif _opt in 'kw':   # 'k': 'Skip once', 'w': 'Skip always'
@@ -935,7 +903,7 @@ class TextLookupRealTime(_TextLookupMixin):
                     pass
                 elif _opt in 'su':   # 's': 'Split once', 'u': 'Split always'
                     _NEW_WORDS = _manual_word_splitter(
-                        _word_idx, _X[_row_idx], self._KNOWN_WORDS, self.verbose
+                        _word_idx, X_tr[_row_idx], self._KNOWN_WORDS, self.verbose
                     )   # cannot be empty
                     if _opt == 's':
                         if self.verbose:
@@ -950,8 +918,8 @@ class TextLookupRealTime(_TextLookupMixin):
                                 f'\n*** ALWAYS SPLIT *{_word}* WITH '
                                 f'*{"*, *".join(self._SPLIT_ALWAYS[_word])}* ***\n'
                             )
-                    _X[_row_idx] = self._split_or_replace_handler(
-                        _X[_row_idx],
+                    X_tr[_row_idx] = self._split_or_replace_handler(
+                        X_tr[_row_idx],
                         _word_idx,
                         _NEW_WORDS
                     )
@@ -963,8 +931,8 @@ class TextLookupRealTime(_TextLookupMixin):
                     raise Exception
                 # END manual menu actions -- -- -- -- -- -- -- -- -- --
 
-            if self.remove_empty_rows and len(_X[_row_idx]) == 0:
-                _X.pop(_row_idx)
+            if self.remove_empty_rows and len(X_tr[_row_idx]) == 0:
+                X_tr.pop(_row_idx)
                 self._row_support[_row_idx] = False
 
             if _quit:
@@ -985,9 +953,9 @@ class TextLookupRealTime(_TextLookupMixin):
                     'CTA'
                 )
                 if _opt == 'C':
-                    self.dump_to_csv(_X)
+                    self.dump_to_csv(X_tr)
                 elif _opt == 'T':
-                    self.dump_to_txt(_X)
+                    self.dump_to_txt(X_tr)
                 elif _opt == 'A':
                     pass
                 else:
@@ -1005,7 +973,7 @@ class TextLookupRealTime(_TextLookupMixin):
         del _abort
 
 
-        return _X
+        return X_tr
 
 
 

@@ -433,7 +433,7 @@ class TextLookup(_TextLookupMixin):
         remove_empty_rows: Optional[bool] = False,
         verbose: Optional[bool] = False
     ) -> None:
-        """Initialize the TextLookup instance."""
+        """Initialize the `TextLookup` instance."""
 
         # must have a & w in it for _split_or_replace_handler (mixin)
         self._LEX_LOOK_DICT = {
