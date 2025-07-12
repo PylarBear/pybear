@@ -170,7 +170,7 @@ def cast_to_ndarray(
         except Exception as f:
             # pass
             # pizza
-            raise Exception from f
+            raise
 
     print(f'pizza print {_X=}')
 
