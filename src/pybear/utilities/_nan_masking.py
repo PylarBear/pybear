@@ -373,7 +373,7 @@ def nan_mask_string(
     except:
         pass
 
-    _ = np.char.replace(np.array(_).astype(str), None, 'nan')
+    _ = np.char.replace(np.array(_).astype(str), 'None', 'nan')
 
     _ = np.char.replace(_, '<NA>', 'nan')
 
