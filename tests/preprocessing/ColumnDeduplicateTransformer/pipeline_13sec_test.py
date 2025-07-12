@@ -36,7 +36,7 @@ class TestPipeline:
         # n_jobs confliction doesnt seem to matter
         pipe = Pipeline(
             steps = [
-                ('onehot', OneHotEncoder(sparse_output=True)),
+                ('onehot', OneHotEncoder()),
                 ('cdt', CDT(**_kwargs)),
                 ('MLR', LogisticRegression())
             ]
@@ -53,7 +53,7 @@ class TestPipeline:
 
         # separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-        encoded_X = OneHotEncoder(sparse_output=True).fit_transform(X_np)
+        encoded_X = OneHotEncoder().fit_transform(X_np)
         deduplicated_X = CDT(**_kwargs).fit_transform(encoded_X)
         # prove out that CDT is actually doing something
         assert 0 < deduplicated_X.shape[0] == encoded_X.shape[0]

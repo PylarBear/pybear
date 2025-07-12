@@ -54,7 +54,7 @@ class TestPipeline:
         pipe = Pipeline(
             steps = [
                 ('mct', MCT(**_kwargs)),
-                ('onehot', OneHotEncoder(sparse_output=False)),
+                ('onehot', OneHotEncoder()),
                 ('cdt', CDT(keep='first', equal_nan=True))
             ]
         )
@@ -76,11 +76,19 @@ class TestPipeline:
         assert 0 < _chopped_X.shape[0] <= _X_np.shape[0]
         assert 0 < _chopped_X.shape[1] < _X_np.shape[1]
         # END prove out that MCT is actually doing something
-        _ohe_X = OneHotEncoder(sparse_output=False).fit_transform(_chopped_X)
+        _ohe_X = OneHotEncoder().fit_transform(_chopped_X)
         TRFM_X_NOT_PIPE = CDT(keep='first', equal_nan=True).fit_transform(_ohe_X)
 
 
         # END separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+        # this is here because we need to manage for the different revs
+        # of OHE that do/dont have a 'sparse_output' param.
+        if hasattr(TRFM_X_PIPE, 'toarray'):
+            TRFM_X_PIPE = TRFM_X_PIPE.toarray()
+
+        if hasattr(TRFM_X_NOT_PIPE, 'toarray'):
+            TRFM_X_NOT_PIPE = TRFM_X_NOT_PIPE.toarray()
 
         assert np.array_equal(TRFM_X_PIPE, TRFM_X_NOT_PIPE, equal_nan=True)
 

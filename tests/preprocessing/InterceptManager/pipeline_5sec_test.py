@@ -36,7 +36,7 @@ class TestPipeline:
 
         pipe = Pipeline(
             steps = [
-                ('onehot', OneHotEncoder(sparse_output=True)),
+                ('onehot', OneHotEncoder()),
                 ('IM', IM(**_kwargs)),
                 ('MLR', LogisticRegression())
             ]
@@ -53,7 +53,7 @@ class TestPipeline:
 
         # separate ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-        encoded_X = OneHotEncoder(sparse_output=True).fit_transform(X_np)
+        encoded_X = OneHotEncoder().fit_transform(X_np)
         deconstanted_X = IM(**_kwargs).fit_transform(encoded_X)
         # prove out that IM is actually doing something
         assert 0 < deconstanted_X.shape[0] == encoded_X.shape[0]
