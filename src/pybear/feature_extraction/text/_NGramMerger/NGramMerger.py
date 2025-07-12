@@ -428,7 +428,7 @@ class NGramMerger(
         Return
         ------
         self : object
-            The NGramMerger instance.
+            The `NGramMerger` instance.
 
         """
 
@@ -453,7 +453,7 @@ class NGramMerger(
         Return
         ------
         self : object
-            The NGramMerger instance.
+            The `NGramMerger` instance.
 
         """
 

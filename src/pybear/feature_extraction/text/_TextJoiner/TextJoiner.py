@@ -78,7 +78,6 @@ class TextJoiner(
     of rows of text seen in the original data, and must be the number of
     strings in the returned 1D python list.
 
-
     Parameters
     ----------
     sep : Optional[Union[str, Sequence[str]]], default=' '
@@ -198,7 +197,7 @@ class TextJoiner(
         Returns
         -------
         self : object
-            The TextJoiner instance.
+            The `TextJoiner` instance.
 
         """
 
@@ -223,7 +222,7 @@ class TextJoiner(
         Returns
         -------
         self : object
-            The TextJoiner instance.
+            The `TextJoiner` instance.
 
         """
 
