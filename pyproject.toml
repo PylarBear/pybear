@@ -31,7 +31,7 @@ include = [
 python = "^3.9, <3.14"
 joblib = ">=1.5.0"
 numpy = ">=1.26.0"
-pandas = "2.2.1"
+pandas = ">=2.2.2"
 polars = ">=1.19.0"
 psutil = ">=0.1.1"
 scipy = [
