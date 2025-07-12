@@ -711,7 +711,7 @@ class AutoTextCleaner(
         Returns
         -------
         self : object
-            The AutoTextCleaner instance.
+            The `AutoTextCleaner` instance.
 
         """
 
@@ -735,7 +735,7 @@ class AutoTextCleaner(
         Returns
         -------
         self : object
-            The AutoTextCleaner instance.
+            The `AutoTextCleaner` instance.
 
         """
 
