@@ -9,7 +9,11 @@
 from typing import Optional
 
 import numpy as np
-from typing_extensions import Self, Union
+from typing_extensions import (
+    Any,
+    Self,
+    Union
+)
 from ._type_aliases import (
     XContainer,
     XWipContainer,
@@ -50,10 +54,8 @@ class TextJustifier(
     ReprMixin,
     SetParamsMixin
 ):
-
-    """
-    TextJustifier (TJ) justifies text as closely as possible to the
-    number of characters per line given by the user.
+    """Justify text as closely as possible to the number of characters
+    per line given by the user.
 
     This is not designed for making final drafts of highly formatted
     business letters. This is a tool designed to turn highly ragged
@@ -65,7 +67,7 @@ class TextJustifier(
     more.) This tool will square-up the text for you.
 
     The cleaner your data is, the more powerful this tool is, and the
-    more predicable are the results. TJ in no way is designed to do any
+    more predicable are the results. TextJustifier (TJ) in no way is designed to do any
     cleaning. See the other pybear text wrangling modules for that.
     While TJ will handle any text passed to it and blindly apply the
     instructions given to it, results are better when this is used
@@ -687,14 +689,6 @@ class TextJustifier(
 
 
         return _X
-
-
-
-
-
-
-
-
 
 
 

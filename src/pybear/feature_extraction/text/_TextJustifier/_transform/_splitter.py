@@ -20,40 +20,39 @@ def _splitter(
     _sep: SepWipType,
     _line_break: LineBreakWipType
 ) -> list[str]:
+    """Split the text strings in `X` on all user-defined line break and
+    wrap patterns.
 
-    """
     `_sep` and `_line_break` must have already been processed by
-    _param_conditioner, i.e., all literal strings must be converted to
-    re.compile(s) and any flags passed as parameters or associated with
-    `case_sensitive` must have been put in the compile(s).
+    :func:`_param_conditioner`, i.e., all literal strings must be
+    converted to re.compile(s) and any flags passed as parameters or
+    associated with `case_sensitive` must have been put in the compile(s).
 
-    Split the text strings in X on all user-defined line break and wrap
-    patterns, so that each line has no breaks or wraps, or if they do,
-    the wraps/breaks are at the very end of the line. For each string
-    in X, find the first split location, if any, and keep the left side
+    Split the text strings in `X` on all user-defined line break and
+    wrap patterns, so that each line has no breaks or wraps, or if they
+    do, the wraps/breaks are at the very end of the line. For each string
+    in `X`, find the first split location, if any, and keep the left side
     of any split in the original row. Insert the right side of the split
     into the index slot immediately after. Then proceed to that next row
-    and repeat the procedure until all lines in X are exhausted. In the
-    event of a conflict, apply `sep`.
-
+    and repeat the procedure until all lines in `X` are exhausted. In
+    the event of a conflict, apply `sep`.
 
     Parameters
     ----------
-    _X:
-        list[str] - the data to have individual rows split on line-break
-        and wrap separator patterns defined by the user.
-    _sep:
-        SepWipType - the regex pattern(s) that indicate to TJ where it
-        is allowed to wrap a line.
-    _line_break:
-        LineBreakWipType - the regex pattern(s) that indicate to TJ
-        where it must force a new line.
-
+    _X : list[str]
+        The data to have individual rows split on line-break and wrap
+        separator patterns defined by the user.
+    _sep : SepWipType
+        The regex pattern(s) that indicate to TJ where it is allowed to
+        wrap a line.
+    _line_break : LineBreakWipType
+        The regex pattern(s) that indicate to TJ where it must force a
+        new line.
 
     Returns
     -------
-    _X:
-        list[str] - the data split into strings that are not divisible.
+    _X : list[str]
+        The data split into strings that are not divisible.
 
     """
 
@@ -63,7 +62,7 @@ def _splitter(
     assert isinstance(_line_break, (type(None), re.Pattern, tuple))
 
 
-    def _match_dict_helper(_pattern, _line,) -> dict:
+    def _match_dict_helper(_pattern: re.Pattern, _line:str) -> dict:
         """Helper function to search pattern and return match dictionary."""
         _match = re.search(_pattern, _line)
         if _match is not None and _match.span()[0] != _match.span()[1]:

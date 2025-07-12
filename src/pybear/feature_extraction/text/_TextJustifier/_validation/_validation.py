@@ -8,7 +8,10 @@
 
 from typing import Sequence
 from typing_extensions import Union
-from .._type_aliases import XContainer
+from .._type_aliases import (
+    XContainer,
+    CoreSepBreakType
+)
 
 import numbers
 import re
@@ -26,21 +29,19 @@ from ...__shared._validation._any_string import _val_any_string
 def _validation(
     _X: XContainer,
     _n_chars: numbers.Integral,
-    _sep: Union[str, Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]]],
+    _sep: CoreSepBreakType,
     _sep_flags: Union[numbers.Integral, None],
-    _line_break: Union[
-        None, str, Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]]
-    ],
+    _line_break: Union[None, CoreSepBreakType],
     _line_break_flags: Union[numbers.Integral, None],
     _case_sensitive: bool,
     _backfill_sep: str,
     _join_2D: str
 ) -> None:
+    """Validate data and parameters for TJ.
 
-    """
-    Validate data and parameters for TJ. This is a centralized hub for
-    validation, the brunt of the work is handled by the individual
-    modules. See the docs of the individual modules for more details.
+    This is a centralized hub for validation, the brunt of the work is
+    handled by the individual modules. See the docs of the individual
+    modules for more details.
 
     When `sep` (and `line_breaks`, if passed) are passed as literal
     strings, there is validation in place that is not in place for
@@ -108,6 +109,13 @@ def _validation(
     -
         None
 
+    Notes
+    -----
+
+    **Type Aliases**
+
+    CoreSepBreakType:
+        Union[str, Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]]]
 
     """
 

@@ -107,6 +107,7 @@ def nan_mask_numerical(
     Examples
     --------
     >>> from pybear.utilities import nan_mask_numerical
+    >>> import numpy as np
     >>> X = np.arange(6).astype(np.float64)
     >>> X[1] = np.nan
     >>> X[-2] = np.nan
@@ -446,6 +447,7 @@ def nan_mask(
     Examples
     --------
     >>> from pybear.utilities import nan_mask
+    >>> import numpy as np
     >>> X1 = np.arange(6).astype(np.float64)
     >>> X1[0] = np.nan
     >>> X1[-1] = np.nan

@@ -11,7 +11,6 @@ from .._type_aliases import (
     LineBreakWipType
 )
 
-
 import re
 
 
@@ -22,57 +21,54 @@ def _sep_lb_finder(
     _sep: SepWipType,
     _line_break: LineBreakWipType
 ) -> list[bool]:
+    """Find rows that end with a `sep`.
 
-    """
-    If any sep or line_break pattern matches coincidentally end with the
-    `join_2D` character sequence, then find which rows end with a sep or
-    a line_break pattern match. _X will always be 1D.
+    If any `sep` or `line_break` pattern matches coincidentally end with
+    the `join_2D` character sequence, then find which rows end with a
+    `sep` or a `line_break` pattern match. `X` will always be 1D.
 
     When justifying (which is always in 1D), if the line ended with a
-    sep or line_break pattern match, then that stayed on the end of the
-    last word. And if that sep or line_break coincidentally ends with
-    the join_2D  character string, then TextSplitter will leave a relic
-    '' at the end of the corresponding rows. So for the case where a sep
-    or line_break pattern match ends with join_2D, look at the end of
-    each line and if ends with a sep or line_break pattern match then
-    signify that in the outputted list. backfill_sep should never be at
-    the end of a line.
+    `sep` or `line_break` pattern match, then that stayed on the end of
+    the last word. And if that `sep` or `line_break` coincidentally ends
+    with the `join_2D` character string, then `TextSplitter` will leave
+    a relic '' at the end of the corresponding rows. So for the case
+    where a `sep` or `line_break` pattern match ends with `join_2D`,
+    look at the end of each line and if ends with a `sep` or `line_break`
+    pattern match then signify that in the outputted list. `backfill_sep`
+    should never be at the end of a line.
 
     This module tries hard to only find rows where TJ itself put a
-    sep/lb on the end of line and causes a relic ''. It also tries hard
-    NOT to touch other rows that don't end in sep or lb but the user
-    entry of join_2D caused the join_2D string to be at the end of a
-    line (when X goes back to 2D the line will have '' and the end of it
-    and the user did it to themself). This module also tries hard to use
-    logic that honors the lack of validation between sep and line_break
-    in TJ regex mode. Whereas string mode would preclude sep and
-    linebreak from simultaneously ending a line (and perhaps the line
-    also ends with join_2D), anything goes in regex mode. This module is
-    intended to be identical for string and regex modes.
-
+    `sep`/`line_break` on the end of line and causes a relic ''. It also
+    tries hard NOT to touch other rows that don't end in `sep` or
+    `line_break` but the user entry of `join_2D` caused the `join_2D`
+    string to be at the end of a line (when `X` goes back to 2D the line
+    will have '' and the end of it and the user did it to themself).
+    This module also tries hard to use logic that honors the lack of
+    validation between `sep` and line_break in TJ regex mode. Whereas
+    string mode would preclude `sep` and `linebreak` from simultaneously
+    ending a line (and perhaps the line also ends with `join_2D`),
+    anything goes in regex mode. This module is intended to be identical
+    for string and regex modes.
 
     Parameters
     ----------
-    _X:
-        list[str] - The data that has been justified. Need to find
-        places where `join_2D` may incidentally coincide with `sep` or
-        `line_break` at the end of a line.
-    _join_2D:
-        str - the character sequence that joined the tokens in each row
-        of the data if the data was originally passed as 2D.
-    _sep:
-        SepWipType - the patterns where TJ may have wrapped a line.
-    _line_break:
-        LineBreakType - the patterns where TJ forced a line break.
-
+    _X : list[str]
+        The data that has been justified. Need to find places where
+        `join_2D` may incidentally coincide with `sep` or `line_break`
+        at the end of a line.
+    _join_2D : str
+        The character sequence that joined the tokens in each row of the
+        data if the data was originally passed as 2D.
+    _sep : SepWipType - the patterns where TJ may have wrapped a line.
+    _line_break : LineBreakType
+        The patterns where TJ forced a line break.
 
     Returns
     -------
-    -
-        list[bool] - a 1D boolean list signifying which rows will end up
-        with a relic '' in the last position by TJ's own handling of the
-        2D-to-1D-to-2D transitions.
-
+    _MASK : list[bool]
+        A 1D boolean list signifying which rows will end up with a relic
+        '' in the last position by TJ's own handling of the 2D-to-1D-to-2D
+        transitions.
 
     """
 
