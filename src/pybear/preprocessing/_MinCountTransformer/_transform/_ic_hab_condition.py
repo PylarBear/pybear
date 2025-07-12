@@ -315,7 +315,7 @@ def _ic_hab_condition(
         _thresholds = np.array(_threshold)
         _unit_thresholds = np.arange(len(_thresholds))[(_thresholds == 1)]
         __ = list(map(str, set(__handle_as_bool).intersection(_unit_thresholds)))
-        if np.any(__):
+        if len(__) > 0:
             q = "index" if len(__) == 1 else "indices"
             z = "is" if len(__) == 1 else "are"
             warnings.warn(
