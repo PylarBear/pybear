@@ -834,14 +834,18 @@ class TestDeleteAxis0Works:
             feature_name_combiner='concat'
         )
 
-        onehot.fit(STR_DF)
+        expanded = onehot.fit_transform(STR_DF)
+
+        # need to accommodate sklearn revs where OHE does/doesnt have sparse_output
+        if hasattr(expanded, 'toarray'):
+            expanded = expanded.toarray()
 
         DUMMIED_STR_DF = pd.DataFrame(
-            data=onehot.transform(STR_DF),
+            data=expanded,
             columns=onehot.get_feature_names_out()
         )
         FULL_DUMMIED_STR_FLOAT_DF = pd.concat((FLOAT_DF, DUMMIED_STR_DF), axis=1)
-        del onehot, STR_DF, DUMMIED_STR_DF
+        del onehot, expanded, STR_DF, DUMMIED_STR_DF
         # END 3A * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
         # 3B) PROVE NO ROWS ARE DELETED FROM DUMMIED WHEN delete_axis_0 is False
