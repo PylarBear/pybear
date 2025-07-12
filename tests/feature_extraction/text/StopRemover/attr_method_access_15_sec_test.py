@@ -87,7 +87,7 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
             elif attr == 'row_support_':
                 assert isinstance(out, np.ndarray)
                 assert len(out) == len(_X)
-                assert all(map(isinstance, out, (np.bool for _ in out)))
+                assert all(map(isinstance, out, (np.bool_ for _ in out)))
             else:
                 raise Exception
 

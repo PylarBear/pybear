@@ -163,7 +163,7 @@ class TestTextLookup:
 
         rs_ = TestCls.row_support_
         assert isinstance(rs_, np.ndarray)
-        assert all(map(isinstance, rs_, (np.bool for _ in rs_)))
+        assert all(map(isinstance, rs_, (np.bool_ for _ in rs_)))
         assert len(rs_) == len(_X)
         assert np.array_equal(rs_, [True] * len(_X))
         del rs_
