@@ -3337,7 +3337,11 @@ lock-version = "2.1"
 python-versions = "^3.9, <3.14"
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 content-hash = "33ecec8fd04e0cf03085e5e7d37709d39e46298217122e033ac822facb2e29a3"
+=======
+content-hash = "ac6eeb53218c74b2ab90c9a6d5b0ef2a08332bcc66902baf88d84dfdebcd9055"
+>>>>>>> Stashed changes
 =======
 content-hash = "ac6eeb53218c74b2ab90c9a6d5b0ef2a08332bcc66902baf88d84dfdebcd9055"
 >>>>>>> Stashed changes

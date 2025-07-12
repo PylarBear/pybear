@@ -167,8 +167,13 @@ def cast_to_ndarray(
         # can only kick out to here if non-numeric
         try:
             _X[nan_mask(_X)] = np.nan
-        except:
-            pass
+        except Exception as f:
+            # pass
+            # pizza
+            raise Exception from f
+
+    print(f'pizza print {_X=}')
+
 
 
     # if is not an integer dtype, try to cast to float
