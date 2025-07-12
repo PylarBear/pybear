@@ -827,7 +827,6 @@ class TestDeleteAxis0Works:
         onehot = OneHotEncoder(
             categories='auto',
             drop=None,
-            sparse_output=False,
             dtype=np.uint8,
             handle_unknown='error',
             min_frequency=None,
