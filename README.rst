@@ -67,7 +67,7 @@ pybear
 .. |NumpyVersion| replace:: >=1.26.0
 .. |PandasVersion| replace:: >=2.2.2
 .. |PolarsVersion| replace:: >=1.19.0
-.. |PsutilVersion| replace:: >=X.X.X
+.. |PsutilVersion| replace:: >=0.1.1
 .. |PytestVersion| replace:: >=X.X.X
 .. |ScipyVersion| replace:: >=X.X.X
 .. |ScikitLearnVersion| replace:: >=1.1.3

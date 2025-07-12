@@ -98,7 +98,7 @@ out = tmb(
     ('type_1b', type_1, [long_string_frequency], {}),
     ('type_2a', type_2, [single_string_frequency], {}),
     ('type_2b', type_2, [long_string_frequency], {}),
-    number_of_trials=10,
+    number_of_trials=5,
     rest_time=1,
     verbose=True
 )

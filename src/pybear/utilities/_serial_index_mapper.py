@@ -6,52 +6,53 @@
 
 
 
+from typing import Sequence
+
 import numbers
 
 import numpy as np
-import joblib
 
 
 
 def serial_index_mapper(
-    shape:tuple,
-    positions:[list,tuple],
-    n_jobs:int=None
-) -> list:
+    shape:Sequence[numbers.Integral],
+    positions:Sequence[numbers.Integral]
+) -> list[tuple[int, ...]]:
     """Map serial index positions to their zero-based Cartesian
     coordinates in an object of the given shape.
 
+    For example in a 2D array of shape (3,3):
+    serial index position 1 maps to (0,1)
+    serial index position 5 maps to (1,2)
+    In a 3D array of shape (2,2,2):
+    serial index position 5 maps to (1, 0, 1)
+
     Parameters
     ----------
-    shape : tuple of integers
+    shape : Sequence[numbers.Integral, ...]
         The dimensions of the object to map into.
-    positions : array_like of integers
+    positions : Sequence[numbers.Integral]
         Vector of serialized index positions.
-    n_jobs : int, default=None
-        Number of CPU cores used when parallelizing over positions during
-        mapping. None means 1 unless in a joblib.parallel_backend context.
-        -1 means using all processors.
 
     Returns
     -------
-    coordinates:
-        list of tuples containing zero-based Cartesian
-        coordinates for each given serialized index position.
-
+    coordinates : list[tuple[int, int]]
+        The zero-based Cartesian coordinates for each given serialized
+        index position.
 
     Example
     ------
     >>> from pybear.utilities import serial_index_mapper
     >>> shape = (3,3,3)
     >>> positions = [4, 15, 25]
-    >>> coordinates = serial_index_mapper(shape, positions, n_jobs=1)
+    >>> coordinates = serial_index_mapper(shape, positions)
     >>> print(coordinates)
     [(0, 1, 1), (1, 2, 0), (2, 2, 1)]
 
     """
 
     # shape ** * ** * ** * ** * ** ** * ** * ** * ** * ** ** * ** * ** *
-    err_msg = (f"'shape' must be non-empty one-dimensional array-like containing "
+    err_msg = (f"'shape' must be non-empty 1D list-like containing "
                f"non-negative integers")
 
     try:
@@ -71,14 +72,12 @@ def serial_index_mapper(
     except Exception as e:
         raise TypeError(err_msg)
 
-
     del err_msg
-
     # END shape ** * ** * ** * ** * ** * ** * ** * ** * ** ** * ** * **
 
     # positions ** * ** * ** * ** * ** * ** * ** * ** * ** * ** ** * **
-    err_msg = (f"'positions' must be non-empty one-dimensional array-like "
-               f"containing integers")
+    err_msg = (f"'positions' must be non-empty 1D array-like "
+               f"containing non-negative integers")
 
     try:
         if isinstance(positions, (dict, str, type(None))):
@@ -103,34 +102,14 @@ def serial_index_mapper(
             f"a serialized index position is out of bounds for an object "
             f"of size {np.prod(shape)}"
         )
-
     # END positions ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-    # n_jobs ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    err_msg = f"n_jobs must be an integer in range -1 to 32 but not 0"
-
-    try:
-        if n_jobs is None:
-            n_jobs = 1
-            raise MemoryError
-        float(n_jobs)
-        if not int(n_jobs) == n_jobs:
-            raise UnicodeError
-        n_jobs = int(n_jobs)
-        if n_jobs == 0 or n_jobs < -1:
-            raise UnicodeError
-    except MemoryError:
-        pass
-    except UnicodeError:
-        raise ValueError(err_msg)
-    except Exception as e:
-        raise TypeError(err_msg)
-
-    # END n_jobs ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
-    def _recursive(_posn, _coordinates, ctr):
+    def _recursive(
+        _posn: int,
+        _coordinates: list[int],
+        ctr: int
+    ) -> tuple[int, ...]:
 
         if ctr == 100:
             raise RecursionError(f"Recursion depth has surpassed 100")
@@ -155,16 +134,12 @@ def serial_index_mapper(
             return _recursive(_posn, _coordinates, ctr)
 
 
-    # DONT HARD-CODE backend, ALLOW A CONTEXT MANAGER TO SET
-    with joblib.parallel_config(prefer='processes', n_jobs=n_jobs):
-        coordinates = joblib.Parallel(return_as='list')(
-            joblib.delayed(_recursive)(POSN, [], 1) for POSN in positions
-        )
+    coordinates = []
+    for POSN in positions:
+        coordinates.append(_recursive(POSN, [], 1))
 
 
     return coordinates
-
-
 
 
 

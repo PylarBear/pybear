@@ -10,7 +10,8 @@ import pytest
 
 import numpy as np
 
-from pybear.utilities._view_text_snippet import view_text_snippet
+from pybear.feature_extraction.text.__shared._utilities._view_text_snippet \
+    import view_text_snippet
 
 
 

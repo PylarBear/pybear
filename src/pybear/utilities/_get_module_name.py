@@ -5,22 +5,23 @@
 # License: BSD 3 clause
 
 
-import sys, os
+
+import os
+import sys
 
 
 def get_module_name(sys_modules_string:str) -> str:
-
     """Retrieve the name of the calling module.
 
     Parameters
     ----------
-    sys_modules_string:
-        str - Must be passed as 'str(sys.modules[__name__])'.
+    sys_modules_string : str
+        Must be passed as 'str(sys.modules[__name__])'.
 
     Returns
     -------
-    -
-        module_name: str - name of the calling module.
+    module_name : str
+        Name of the calling module.
 
     Examples
     --------
@@ -52,12 +53,6 @@ def get_module_name(sys_modules_string:str) -> str:
     for n in range(len(sys_modules_string) - 1, -1, -1):
         if sys_modules_string[n - 1:n] == str(os.sep):
             return sys_modules_string[n:-5]
-
-
-
-
-
-
 
 
 

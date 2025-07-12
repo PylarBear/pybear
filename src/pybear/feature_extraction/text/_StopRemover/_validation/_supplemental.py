@@ -14,9 +14,9 @@ from .....base._check_1D_str_sequence import check_1D_str_sequence
 
 
 def _val_supplemental(_supplemental: Union[Sequence[str], None]) -> None:
-    """Validate 'supplemental'.
+    """Validate `supplemental`.
 
-    Must be sequence[str] or None.
+    Must be Sequence[str] or None.
 
     Parameters
     ----------

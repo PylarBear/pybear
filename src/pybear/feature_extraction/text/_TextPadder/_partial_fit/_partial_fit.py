@@ -14,22 +14,17 @@ import numbers
 def _partial_fit(
     _X: XContainer
 ) -> numbers.Integral:
-
-
-    """
-    Get the number of features in X.
-
+    """Get the number of features in `X`.
 
     Parameters
     ----------
-    X:
-        XContainer - the data.
-
+    X : XContainer
+        The data.
 
     Return
     ------
-    -
-        numbers.Integral
+    numbers.Integral:
+        The number of features in `X`.
 
     """
 

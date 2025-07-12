@@ -17,28 +17,24 @@ def _condition_sep(
     _sep: Union[str, Sequence[str]],
     _n_rows: numbers.Integral
 ) -> list[str]:
+    """Condition the `sep` parameter into a Python list of strings whose
+    length equals the number of rows in X.
 
-    """
-    Condition the 'sep' parameter into a python list of strings whose
-    length equals the number of rows in X. If already a 1D sequence of
-    strings, simply return.
-
+    If already a 1D sequence of strings, simply return.
 
     Parameters
     ----------
-    _sep:
-        Union[str, Sequence[str]] - the string sequence(s) to use to
-        join each row of text strings in the data.
-    _n_rows:
-        numbers.Integral - the number of sub-containers of text in the
-        data.
-
+    _sep : Union[str, Sequence[str]]
+        The string sequence(s) to use to join each row of text strings
+        in the data.
+    _n_rows : numbers.Integral
+        The number of sub-containers of text in the data.
 
     Returns
     -------
-    -
-        list[str] - a single python list of strings.
-
+    list[str]:
+        A single python list of strings holding `sep` for each row in
+        the  data.
 
     """
 
@@ -48,10 +44,6 @@ def _condition_sep(
     else:
         # must be sequence of str
         return list(_sep)
-
-
-
-
 
 
 

@@ -6,8 +6,17 @@
 
 
 
-from typing_extensions import Union, TypeAlias
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 import numpy.typing as npt
+from .__type_aliases import (
+    PythonTypes,
+    NumpyTypes,
+    PandasTypes,
+    PolarsTypes
+)
 
 from copy import deepcopy
 import numbers
@@ -19,36 +28,26 @@ import polars as pl
 
 
 
-PythonTypes: TypeAlias = Union[list, tuple, set]
-
-NumpyTypes: TypeAlias = npt.NDArray
-
-PandasTypes: TypeAlias = Union[pd.DataFrame, pd.Series]
-
-PolarsTypes: TypeAlias = Union[pl.DataFrame, pl.Series]
-
 # dok and lil are left out intentionally
-SparseTypes: TypeAlias = Union[
+ScipySparseTypes: TypeAlias = Union[
     ss._csr.csr_matrix, ss._csc.csc_matrix, ss._coo.coo_matrix,
     ss._dia.dia_matrix, ss._bsr.bsr_matrix, ss._csr.csr_array,
     ss._csc.csc_array, ss._coo.coo_array, ss._dia.dia_array,
     ss._bsr.bsr_array
 ]
 
+XContainer: TypeAlias = Union[
+    PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes
+]
+
 
 
 def nan_mask_numerical(
-    obj: Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, SparseTypes]
+    obj: XContainer
 ) -> npt.NDArray[bool]:
+    """Return a boolean numpy array or vector indicating the locations
+    of nan-like representations in the data.
 
-    """
-    This function accepts python lists, tuples, and sets, numpy arrays,
-    pandas dataframes and series, polars dataframes and series, and all
-    scipy sparse matrices/arrays except dok and lil formats. It does not
-    accept any ragged python built-ins, dask objects, numpy recarrays,
-    or numpy masked arrays. Data must be able to cast to numpy numerical
-    dtypes. In all cases, return a boolean numpy array or vector
-    indicating the locations of nan-like representations in the data.
     "nan-like representations" include, at least, numpy.nan, pandas.NA,
     None, and string representations of "nan". In the cases of python
     native, numpy, pandas, and polars objects of shape (n_samples,
@@ -57,40 +56,52 @@ def nan_mask_numerical(
     vector of shape equal to that of the 'data' attribute of the sparse
     object.
 
+    This function accepts python lists, tuples, and sets, numpy arrays,
+    pandas dataframes and series, polars dataframes and series, and all
+    scipy sparse matrices/arrays except dok and lil formats. It does not
+    accept any ragged python built-ins, dask objects, numpy recarrays,
+    or numpy masked arrays. Data must be able to cast to numpy numerical
+    dtypes.
 
     Parameters
     ----------
-    obj:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes,
-        SparseTypes] of shape (n_samples, n_features) or (n_samples, ) -
-        the object for which to locate nan-like representations.
-
+    obj : XContainer of shape (n_samples, n_features) or (n_samples, )
+        The object for which to locate nan-like representations.
 
     Returns
     -------
-    mask:
-        NDArray[bool] of shape (n_samples, n_features) or (n_samples, )
-        or (n_non_zero_values, ), indicating nan-like representations in
-        'obj' via the value boolean True. Values that are not nan-like
-        are False.
-
+    mask : NDArray[bool]
+        shape (n_samples, n_features) or (n_samples, ) or (n_non_zero_values, ),
+        indicating nan-like representations in 'obj' via the value boolean
+        True. Values that are not nan-like are False.
 
     Notes
     -----
-    Type aliases
 
-    PythonTypes: Union[list, tuple, set]
+    **Type Aliases**
 
-    NumpyTypes: npt.NDArray
+    PythonTypes:
+        Union[list, tuple, set, list[list], tuple[tuple]]
 
-    PandasTypes: Union[pd.DataFrame, pd.Series]
+    NumpyTypes:
+        numpy.ndarray
 
-    PolarsTypes: Union[pl.DataFrame, pl.Series]
+    PandasTypes:
+        Union[pandas.core.frame.DataFrame, pandas.core.series.Series]
 
-    SparseTypes: Union[ss._csr.csr_matrix, ss._csc.csc_matrix,
-        ss._coo.coo_matrix, ss._dia.dia_matrix, ss._bsr.bsr_matrix,
-        ss._csr.csr_array, ss._csc.csc_array, ss._coo.coo_array,
-        ss._dia.dia_array, ss._bsr.bsr_array]
+    PolarsTypes:
+        Union[polars.dataframe.DataFrame, polars.series.Series]
+
+    ScipySparseTypes:
+        Union[
+            ss._csr.csr_matrix, ss._csc.csc_matrix, ss._coo.coo_matrix,
+            ss._dia.dia_matrix, ss._bsr.bsr_matrix, ss._csr.csr_array,
+            ss._csc.csc_array, ss._coo.coo_array, ss._dia.dia_array,
+            ss._bsr.bsr_array
+        ]
+
+    XContainer:
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
 
 
     Examples
@@ -217,49 +228,50 @@ def nan_mask_numerical(
 def nan_mask_string(
     obj: Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 ) -> npt.NDArray[bool]:
+    """In all cases, return an identically shaped boolean numpy array or
+    vector indicating the locations of nan-like representations in the
+    data.
 
-    """
+    "nan-like representations" include, at least, pandas.NA, None (of
+    type None, not string "None"), and string representations of "nan".
+    This function does not accept scipy sparce matrices or arrays, as
+    dok and lil formats are not handled globally in the nan_mask
+    functions, and the remaining sparse objects cannot contain
+    non-numeric data.
+
     This function accepts python lists, tuples, and sets, numpy arrays,
     pandas dataframes and series, and polars dataframes and series. It
     does not accept any ragged python built-ins, dask objects, numpy
-    recarrays, or numpy masked arrays. In all cases, return an
-    identically shaped boolean numpy array or vector indicating the
-    locations of nan-like representations in the data. "nan-like
-    representations" include, at least, pandas.NA, None (of type None,
-    not string "None"), and string representations of "nan". This
-    function does not accept scipy sparce matrices or arrays, as dok and
-    lil formats are not handled globally in the nan_mask functions, and
-    the remaining sparse objects cannot contain non-numeric data.
-
+    recarrays, or numpy masked arrays.
 
     Parameters
     ----------
-    obj:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes] of shape
-        (n_samples, n_features) or (n_samples, ) - the object for which
-        to locate nan-like representations.
-
+    obj : Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+        shape (n_samples, n_features) or (n_samples, )
+        The object for which to locate nan-like representations.
 
     Returns
     -------
-    mask:
-        NDArray[bool] of shape (n_samples, n_features) or (n_samples),
+    mask : NDArray[bool] of shape (n_samples, n_features) or (n_samples)
         indicating nan-like representations in 'obj' via the value
         boolean True. Values that are not nan-like are False.
 
-
     Notes
     -----
-    Type aliases
 
-    PythonTypes: Union[list, tuple, set]
+    **Type Aliases**
 
-    NumpyTypes: npt.NDArray
+    PythonTypes:
+        Union[list, tuple, set, list[list], tuple[tuple]]
 
-    PandasTypes: Union[pd.DataFrame, pd.Series]
+    NumpyTypes:
+        numpy.ndarray
 
-    PolarsTypes: Union[pl.DataFrame, pl.Series]
+    PandasTypes:
+        Union[pandas.core.frame.DataFrame, pandas.core.series.Series]
 
+    PolarsTypes:
+        Union[polars.dataframe.DataFrame, polars.series.Series]
 
     Examples
     --------
@@ -370,11 +382,9 @@ def nan_mask_string(
 
 
 def nan_mask(
-    obj: Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, SparseTypes]
+    obj: XContainer
 ) -> npt.NDArray[bool]:
-
-    """
-    This function combines the functionality of nan_mask_numerical and
+    """This function combines the functionality of nan_mask_numerical and
     nan_mask_string, giving a centralized location for masking numerical
     and non-numerical data.
 
@@ -395,40 +405,43 @@ def nan_mask(
     accept any ragged python built-ins, dask objects, numpy recarrays,
     or numpy masked arrays.
 
-
     Parameters
     ----------
-    obj:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes,
-        SparseTypes], of shape (n_samples, n_features), (n_samples,), or
-        (n_non_zero_values,) - the object for which to locate nan-like
-        representations.
-
+    obj : Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+        shape (n_samples, n_features), (n_samples,), or (n_non_zero_values,)
+        The object for which to locate nan-like representations.
 
     Returns
     -------
-    mask:
-        NDArray[bool] of shape (n_samples, n_features), (n_samples,) or
-        (n_non_zero_values, ), indicating the locations of nan-like
-        representations in 'obj' via the value boolean True. Values that
-        are not nan-like are False.
-
+    mask : NDArray[bool]
+        shape (n_samples, n_features), (n_samples,) or (n_non_zero_values, ),
+        indicating the locations of nan-like representations in 'obj' via
+        the value boolean True. Values that are not nan-like are False.
 
     Notes
     -----
-    PythonTypes: Union[list, tuple, set]
+    PythonTypes:
+        Union[list, tuple, set]
 
-    NumpyTypes: npt.NDArray
+    NumpyTypes:
+        numpy.ndarray
 
-    PandasTypes: Union[pd.DataFrame, pd.Series]
+    PandasTypes:
+        Union[pandas.core.frame.DataFrame, pandas.core.series.Series]
 
-    PolarsTypes: Union[pl.DataFrame, pl.Series]
+    PolarsTypes:
+        Union[polars.dataframe.DataFrame, polars.series.Series]
 
-    SparseTypes: Union[ss._csr.csr_matrix, ss._csc.csc_matrix,
-        ss._coo.coo_matrix, ss._dia.dia_matrix, ss._bsr.bsr_matrix,
-        ss._csr.csr_array, ss._csc.csc_array, ss._coo.coo_array,
-        ss._dia.dia_array, ss._bsr.bsr_array]
+    ScipySparseTypes:
+        Union[
+            ss._csr.csr_matrix, ss._csc.csc_matrix, ss._coo.coo_matrix,
+            ss._dia.dia_matrix, ss._bsr.bsr_matrix, ss._csr.csr_array,
+            ss._csc.csc_array, ss._coo.coo_array, ss._dia.dia_array,
+            ss._bsr.bsr_array
+        ]
 
+    XContainer:
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
 
     Examples
     --------
@@ -488,11 +501,6 @@ def nan_mask(
         return nan_mask_numerical(obj.cast(pl.Float64))
     except Exception as e:
         return nan_mask_string(obj)
-
-
-
-
-
 
 
 

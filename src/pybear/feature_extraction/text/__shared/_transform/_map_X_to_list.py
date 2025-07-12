@@ -67,19 +67,19 @@ def _map_X_to_list(
     Notes
     -----
 
-    ** Type Aliases **
+    **Type Aliases**
 
     Python1DTypes:
         Union[list[str], tuple[str], set[str]]
 
     Numpy1DTypes:
-        npt.NDArray[str]
+        numpy.ndarray[str]
 
     Pandas1DTypes:
-        pd.Series
+        pandas.core.series.Series
 
     Polars1DTypes:
-        pl.Series
+        polars.series.Series
 
     Dim1Types:
         Union[Python1DTypes, Numpy1DTypes, Pandas1DTypes, Polars1DTypes]
@@ -88,13 +88,13 @@ def _map_X_to_list(
         Sequence[Sequence[str]]
 
     Numpy2DTypes:
-        npt.NDArray[str]
+        numpy.ndarray[str]
 
     Pandas2DTypes:
-        pd.DataFrame
+        pandas.core.frame.DataFrame
 
     Polars2DTypes:
-        pl.DataFrame
+        polars.dataframe.DataFrame
 
     Dim2Types:
         Union[Python2DTypes, Numpy2DTypes, Pandas2DTypes, Polars2DTypes]

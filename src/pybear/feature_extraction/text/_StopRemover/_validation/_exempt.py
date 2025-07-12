@@ -14,7 +14,7 @@ from .....base._check_1D_str_sequence import check_1D_str_sequence
 
 
 def _val_exempt(_exempt: Union[Sequence[str], None]) -> None:
-    """Validate 'exempt'.
+    """Validate `exempt`.
 
     Must be sequence[str] or None.
 

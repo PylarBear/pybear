@@ -24,7 +24,7 @@ def _transform(
     _remove_empty_rows: bool,
     _n_jobs: Union[numbers.Integral, None]
 ) -> tuple[list[list[str]], npt.NDArray[bool]]:
-    """Remove stop words from X.
+    """Remove stop words from `X`.
 
     If required, remove any rows made empty by the stop word removal
     process. Return a boolean numpy vector indicating which rows were
@@ -35,10 +35,10 @@ def _transform(
     _X : list[list[str]]
         The text data.
     _callable : Callable[[str, str], bool]
-        The umpire function for determining if a token in X is a match
+        The umpire function for determining if a token in `X` is a match
         against a stop word.
     _stop_words : list[str]
-        The list of stop words from pybear.Lexicon.
+        The list of stop words from the pybear :class:`Lexicon`.
     _remove_empty_rows : bool
         Whether to remove any empty rows that might result from the stop
         word removal process.
@@ -61,23 +61,23 @@ def _transform(
         _line: list[str],
         _stop_words: list[str]
     ) -> list[str]:
-        """Parallelized function for finding stop words in one row of X.
+        """Parallelized function for finding stop words in one row of `X`.
 
         Parameters
         ----------
         _callable:
-            The umpire function that determines if a word in X is a stop
-            word.
+            The umpire function that determines if a word in `X` is a
+            stop word.
         _line : list[str]
-            A single line in X; the line currently being searched for
+            A single line in `X`; the line currently being searched for
             stop words and having them removed.
         _stop_words : list[str]
-            The list of stop words from pybear.Lexicon.
+            The list of stop words from the pybear :class:`Lexicon`.
 
         Returns
         -------
         list[str]
-            A single row of X with stop words removed.
+            A single row of `X` with stop words removed.
 
         """
 

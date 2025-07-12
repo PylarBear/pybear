@@ -24,10 +24,6 @@ def good_positions():
 
 
 
-
-
-
-
 class TestShape:
 
 
@@ -98,34 +94,6 @@ class TestPositions:
     def test_rejects_negative(self, good_shape):
         with pytest.raises(ValueError):
             sim(good_shape, [-10, -15, -21])
-
-
-class TestNJobs:
-
-
-    def test_accepts_int(self, good_shape, good_positions):
-        sim(good_shape, good_positions, n_jobs=1)
-
-
-    def test_accepts_none(self, good_shape, good_positions):
-        sim(good_shape, good_positions, n_jobs=None)
-
-
-    def test_rejects_float(self, good_shape, good_positions):
-        with pytest.raises(ValueError):
-            sim(good_shape, good_positions, n_jobs=np.pi)
-
-
-    @pytest.mark.parametrize('n_jobs', (0, -2))
-    def test_rejects_bad_ints(self, good_shape, good_positions, n_jobs):
-        with pytest.raises(ValueError):
-            sim(good_shape, good_positions, n_jobs=n_jobs)
-
-
-    @pytest.mark.parametrize('n_jobs', ('junk', [], {'a':1}))
-    def test_rejects_non_numerics(self, good_shape, good_positions, n_jobs):
-        with pytest.raises(TypeError):
-            sim(good_shape, good_positions, n_jobs=n_jobs)
 
 
 class TestDimensionsAndAccuracy:

@@ -14,7 +14,7 @@ from unittest.mock import patch
 
 import io
 
-from pybear.utilities._DictMenuPrint import DictMenuPrint as DMP
+from pybear.base._DictMenuPrint import DictMenuPrint as DMP
 
 
 

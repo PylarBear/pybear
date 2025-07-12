@@ -6,8 +6,14 @@
 
 
 
-from typing import Optional, Sequence
-from typing_extensions import Self, Union
+from typing import (
+    Optional,
+    Sequence
+)
+from typing_extensions import (
+    Self,
+    Union
+)
 import numpy.typing as npt
 
 from copy import deepcopy
@@ -29,8 +35,7 @@ from ._shared._type_aliases import (
 )
 
 from ..__shared._transform._map_X_to_list import _map_X_to_list
-
-from ....utilities._view_text_snippet import view_text_snippet
+from ..__shared._utilities._view_text_snippet import view_text_snippet
 from ....base._copy_X import copy_X
 
 from ._TextLookupMixin import _TextLookupMixin
@@ -385,13 +390,13 @@ class TextLookup(_TextLookupMixin):
         Sequence[Sequence[str]]
 
     NumpyTypes:
-        npt.NDArray[str]
+        numpy.ndarray[str]
 
     PandasTypes:
-        pd.DataFrame
+        pandas.core.frame.DataFrame
 
     PolarsTypes:
-        pl.DataFrame
+        polars.dataframe.DataFrame
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
@@ -400,7 +405,7 @@ class TextLookup(_TextLookupMixin):
         list[list[str]]
 
     RowSupportType:
-        npt.NDArray[bool]
+        numpy.ndarray[bool]
 
 
     Examples

@@ -75,10 +75,7 @@ class ReprMixin:
 
 
 class KeyValTuple(tuple):
-    """
-    Dummy class for correctly rendering key-value tuples from dicts.
-
-    """
+    """Dummy class for correctly rendering key-value tuples from dicts."""
 
     def __repr__(self):
         # needed for _dispatch[tuple.__repr__] not to be overridden
@@ -86,10 +83,7 @@ class KeyValTuple(tuple):
 
 
 class KeyValTupleParam(KeyValTuple):
-    """
-    Dummy class for correctly rendering key-value tuples from parameters.
-
-    """
+    """Dummy class for correctly rendering key-value tuples from parameters."""
 
     pass
 
@@ -159,6 +153,8 @@ class _EstimatorPrettyPrinter(pprint.PrettyPrinter):
         indent_at_name=True,
         n_max_elements_to_show=None,
     ):
+        """Initialize the instance."""
+
         super().__init__(indent, width, depth, stream, compact=compact)
         self._indent_at_name = indent_at_name
         if self._indent_at_name:
@@ -174,7 +170,6 @@ class _EstimatorPrettyPrinter(pprint.PrettyPrinter):
         """Get a threadlocal **mutable** configuration.
         If the configuration does not exist, copy the default global
         configuration.
-
         """
 
         _global_config = {
@@ -200,21 +195,19 @@ class _EstimatorPrettyPrinter(pprint.PrettyPrinter):
 
 
     def get_config(self):
-        """
-        Retrieve current values for configuration set by :func: 
-        'set_config'.
+        """Retrieve current values for configuration set by :func:'set_config'.
 
         Returns
         -------
         config : dict
-            Keys are parameter names that can be passed to :func: 'set_config'.
-
+            Keys are parameter names that can be passed to :func:'set_config'.
 
         See Also
         --------
-        config_context: Context manager for global scikit-learn
-            configuration.
-        set_config: Set global scikit-learn configuration.
+        config_context:
+            Context manager for global scikit-learn configuration.
+        set_config:
+            Set global scikit-learn configuration.
 
         """
 
@@ -224,10 +217,8 @@ class _EstimatorPrettyPrinter(pprint.PrettyPrinter):
 
 
     def _changed_params(self, estimator):
-        """
-        Return dict (param_name: value) of parameters that were given to
-        estimator with non-default values.
-
+        """Return dict (param_name: value) of parameters that were given
+        to estimator with non-default values.
         """
 
         params = estimator.get_params(deep=False)
@@ -286,10 +277,8 @@ class _EstimatorPrettyPrinter(pprint.PrettyPrinter):
     def _safe_repr(
         self, object, context, maxlevels, level, changed_only=False
     ):
-        """
-        Same as the builtin _safe_repr, with added support for Estimator
-        objects.
-
+        """Same as the builtin _safe_repr, with added support for
+        Estimator objects.
         """
 
         typ = type(object)
@@ -441,17 +430,16 @@ class _EstimatorPrettyPrinter(pprint.PrettyPrinter):
     def _format_params_or_dict_items(
         self, object, stream, indent, allowance, context, level, is_dict
     ):
-        """
-        Format dict items or parameters respecting the compact=True
-        parameter. For some reason, the builtin rendering of dict items
-        doesn't respect compact=True and will use one line per key-value
-        if all cannot fit in a single line.
-        Dict items will be rendered as <'key': value> while params will
-        be rendered as <key=value>. The implementation is mostly
-        copy/pasting from the builtin _format_items().
-        This also adds ellipsis if the number of items is greater than
-        self.n_max_elements_to_show.
+        """Format dict items or parameters respecting the compact=True
+        parameter.
 
+        For some reason, the builtin rendering of dict items doesn't
+        respect compact=True and will use one line per key-value if all
+        cannot fit in a single line. Dict items will be rendered as
+        <'key': value> while params will be rendered as <key=value>.
+        The implementation is mostly copy/pasting from the builtin
+        _format_items(). This also adds ellipsis if the number of items
+        is greater than self.n_max_elements_to_show.
         """
 
         write = stream.write
@@ -507,11 +495,10 @@ class _EstimatorPrettyPrinter(pprint.PrettyPrinter):
     def _format_items(
         self, items, stream, indent, allowance, context, level
     ):
-        """
-        Format the items of an iterable (list, tuple...). Same as the
-        built-in _format_items, with support for ellipsis if the number
-        of elements is greater than self.n_max_elements_to_show.
+        """Format the items of an iterable (list, tuple...).
 
+        Same as the built-in _format_items, with support for ellipsis if
+        the number of elements is greater than self.n_max_elements_to_show.
         """
 
         write = stream.write
@@ -562,9 +549,7 @@ class _EstimatorPrettyPrinter(pprint.PrettyPrinter):
     def _pprint_key_val_tuple(
         self, object, stream, indent, allowance, context, level
     ):
-        """
-        Pretty printing for key-value tuples from dict or parameters.
-
+        """Pretty printing for key-value tuples from dict or parameters.
         """
 
         k, v = object

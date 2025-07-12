@@ -34,8 +34,8 @@ def _delete_words(
     lexicon_folder_path : str
         The path to the directory that holds the lexicon text files.
 
-    Return
-    ------
+    Returns
+    -------
     None
 
     """

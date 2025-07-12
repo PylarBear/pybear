@@ -301,19 +301,20 @@ class TextJustifier(
 
     Notes
     -----
-    Type Aliases
+
+    **Type Aliases**
 
     PythonTypes:
         Union[Sequence[str], Sequence[Sequence[str]], set[str]]
 
     NumpyTypes:
-        npt.NDArray
+        numpy.ndarray
 
     PandasTypes:
-        Union[pd.Series, pd.DataFrame]
+        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
 
     PolarsTypes:
-        Union[pl.Series, pl.DataFrame]
+        Union[polars.series.Series, polars.dataframe.DataFrame]
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]

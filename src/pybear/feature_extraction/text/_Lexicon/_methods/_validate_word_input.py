@@ -23,10 +23,10 @@ def _validate_word_input(
     character_validation: Optional[bool] = True,
     majuscule_validation: Optional[bool] = True
 ) -> None:
-    """Validate the 'WORDS' argument passed to pybear Lexicon methods.
+    """Validate the `WORDS` parameter passed to pybear Lexicon methods.
 
-    WORDS must be a string or a 1D sequence of strings. Read about
-    'character_validation' and 'majuscule_validation' in the Parameters
+    `WORDS` must be a string or a 1D sequence of strings. Read about
+    `character_validation` and `majuscule_validation` in the Parameters
     section.
 
     Parameters
@@ -47,8 +47,8 @@ def _validate_word_input(
         any non-majuscule characters will raise an exception during
         validation. If False, any case is accepted.
 
-    Return
-    ------
+    Returns
+    -------
     None
 
     """

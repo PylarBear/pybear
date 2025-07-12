@@ -15,9 +15,8 @@ def validate_user_str(
     user_prompt:str,
     options:str
 ) -> str:
-    """
-    Validation of a single user-entered alpha character against a list
-    of allowed characters. Not case sensitive.
+    """Validation of a single user-entered alpha character against a
+    list of allowed characters. Not case sensitive.
 
     Parameters
     ----------
@@ -52,9 +51,8 @@ def validate_user_str_cs(
     user_prompt:str,
     options:str
 ) -> str:
-    """
-    Validation of a single user-entered alpha character against a list
-    of allowed characters. Case sensitive.
+    """Validation of a single user-entered alpha character against a
+    list of allowed characters. Case sensitive.
 
     Parameters
     ----------
@@ -91,8 +89,7 @@ def validate_user_mstr(
     options:str,
     max_len:numbers.Integral=2
 ) -> str:
-    """
-    String validation for multiple alpha character user entry that
+    """String validation for multiple alpha character user entry that
     screens by len of entry and allowed options.
 
     Parameters
@@ -247,8 +244,8 @@ def user_entry(prompt: str):
     user_prompt : str
         Text string displayed to the user at prompt.
 
-    Return
-    ------
+    Returns
+    -------
     user_entry : str
         Validated user entry.
 
@@ -427,13 +424,8 @@ class ValidateUserDate:
     def return_user_format(self):
         """Return date as entered by user.
 
-        Parameters
-        --------
-        None
-
-
         Returns
-        ------
+        -------
         user_input : str
             Raw date entered by user.
 
@@ -445,13 +437,8 @@ class ValidateUserDate:
     def return_datetime(self):
         """Return formatted date.
 
-        Parameters
-        --------
-        None
-
-
         Returns
-        ------
+        -------
         datetime_input_date : str
             Formatted date.
 

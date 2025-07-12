@@ -11,7 +11,7 @@ from typing import Sequence
 import math
 import numbers
 
-from ..base._check_1D_str_sequence import check_1D_str_sequence
+from .....base._check_1D_str_sequence import check_1D_str_sequence
 
 
 

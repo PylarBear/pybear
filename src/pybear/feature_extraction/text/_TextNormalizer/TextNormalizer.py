@@ -73,19 +73,20 @@ class TextNormalizer(
 
     Notes
     -----
-    TypeAliases
+
+    **Type Aliases**
 
     PythonTypes:
         Union[Sequence[str], Sequence[Sequence[str]]]
 
     NumpyTypes:
-        npt.NDArray[str]
+        numpy.ndarray[str]
 
     PandasTypes:
-        Union[pd.Series, pd.DataFrame]
+        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
 
     PolarsTypes:
-        Union[pl.Series, pl.DataFrame]
+        Union[polars.series.Series, polars.dataframe.DataFrame]
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]

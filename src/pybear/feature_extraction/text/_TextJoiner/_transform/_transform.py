@@ -13,20 +13,18 @@ def _transform(
     _X: list[list[str]],
     _sep: list[str]
 ) -> XWipContainer:
+    """Convert each row of strings in `_X` to a single string, joining on
+    the string character sequence(s) provided by the `sep` parameter.
 
-    """
-    Convert each row of strings in X to a single string, joining on
-    the string character sequence(s) provided by the 'sep' parameter.
     Returns a python list of strings.
-
 
     Parameters
     ----------
-    _X:
-        list[list[str]] - the (possibly ragged) 2D container of text
-        to be joined along rows using the 'sep' character string(s).
-        _X should have been converted to a list-of-lists in the transform
-        method of the TextJoiner main module.
+    _X : list[list[str]]
+        The (possibly ragged) 2D container of text to be joined along
+        rows using the `sep` character string(s). `_X` should have
+        been converted to a list-of-lists in the transform method of
+        the :class:`TextJoiner` main module.
     _sep:
         list[str] - the 1D python list of strings to use to join the
         strings in the data. The length is identical to the number of
@@ -34,8 +32,8 @@ def _transform(
         corresponding sequence of strings in the data.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         list[str] - A single list containing strings, one string
         for each row in the original X.

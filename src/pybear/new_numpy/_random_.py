@@ -6,6 +6,7 @@
 #
 
 
+
 from typing import (
     Iterable,
     Literal,
@@ -136,26 +137,22 @@ def choice(
                          f'than pool size when replace=False')
 
 
-
     # n_jobs ** * ** * ** * ** * ** * ** * ** *
     if n_jobs is not None:
         err_msg = \
             f"n_jobs must be a positive integer, -1, or None, got '{n_jobs}'"
         try:
             float(n_jobs)
-        except:
+            if int(n_jobs) != n_jobs:
+                raise UnicodeError
+            n_jobs = int(n_jobs)
+            if n_jobs < 1 and n_jobs != -1:
+                raise UnicodeError
+        except UnicodeError:
+            raise ValueError(err_msg)
+        except Exception as e:
             raise TypeError(err_msg)
-
-        if int(n_jobs) != n_jobs:
-            raise ValueError(err_msg)
-
-        n_jobs = int(n_jobs)
-
-        if n_jobs < 1 and n_jobs != -1:
-            raise ValueError(err_msg)
-
     # END n_jobs ** * ** * ** * ** * ** * ** * ** *
-
 
 
     partition_size = min(a.size, int(2**16))
@@ -783,7 +780,7 @@ class Sparse:
 
             SPARSE_ARRAY = zeros(self._shape, dtype=self._dtype)
 
-            MAPPED_INDICES = sim(self._shape, SERIAL_DENSE_POSNS, n_jobs=-1)
+            MAPPED_INDICES = sim(self._shape, SERIAL_DENSE_POSNS)
 
             SPARSE_ARRAY[tuple(zip(*MAPPED_INDICES))] = SERIAL_VALUES
 
@@ -812,7 +809,7 @@ class Sparse:
                 self._dtype
             )
 
-            MAPPED_INDICES = sim(self._shape, SERIAL_SPARSE_POSNS, n_jobs=-1)
+            MAPPED_INDICES = sim(self._shape, SERIAL_SPARSE_POSNS)
 
             SPARSE_ARRAY[tuple(zip(*MAPPED_INDICES))] = 0
 

@@ -24,8 +24,8 @@ def _check_order(
     lexicon_ : list[str]
         The python list containing the pybear lexicon.
 
-    Return
-    ------
+    Returns
+    -------
     OUT_OF_ORDER : list[str]
         Vector of any out of sequence words in the lexicon.
 

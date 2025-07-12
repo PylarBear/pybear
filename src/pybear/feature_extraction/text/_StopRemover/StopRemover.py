@@ -52,7 +52,7 @@ class StopRemover(
 ):
     """Remove stop words from text data.
 
-    StopRemover (SR) uses the stop words defined in the pybear Lexicon
+    StopRemover (SR) uses the stop words defined in the pybear `Lexicon`
     `stop_words_` attribute to locate and remove stop words from a 2D
     array-like body of text data.
 
@@ -72,59 +72,59 @@ class StopRemover(
     that the data be processed at least to the point where you know what
     your separators are and you are able to split your data into tokens.
     (If you have 1D data and know what your separators are as either
-    string literal or regex patterns, use pybear TextSplitter to convert
-    your data to 2D before using SR.) Accepted 2D objects include python
-    list/tuple of lists/tuples, numpy arrays, pandas dataframes, and
-    polars dataframes. Results are always returned as a python list of
-    lists of strings.
+    string literal or regex patterns, use pybear :class:`TextSplitter`
+    to convert your data to 2D before using SR.) Accepted 2D objects
+    include python list/tuple of lists/tuples, numpy arrays, pandas
+    dataframes, and polars dataframes. Results are always returned as a
+    python list of lists of strings.
 
     The default text comparer in SR does a case-insensitive, exact
     character-to-character match of each token in the text body against
     the stop words, and removes a word from the text when there is a
     match. If you want to override the default SR case-insensitive
-    behavior, pass a new callable to the :param: `match_callable`
-    parameter. The callable can take anything that you can put into a
-    callable, as long as the signature is [str, str] and returns a
-    boolean. If you would like to do your stop word matching with
-    regular expressions, then by all means put that in your callable.
+    behavior, pass a new callable to the `match_callable` parameter.
+    The callable can take anything that you can put into a callable, as
+    long as the signature is [str, str] and returns a boolean. If you
+    would like to do your stop word matching with regular expressions,
+    then by all means put that in your callable.
 
-    Optionally, you can instruct SR to remove any empty rows that may be
-    left after the stop word removal process. After transform, SR
-    exposes the :attr: `row_support_` attribute which is a boolean vector
+    Optionally, you can instruct SR to remove any empty rows that may
+    be left after the stop word removal process. After transform, SR
+    exposes the :attr:`row_support_` attribute which is a boolean vector
     that shows which rows in the data were kept (True) and which ones
     were removed (False). The only way an entry in this vector could
-    become False is if the :param: `remove_empty_rows` parameter is True
-    and a row became empty during the stop word removal process.
-    The :attr: `row_support_` attribute only reflects the last dataset
-    passed to transform.
+    become False is if the `remove_empty_rows` parameter is True and a
+    row became empty during the stop word removal process. `row_support_`
+    only reflects the last dataset passed to transform.
 
     SR is a full-fledged scikit-style transformer. It has fully
-    functional get_params, set_params, transform, and fit_transform
-    methods. It also has partial_fit, fit, and score methods, which are
-    no-ops. SR technically does not need to be fit because it already
+    functional `get_params`, `set_params`, `transform`, and `fit_transform`
+    methods. It also has `partial_fit`, `fit`, and `score` methods, which
+    are no-ops. SR technically does not need to be fit because it already
     knows everything it needs to do transformations from the parameters
     and the stop words in the pybear Lexicon. These no-op methods are
     available to fulfill the scikit transformer API and make SR suitable
     for incorporation into larger workflows, such as Pipelines and
     dask_ml wrappers.
 
-    Because SR doesn't need any information from partial_fit and fit, it
-    is technically always in a 'fitted' state and ready to transform
-    data. Checks for fittedness will always return True.
+    Because SR doesn't need any information from :meth:`partial_fit`
+    and :meth:`fit`, it is technically always in a 'fitted' state and
+    ready to transform data. Checks for fittedness will always return
+    True.
 
-    SR has an :attr: `n_rows_` attribute which is only available after
-    data has been passed to :meth: `transform`. :attr: `n_rows_` is the
-    number of rows of text seen in the original data, and must match the
-    number of entries in :attr: `row_support_`.
+    SR has an :attr:`n_rows_` attribute which is only available after
+    data has been passed to :meth:`transform`. `n_rows_` is the number
+    of rows of text seen in the original data, and must match the number
+    of entries in `row_support_`.
 
     Parameters
     ----------
     match_callable : Optional[Union[Callable[[str, str], bool], None]], default=None
-        None to use the default StopRemover matching criteria, or a
+        None to use the default `StopRemover` matching criteria, or a
         custom callable that defines what constitutes matches of words
         in the text against the stop words. In pre-run validation, SR
-        only checks that :param: `match_callable` is None or a callable,
-        no validation is done on the callable. It is a heavy burden to
+        only checks that `match_callable` is None or a callable, no
+        validation is done on the callable. It is a heavy burden to
         validate the user-defined callable at every call over a search
         of the entire text body for every stop word, so SR does not
         validate any of it. If the user-defined callable is ill-formed,
@@ -152,22 +152,22 @@ class StopRemover(
         words matters.
     n_jobs : Optional[Union[numbers.Integral, None]], default = -1
         The number of cores/threads to use when parallelizing the
-        search for stop words in the rows of X. The default is to use
-        processes but can be set by running StopRemover under a joblib
+        search for stop words in the rows of `X`. The default is to use
+        processes but can be set by running `StopRemover` under a joblib
         parallel_config context manager. None uses the default number
         of cores/threads. -1 uses all available cores/threads.
 
     Attributes
     ----------
     n_rows_ : int
-        The number of rows in the data passed to :meth: `transform`.
+        The number of rows in the data passed to :meth:`transform`.
     row_support_ : NDArray[bool] of shape (n_original_rows, )
         A 1D boolean numpy vector indicating which rows have been kept
         (True) after the stop word removal process. Entries in this
-        vector could only become False if :param: `remove_empty_rows`
-        is True and one or more rows became empty during the :term:
-        transform process. The :attr: `row_support_` attribute  only
-        reflects the last dataset passed to :meth: `transform`.
+        vector could only become False if `remove_empty_rows` is True
+        and one or more rows became empty during the transform process.
+        The :attr:`row_support_` attribute  only reflects the last
+        dataset passed to `transform`.
 
     Notes
     -----
@@ -178,13 +178,13 @@ class StopRemover(
         Sequence[Sequence[str]]
 
     NumpyTypes:
-        npt.NDArray
+        numpy.ndarray
 
     PandasTypes:
-        pd.DataFrame
+        pandas.core.frame.DataFrame
 
     PolarsTypes:
-        pl.DataFrame
+        polars.dataframe.DataFrame
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
@@ -193,7 +193,7 @@ class StopRemover(
         list[list[str]]
 
     RowSupportType:
-        npt.NDArray[bool]
+        numpy.ndarray[bool]
 
     Examples
     --------
@@ -236,12 +236,12 @@ class StopRemover(
     def n_rows_(self) -> int:
         """Get the 'n_rows_' attribute.
 
-        The number of rows in the data passed to transform.
+        The number of rows in the data passed to :meth:`transform`.
 
         Returns
         -------
         n_rows_ : int
-            The number of rows in the data passed to :meth: `transform`.
+            The number of rows in the data passed to `transform`.
 
         """
         return self._n_rows
@@ -255,8 +255,8 @@ class StopRemover(
         the data during the transform process. Only available if a
         transform has been performed, and only reflects the results of
         the last transform. Entries in this vector could only become
-        False if :param: `remove_empty_rows` is True and one or more
-        rows became empty during the :term: transform process.
+        False if `remove_empty_rows` is True and one or more rows became
+        empty during the transform process.
 
         Returns
         -------
@@ -304,10 +304,10 @@ class StopRemover(
         y : Optional[Union[any, None]], default=None
             The target for the data. Always ignored.
 
-        Return
-        ------
+        Returns
+        -------
         self : object
-            The StopRemover instance.
+            The `StopRemover` instance.
 
         """
 
@@ -329,10 +329,10 @@ class StopRemover(
         y : Optional[Any], default=None
             The target for the data. Always ignored.
 
-        Return
-        ------
+        Returns
+        -------
         self : object
-            The StopRemover instance.
+            The `StopRemover` instance.
 
         """
 
@@ -373,8 +373,7 @@ class StopRemover(
         in the text body and a stop word.
 
         The user can override this by passing a new callable with
-        signature [str, str] to the :param: `match_callable` parameter.
-
+        signature [str, str] to the `match_callable` parameter.
 
         Parameters
         ----------
@@ -403,18 +402,18 @@ class StopRemover(
         X:XContainer,
         copy:Optional[bool] = False
     ) -> list[list[str]]:
-        """Scan X and remove any stop words as defined in the pybear
-        Lexicon 'stop_words_' attribute.
+        """Scan `X` and remove any stop words as defined in the pybear
+        `Lexicon` 'stop_words_' attribute.
 
         Optionally removes any empty rows left by the stop word removal
-        process. Once data has been passed, the :attr: `n_rows_`
-        and :attr: `row_support_` attributes are exposed.
-        The :attr: `row_support_` is a boolean numpy vector that indicates
-        which rows in the original X were kept during :term: transform
-        (True); entries could only become False if the :param: `remove_empty_rows`
-        parameter is True and at least one row became empty during the
-        stop word removal process. The :attr: `row_support_` attribute
-        only reflects the last dataset passed to :meth: `transform`.
+        process. Once data has been passed, the :attr:`n_rows_`
+        and :attr:`row_support_` attributes are exposed. The `row_support_`
+        attribute is a boolean numpy vector that indicates which rows
+        in the original `X` were kept during transform (True); entries
+        could only become False if the `remove_empty_rows` parameter is
+        True and at least one row became empty during the stop word
+        removal process. The `row_support_` attribute only reflects the
+        last dataset passed to :meth:`transform`.
 
         Parameters
         ----------
@@ -422,8 +421,8 @@ class StopRemover(
             The (possibly ragged) 2D container of text from which to
             remove stop words.
         copy : Optional[bool], default=False
-            Whether to remove stop words directly from the passed X or
-            a deepcopy of X.
+            Whether to remove stop words directly from the passed `X` or
+            a deepcopy of `X`.
 
         Return
         ------

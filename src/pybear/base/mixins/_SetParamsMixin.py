@@ -17,6 +17,7 @@ class SetParamsMixin:
 
     def set_params(self, **params) -> Self:
         """Set the parameters of an instance or a nested instance.
+
         This method works on simple estimator and transformer instances
         as well as on nested objects (such as GridSearch instances).
 

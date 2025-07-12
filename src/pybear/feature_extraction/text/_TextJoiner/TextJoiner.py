@@ -6,8 +6,14 @@
 
 
 
-from typing import Sequence, Optional
-from typing_extensions import Self, Union
+from typing import (
+    Optional,
+    Sequence
+)
+from typing_extensions import (
+    Self,
+    Union
+)
 from ._type_aliases import (
     XContainer,
     XWipContainer
@@ -37,76 +43,72 @@ class TextJoiner(
     ReprMixin,
     SetParamsMixin
 ):
+    """Join a (possibly ragged) 2D array-like of strings across rows
+    with the `sep` character string(s).
 
-    """
-    Join a (possibly ragged) 2D array-like of strings across rows with
-    the :param: `sep` character string(s).
+    When passed a 2D array-like of strings, `TextJoiner` (TJ) joins each
+    row-wise sequence of strings on the value given by `sep` and returns
+    a 1D python list of joined strings in place of the original inner
+    containers.
 
-    When passed a 2D array-like of strings, TextJoiner (TJ) joins each
-    row-wise sequence of strings on the value given by :param: `sep` and
-    returns a 1D python list of joined strings in place of the original
-    inner containers.
-
-    The :param: `sep` parameter can be passed as a single character
-    string, in which case all strings in the data will be joined by that
-    string. :param: `sep` can also be passed as a 1D sequence of strings,
-    whose length must equal the number of rows of text in the data. In
-    that case, TJ uses the string in each position of the 1D sequence to
-    join the corresponding row of text in the data.
+    The `sep` parameter can be passed as a single character string, in
+    which case all strings in the data will be joined by that string.
+    `sep` can also be passed as a 1D sequence of strings, whose length
+    must equal the number of rows of text in the data. In that case, TJ
+    uses the string in each position of the 1D sequence to join the
+    corresponding row of text in the data.
 
     TJ is a full-fledged scikit-style transformer. It has fully
     functional get_params, set_params, transform, and fit_transform
     methods. It also has partial_fit, fit, and score methods, which are
     no-ops. TJ technically does not need to be fit because it already
-    knows everything it needs to do transformations from :param: `sep`.
-    These no-op methods are available to fulfill the scikit transformer
-    API and make TJ suitable for incorporation into larger workflows,
-    such as Pipelines and dask_ml wrappers.
+    knows everything it needs to do transformations from `sep`. These
+    no-op methods are available to fulfill the scikit transformer API
+    and make TJ suitable for incorporation into larger workflows, such
+    as Pipelines and dask_ml wrappers.
 
-    Because TJ doesn't need any information from :meth: `partial_fit`
-    and :meth: `fit`, it is technically always in a 'fitted' state and
+    Because TJ doesn't need any information from :meth:`partial_fit`
+    and :meth:`fit`, it is technically always in a 'fitted' state and
     ready to transform data. Checks for fittedness will always return
     True.
 
-    TJ has one attribute, :attr: `n_rows_`, which is only available after
-    data has been passed to :meth: `transform`. :attr: `n_rows_` is the
-    number of rows of text seen in the original data, and must be the
-    number of strings in the returned 1D python list.
+    TJ has one attribute, :attr:`n_rows_`, which is only available after
+    data has been passed to :meth:`transform`. `n_rows_` is the number
+    of rows of text seen in the original data, and must be the number of
+    strings in the returned 1D python list.
 
 
     Parameters
     ----------
-    sep:
-        Optional[Union[str, Sequence[str]]], default=' ' - The character
-        sequence to insert between individual strings when joining the
-        2D input data across rows. If a 1D sequence of strings, then
-        the :param: `sep` value in each position is used to join the
-        corresponding row in X. In that case, the number of entries
-        in :param: `sep` must equal the number of rows in X.
-
+    sep : Optional[Union[str, Sequence[str]]], default=' '
+        The character sequence to insert between individual strings when
+        joining the 2D input data across rows. If a 1D sequence of
+        strings, then the `sep` value in each position is used to join
+        the corresponding row in `X`. In that case, the number of entries
+        in `sep` must equal the number of rows in `X`.
 
     Attributes
     ----------
-    n_rows_:
-        int - the number of rows of text seen during transform and the
-        number of strings in the returned 1D python list.
-
+    n_rows_ : int
+        The number of rows of text seen during transform and the number
+        of strings in the returned 1D python list.
 
     Notes
     -----
-    Type Aliases
+
+    **Type Aliases**
 
     PythonTypes:
         Sequence[Sequence[str]]
 
     NumpyTypes:
-        npt.NDArray[str]
+        numpy.ndarray[str]
 
     PandasTypes:
-        pd.DataFrame
+        pandas.core.frame.DataFrame
 
     PolarsTypes:
-        pl.DataFrame
+        polars.dataframe.DataFrame
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
@@ -131,7 +133,6 @@ class TextJoiner(
     >>> trfm.fit_transform(X)
     ['Brevityxyzisxyzwit.']
 
-
     """
 
 
@@ -148,8 +149,8 @@ class TextJoiner(
     @property
     def n_rows_(self):
         """
-        Get the 'n_rows_' attribute. The number of rows of text seen
-        during :term: transform and the number of strings in the returned
+        Get the n_rows_ attribute. The number of rows of text seen
+        during transform and the number of strings in the returned
         1D python list.
         """
         return self._n_rows
@@ -198,8 +199,8 @@ class TextJoiner(
             the data. Always ignored.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             self: the TextJoiner instance.
 
@@ -230,8 +231,8 @@ class TextJoiner(
             the data. Always ignored.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             self: the TextJoiner instance.
 
@@ -264,8 +265,8 @@ class TextJoiner(
             on the original X or a deepcopy of X.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             XWipContainer - A single list containing strings, one
             string for each row in the original X.
@@ -311,8 +312,8 @@ class TextJoiner(
             the data. Always ignored.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             None
 

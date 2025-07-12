@@ -5,7 +5,9 @@
 #
 
 
+
 import inspect
+
 from sklearn.pipeline import Pipeline
 
 
@@ -13,25 +15,21 @@ from sklearn.pipeline import Pipeline
 def check_pipeline(
     pipeline: Pipeline
 ) -> None:
+    """Validate a pipeline setup.
 
-    """
-    Validate a pipeline setup, in particular, the construction of the
-    steps attribute. Validate that 'steps' is a list of tuples. In the
-    first position of each tuple must be a string. The second position
-    of each tuple must contain a class instance that has a 'fit' method.
-
+    In particular, the construction of the steps attribute. Validate that
+    'steps' is a list of tuples. In the first position of each tuple must
+    be a string. The second position of each tuple must contain a class
+    instance that has a 'fit' method.
 
     Parameters
     ----------
-    pipeline:
-        sklearn.pipeline.Pipeline - a Pipeline instance.
-
+    pipeline : sklearn.pipeline.Pipeline
+        A Pipeline instance.
 
     Returns
     -------
-    -
-        None
-
+    None
 
     Examples
     --------

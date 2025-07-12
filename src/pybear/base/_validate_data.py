@@ -49,9 +49,7 @@ def validate_data(
     ensure_min_samples:Optional[numbers.Integral] = 1,
     sample_check:Optional[Union[numbers.Integral, None]] = None
 ):
-
-    """
-    Validate characteristics of `X` and apply some select transformative
+    """Validate characteristics of `X` and apply some select transformative
     operations.
 
     This module is intended for validation of `X` in methods of pybear
