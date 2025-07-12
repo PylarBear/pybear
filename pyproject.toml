@@ -30,7 +30,7 @@ include = [
 # These packages are mandatory and form the core of this package’s distribution.
 python = "^3.9, <3.14"
 joblib = ">=1.5.0"
-numpy = "1.26.1"
+numpy = "1.26.2"
 pandas = "2.1.1"
 polars = ">=1.19.0"
 psutil = ">=0.1.1"
