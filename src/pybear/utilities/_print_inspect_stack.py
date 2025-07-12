@@ -6,11 +6,15 @@
 
 
 
-def print_inspect_stack(inspect_stack):
+from typing import Callable
 
-    """
-    Pass inspect.stack (not inspect.stack()) to this in the calling
-    function / module to print the stack hierarchy to screen.
+
+
+def print_inspect_stack(inspect_stack: Callable):
+    """Print a module's stack hierarchy to screen.
+
+    Pass inspect.stack (not inspect.stack()) to this in body of a
+    function or module to print its stack hierarchy to screen.
 
 
     Parameters
@@ -18,11 +22,13 @@ def print_inspect_stack(inspect_stack):
     inspect_stack:
         inspect.stack from the calling function / module
 
+    Returns
+    -------
+    None
 
     See Also
     --------
     inspect.stack
-
 
     """
 
@@ -44,18 +50,6 @@ def print_inspect_stack(inspect_stack):
             print(f' ' * 4 + f'[{__}] {str(inspect_stack[_][__])}')
 
     print()
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

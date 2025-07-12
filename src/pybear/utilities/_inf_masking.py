@@ -12,26 +12,22 @@ from typing_extensions import (
     Union
 )
 import numpy.typing as npt
+from .__type_aliases import (
+    PythonTypes,
+    NumpyTypes,
+    PandasTypes,
+    PolarsTypes
+)
 
 from copy import deepcopy
 
 import numpy as np
-import pandas as pd
-import polars as pl
 import scipy.sparse as ss
 
 
 
-PythonTypes: TypeAlias = Union[list, tuple, set]
-
-NumpyTypes: TypeAlias = npt.NDArray
-
-PandasTypes: TypeAlias = Union[pd.Series, pd.DataFrame]
-
-PolarsTypes: TypeAlias = Union[pl.Series, pl.DataFrame]
-
 # dok & lil intentionally omitted
-SparseTypes: TypeAlias = Union[
+ScipySparseTypes: TypeAlias = Union[
     ss._csr.csr_matrix,
     ss._csc.csc_matrix,
     ss._coo.coo_matrix,
@@ -45,20 +41,20 @@ SparseTypes: TypeAlias = Union[
 ]
 
 XContainer: TypeAlias = \
-    Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, SparseTypes]
+    Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
 
 
 
 def inf_mask(
     obj: XContainer
 ) -> npt.NDArray[bool]:
+    """Return a boolean numpy array or vector indicating the locations
+    of infinity-like values in the data.
 
-    """
-    Return a boolean numpy array or vector indicating the locations of
-    infinity-like values in the data. "Infinity-like values" include, at
-    least, numpy.inf, -numpy.inf, numpy.PINF, numpy.NINF, math.inf,
-    -math.inf, str('inf'), str('-inf'), float('inf'), float('-inf'),
-    decimal.Decimal('Infinity'), and 'decimal.Decimal('-Infinity').
+    "Infinity-like values" include, at least, numpy.inf, -numpy.inf,
+    numpy.PINF, numpy.NINF, math.inf, -math.inf, str('inf'), str('-inf'),
+    float('inf'), float('-inf'), decimal.Decimal('Infinity'), and
+    'decimal.Decimal('-Infinity').
 
     This module accepts python lists, tuples, and sets, numpy arrays,
     pandas series and dataframes, polars series and dataframes, and all
@@ -111,41 +107,37 @@ def inf_mask(
     that there are infinity-likes in it. So object dtype data are to
     cast to string dtype, which forces the conversion.
 
-
     Parameters
     ----------
-    obj:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes,
-        SparseTypes] of shape (n_samples, n_features) or (n_samples, ) -
-        the object for which to mask infinity-like representations.
-
+    obj : XContainer of shape (n_samples, n_features) or (n_samples, )
+        The object for which to mask infinity-like representations.
 
     Returns
     -------
-    mask:
-        NDArray[bool], of shape (n_samples, n_features), (n_samples, ),
-        or of shape (n_non_zero_values, ), indicating infinity-like
-        representations in 'obj' via the value boolean True. Values that
-        are not infinity-like are False.
-
+    mask : NDArray[bool]
+        shape (n_samples, n_features), (n_samples, ), or of shape
+        (n_non_zero_values, ), indicating infinity-like representations
+        in 'obj' via the value boolean True. Values that are not
+        infinity-like are False.
 
     Notes
     -----
-    Type Aliases
+
+    **Type Aliases**
 
     PythonTypes:
-        Union[list, tuple, set]
+        Union[list, tuple, set, list[list], tuple[tuple]]
 
     NumpyTypes:
-        npt.NDArray
+        numpy.ndarray
 
     PandasTypes:
-        Union[pd.Series, pd.DataFrame]
+        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
 
     PolarsTypes:
-        Union[pl.Series, pl.DataFrame]
+        Union[polars.series.Series, polars.dataframe.DataFrame]
 
-    SparseTypes:
+    ScipySparseTypes:
         Union[
             ss._csr.csr_matrix, ss._csc.csc_matrix, ss._coo.coo_matrix,
             ss._dia.dia_matrix, ss._bsr.bsr_matrix, ss._csr.csr_array,
@@ -154,10 +146,7 @@ def inf_mask(
         ]
 
     XContainer:
-        Union[
-            PythonTypes, NumpyTypes, PandasTypes, PolarsTypes,
-            SparseTypes
-        ]
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
 
     See Also
     --------

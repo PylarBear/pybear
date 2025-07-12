@@ -14,7 +14,7 @@ from typing_extensions import Union
 def _val_match_callable(
     _match_callable: Union[Callable[[str, str], bool], None]
 ) -> None:
-    """Validate match_callable.
+    """Validate `match_callable`.
 
     Must be None or a callable with signature [str, str] that returns a
     bool.
@@ -22,7 +22,7 @@ def _val_match_callable(
     Parameters
     ----------
     _match_callable : Union[Callable[[str, str], bool], None]
-        None to use the default StopRemover matching criteria, or a
+        None to use the default `StopRemover` matching criteria, or a
         custom callable that defines what constitutes matches of words
         in the text against the stop words.
 

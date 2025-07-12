@@ -34,10 +34,11 @@ class TestNanMasking:
     @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (False, 1, 3, 5, 9)) # use numbers, need exact
     def test_accuracy_python_builtins(
-        self, _X_factory, _master_columns, _shape, _dim, _container, X_dtype, _has_nan
+        self, _X_factory, _master_columns, _shape, _dim, _container, X_dtype,
+        _has_nan
     ):
 
-        # skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         if _container is set:
             if _dim == 2 :
                 pytest.skip(reason=f"cant have 2D sets")
@@ -48,7 +49,7 @@ class TestNanMasking:
         if X_dtype == 'hybrid' and _dim == 1:
             pytest.skip(reason=f'cant have hybrid when a single vector')
 
-        # END skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # END skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         _X = _X_factory(
             _dupl=None,
@@ -92,7 +93,8 @@ class TestNanMasking:
     @pytest.mark.parametrize('X_dtype', ('flt', 'int', 'str', 'obj', 'hybrid'))
     @pytest.mark.parametrize('_has_nan', (False, 1, 3, 5, 9)) # use numbers, need exact
     def test_accuracy_np_pd(
-        self, _X_factory, _master_columns, _shape, _dim, X_format, X_dtype, _has_nan
+        self, _X_factory, _master_columns, _shape, _dim, X_format, X_dtype,
+        _has_nan
     ):
 
         # skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -264,10 +266,6 @@ class TestNanMasking:
                 assert measured_num_nans == 0
             else:
                 assert measured_num_nans == _has_nan
-
-
-
-
 
 
 

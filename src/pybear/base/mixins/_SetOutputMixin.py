@@ -36,8 +36,7 @@ class SetOutputMixin:
         self,
         transform: Union[Literal['default', 'pandas', 'polars'], None] = None
     ):
-        """
-        Set the output container when :meth:`transform`
+        """Set the output container when :meth:`transform`
         and :meth:`fit_transform` are called.
 
         Parameters
@@ -85,8 +84,7 @@ class SetOutputMixin:
 
 
     def _set_output_for_transform(foo):
-        """
-        This method decorates :meth:`transform` in pybear transformers.
+        """This method decorates :meth:`transform` in pybear transformers.
 
         When SetOutputMixin is passed to a child transformer, decorate the
         `transform` method with @SetOutputMixin._set_output_for_transform.

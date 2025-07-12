@@ -23,9 +23,9 @@ def _replacer(
     _ngcallable: Union[Callable[[list[str]], str], None],
     _sep: Union[str, None]
 ) -> list[str]:
-    """Using the pattern match indices found by _match_finder, at those
-    indices in _line replace the words with the contiguous string mapped
-    from the words.
+    """Using the pattern match indices found by `_match_finder`, at
+    those indices in `_line` replace the words with the contiguous
+    string mapped from the words.
 
     Merge ngrams that match ngram patterns using the following hierarchy:
 
@@ -43,8 +43,8 @@ def _replacer(
         A single n-gram sequence containing re.compile objects that
         specify an n-gram pattern. Cannot have less than 2 entries.
     _hits : Sequence[int]
-        The starting indices of sequences in _line that match the n-gram
-        pattern.
+        The starting indices of sequences in `_line` that match the
+        n-gram pattern.
     _ngcallable : Union[Callable[[list[str]], str], None]
         The callable applied to sequences that match an n-gram pattern
         to produce a single contiguous string.
@@ -84,15 +84,6 @@ def _replacer(
 
 
     return _line
-
-
-
-
-
-
-
-
-
 
 
 

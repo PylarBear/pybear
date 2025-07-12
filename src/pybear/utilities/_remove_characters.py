@@ -26,32 +26,27 @@ def remove_characters(
     allowed_chars: Optional[Union[str, None]] = None,
     disallowed_chars: Optional[Union[str, None]] = None
 ) -> Union[list[str], list[list[str]], npt.NDArray[str]]:
+    """Remove characters that are not allowed or are explicitly disallowed
+    from 1D or 2D text data.
 
-    """
-    Remove characters that are not allowed or are explicitly disallowed
-    from 1D or 2D text data. allowed_chars and disallowed_chars cannot
-    simultaneously be strings and cannot simultaneously be None.
-
+    `allowed_chars` and `disallowed_chars` cannot simultaneously be
+    strings and cannot simultaneously be None.
 
     Parameter
     ---------
-    X:
-        Union[list[str], list[list[str]], npt.NDArray[str]] - the data
-        from which to remove unwanted characters.
-    allowed_chars:
-        Optional[Union[str, None]], default=None - the characters that
-        are to be kept; cannot be passed if disallowed_chars is passed.
-    disallowed_chars:
-        Optional[Union[str, None]], default=None - the characters that
-        are to be removed; cannot be passed if allowed_chars is passed.
-
+    X : Union[list[str], list[list[str]], npt.NDArray[str]]
+        The data from which to remove unwanted characters.
+    allowed_chars : Optional[Union[str, None]], default=None
+        The characters that are to be kept; cannot be passed if
+        disallowed_chars is passed.
+    disallowed_chars : Optional[Union[str, None]], default=None
+        The characters that are to be removed; cannot be passed if
+        allowed_chars is passed.
 
     Returns
     -------
-    -
-        X: Union[list[str], list[list[str]], npt.NDArray[str]] - the
-        data with unwanted characters removed.
-
+    X : Union[list[str], list[list[str]], npt.NDArray[str]]
+        The data with unwanted characters removed.
 
     """
 
@@ -98,13 +93,9 @@ def remove_characters(
 
 
     def _remover_decorator(foo):
-
-        """
-        A wrapping function that serves to find the unique characters to
-        remove and then remove them from the data using the wrapped
+        """A wrapping function that serves to find the unique characters
+        to remove and then remove them from the data using the wrapped
         function.
-
-
         """
 
 
@@ -170,9 +161,6 @@ def remove_characters(
 
 
     return X
-
-
-
 
 
 

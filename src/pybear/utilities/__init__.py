@@ -12,7 +12,6 @@ from ._benchmarking import (
     timer
 )
 from ._check_pipeline import check_pipeline
-from ._DictMenuPrint import DictMenuPrint
 from ._feature_name_mapper import feature_name_mapper
 from ._get_methods_out_of_class import get_methods_out_of_class
 from ._get_module_name import get_module_name
@@ -28,7 +27,6 @@ from ._print_inspect_stack import print_inspect_stack
 from ._remove_characters import remove_characters
 from ._serial_index_mapper import serial_index_mapper
 from ._union_find import union_find
-from ._view_text_snippet import view_text_snippet
 
 
 
@@ -50,7 +48,6 @@ from ._view_text_snippet import view_text_snippet
 __all__ = [
     "array_sparsity",
     "check_pipeline",
-    "DictMenuPrint",
     "feature_name_mapper",
     "get_methods_out_of_class",
     "get_module_name",
@@ -65,8 +62,7 @@ __all__ = [
     "serial_index_mapper",
     "time_memory_benchmark",
     "timer",
-    "union_find",
-    "view_text_snippet"
+    "union_find"
 ]
 
 

@@ -21,6 +21,7 @@ base
     check_scipy_sparse
     check_shape
     copy_X
+    DictMenuPrint
     ensure_2D
     get_feature_names
     get_feature_names_out
@@ -36,3 +37,6 @@ base
     ReprMixin
     SetOutputMixin
     SetParamsMixin
+
+
+

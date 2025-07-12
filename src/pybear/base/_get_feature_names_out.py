@@ -21,7 +21,6 @@ def get_feature_names_out(
     feature_names_in_: Union[npt.NDArray[object], None],
     n_features_in_: numbers.Integral
 ) -> npt.NDArray[object]:
-
     """Return the feature name vector for the transformed output.
 
     - If `input_features` is None, then `feature_names_in_` is

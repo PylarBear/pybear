@@ -21,6 +21,7 @@ def _get_wrap_match_idxs(
     _n_len: numbers.Integral
 ) -> tuple[list[int], list[int]]:
     """Create 2 separate lists of indices.
+
     Can only access this module if there was a match in the wrap region.
     The first list contains the indices in the ORIGINAL first line where
     the pattern match partially overlays. The second list contain the

@@ -23,47 +23,41 @@ def feature_name_mapper(
     feature_names_in: Union[Iterable[str], None],
     positive: Union[bool, None]=True
 ) -> npt.NDArray[np.int32]:
+    """Map a vector of feature names `feature_names` against the full set
+    of feature names provided by `feature_names_in`.
 
-    """
-    Map a vector of feature names 'feature_names' against the full set
-    of feature names provided by 'feature_names_in' to return the index
-    positions of the given feature names with respect to their position
-    in 'feature_names_in'. Can be returned as positive indices, e.g.
-    [0,3,4], or negative indices, e.g. [-4,-2,-1], or as given.
-
+    Return the index positions of the given feature names with respect
+    to their position in `feature_names_in`. Can be returned as positive
+    indices, e.g. [0,3,4], or negative indices, e.g. [-4,-2,-1], or as
+    given.
 
     Parameters
     ----------
-    feature_names:
-        Union[Iterable[str], Iterable[int], None] - the feature names to
-        be mapped to index positions. if None, returns, None. if an empty
-        1D iterable, returns the same. if passed as integers without a
-        'feature_names_in' reference, returns the original. if passed as
-        integers with a 'feature_names_in' reference, the index values
-        are validated against the dimensions of the 'feature_names_in'
-        vector and mapped to all positive or all negative values based
-        on :param: positive. if passed as strings without a
-        'feature_names_in' reference, raises exception. if passed as
-        strings with a 'feature_names_in' reference, the string values
-        are mapped to the index positions in the 'feature_names_in'
-        vector and mapped to all positive or all negative values based
-        on :param: positive. if passed as string values and a value is
-        not in 'feature_names_in', raises exception.
-    feature_names_in:
-        Union[Iterable[str], None] - if not None, a 1D list-like
-        containing strings that are the feature names of a data-bearing
-        container.
-    positive:
-        Union[bool, None] - whether to return the mapped indices as all
-        positive or all negative integers. if None, leave the indices as
-        is.
-
+    feature_names : Union[Iterable[str], Iterable[int], None]
+        The feature names to be mapped to index positions. if None,
+        returns, None. If an empty 1D iterable, returns the same. If
+        passed as integers without a `feature_names_in` reference,
+        returns the original. if passed as integers with a
+        `feature_names_in` reference, the index values are validated
+        against the dimensions of the `feature_names_in` vector and
+        mapped to all positive or all negative values based on `positive`.
+        If passed as strings without a `feature_names_in` reference,
+        raises exception. if passed as strings with a `feature_names_in`
+        reference, the string values are mapped to the index positions
+        in the `feature_names_in` vector and mapped to all positive or
+        all negative values based on `positive`. if passed as string
+        values and a value is not in `feature_names_in`, raises exception.
+    feature_names_in : Union[Iterable[str], None]
+        If not None, a 1D list-like containing strings that are the
+        feature names of a data-bearing container.
+    positive : Union[bool, None]
+        Whether to return the mapped indices as all positive or all
+        negative integers. if None, leave the indices as is.
 
     Returns
     -------
-    -
-        indices: npt.NDArray[np.int32) - the given feature names mapped
-        to index positions.
+    indices: npt.NDArray[np.int32]
+        The given feature names mapped to index positions.
 
     """
 

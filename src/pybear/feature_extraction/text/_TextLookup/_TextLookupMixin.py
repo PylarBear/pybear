@@ -6,8 +6,14 @@
 
 
 
-from typing import Optional, Sequence
-from typing_extensions import Self, Union
+from typing import (
+    Optional,
+    Sequence
+)
+from typing_extensions import (
+    Self,
+    Union
+)
 
 import numbers
 
@@ -15,9 +21,8 @@ from ._shared._type_aliases import XContainer
 
 from .._Lexicon.Lexicon import Lexicon
 
-from ....utilities._DictMenuPrint import DictMenuPrint
-
 from ....base import (
+    DictMenuPrint,
     FileDumpMixin,
     FitTransformMixin,
     GetParamsMixin,

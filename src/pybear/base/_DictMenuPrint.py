@@ -16,65 +16,58 @@ from ..data_validation import validate_user_str_cs
 
 
 class DictMenuPrint:
+    """Manage the display and operation of an interactive user menu.
 
-    """
     Display the allowed menu options from a full menu to the screen.
+
     The 'choose' method displays the allowed menu options and offers
     a validated prompt to select one of the options.
 
-
     Parameters
     ----------
-    MENU_DICT:
-        dict[str, str] - required, dictionary of unit-length alpha
-        characters as keys and the descriptions of their associated
-        actions as values. keys are case-sensitive.
-    disp_width:
-        Optional[numbers.Integral], default=80 - the maximum number of
-        characters to display per line.
-    fixed_col_width:
-        Optional[Union[numbers.Integral, None]], default=None - set a
-        fixed width for each column of menu items in the display. DMP
-        will determine a number of columns that causes the overall width
-        of the display to be less than or equal to 'disp_width'.
-    allowed:
-        Optional[Union[str, None]], default=None - can only enter this
-        if 'disallowed' is not entered, cannot enter both. The action
-        keys that are allowed to be selected from the full section
-        available in MENU_DICT. case-sensitive. Enter as a contiguous
-        sequence of characters.
-    disallowed:
-        Optional[Union[str, None]], default=None - can only enter this
-        if 'allowed' is not entered, cannot enter both. The action keys
-        that are not allowed to be selected from MENU_DICT. 'allowed'
-        becomes the space of action keys that are not disallowed.
-        case-sensitive. Enter as a contiguous sequence of characters.
-
+    MENU_DICT : dict[str, str]
+        Required, dictionary of unit-length alpha characters as keys and
+        the descriptions of their associated actions as values. keys are
+        case-sensitive.
+    disp_width : Optional[numbers.Integral], default=80
+        The maximum number of characters to display per line.
+    fixed_col_width : Optional[Union[numbers.Integral, None]], default=None
+        Set a fixed width for each column of menu items in the display.
+        DMP will determine a number of columns that causes the overall
+        width of the display to be less than or equal to 'disp_width'.
+    allowed : Optional[Union[str, None]], default=None
+        Can only enter this if 'disallowed' is not entered, cannot enter
+        both. The action keys that are allowed to be selected from the
+        full section available in MENU_DICT. case-sensitive. Enter as a
+        contiguous sequence of characters.
+    disallowed : Optional[Union[str, None]], default=None
+        Can only enter this if 'allowed' is not entered, cannot enter
+        both. The action keys that are not allowed to be selected from
+        MENU_DICT. 'allowed' becomes the space of action keys that are
+        not disallowed. case-sensitive. Enter as a contiguous sequence
+        of characters.
 
     Attributes
     ----------
-    allowed:
-        str - The positive space out of MENU_DICT that the user is
-        allowed to select from. This attribute is always the set of
-        allowed options determined at instantiation. The instance
-        attribute IS NOT overwritten by any 'allowed' or 'disallowed'
-        passed to the methods. The 'allowed' passed to or determined by
-        the methods is used only temporarily in place of the permanent
-        'allowed' attribute. The menu associated the stored 'allowed'
-        attribute is always available as the default menu.
-    all_allowed_str:
-        str - the full set of possible options taken from the keys of
-        MENU_DICT.
-    disp_width:
-        numbers.Integral - the maximum character display width passed at
+    allowed : str
+        The positive space out of MENU_DICT that the user is allowed to
+        select from. This attribute is always the set of allowed options
+        determined at instantiation. The instance attribute IS NOT
+        overwritten by any 'allowed' or 'disallowed' passed to the
+        methods. The 'allowed' passed to or determined by the methods
+        is used only temporarily in place of the permanent 'allowed'
+        attribute. The menu associated the stored 'allowed' attribute
+        is always available as the default menu.
+    all_allowed_str : str
+        The full set of possible options taken from the keys of MENU_DICT.
+    disp_width : numbers.Integral
+        The maximum character display width passed at instantiation or
+        the default if not passed.
+    fixed_col_width : numbers.Integral
+        The fixed column width within the full display width passed at
         instantiation or the default if not passed.
-    fixed_col_width:
-        numbers.Integral - the fixed column width within the full display
-        width passed at instantiation or the default if not passed.
-    MENU_DICT:
-        dict[str, str] - the MENU_DICT passed at instantiation.
-
-
+    MENU_DICT : dict[str, str]
+        The MENU_DICT passed at instantiation.
 
     """
 
@@ -88,8 +81,7 @@ class DictMenuPrint:
         allowed:Optional[Union[str, None]] = None,
         disallowed:Optional[Union[str, None]] = None
     ) -> None:
-
-        """Instantiate the DictMenuPrint instance."""
+        """Initialize the DictMenuPrint instance."""
 
         # validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
@@ -156,9 +148,12 @@ class DictMenuPrint:
         _allowed:Optional[Union[str, None]] = None,
         _disallowed:Optional[Union[str, None]] = None
     ) -> str:
+        """Validate allowed & disallowed, determine allowed, and return it.
 
-        """
-        Validate allowed & disallowed, determine allowed, and return it.
+        Parameters
+        ----------
+        _allowed : Optional[Union[str, None]] = None
+        _disallowed : Optional[Union[str, None]] = None
 
         """
 
@@ -250,34 +245,30 @@ class DictMenuPrint:
         allowed:Optional[Union[str, None]] = None,
         disallowed:Optional[Union[str, None]] = None
     ) -> str:
+        """Displays the allowed menu options to the screen.
 
-        """
-        Displays the allowed menu options to the screen. Prompts the user
-        for a case-sensitive selection. Returns the single-character
-        action command selected by the user. The default menu associated
-        with the 'allowed' action keys that were passed at instantiation
-        is available by passing no kwargs, or pass custom 'allowed' or
-        'disallowed' to generate a different menu for the one time. The
-        custom 'allowed' or 'disallowed' that are passed here DO NOT
-        overwrite the 'allowed' attribute of the instance, that will
-        always be available as the default menu.
-
+        Prompts the user for a case-sensitive selection. Returns the
+        single-character action command selected by the user. The default
+        menu associated with the 'allowed' action keys that were passed
+        at instantiation is available by passing no kwargs, or pass
+        custom 'allowed' or 'disallowed' to generate a different menu
+        for the one time. The custom 'allowed' or 'disallowed' that are
+        passed here DO NOT overwrite the 'allowed' attribute of the
+        instance, that will always be available as the default menu.
 
         Parameters
         ----------
-        allowed:
-            Optional[Union[str, None]], default=None - can only enter
-            this if 'disallowed' is not entered, cannot enter both. The
-            action keys that are allowed to be selected from the full
-            section available in MENU_DICT. case-sensitive. Enter as a
-            contiguous sequence of characters.
-        disallowed:
-            Optional[Union[str, None]], default=None - can only enter
-            this if 'allowed' is not entered, cannot enter both. The
-            action keys that are not allowed to be selected from
-            MENU_DICT. 'allowed' becomes the space of action keys that
-            are not disallowed. case-sensitive. Enter as a contiguous
-            sequence of characters.
+        allowed : Optional[Union[str, None]], default=None
+            Can only enter this if 'disallowed' is not entered, cannot
+            enter both. The action keys that are allowed to be selected
+            from the full section available in MENU_DICT. case-sensitive.
+            Enter as a contiguous sequence of characters.
+        disallowed : Optional[Union[str, None]], default=None
+            Can only enter this if 'allowed' is not entered, cannot
+            enter both. The action keys that are not allowed to be
+            selected from MENU_DICT. 'allowed' becomes the space of
+            action keys that are not disallowed. case-sensitive. Enter
+            as a contiguous sequence of characters.
 
         """
 

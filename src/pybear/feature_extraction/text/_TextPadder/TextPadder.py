@@ -148,13 +148,13 @@ class TextPadder(
         Sequence[Sequence[str]]
 
     NumpyTypes:
-        npt.NDArray[str]
+        numpy.ndarray[str]
 
     PandasTypes:
-        pd.DataFrame
+        pandas.core.frame.DataFrame
 
     PolarsTypes:
-        pl.DataFrame
+        polars.dataframe.DataFrame
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]

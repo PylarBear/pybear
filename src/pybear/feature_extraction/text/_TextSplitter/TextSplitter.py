@@ -187,19 +187,20 @@ class TextSplitter(
 
     Notes
     -----
-    Type Aliases
+
+    **Type Aliases**
 
     PythonTypes:
         Union[list[str], tuple[str], set[str]]
 
     NumpyTypes:
-        npt.NDArray[str]
+        numpy.ndarray[str]
 
     PandasTypes:
-        pd.Series
+        pandas.core.series.Series
 
     PolarsTypes:
-        pl.Series
+        polars.series.Series
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]

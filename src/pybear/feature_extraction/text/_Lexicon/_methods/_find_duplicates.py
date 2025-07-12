@@ -27,8 +27,8 @@ def _find_duplicates(
         entry for each word in the lexicon, i.e., all frequencies should
         be 1.
 
-    Return
-    ------
+    Returns
+    -------
     DUPLICATES : dict[str, int]
         Dictionary of any duplicates in the lexicon and their frequencies.
 

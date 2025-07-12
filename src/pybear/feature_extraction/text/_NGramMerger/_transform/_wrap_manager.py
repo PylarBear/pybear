@@ -45,10 +45,10 @@ def _wrap_manager(
     ----------
     _first_line : list[str]
         The current line being searched for ngram patterns
-        in :meth: `transform`.
+        in :meth:`transform`.
     _second_line : list[str]
         The line below the current line being searched for ngram patterns
-        in :meth: `transform`.
+        in `transform`.
     _first_hits : Sequence[numbers.Integral]
         The first indices of any matching n-gram patterns found in the
         current line during the normal linear n-gram search.
@@ -63,9 +63,9 @@ def _wrap_manager(
         The callable applied to sequences that match an n-gram pattern
         to produce a single contiguous string.
     _sep : Union[str, None]
-        The user defined separator to join the words with, if _ngcallable
-        is not given. If no separator is defined by the user, use the
-        default separator.
+        The user defined separator to join the words with, if
+        `_ngcallable` is not given. If no separator is defined by the
+        user, use the default separator.
 
     Returns
     -------

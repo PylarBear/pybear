@@ -23,10 +23,11 @@ def _special_param_conditioner(
     _case_sensitive: bool,
     _flags: Union[numbers.Integral, None]
 ) -> NGramsWipType:
-    """Convert any literal strings in the ngrams to re.compile objects
-    and apply any flags from 'case_sensitive' and 'flags' to all the
-    compile objects, including those ngram patterns that may have
-    already been passed as re.compile.
+    """Convert any literal strings in the ngrams to re.compile objects.
+
+    Apply any flags from 'case_sensitive' and 'flags' to all the compile
+    objects, including those ngram patterns that may have already been
+    passed as re.compile.
 
     Parameters
     ----------

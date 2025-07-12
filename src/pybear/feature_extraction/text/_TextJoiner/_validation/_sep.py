@@ -18,30 +18,25 @@ def _val_sep(
     _sep: Union[str, Sequence[str]],
     _X: XContainer
 ) -> None:
+    """Validate `sep`.
 
-    """
-    Validate 'sep'. Must be a string or a 1D sequence of strings. If a
-    1D sequence, then the length of the sequence must equal the number
-    of rows in X.
-
+    Must be a string or a 1D sequence of strings. If a 1D sequence, then
+    the length of the sequence must equal the number of rows in `X`.
 
     Parameters
     ----------
-    _sep:
-        Union[str, Sequence[str]] - The character sequence to insert
-        between individual strings when joining the 2D input data across
-        rows. If a 1D sequence of strings, then the 'sep' value in each
-        position is used to join the corresponding row in X.
-    _X:
-        XContainer - the (possibly ragged) 2D container of text to be
-        joined across rows with the 'sep' character string(s).
+    _sep : Union[str, Sequence[str]]
+        The character sequence to insert between individual strings
+        when joining the 2D input data across rows. If a 1D sequence of
+        strings, then the `sep` value in each position is used to join
+        the corresponding row in `X`.
+    _X : XContainer
+        The (possibly ragged) 2D container of text to be joined across
+        rows with the `sep` character string(s).
 
-
-    Return
-    ------
-    -
-        None
-
+    Returns
+    -------
+    None
 
     """
 

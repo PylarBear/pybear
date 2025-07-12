@@ -63,7 +63,7 @@ def _validation(
         Whether to do a case-sensitive search.
     _remove_empty_rows : bool
         Whether to delete any empty rows that may occur during the
-        merging process. A row could only become empty if 'wrap' is True.
+        merging process. A row could only become empty if `_wrap` is True.
     _flags : Union[numbers.Integral, None]
         The global flags value(s) applied to the n-gram search. Must be
         None or an integer. The values of the integers are not validated

@@ -42,6 +42,16 @@ Functional Code
 All modules must follow the appropriate scikit-learn API for their type 
 (e.g. transformer, estimator).
 
+Do not use any third party package validation functions or mixins to build
+pybear modules, even if they are part of that package's public API. This
+especially means scikit! pybear has gone to great lengths to free itself
+from disruption by changes in third party packages. When using tools from
+a third party package, pybear deliberately tries to only use the most
+popular (and least likely to change) functionality in their public API.
+Everything you need to build the non-public API of pybear modules is in
+the pybear 'base' toolkit. If there is a need for some new functionality,
+do not borrow, build it for pybear.
+
 All major modules must always accept numpy ndarrays, pandas dataframes, and
 polars dataframes. They must also accept all scipy sparse matrix/array formats
 (as of the time of this writing there are seven) when the data is strictly
@@ -51,7 +61,7 @@ Python built-ins.) pybear generally encourages the use of memory-optimized
 containers over Python built-ins except in the case of text analytics. Any
 containers beyond the the ones listed here, especially if they require
 importing a new package, should be avoided unless there is a compelling case
-for the addition.
+for the addition. Lazy containers, like dask, should be avoided.
 
 All modules must robustly handle any nan-like values that could be found in the
 containers listed above (e.g, numpy.nan, pandas.NA). pybear recommends using

@@ -35,7 +35,7 @@ def _validation(
     _supplemental: Union[Sequence[str], None],
     _n_jobs: Union[numbers.Integral, None]
 ) -> None:
-    """Centralized hub for validating parameters for StopRemover.
+    """Centralized hub for validating parameters for `StopRemover`.
 
     The brunt of validation is handled by the individual validation
     modules. See the individual modules for more details.
@@ -45,7 +45,7 @@ def _validation(
     _X : XContainer
         The data from which to remove stop words.
     _match_callable : Union[Callable[[str, str], bool], None]
-        None to use the default StopRemover matching criteria, or a
+        None to use the default `StopRemover` matching criteria, or a
         custom callable that defines what constitutes matches of words
         in the text against the stop words.
     _remove_empty_rows : bool
@@ -58,8 +58,8 @@ def _validation(
         Words to be removed in addition to the stop words.
     _n_jobs : Optional[Union[numbers.Integral, None]], default = -1
         The number of cores/threads to use when parallelizing the
-        search for stop words in the rows of X. The default is to
-        use processes but can be set by running StopRemover under a
+        search for stop words in the rows of `X`. The default is to
+        use processes but can be set by running `StopRemover` under a
         joblib parallel_config context manager. -1 uses all available
         cores/threads. None uses joblib's default number of cores/threads.
 

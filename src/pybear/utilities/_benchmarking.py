@@ -17,9 +17,8 @@ import psutil
 
 
 def timer(orig_func):
-
-    """ Wraps a function with a timer that displays the elapsed time of
-    running a function.
+    """Wraps a function with a timer that displays the time in seconds
+    it took for a function to run.
 
     Parameters
     ----------
@@ -48,6 +47,17 @@ def timer(orig_func):
 
     @wraps(orig_func)
     def wrapper(*args, **kwargs):
+        """Wrap the decorated function with a timer.
+
+        Parameters
+        ----------
+        *args:
+            The positional arguments for the wrapped function.
+        **kwargs:
+            The keyword arguments for the wrapped function.
+
+        """
+
         t1 = time.time()
         result = orig_func(*args, **kwargs)
         t2 = time.time() - t1
@@ -60,10 +70,9 @@ def timer(orig_func):
 def time_memory_benchmark(
     *args,
     number_of_trials:numbers.Integral = 7,
-    rest_time:numbers.Real=1,
-    verbose:numbers.Real=1
+    rest_time:numbers.Real = 1,
+    verbose:numbers.Real = 1
 ) -> np.ndarray:
-
     """Measure the average time (seconds) and the average change in system
     RAM (MB) when computing functions.
 
@@ -87,11 +96,10 @@ def time_memory_benchmark(
 
     Returns
     -------
-    return
-        TIME_MEM_HOLDER: ndarray of shape (2, number of functions,
-        number_of_trials) - Raw measurements of time (sec) and memory
-        change (MB). Index 0 of the first axis contains time results,
-        index 1 contains memory results.
+    TIME_MEM_HOLDER : ndarray of shape (2, n_functions, n_trials)
+        Raw measurements of time (sec) and memory change (MB). Index 0
+        of the first axis contains time results, index 1 contains memory
+        results.
 
     Examples
     --------
@@ -146,25 +154,34 @@ def time_memory_benchmark(
 
     for arg in args:
         if len(arg) != 4:
-            raise ValueError(f"Enter args as tuples of ('function_name', "
-                             f"function, ARGS_AS_LIST, KWARGS_AS_DICT).")
+            raise ValueError(
+                f"Enter args as tuples of ('function_name', function, "
+                f"ARGS_AS_LIST, KWARGS_AS_DICT)."
+            )
 
         if not isinstance(arg[0], str):
-            raise TypeError(f"first position in tuple must be function name as "
-                            f"a string")
+            raise TypeError(
+                f"first position in tuple must be function name as a string"
+            )
         if not callable(arg[1]):
             raise TypeError(f"second position in tuple must be a callable")
         if isinstance(arg[2], (str, dict)):
-            raise TypeError(f"third position in tuple must be a list-type of "
-                            f"arguments for the function")
+            raise TypeError(
+                f"third position in tuple must be a list-type of arguments "
+                f"for the function"
+            )
         try:
             list(arg[2])
         except:
-            raise TypeError(f"third position in tuple must be a list-type of "
-                            f"arguments for the function")
+            raise TypeError(
+                f"third position in tuple must be a list-type of arguments "
+                f"for the function"
+            )
         if not isinstance(arg[3], dict):
-            raise TypeError(f"fourth position in tuple must be a dictionary of "
-                            f"keyword arguments for the function")
+            raise TypeError(
+                f"fourth position in tuple must be a dictionary of keyword "
+                f"arguments for the function"
+            )
 
     try:
         float(number_of_trials)
@@ -193,6 +210,7 @@ def time_memory_benchmark(
 
     ###### CORE MEASUREMENT FUNCTIONS ##################################
     def timer(user_fxn):
+        """Decorator for the user function."""
 
         def wrapped1(ARGS, KWARGS):
             time.sleep(rest_time)                       # EQUILIBRATE MEMORY
@@ -206,6 +224,7 @@ def time_memory_benchmark(
 
 
     def mem(timer_fxn):
+        """Decorator for the user function."""
 
         def wrapped2(ARGS, KWARGS):
             # GET START MEM

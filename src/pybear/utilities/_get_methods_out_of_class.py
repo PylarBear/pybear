@@ -11,18 +11,17 @@ import inspect
 
 
 def get_methods_out_of_class(MyClass) -> list:
-
     """Generate a list of all the methods in an uninstantiated class.
 
     Parameters
     ----------
-    MyClass:
-        class - object for which to find methods. Connot be instantiated.
+    MyClass : object
+        Class for which to find methods. Connot be instantiated.
 
     Returns
     -------
-    methods_list:
-        list - a list of the methods in the class as strings
+    methods_list : list
+        A list of the methods in the class as strings
 
     Examples
     --------
@@ -38,8 +37,6 @@ def get_methods_out_of_class(MyClass) -> list:
     """
 
 
-
-
     if not inspect.isclass(MyClass):
         raise TypeError(f'must pass a class, and not a class instance')
 
@@ -49,14 +46,6 @@ def get_methods_out_of_class(MyClass) -> list:
         methods_list.append(name)
 
     return methods_list
-
-
-
-
-
-
-
-
 
 
 

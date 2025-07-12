@@ -54,15 +54,15 @@ def _transform(
         The callable applied to sequences that match an n-gram pattern
         to produce a single contiguous string.
     _sep : Union[str, None]
-        The user defined separator to join the words with, if _ngcallable
-        is not given. If no separator is defined by the user, use the
-        default separator.
+        The user defined separator to join the words with, when
+        `_ngcallable` is not given. If no separator is defined by the
+        user, use the default separator.
     _wrap : bool
         Whether to look for pattern matches across the end of the
         current line and beginning of the next line.
     _remove_empty_rows : bool
         Whether to delete any empty rows that may occur during the
-        merging process. A row could only become empty if 'wrap' is
+        merging process. A row could only become empty if `_wrap` is
         True or the original data had an empty row already in it.
 
     Returns
@@ -73,8 +73,8 @@ def _transform(
 
         NDArray[bool] - a 1D boolean vector of shape (n_rows_, ) that
         indicates what rows of the data were kept (True) and what rows
-        were removed (False)  during transform. A row can only be removed
-        from the data if 'wrap' is True.
+        were removed (False) during transform. A row can only be removed
+        from the data if `_wrap` is True.
 
     Notes
     -----

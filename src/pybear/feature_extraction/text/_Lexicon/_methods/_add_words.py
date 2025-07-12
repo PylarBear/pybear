@@ -44,8 +44,8 @@ def _add_words(
     lexicon will always follow these rules. When the validation is
     used it ensures the integrity of the lexicon. However, the user can
     override this validation for local copies of pybear by setting
-    'character_validation', 'majuscule_validation', and / or
-    'file_validation' to False. If you want your lexicon to have strings
+    `character_validation`, `majuscule_validation`, and / or
+    `file_validation` to False. If you want your lexicon to have strings
     that contain numbers, spaces, punctuation, and have different cases,
     then set the validation to False and add your strings to the lexicon
     via this method.
@@ -56,8 +56,8 @@ def _add_words(
     like 'apple' would be stored in a file named 'lexicon_a'. Keep in
     mind that the pybear lexicon is built with all capitalized words
     and file names and these are the only ones that exist out of the
-    box. If you were to turn off the 'majuscule_validation' and
-    'file_validation' and pass the word 'apple' to this method, it
+    box. If you were to turn off the `majuscule_validation` and
+    `file_validation` and pass the word 'apple' to this method, it
     will NOT append 'APPLE' to the 'lexicon_A' file, a new lexicon
     file called 'lexicon_a' will be created and the word 'apple' will
     be put into it.
@@ -96,8 +96,8 @@ def _add_words(
         any character is accepted, which may then necessitate that a
         file be created.
 
-    Return
-    ------
+    Returns
+    -------
     None
 
     """

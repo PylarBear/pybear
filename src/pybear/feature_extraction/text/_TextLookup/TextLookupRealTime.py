@@ -6,8 +6,14 @@
 
 
 
-from typing import Optional, Sequence
-from typing_extensions import Self, Union
+from typing import (
+    Optional,
+    Sequence
+)
+from typing_extensions import (
+    Self,
+    Union
+)
 import numpy.typing as npt
 
 from copy import deepcopy
@@ -27,10 +33,10 @@ from ._shared._type_aliases import (
 )
 
 from ..__shared._transform._map_X_to_list import _map_X_to_list
+from ..__shared._utilities._view_text_snippet import view_text_snippet
 
 from ....data_validation import validate_user_input as vui
 
-from ....utilities._view_text_snippet import view_text_snippet
 from ....base._copy_X import copy_X
 
 from ._TextLookupMixin import _TextLookupMixin
@@ -40,13 +46,13 @@ from ....base._check_is_fitted import check_is_fitted
 
 
 class TextLookupRealTime(_TextLookupMixin):
+    """Handle words in a 2D array-like body of text that are not in the
+    pybear Lexicon.
 
-    """
-    Handle words in a 2D array-like body of text that are not in the
-    pybear Lexicon. Options include replacing, removing, splitting, or
-    skipping the word, or staging it to add to the pybear Lexicon.
+    Options include replacing, removing, splitting, or skipping the word,
+    or staging it to add to the pybear Lexicon.
 
-    TextLookupRealTime (TLRT) has a dual-functionality :meth: `transform`
+    TextLookupRealTime (TLRT) has a dual-functionality :meth:`transform`
     method. TLRT can operate autonomously on your data for a completely
     hands-free experience, or can be driven in a fully interactive
     transform process. The interactive mode is a menu-driven process
@@ -311,7 +317,7 @@ class TextLookupRealTime(_TextLookupMixin):
         to :meth: `transform`. Not necessarily the number of rows in the
         outputted data.
     row_support_:
-        npt.NDArray[bool] - A 1D boolean vector of shape (n_rows, ) that
+        numpy.ndarray[bool] - A 1D boolean vector of shape (n_rows, ) that
         indicates which rows have been kept in the data. Only reflects
         the last dataset passed to :meth: `transform`.
     LEXICON_ADDENDUM_:
@@ -382,13 +388,13 @@ class TextLookupRealTime(_TextLookupMixin):
         Sequence[Sequence[str]]
 
     NumpyTypes:
-        npt.NDArray[str]
+        numpy.ndarray[str]
 
     PandasTypes:
-        pd.DataFrame
+        pandas.core.frame.DataFrame
 
     PolarsTypes:
-        pl.DataFrame
+        polars.dataframe.DataFrame
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
@@ -397,7 +403,7 @@ class TextLookupRealTime(_TextLookupMixin):
         list[list[str]]
 
     RowSupportType:
-        npt.NDArray[bool]
+        numpy.ndarray[bool]
 
 
     Examples

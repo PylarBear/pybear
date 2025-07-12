@@ -6,6 +6,16 @@
 
 
 
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
+from .__type_aliases import (
+    NumpyTypes,
+    PandasTypes,
+    PolarsTypes
+)
+
 import numpy as np
 import pandas as pd
 import polars as pl
@@ -13,26 +23,74 @@ import scipy.sparse as ss
 
 
 
-def array_sparsity(a) -> float:
+PythonTypes: TypeAlias = Union[list, tuple, list[list], tuple[tuple]]
+
+ScipySparseTypes: TypeAlias = Union[
+    ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
+    ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
+    ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array
+]
+
+Container: TypeAlias = Union[
+    PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes
+]
+
+
+
+def array_sparsity(a: Container) -> float:
     """Calculate the sparsity (percentage of zeros) of an array-like.
+
+    Returns a float between 0 and 100.
+
+    Accepts Python lists and tuples but not sets, numpy ndarrays, pandas
+    series and dataframes, polars series and dataframes, and all scipy
+    sparse matrices / arrays except bsr.
+
 
     Parameters
     -----------
     a : array_like of shape (n_samples, n_features) or (n_samples,)
-        object for which to calculate sparsity. Must not be empty.
+        Object for which to calculate sparsity. Cannot be empty.
 
     Returns
     -------
     sparsity : float
-        percentage of zeros in a.
+        percentage of zeros in `a`.
 
     Examples
     --------
     >>> import numpy as np
     >>> from pybear.utilities import array_sparsity
-    >>> a = np.array([[0,1,0,2,0],[1,0,2,0,3]])
+    >>> a = np.array([[0,1,0,2,0],[1,0,0,0,3]])
     >>> array_sparsity(a)
-    50.0
+    60.0
+
+    Notes
+    -----
+
+    **Type Aliases**
+
+    PythonTypes
+        Union[list, tuple, list[list], tuple[tuple]]
+
+    NumpyTypes
+        numpy.ndarray
+
+    PandasTypes
+        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+
+    PolarsTypes
+        Union[polars.series.Series, polars.dataframe.DataFrame]
+
+    ScipySparseTypes
+        Union[
+            ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
+            ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
+            ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array
+        ]
+
+    Container:
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
 
     """
 
@@ -47,7 +105,7 @@ def array_sparsity(a) -> float:
     err_msg = (f"'a' must be a non-empty array-like that can be "
                f"converted to numpy.ndarray.")
 
-    if hasattr(a, 'size') and a.size == 0:
+    if hasattr(a, 'shape') and np.prod(a.shape) == 0:
         raise ValueError(err_msg)
 
     if not _skip_validation:
@@ -61,13 +119,20 @@ def array_sparsity(a) -> float:
 
 
     if isinstance(a, np.ndarray):
-        return float((a == 0).astype(np.int32).sum() / a.size * 100)
+        _non_zero = (a == 0).astype(np.int8).sum()
+        _size = a.size
     elif isinstance(a, (pd.core.series.Series, pd.core.frame.DataFrame)):
-        return float((a == 0).astype(np.int32).sum() / a.size * 100)
-    elif isinstance(a, (pl.series.Series, pl.dataframe.DataFrame)):
-        return float((a == 0).cast(pl.Int32).sum() / a.size * 100)
+        _non_zero = (a == 0).astype(np.int8).values.sum()
+        _size = a.size
+    elif isinstance(a, pl.series.Series):
+        _non_zero = (a == 0).cast(pl.Int8).sum()
+        _size = np.prod(a.shape)
+    elif isinstance(a, pl.dataframe.DataFrame):
+        _non_zero = (a == 0).cast(pl.Int8).sum().sum_horizontal()[0]
+        _size = np.prod(a.shape)
     elif hasattr(a, 'toarray'):
-        return
+        _size = np.prod(a.tocsc().shape)
+        _non_zero = _size - a.tocsc().size
     else:
         try:
             a = np.array(list(map(list, a)))
@@ -80,7 +145,14 @@ def array_sparsity(a) -> float:
         if a.size == 0:
             raise ValueError(err_msg)
 
-        return float((a == 0).astype(np.int32).sum() / a.size * 100)
+        _non_zero = (a == 0).astype(np.int8).sum()
+        _size = a.size
+
+
+    return float(_non_zero / _size * 100)
+
+
+
 
 
 
