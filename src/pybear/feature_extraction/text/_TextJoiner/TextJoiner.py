@@ -11,6 +11,7 @@ from typing import (
     Sequence
 )
 from typing_extensions import (
+    Any,
     Self,
     Union
 )
@@ -148,10 +149,10 @@ class TextJoiner(
 
     @property
     def n_rows_(self):
-        """
-        Get the n_rows_ attribute. The number of rows of text seen
-        during transform and the number of strings in the returned
-        1D python list.
+        """Get the `n_rows_` attribute.
+
+        The number of rows of text seen during transform and the number
+        of strings in the returned 1D python list.
         """
         return self._n_rows
 
@@ -161,6 +162,7 @@ class TextJoiner(
 
 
     def get_metadata_routing(self):
+        """`get_metadata_routing` is not implemented in TextJoiner"""
         raise NotImplementedError(
             f"'get_metadata_routing' is not implemented in TextJoiner"
         )
@@ -181,29 +183,22 @@ class TextJoiner(
     def partial_fit(
         self,
         X: XContainer,
-        y: Optional[Union[any, None]] = None
+        y: Optional[Any] = None
     ) -> Self:
-
-        """
-        No-op batch-wise fit method.
-
+        """No-op batch-wise `fit` method.
 
         Parameters
         ----------
-        X:
-            XContainer - the (possibly ragged) 2D container of text to
-            be joined along rows using the :param: `sep` character
-            string(s). Ignored.
-        y:
-            Optional[Union[any, None]], default=None - the target for
-            the data. Always ignored.
-
+        X : XContainer
+            The (possibly ragged) 2D container of text to be joined along
+            rows using the `sep` character string(s). Ignored.
+        y : Optional[Any], default=None
+            The target for the data. Always ignored.
 
         Returns
         -------
-        -
-            self: the TextJoiner instance.
-
+        self : object
+            The TextJoiner instance.
 
         """
 
@@ -213,29 +208,22 @@ class TextJoiner(
     def fit(
         self,
         X: XContainer,
-        y: Optional[Union[any, None]] = None
+        y: Optional[Any] = None
     ) -> Self:
-
-        """
-        No-op one-shot fit method.
-
+        """No-op one-shot `fit` method.
 
         Parameters
         ----------
-        X:
-            XContainer - the (possibly ragged) 2D container of text
-            to be joined along rows using the :param: `sep` character
-            string(s). Ignored.
-        y:
-            Optional[Union[any, None]], default=None - the target for
-            the data. Always ignored.
-
+        X : XContainer
+            The (possibly ragged) 2D container of text to be joined along
+            rows using the `sep` character string(s). Ignored.
+        y : Optional[Any], default=None
+            The target for the data. Always ignored.
 
         Returns
         -------
-        -
-            self: the TextJoiner instance.
-
+        self : object
+            The TextJoiner instance.
 
         """
 
@@ -247,29 +235,25 @@ class TextJoiner(
         X:XContainer,
         copy:Optional[bool] = False
     ) -> XWipContainer:
+        """Convert each row of strings in X to a single string.
 
-        """
-        Convert each row of strings in X to a single string, joining on
-        the string character sequence(s) provided by :param: `sep`.
+        Joining on the string character sequence(s) provided by `sep`.
         Returns a python list of strings.
-
 
         Parameters
         ----------
-        X:
-            XContainer - the (possibly ragged) 2D container of text
-            to be joined along rows using the :param: `sep` character
-            string(s).
-        copy:
-            Optional[bool], default=False - whether to operate directly
-            on the original X or a deepcopy of X.
-
+        X : XContainer
+            The (possibly ragged) 2D container of text to be joined along
+            rows using the `sep` character string(s).
+        copy : Optional[bool], default=False
+            Whether to operate directly on the original `X` or a deepcopy
+            of `X`.
 
         Returns
         -------
-        -
-            XWipContainer - A single list containing strings, one
-            string for each row in the original X.
+        X_tr : XWipContainer
+            A single list containing strings, one string for each row in
+            the original `X`.
 
         """
 
@@ -294,46 +278,29 @@ class TextJoiner(
     def score(
         self,
         X: XContainer,
-        y: Optional[Union[any, None]] = None
+        y: Optional[Any] = None
     ) -> None:
+        """No-op score method.
 
-        """
-        No-op score method. Needs to be here for dask_ml wrappers.
-
+        Needs to be here for dask_ml wrappers.
 
         Parameters
         ----------
-        X:
-            XContainer - the (possibly ragged) 2D container of text
-            to be joined along rows using the :param: `sep` character
-            string(s). Ignored.
-        y:
-            Optional[Union[any, None]], default=None - the target for
-            the data. Always ignored.
-
+        X : XContainer
+            The (possibly ragged) 2D container of text to be joined along
+            rows using the `sep` character string(s). Ignored.
+        y : Optional[Any], default=None
+            The target for the data. Always ignored.
 
         Returns
         -------
-        -
-            None
-
+        None
 
         """
 
         check_is_fitted(self)
 
         return
-
-
-
-
-
-
-
-
-
-
-
 
 
 

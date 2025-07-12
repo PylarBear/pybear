@@ -10,7 +10,10 @@ from typing import (
     Optional,
     Sequence
 )
-from typing_extensions import Union
+from typing_extensions import (
+    Any,
+    Union
+)
 
 import re
 import os
@@ -177,22 +180,22 @@ class Lexicon(TextStatistics):
         raise AttributeError(f"'set_params' is blocked")
 
 
-    def partial_fit(self, X:any, y:Optional[any] = None):
+    def partial_fit(self, X:Any, y:Optional[Any] = None):
         """Blocked."""
         raise AttributeError(f"'partial_fit' is blocked")
 
 
-    def fit(self, X:any, y:Optional[any] = None):
+    def fit(self, X:Any, y:Optional[Any] = None):
         """Blocked."""
         raise AttributeError(f"'fit' is blocked")
 
 
-    def transform(self, X:any):
+    def transform(self, X:Any):
         """Blocked."""
         raise AttributeError(f"'transform' is blocked")
 
 
-    def score(self, X:any, y:Optional[any] = None):
+    def score(self, X:Any, y:Optional[Any] = None):
         """Blocked."""
         raise AttributeError(f"'score' is blocked")
 

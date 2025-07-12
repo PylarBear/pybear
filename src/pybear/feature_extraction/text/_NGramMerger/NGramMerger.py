@@ -447,7 +447,7 @@ class NGramMerger(
         ----------
         X : XContainer
             The data. Ignored.
-        y : Optional[Union[any, None]], default=None
+        y : Optional[Any], default=None
             The target for the data. Always ignored.
 
         Return
@@ -479,7 +479,7 @@ class NGramMerger(
 
         Return
         ------
-        list[list[str]]:
+        X_tr : list[list[str]]
             The data with all matching n-gram patterns replaced with
             contiguous strings.
 
@@ -499,13 +499,13 @@ class NGramMerger(
         )
 
         if copy:
-            _X = copy_X(X)
+            X_tr = copy_X(X)
         else:
-            _X = X
+            X_tr = X
 
-        _X = _map_X_to_list(_X)
+        X_tr = _map_X_to_list(X_tr)
 
-        self._n_rows: int = len(_X)
+        self._n_rows: int = len(X_tr)
 
         _ngrams_wip: NGramsWipType = _special_param_conditioner(
             self.ngrams,
@@ -523,18 +523,18 @@ class NGramMerger(
         #         _replacer (only one that uses sep)
         #     _replacer (only one that uses sep)
 
-        _X, self._row_support = _transform(
-            _X, _ngrams_wip, self.ngcallable, self.sep, self.wrap,
+        X_tr, self._row_support = _transform(
+            X_tr, _ngrams_wip, self.ngcallable, self.sep, self.wrap,
             self.remove_empty_rows
         )
 
-        return _X
+        return X_tr
 
 
     def score(
         self,
         X: XContainer,
-        y: Optional[Union[any, None]] = None
+        y: Optional[Any] = None
     ) -> None:
         """No-op score method.
 
@@ -544,7 +544,7 @@ class NGramMerger(
         ----------
         X : XContainer
             The data. Ignored.
-        y : Optional[Union[any, None]], default=None
+        y : Optional[Any], default=None
             The target for the data. Always ignored.
 
         Return

@@ -26,32 +26,31 @@ def _transform(
     _line_break: LineBreakWipType,
     _backfill_sep: str
 ) -> list[str]:
+    """Fit text as strings to the user-specified number of characters per
+    row.
 
-    """
-    Fit text as strings to the user-specified number of characters per
-    row. For this module, the data must be a 1D python list of strings.
+    For this module, the data must be a 1D python list of strings.
 
-    `_sep` and `_line_break` must have already been processed by
-    _param_conditioner, i.e., all literal strings must be converted to
-    re.compile and any flags passed as parameters or associated with
-    `case_sensitive` must have been put in the compile(s).
-
+    `_sep` and `_line_break` must have already been processed
+    by :func:`_param_conditioner`, i.e., all literal strings must be
+    converted to re.compile and any flags passed as parameters or
+    associated with `case_sensitive` must have been put in the compile(s).
 
     Parameters
     ----------
-    _X:
-        list[str] - The text to justify as a 1D python list of strings.
-    _n_chars:
-        numbers.Integral - the number of characters per line to target
-        when justifying the text.
-    _sep:
-        SepWipType - the regex pattern(s) that indicate to TJ where it
-        is allowed to wrap a line.
-    _line_break:
-        LineBreakWipType - the regex pattern(s) that indicate to TJ where
-        it must force a new line.
-    _backfill_sep:
-        str - Some lines in the text may not have any of the given wrap
+    _X : list[str]
+        The text to justify as a 1D python list of strings.
+    _n_chars : numbers.Integral
+        The number of characters per line to target when justifying the
+        text.
+    _sep : SepWipType
+        The regex pattern(s) that indicate to TJ where it is allowed to
+        wrap a line.
+    _line_break : LineBreakWipType
+        The regex pattern(s) that indicate to TJ where it must force a
+        new line.
+    _backfill_sep : str
+        Some lines in the text may not have any of the given wrap
         separators or line breaks at the end of the line. When justifying
         text and there is a shortfall of characters in a line, TJ will
         look to the next line to backfill strings. In the case where the
@@ -60,12 +59,10 @@ def _transform(
         separate the otherwise separator-less string from the string
         being backfilled onto it.
 
-
     Return
     ------
-    _X:
-        list[str] - the justified text in a python list of strings.
-
+    _X : list[str]
+        The justified text in a python list of strings.
 
     """
 
@@ -96,11 +93,6 @@ def _transform(
 
 
     return _X
-
-
-
-
-
 
 
 

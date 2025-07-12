@@ -6,25 +6,33 @@
 
 
 
-from typing import Literal, Sequence
-from typing_extensions import Union
+from typing import (
+    Literal,
+    Sequence
+)
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 
 import re
 
 
 
+SepOrLineBreakType: TypeAlias = \
+    Union[None, str, Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]]]
+
+
+
 def _val_sep_or_line_break(
-    _sep_or_line_break:Union[
-        None, str, Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]]
-    ],
+    _sep_or_line_break:SepOrLineBreakType,
     _name:Literal['sep', 'line_break'],
     _mode:Literal['str', 'regex']
 ) -> None:
+    """Validate `sep` or `line_break`.
 
-    """
-    Validate `sep` or `line_break`. `sep` cannot be None, but `line_break`
-    can be. That is the only difference for what can be passed to `sep`
-    and `line_break`.
+    `sep` cannot be None, but `line_break` can be. That is the only
+    difference for what can be passed to `sep` and `line_break`.
 
     For string mode:
     Must be a non-empty string or a non-empty python sequence of
@@ -38,19 +46,15 @@ def _val_sep_or_line_break(
     the validity of the expression itself. Any exceptions would be raised
     by re.search.
 
-
     Parameters
     ----------
-    _sep_or_line_break:
-        Union[Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]],
-        str, None] -
+    _sep_or_line_break : SepOrLineBreakType
 
         Cannot pass an empty string or a regex pattern that blatantly
         returns a zero-span match. Cannot be an empty sequence.
 
-        sep: Union[str, re.Pattern[str], Sequence[re.Pattern[str]],
-        Sequence[str]]- the pattern(s) that indicate to TJ where it
-        is allowed to wrap a line if n_chars dictates to do so. A new
+        sep: SepType - the pattern(s) that indicate to TJ where it
+        is allowed to wrap a line if `n_chars` dictates to do so. A new
         line would be wrapped immediately AFTER the given pattern.
         When passed as a sequence of patterns, TJ will consider any
         of those patterns as a place where it can wrap a line. If
@@ -58,19 +62,17 @@ def _val_sep_or_line_break(
         pattern(s), then there are no wraps. If a `sep` pattern match
         is in the middle of a text sequence that might otherwise be
         expected to be contiguous, TJ will wrap a new line after the
-        match indiscriminately if proximity to the n_chars limit
+        match indiscriminately if proximity to the `n_chars` limit
         dictates to do so.
 
-        line_break:
-        Union[Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]],
-        str, None] - Tells TJ where it must start a new line. A new
-        line will be started immediately AFTER the given pattern
-        regardless of the number of characters in the line. When
+        line_break: LineBreakType - Tells TJ where it must start a new
+        line. A new line will be started immediately AFTER the given
+        pattern regardless of the number of characters in the line. When
         passed as a sequence of patterns, TJ will force a new line
         immediately AFTER any occurrences of the patterns given. If
         None, do not force any line breaks. If the there are no patterns
         in the data that match the given pattern(s), then there are no
-        forced line breaks. If a line_break pattern is in the middle
+        forced line breaks. If a `line_break` pattern is in the middle
         of a sequence that might otherwise be expected to be contiguous,
         TJ will force a new line AFTER the line_break indiscriminately.
     _name:
@@ -80,11 +82,23 @@ def _val_sep_or_line_break(
         Literal['str', 'regex'] - whether validating strings for 'str'
         mode or re.compile objects for 'regex' mode.
 
-
     Return
     ------
-    -
-        None
+    None
+
+    Notes
+    -----
+
+    **Type Aliases**
+
+    SepType:
+        Union[str, Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]]]
+
+    LineBreakType:
+        Union[None, str, Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]]]
+
+    SepOrLineBreakType:
+        Union[None, str, Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]]]
 
     """
 
@@ -106,18 +120,13 @@ def _val_sep_or_line_break(
     def _can_return_empty_match(
         _pat: Union[str, re.Pattern[str]]
     ) -> bool:
-
-        """
-        Helper function to try to identify strings or regex patterns
+        """Helper function to try to identify strings or regex patterns
         that will always return zero-span matches.
-
 
         Parameters
         ----------
-        _pat:
-            Union[str, re.Pattern[str]] - a string or re.compile object
-            passed to TJ at init.
-
+        _pat : Union[str, re.Pattern[str]]
+            A string or re.compile object passed to TJ at init.
 
         """
 

@@ -24,44 +24,45 @@ def _stacker(
     _line_break: LineBreakWipType,
     _backfill_sep: str
 ) -> list[str]:
+    """Compile the text in `X` line by line to fill the `n_chars` per
+    row requirement.
 
-    """
     After the original text is split into lines of indivisible chunks of
-    text by _splitter() (each line ends with sep or line break, or has
-    neither), recompile the text line by line to fill the n_chars per
-    row requirement. Observe the _line_break rule that that pattern must
-    end a line and subsequent text starts on a new line below. Observe
-    the _backfill_sep rule that when a line that does not end with a sep
-    pattern has a line from a row below stacked to it, that the
-    _backfill_sep sequence is inserted in between.
+    text by :func:`_splitter` (each line ends with `sep` or `line_break`,
+    or has neither), recompile the text line by line to fill the `n_chars`
+    per row requirement. Observe the `line_break` rule that that pattern
+    must end a line and subsequent text starts on a new line below.
+    Observe the `backfill_sep` rule that when a line that does not end
+    with a `sep` pattern has a line from a row below stacked to it, that
+    the `backfill_sep` sequence is inserted in between.
 
-    How could a line in the split text have no sep or linebreak at the
-    end? Because that was how the line was in the raw text, and _splitter
-    did a no-op on it because there were no seps or line breaks in it.
+    How could a line in the split text have no `sep` or `line_break`
+    at the end? Because that was how the line was in the raw text,
+    and :func:`_splitter` did a no-op on it because there were no seps
+    or line breaks in it.
 
-    `_sep` and `_line_break` must have already been processed by
-    _param_conditioner, i.e., all literal strings must be converted to
-    re.compile and any flags passed as parameters or associated with
-    `case_sensitive` must have been put in the compile(s).
-
+    `sep` and `line_break` must have already been processed
+    by :func:`_param_conditioner`, i.e., all literal strings must be
+    converted to re.compile and any flags passed as parameters or
+    associated with `case_sensitive` must have been put in the compile(s).
 
     Parameters
     ----------
-    _X:
-        list[str] - the data as processed by _splitter(). Must be a list
-        of strings. Each string is an indivisible unit of text based on
-        the given separators and line-breaks.
-    _n_chars:
-        numbers.Integral - the number of characters per line to target
-        when justifying the text.
-    _sep:
-        SepWipType - the regex pattern(s) that indicate to TJ where it
-        is allowed to wrap a line.
-    _line_break:
-        LineBreakWipType - the regex pattern(s) that indicate to TJ where
-        it must force a new line.
-    _backfill_sep:
-        str - Some lines in the text may not have any of the given wrap
+    _X : list[str]
+        The data as processed by _splitter(). Must be a list of strings.
+        Each string is an indivisible unit of text based on the given
+        separators and line-breaks.
+    _n_chars : numbers.Integral
+        The number of characters per line to target when justifying the
+        text.
+    _sep : SepWipType
+        The regex pattern(s) that indicate to TJ where it is allowed to
+        wrap a line.
+    _line_break : LineBreakWipType
+        The regex pattern(s) that indicate to TJ where it must force a
+        new line.
+    _backfill_sep : str
+        Some lines in the text may not have any of the given wrap
         separators or line breaks at the end of the line. When justifying
         text and there is a shortfall of characters in a line, TJ will
         look to the next line to backfill strings. In the case where the
@@ -70,12 +71,21 @@ def _stacker(
         separate the otherwise separator-less string from the string
         being backfilled onto it.
 
-
     Returns
     -------
-    _X:
-        list[str] - the data in its final justified state.
+    _X : list[str]
+        The data in its final justified state.
 
+    Notes
+    -----
+
+    **Type Aliases**
+
+    SepWipType:
+        Union[re.Pattern[str], tuple[re.Pattern[str], ...]]
+
+    LineBreakWipType:
+        Union[None, CoreSepBreakWipType]
 
     """
 
@@ -95,6 +105,9 @@ def _stacker(
     def _precondition_helper(
         _obj: LineBreakWipType
     ) -> Union[None, tuple[re.Pattern[str], ...]]:
+        """Helper function to put $ at the end of all the patterns in
+        the compiles and convert single compile to iterable.
+        """
 
         if _obj is None:
             return None
@@ -198,14 +211,6 @@ def _stacker(
 
 
     return _X
-
-
-
-
-
-
-
-
 
 
 

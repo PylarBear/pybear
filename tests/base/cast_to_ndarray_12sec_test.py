@@ -120,6 +120,11 @@ class TestCastToNDArray:
 
         _ref_X = np.array(list(_ref_X))
 
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+        # convert nans in _ref_X to np.nan, which is what cast_to_ndarray
+        # should be doing.
+        # _ref_X must be np
+        assert isinstance(_ref_X, np.ndarray)
         try:
             _og_dtype = _ref_X.dtype
             _ref_X = _ref_X.astype(np.float64)
@@ -132,6 +137,7 @@ class TestCastToNDArray:
                 _ref_X[nan_mask(_ref_X)] = np.nan
             except:
                 pass
+        # END # convert nans in _ref_X to np.nan ** * ** * ** * ** * **
 
         out = cast_to_ndarray(_X)
 
@@ -243,6 +249,11 @@ class TestCastToNDArray:
         elif _container is np.array:
             assert isinstance(_X, np.ma.MaskedArray)
 
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+        # convert nans in _ref_X to np.nan, which is what cast_to_ndarray
+        # should be doing.
+        # _ref_X must be np
+        assert isinstance(_ref_X, np.ndarray)
         try:
             _og_dtype = _ref_X.dtype
             _ref_X = _ref_X.astype(np.float64)
@@ -255,6 +266,7 @@ class TestCastToNDArray:
                 _ref_X[nan_mask(_ref_X)] = np.nan
             except:
                 pass
+        # END # convert nans in _ref_X to np.nan ** * ** * ** * ** * **
 
 
         out = cast_to_ndarray(_X)
@@ -365,7 +377,11 @@ class TestCastToNDArray:
         else:
             raise Exception
 
-
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+        # convert nans in _ref_X to np.nan, which is what cast_to_ndarray
+        # should be doing.
+        # _ref_X must be np
+        assert isinstance(_ref_X, np.ndarray)
         try:
             _og_dtype = _ref_X.dtype
             _ref_X.astype(np.float64)
@@ -378,6 +394,7 @@ class TestCastToNDArray:
                 _ref_X[nan_mask(_ref_X)] = np.nan
             except:
                 pass
+        # END # convert nans in _ref_X to np.nan ** * ** * ** * ** * **
 
 
         if _dim == 1:
@@ -447,7 +464,11 @@ class TestCastToNDArray:
         else:
             raise Exception
 
-
+        # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+        # convert nans in _ref_X to np.nan, which is what cast_to_ndarray
+        # should be doing.
+        # _ref_X must be np
+        assert isinstance(_ref_X, np.ndarray)
         try:
             _og_dtype = _ref_X.dtype
             _ref_X = _ref_X.astype(np.float64)
@@ -460,6 +481,7 @@ class TestCastToNDArray:
                 _ref_X[nan_mask(_ref_X)] = np.nan
             except:
                 pass
+        # END # convert nans in _ref_X to np.nan ** * ** * ** * ** * **
 
         if _dim == 1:
             assert isinstance(_X, pl.Series)

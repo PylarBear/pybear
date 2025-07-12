@@ -301,7 +301,7 @@ class StopRemover(
         X : XContainer
             The (possibly ragged) 2D container of text from which to
             remove stop words. Ignored.
-        y : Optional[Union[any, None]], default=None
+        y : Optional[Any], default=None
             The target for the data. Always ignored.
 
         Returns
@@ -353,7 +353,7 @@ class StopRemover(
         X : XContainer
             The (possibly ragged) 2D container of text from which to
             remove stop words. Ignored.
-        y : Optional[Union[any, None]], default=None
+        y : Optional[Any], default=None
             The target for the data. Always ignored.
 
         Return
@@ -426,7 +426,7 @@ class StopRemover(
 
         Return
         ------
-        list[list[str]]
+        X_tr : list[list[str]]
             The data with stop words removed.
 
         """
@@ -442,19 +442,19 @@ class StopRemover(
         )
 
         if copy:
-            _X = copy_X(X)
+            X_tr = copy_X(X)
         else:
-            _X = X
+            X_tr = X
 
         # convert X to list-of-lists -- -- -- -- -- -- -- -- -- -- --
         # we know from validation it is legit 2D
-        _X: XWipContainer = _map_X_to_list(_X)
+        X_tr: XWipContainer = _map_X_to_list(X_tr)
 
-        self._n_rows = len(_X)
+        self._n_rows = len(X_tr)
         # END convert X to list-of-lists -- -- -- -- -- -- -- -- -- --
 
-        _X, self._row_support = _transform(
-            _X,
+        X_tr, self._row_support = _transform(
+            X_tr,
             self.match_callable or self._default_callable,
             self._stop_words,
             self.remove_empty_rows,
@@ -462,7 +462,7 @@ class StopRemover(
         )
 
 
-        return _X
+        return X_tr
 
 
 

@@ -23,8 +23,8 @@ def _replacer(
     _ngcallable: Union[Callable[[list[str]], str], None],
     _sep: Union[str, None]
 ) -> list[str]:
-    """Using the pattern match indices found by `_match_finder`, at
-    those indices in `_line` replace the words with the contiguous
+    """Using the pattern match indices found by :func:`_match_finder`,
+    at those indices in `_line` replace the words with the contiguous
     string mapped from the words.
 
     Merge ngrams that match ngram patterns using the following hierarchy:
