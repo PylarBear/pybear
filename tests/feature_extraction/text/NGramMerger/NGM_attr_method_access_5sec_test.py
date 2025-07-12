@@ -99,7 +99,7 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
         _row_support = getattr(TestCls, 'row_support_')
         assert isinstance(_row_support, np.ndarray)
         assert len(_row_support) == len(_X)
-        assert all(map(isinstance, _row_support, (np.bool for _ in _row_support)))
+        assert all(map(isinstance, _row_support, (np.bool_ for _ in _row_support)))
         # END AFTER TRANSFORM ******************************************
 
         del TestCls
