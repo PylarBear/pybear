@@ -11,6 +11,7 @@ from typing import (
     Sequence
 )
 from typing_extensions import (
+    Any,
     Self,
     Union
 )
@@ -47,32 +48,32 @@ from ....base._check_is_fitted import check_is_fitted
 
 class TextLookupRealTime(_TextLookupMixin):
     """Handle words in a 2D array-like body of text that are not in the
-    pybear Lexicon.
+    pybear `Lexicon`.
 
     Options include replacing, removing, splitting, or skipping the word,
-    or staging it to add to the pybear Lexicon.
+    or staging it to add to the pybear :class:`Lexicon`.
 
-    TextLookupRealTime (TLRT) has a dual-functionality :meth:`transform`
+    TextLookupRealTime (TLRT) has a dual-functionality :meth:transform`
     method. TLRT can operate autonomously on your data for a completely
     hands-free experience, or can be driven in a fully interactive
     transform process. The interactive mode is a menu-driven process
     that prompts the user for a decision about a word that is not in the
-    Lexicon and makes the edits to the data in real time (hence the
+    `Lexicon` and makes the edits to the data in real time (hence the
     name.)
 
     The main benefit of having a real-time interactive mode is when you
-    have data that has a lot of words that are not in the Lexicon.
+    have data that has a lot of words that are not in the `Lexicon`.
     Manually cleaning text is a labor-intensive process that can require
     a lot of time and effort and there is always the risk of losing your
     work. TLRT will ask you in-situ after every 20 manual edits if you
     want to save your work to the hard drive. So if your session is
     disrupted at some point midstream, you won't lose all of your work.
 
-    That aspect is the key difference between TLRT and TextLookup (TL),
-    that TLRT works on your data in real time, meaning that the data is
-    modified in-situ immediately when you indicate an action. TL is a
-    more conventional scikit-style transformer in that the learning that
-    takes place for both autonomous and manual modes happens in
+    That aspect is the key difference between TLRT and :class:`TextLookup`
+    (TL), that TLRT works on your data in real time, meaning that the
+    data is modified in-situ immediately when you indicate an action. TL
+    is a more conventional scikit-style transformer in that the learning
+    that takes place for both autonomous and manual modes happens in
     (partial_)fit, information is stored in 'holder' attributes, and
     then that information is applied blindly to any data that is passed
     to transform. TL does not mutate your data during fitting, so the
@@ -83,85 +84,85 @@ class TextLookupRealTime(_TextLookupMixin):
     you lose all your work. TLRT affords you the opportunity to save
     your work in-situ, making your changes permanent. Another benefit of
     operating directly on the data in-situ, unlike TL, is that you can
-    perform operations 'once' on specific occurrences of a word.
+    perform a different operation on each occurrence of a particular
+    word.
 
-    To run TLRT in autonomous mode, set either :param: `auto_delete`
-    or :param: `auto_add_to_lexicon` to True; both cannot simultaneously
-    be True. :param: `auto_add_to_lexicon` can only be True
-    if :param: `update_lexicon` is True.
+    To run TLRT in autonomous mode, set either `auto_delete` or
+    `auto_add_to_lexicon` to True; both cannot simultaneously be True.
+    `auto_add_to_lexicon` can only be True if the `update_lexicon`
+    parameter is True.
 
-    When :param: `auto_add_to_lexicon` is True, if TLRT encounters a
-    word that is not in the Lexicon it will automatically stage the word
-    in :attr: `LEXICON_ADDENDUM_` and go to the next word until all the
-    words in the text are exhausted. When :param: `auto_delete` is True,
-    if TLRT encounters a word that is not in the Lexicon, it will
-    automatically delete the word from the text body and go to the next
-    word, until all the words in the text are exhausted. In these cases,
-    TLRT can never proceed into manual mode. To allow TLRT enter manual
-    mode, both :param: `auto_delete` and :param: `auto_add_to_lexicon`
-    must be False.
+    When `auto_add_to_lexicon` is True, if TLRT encounters a word that
+    is not in the `Lexicon` it will automatically stage the word in
+    the :attr:`LEXICON_ADDENDUM_` and go to the next word until all the
+    words in the text are exhausted. When `auto_delete` is True, if TLRT
+    encounters a word that is not in the `Lexicon`, it will automatically
+    delete the word from the text body and go to the next word, until
+    all the words in the text are exhausted. In these cases, TLRT can
+    never proceed into manual mode. To allow TLRT enter manual mode,
+    both `auto_delete` and `auto_add_to_lexicon` must be False.
 
     In manual mode, when TLRT encounters a word that is not in the
-    Lexicon, the user will be prompted with an interactive menu for an
+    `Lexicon`, the user will be prompted with an interactive menu for an
     action. Choices include: 'skip once', 'skip always', 'delete once',
     'delete always', 'replace once', 'replace always', 'split once',
-    'split always', and if :param: `update_lexicon` is True, an
-    'add to lexicon' option. Notice that the operations can be split
-    into 2 groups, the 'once' group and the 'always' group. The 'once'
-    group is a one time operation on that word. TLRT will not remember
-    what to do the next time it sees this exact word. If you choose
-    something from the 'always' group, the word and its action go into
-    a 'holder' object so that TLRT remembers what to do next time it
-    sees the word. In this way, a tedious interactive session can become
-    more automated as the session proceeds.
+    'split always', and if `update_lexicon` is True, an 'add to lexicon'
+    option. Notice that the operations can be split into 2 groups, the
+    'once' group and the 'always' group. The 'once' group is a one time
+    operation on that word. TLRT will not remember what to do the next
+    time it sees this exact word. If you choose something from the
+    'always' group, the word and its action go into a 'holder' object so
+    that TLRT remembers what to do next time it sees the word. In this
+    way, a tedious interactive session can become more automated as the
+    session proceeds.
 
     The holder objects are all accessible attributes in the TLRT public
     API. See the attributes section for more details. These holder
     objects can also be passed at instantiation to give TLRT a head-start
-    on words that aren't in the Lexicon and helps make a manual session
+    on words that aren't in the `Lexicon` and helps make a manual session
     more automated. Let's say, for example, that you know that your
-    text is full of some proper names that aren't in the Lexicon, and
+    text is full of some proper names that aren't in the `Lexicon`, and
     you don't want to add them permanently, and you don't want to have
     to always tell TLRT what to do with these words when they come up.
     You decide that you want to leave them in the text body and have
     TLRT ignore them. At instantiation pass a list of these strings to
-    the :param: `SKIP_ALWAYS` parameter. So you might pass ['ALICE',
-    'BOB', 'CARL', 'DIANE',...] to :param: `SKIP_ALWAYS`. TLRT will
-    always skip these words without asking. The passed SKIP_ALWAYS
-    becomes the starting seed of the :attr: `SKIP_ALWAYS_` attribute.
-    Any other manual inputs during the session that say to always skip
-    certain other words will be added to this list, so that at the end
-    of the session the :attr: `SKIP_ALWAYS_` attribute will contain your
-    originally passed words and the words added during the session.
+    the `SKIP_ALWAYS` parameter. So you might pass ['ALICE', 'BOB',
+    'CARL', 'DIANE',...] to `SKIP_ALWAYS`. TLRT will always skip these
+    words without asking. The passed `SKIP_ALWAYS` becomes the starting
+    seed of the :attr:`SKIP_ALWAYS_` attribute. Any other manual inputs
+    during the session that say to always skip certain other words
+    will be added to this list, so that at the end of the session the
+    `SKIP_ALWAYS_` attribute will contain your originally passed words
+    and the words added during the session.
 
     TLRT always looks for special instructions before looking to see if
-    a word is in the Lexicon. Otherwise, if TLRT checked the word against
-    the Lexicon first and the word is in the Lexicon, TLRT would go to
-    the next word automatically. Doing it in this way allows for users
-    to give special instructions for words already in the Lexicon. Let's
-    say there is a word in the Lexicon but you want to delete it from
-    your text. You could pass it to :param: `DELETE_ALWAYS` and TLRT
-    will remove it regardless of what the Lexicon says.
+    a word is in the `Lexicon`. Otherwise, if TLRT checked the word
+    against the `Lexicon` first and the word is in the Lexicon, TLRT
+    would go to the next word automatically. Doing it in this way allows
+    for users to give special instructions for words already in the
+    `Lexicon`. Let's say there is a word in the `Lexicon` but you want
+    to delete it from your text. You could pass it to `DELETE_ALWAYS`
+    and TLRT will remove it regardless of what the `Lexicon` says.
 
-    The :param: `update_lexicon` parameter does not cause TLRT to
-    directly update the Lexicon. If the user opts to stage a word to be
-    put in the Lexicon, the word is added to :attr: `LEXICON_ADDENDUM_`.
+    The `update_lexicon` parameter does not cause TLRT to directly update
+    the `Lexicon`. If the user opts to stage a word for addition to the
+    `Lexicon`, the word is added to the `LEXICON_ADDENDUM_` attribute.
     This is a deliberate design choice to stage the words rather than
-    silently modify the Lexicon. This gives the user a layer of
+    silently modify the `Lexicon`. This gives the user a layer of
     protection where they can review the words staged to go into the
-    Lexicon, make any changes needed, then manually pass them to the
-    Lexicon().add_words() method.
+    `Lexicon`, make any changes needed, then manually pass them to the
+    `Lexicon` `add_words` method.
 
     TLRT requires (possibly ragged) 2D data formats. Accepted objects
     include python built-in lists and tuples, numpy arrays, pandas
-    dataframes, and polars dataframes. Use pybear TextSplitter to
-    convert 1D text to 2D tokens. Results are always returned as a 2D
+    dataframes, and polars dataframes. Use pybear :class:`TextSplitter`
+    to convert 1D text to 2D tokens. Results are always returned as a 2D
     python list of lists of strings.
 
     Your data should be in a highly processed state before using TLRT.
     This should be one of the last steps in a text wrangling workflow
     because the content of your text will be compared directly against
-    the words in the Lexicon, and all the words in the pybear Lexicon
+    the words in the `Lexicon`, and all the words in the pybear `Lexicon`
     have no non-alpha characters and are all majuscule. All junk
     characters should be removed and clear separators established. A
     pybear text wrangling workflow might look like:
@@ -169,12 +170,12 @@ class TextLookupRealTime(_TextLookupMixin):
     TextRemover > TextLookup > StopRemover > TextJoiner > TextJustifier
 
     Every operation in TLRT is case-sensitive. Remember that the formal
-    pybear Lexicon is majuscule; use pybear TextNormalizer to make all
-    your text majuscule before using TLRT. Otherwise, TLRT will always
-    flag every valid word that is not majuscule because it doesn't
-    exactly match the Lexicon. If you alter your local copy of the pybear
-    Lexicon with your own words of varying capitalization, TLRT honors
-    your capitalization scheme.
+    pybear `Lexicon` is majuscule; use pybear :class:`TextNormalizer` to
+    make all your text majuscule before using TLRT. Otherwise, TLRT will
+    always flag every valid word that is not majuscule because it doesn't
+    exactly match the `Lexicon`. If you alter your local copy of the
+    pybear `Lexicon` with your own words of varying capitalization, TLRT
+    honors your capitalization scheme.
 
     When you are in the manual text lookup process and are entering words
     at the prompts to replace unknown words in your text, whatever is
