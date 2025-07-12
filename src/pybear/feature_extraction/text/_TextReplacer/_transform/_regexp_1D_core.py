@@ -30,8 +30,8 @@ def _regexp_1D_core(
         to replace and their replacement(s).
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         list[str]: the 1D vector with substring replacements made.
 

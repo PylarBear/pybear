@@ -374,7 +374,7 @@ class NGramMerger(
 
         Returns
         -------
-        row_support_:
+        row_support_ : NDArray[bool] of shape (n_original_rows, )
             A boolean vector indicating which rows were kept in the data
             during the transform process.
 
@@ -425,8 +425,8 @@ class NGramMerger(
         y : Optional[Any], default=None
             The target for the data. Always ignored.
 
-        Return
-        ------
+        Returns
+        -------
         self : object
             The `NGramMerger` instance.
 
@@ -450,8 +450,8 @@ class NGramMerger(
         y : Optional[Any], default=None
             The target for the data. Always ignored.
 
-        Return
-        ------
+        Returns
+        -------
         self : object
             The `NGramMerger` instance.
 
@@ -477,8 +477,8 @@ class NGramMerger(
             Whether to directly operate on the passed `X` or on a
             deepcopy of `X`.
 
-        Return
-        ------
+        Returns
+        -------
         X_tr : list[list[str]]
             The data with all matching n-gram patterns replaced with
             contiguous strings.
@@ -547,8 +547,8 @@ class NGramMerger(
         y : Optional[Any], default=None
             The target for the data. Always ignored.
 
-        Return
-        ------
+        Returns
+        -------
         None
 
         """

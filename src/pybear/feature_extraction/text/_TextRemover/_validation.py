@@ -53,8 +53,8 @@ def _validation(
     _flags : FlagsType
         Externally provided flags if using re.compile objects.
 
-    Return
-    ------
+    Returns
+    -------
     None
 
     """

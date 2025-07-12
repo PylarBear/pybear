@@ -74,10 +74,10 @@ def _val_sep_or_line_break(
         in the data that match the given pattern(s), then there are no
         forced line breaks. If a `line_break` pattern is in the middle
         of a sequence that might otherwise be expected to be contiguous,
-        TJ will force a new line AFTER the line_break indiscriminately.
+        TJ will force a new line AFTER the `line_break` indiscriminately.
     _name:
         Literal['sep', 'line_break'] - the name of the parameter being
-        validated. Must be 'sep' or 'line_break'.
+        validated. Must be `sep` or `line_break`.
     _mode:
         Literal['str', 'regex'] - whether validating strings for 'str'
         mode or re.compile objects for 'regex' mode.

@@ -21,8 +21,8 @@ def _partial_fit(
     X : XContainer
         The data.
 
-    Return
-    ------
+    Returns
+    -------
     numbers.Integral:
         The number of features in `X`.
 

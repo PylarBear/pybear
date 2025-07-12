@@ -13,24 +13,19 @@ def _word_editor(
     _word: str,
     _prompt: str
 ) -> str:
-
-    """
-    Validation function for single words entered by user.
-
+    """Validation function for single words entered by user.
 
     Parameter
     ---------
-    _word:
-        str - the word prompting a new entry by the user.
-    _prompt:
-        str - a special prompt.
+    _word : str
+        The word prompting a new entry by the user.
+    _prompt : str
+        A special prompt.
 
-
-    Return
-    ------
-    -
-        _word: str - the new word entered by the user.
-
+    Returns
+    -------
+    _word : str
+        The new word entered by the user.
 
     """
 

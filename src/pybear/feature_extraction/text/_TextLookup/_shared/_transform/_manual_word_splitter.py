@@ -19,33 +19,30 @@ def _manual_word_splitter(
     _KNOWN_WORDS: list[str],
     _verbose: bool
 ) -> list[str]:
+    """The user has opted to enter into this functionality.
 
-    """
-    The user has opted to enter into this functionality. The word may
-    not otherwise be recognized as a candidate to split. Prompt the user
-    for the number of splits. For that number of times, prompt the user
-    for words that will replace the single word in the line.
-
+    The word may not otherwise be recognized as a candidate to split.
+    Prompt the user for the number of splits. For that number of times,
+    prompt the user for words that will replace the single word in the
+    line.
 
     Parameters
     ----------
-    _word_idx:
-        int - the index of the current word in its line.
-    _line:
-        list[str] - the full line that the current word is in.
-    _KNOWN_WORDS:
-        list[str] - All the words in the Lexicon and any words that have
-        been put into LEXICON_ADDENDUM in the current session.
-    _verbose:
-        bool - whether to display helpful information.
-
+    _word_idx : int
+        The index of the current word in its line.
+    _line : list[str]
+        The full line that the current word is in.
+    _KNOWN_WORDS : list[str]
+        All the words in the Lexicon and any words that have been put
+        into `LEXICON_ADDENDUM` in the current session.
+    _verbose : bool
+        Whether to display helpful information.
 
     Returns
     -------
-    _NEW_WORDS:
-        list[str] - The words the user has entered and acknowledged as
-        the new words to replace the single word.
-
+    _NEW_WORDS : list[str]
+        The words the user has entered and acknowledged as the new words
+        to replace the single word.
 
     """
 

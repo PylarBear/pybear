@@ -34,36 +34,35 @@ def _validation(
     _remove_empty_rows: bool,
     _verbose: bool
 ) -> None:
+    """Validate `TextLookup` parameters.
 
-    """
-    Validate TextLookup parameters. This is a centralized hub for
-    validation. The brunt of the validation is handled by the individual
-    modules. See their docs for more details.
+    This is a centralized hub for validation. The brunt of the validation
+    is handled by the individual modules. See their docs for more
+    details.
 
     Manage the interdependency of parameters.
 
-    SKIP_ALWAYS, SPLIT_ALWAYS, DELETE_ALWAYS, REPLACE_ALWAYS must not
-    have common strings (case_sensitive).
-
+    `SKIP_ALWAYS`, `SPLIT_ALWAYS`, `DELETE_ALWAYS`, `REPLACE_ALWAYS`
+    must not have common strings (case_sensitive).
 
     Parameters
     ----------
     _X: XContainer
-    _update_lexicon: bool
-    _skip_numbers: bool
-    _auto_split: bool
-    _auto_add_to_lexicon: bool
-    _auto_delete: bool
-    _DELETE_ALWAYS: Sequence[str]
-    _REPLACE_ALWAYS:dict[str, str]
-    _SKIP_ALWAYS: Sequence[str]
-    _SPLIT_ALWAYS: dict[str, Sequence[str]]
-    _remove_empty_rows: bool
-    _verbose: bool
+        _update_lexicon : bool
+        _skip_numbers : bool
+        _auto_split : bool
+        _auto_add_to_lexicon : bool
+        _auto_delete : bool
+        _DELETE_ALWAYS : Sequence[str]
+        _REPLACE_ALWAYS :dict[str, str]
+        _SKIP_ALWAYS : Sequence[str]
+        _SPLIT_ALWAYS : dict[str, Sequence[str]]
+        _remove_empty_rows : bool
+        _verbose : bool
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

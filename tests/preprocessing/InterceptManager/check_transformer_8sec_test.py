@@ -10,6 +10,8 @@ import pytest
 
 import re
 
+import sklearn
+
 from sklearn.utils.estimator_checks import (
     check_transformers_unfitted,
     check_transformer_general,
@@ -23,6 +25,9 @@ from pybear.preprocessing import InterceptManager as IM
 
 
 class TestSKLearnCheckTransformer:
+
+
+    sk_version = sklearn.__version__
 
 
     def test_transformers_unfitted(self):
@@ -52,26 +57,38 @@ class TestSKLearnCheckTransformer:
         # looks for certain verbiage in error if len(input_features) does not
         # match n_features_in_, and if output dtype is object
 
-        # err_msg = f"'InterceptManager' object has no attribute '_get_tags'"
-        #
-        # with pytest.raises(AttributeError, match=re.escape(err_msg)):
-        check_transformer_get_feature_names_out(
-            'InterceptManager',
-            IM()
-        )
+        if float(self.sk_version[0:3]) >= 1.6:
+            check_transformer_get_feature_names_out(
+                'InterceptManager',
+                IM()
+            )
+        else:
+            err_msg = f"'InterceptManager' object has no attribute '_get_tags'"
+
+            with pytest.raises(AttributeError, match=re.escape(err_msg)):
+                check_transformer_get_feature_names_out(
+                    'InterceptManager',
+                    IM()
+                )
 
 
     def test_check_transformer_get_feature_names_out_pandas(self):
         # looks for certain verbiage in error if 'input_features' does not
         # match feature_names_in_ if IM was fit on a dataframe
 
-        # err_msg = f"'InterceptManager' object has no attribute '_get_tags'"
-        #
-        # with pytest.raises(AttributeError, match=re.escape(err_msg)):
-        check_transformer_get_feature_names_out_pandas(
-            'InterceptManager',
-            IM()
-        )
+        if float(self.sk_version[0:3]) >= 1.6:
+            check_transformer_get_feature_names_out_pandas(
+                'InterceptManager',
+                IM()
+            )
+        else:
+            err_msg = f"'InterceptManager' object has no attribute '_get_tags'"
+
+            with pytest.raises(AttributeError, match=re.escape(err_msg)):
+                check_transformer_get_feature_names_out_pandas(
+                    'InterceptManager',
+                    IM()
+                )
 
 
 

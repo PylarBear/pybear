@@ -266,8 +266,8 @@ class TextPadder(
             the data. Always ignored.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             self - the TextPadder instance.
 
@@ -317,8 +317,8 @@ class TextPadder(
             the data. Always ignored.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             self - the TextPadder instance.
 
@@ -350,8 +350,8 @@ class TextPadder(
             transformation directy on X or on a deepcopy of X.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             list[list[str]] - the padded data.
 
@@ -410,8 +410,8 @@ class TextPadder(
             Optional[Union[any, None]], default = None - the target for
             the data.
 
-        Return
-        ------
+        Returns
+        -------
         -
             None
 

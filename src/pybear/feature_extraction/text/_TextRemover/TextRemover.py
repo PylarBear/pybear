@@ -334,8 +334,8 @@ class TextRemover(
             the data. Always ignored.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             self - the TextRemover instance.
 
@@ -366,8 +366,8 @@ class TextRemover(
             the data. Always ignored.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             self - the TextRemover instance.
 
@@ -398,8 +398,8 @@ class TextRemover(
             the original X.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             Union[list[str], list[list[str]]] - the data with unwanted
             strings removed.
@@ -483,8 +483,8 @@ class TextRemover(
             the data. Always ignored.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             None
 

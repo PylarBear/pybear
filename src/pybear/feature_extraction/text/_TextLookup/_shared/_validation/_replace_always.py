@@ -13,25 +13,20 @@ from typing_extensions import Union
 def _val_replace_always(
     _replace_always: Union[dict[str, str], None]
 ) -> None:
+    """Validate `replace_always`.
 
-    """
-    Validate replace_always. Must be None or a dictionary with string
-    keys and string values.
-
+    Must be None or a dictionary with string keys and string values.
 
     Parameters
     ----------
-    _replace_always:
-        Union[dict[str, str], None] - a dictionary of keys that when
-        the key is a case-sensitive match against a word in the text
-        then the respective value is put in place of the word in the
-        text body.
+    _replace_always : Union[dict[str, str], None]
+        A dictionary of keys that when the key is a case-sensitive match
+        against a word in the text then the respective value is put in
+        place of the word in the text body.
 
-
-    Return
-    ------
-    -
-        None
+    Returns
+    -------
+    None
 
     """
 
@@ -59,9 +54,6 @@ def _val_replace_always(
         raise TypeError(
             f"'replace_always' must be None or a dictionary with string "
             f"keys and string values.")
-
-
-
 
 
 

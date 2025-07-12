@@ -147,12 +147,19 @@ class TextJoiner(
 
 
     @property
-    def n_rows_(self):
+    def n_rows_(self) -> int:
         """Get the `n_rows_` attribute.
 
         The number of rows of text seen during transform and the number
         of strings in the returned 1D python list.
+
+        Returns
+        -------
+        n_rows_ : int
+            The number of rows in the data passed to :meth:`transform`.
+
         """
+
         return self._n_rows
 
 
