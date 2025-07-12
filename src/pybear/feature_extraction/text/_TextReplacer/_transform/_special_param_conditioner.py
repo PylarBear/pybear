@@ -64,8 +64,8 @@ def _special_param_conditioner(
         transform.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         WipReplaceType - the original 'replace' parameter with all
         literals converted to re.compile and any flags also put into the

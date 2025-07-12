@@ -525,8 +525,8 @@ class TextLookupRealTime(_TextLookupMixin):
             the data. Always ignored.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             self: the TextLookupRealTime instance.
 
@@ -557,8 +557,8 @@ class TextLookupRealTime(_TextLookupMixin):
             the data. Always ignored.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             self: the TextLookupRealTime instance.
 
@@ -591,8 +591,8 @@ class TextLookupRealTime(_TextLookupMixin):
             and deletions directly on the passed X or a deepcopy of X.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             list[list[str]] - the data with user-entered, auto-replaced,
             or deleted tokens in place of tokens not in the pybear

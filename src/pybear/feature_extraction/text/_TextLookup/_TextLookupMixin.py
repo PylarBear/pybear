@@ -11,9 +11,11 @@ from typing import (
     Sequence
 )
 from typing_extensions import (
+    Any,
     Self,
     Union
 )
+import numpy.typing as npt
 
 import numbers
 
@@ -40,10 +42,8 @@ class _TextLookupMixin(
     ReprMixin,
     SetParamsMixin
 ):
-
-    """
-    A mixin for TextLookup and TextLookupRealTime that provides everything
-    except docs, :meth: `partial_fit`, and :meth: `transform`.
+    """A mixin for `TextLookup` and `TextLookupRealTime` that provides
+    everything except docs, :meth:`partial_fit`, and :meth:`transform`.
 
     """
 
@@ -66,7 +66,6 @@ class _TextLookupMixin(
         remove_empty_rows: Optional[bool] = False,
         verbose: Optional[bool] = False
     ) -> None:
-
         """Initialize the TextLookup(RealTime) instance."""
 
         self.update_lexicon: bool = update_lexicon
@@ -106,145 +105,190 @@ class _TextLookupMixin(
     # @property -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     @property
-    def row_support_(self):
+    def row_support_(self) -> npt.NDArray[bool]:
+        """Get the `row_support_` attribute.
+
+        A boolean vector indicating which rows were kept in the data
+        during the transform process. Only available if a transform has
+        been performed, and only reflects the results of the last
+        transform done.
+
+        Returns
+        -------
+        row_support_ : NDArray[bool] of shape (n_original_rows, )
+            A boolean vector indicating which rows were kept in the data
+            during the transform process.
+
         """
-        Get the row_support_ attribute. A boolean vector indicating
-        which rows were kept in the data during the :term: transform
-        process. Only available if a transform has been performed, and
-        only reflects the results of the last transform done.
-        """
+
         return self._row_support
 
     @property
-    def DELETE_ALWAYS_(self):
-        """
-        list[str] - A list of words that will always be deleted from the
-        text body by TL, even if they are in the Lexicon. This list is
-        comprised of any words passed to :param: `DELETE_ALWAYS` at
-        instantiation and any words added to this list during
-        (partial_)fit.
+    def DELETE_ALWAYS_(self) -> list[str]:
+        """Return the `DELETE_ALWAYS_` attribute.
+
+        A list of words that will always be deleted from the text body
+        by TL, even if they are in the Lexicon. This list is comprised
+        of any words passed to `DELETE_ALWAYS` at instantiation and any
+        words added to this list during (partial_)fit.
+
+        Returns
+        -------
+        DELETE_ALWAYS_: list[str]
+            A list of words that will always be deleted from the
+            text body by TL, even if they are in the Lexicon.
+
         """
         return self._DELETE_ALWAYS
 
     @property
-    def REPLACE_ALWAYS_(self):
+    def REPLACE_ALWAYS_(self) -> dict[str, str]:
+        """A dictionary with words expected to be in the text body as
+        keys and their respective single-word replacements as values.
+
+        TL will replace these words even if they are in the Lexicon.
+        This holds anything passed to `REPLACE_ALWAYS` at instantiation
+        and anything added to it during run-time in manual mode. In
+        manual mode, when the user selects 'replace always', the next
+        time TL sees the word it will not prompt the user for any more
+        information, it will silently replace the word. When in auto
+        mode, TL will not add any entries to this dictionary.
+
+        Returns
+        -------
+        REPLACE_ALWAYS_ : dict[str, str]
+            A dictionary with words expected to be in the text body as
+            keys and their respective single-word replacements as values.
+
         """
-        dict[str, str] - A dictionary with words expected to be in the
-        text body as keys and their respective single-word replacements
-        as values. TL will replace these words even if they are in the
-        Lexicon. This holds anything passed to REPLACE_ALWAYS at
-        instantiation and anything added to it during run-time in manual
-        mode. In manual mode, when the user selects 'replace always',
-        the next time TL sees the word it will not prompt the user for
-        any more information, it will silently replace the word. When in
-        auto mode, TL will not add any entries to this dictionary.
-        """
+
         return self._REPLACE_ALWAYS
 
     @property
-    def SKIP_ALWAYS_(self):
-        """
-        list[str] - A list of words that are always ignored by TL,
-        even if they are not in the Lexicon. This list holds any words
-        passed to the SKIP_ALWAYS parameter at instantiation and any
-        words added to it when the user selects 'skip always' in
-        manual mode. In manual mode, the next time TL sees a word that
-        is in this list it will not prompt the user again, it will
-        silently skip the word. TL will only make additions to this
-        list in auto mode if :param: `skip_numbers` is True and a number
-        is found in the training data.
+    def SKIP_ALWAYS_(self) -> list[str]:
+        """A list of words that are always ignored by TL, even if they
+        are not in the Lexicon.
+
+        This list holds any words passed to the `SKIP_ALWAYS` parameter
+        at instantiation and any words added to it when the user selects
+        'skip always' in manual mode. In manual mode, the next time TL
+        sees a word that is in this list it will not prompt the user
+        again, it will silently skip the word. TL will only make
+        additions to this list in auto mode if `skip_numbers` is True
+        and a number is found in the training data.
+
+        Returns
+        -------
+        SKIP_ALWAYS_ : list[str]
+            A list of words that are always ignored by TL, even if they
+            are not in the Lexicon.
+
         """
         return self._SKIP_ALWAYS
 
     @property
-    def SPLIT_ALWAYS_(self):
-        """
-        dict[str, Sequence[str]] - Similar to :attr: `REPLACE_ALWAYS_`,
-        a dictionary with words expected to be in the text body as
+    def SPLIT_ALWAYS_(self) -> dict[str, Sequence[str]]:
+        """A dictionary with words expected to be in the text body as
         keys and their respective multi-word lists of replacements as
-        values. TL will sub these words in even if the original word
-        is in the Lexicon. This dictionary holds anything passed
-        to :param: `SPLIT_ALWAYS` at instantiation and any splits made
-        when 'split always' is selected in manual mode. In manual mode,
-        the next time TL sees the same word in the text body it will not
-        prompt the user again. The only way TL will add anything to this
-        dictionary in auto mode is if :param: `auto_split` is True and
-        TL finds a valid split of an unknown word during (partial_)fit.
+        values.
+
+        Similar to :attr:`REPLACE_ALWAYS_`. TL will sub these words in
+        even if the original word is in the Lexicon. This dictionary
+        holds anything passed to `SPLIT_ALWAYS` at instantiation and any
+        splits made when 'split always' is selected in manual mode. In
+        manual mode, the next time TL sees the same word in the text
+        body it will not prompt the user again. The only way TL will
+        add anything to this dictionary in auto mode is if `auto_split`
+        is True and TL finds a valid split of an unknown word during
+        (partial_)fit.
+
+        Returns
+        -------
+        SPLIT_ALWAYS_ : dict[str, Sequence[str]]
+            A dictionary with words expected to be in the text body as
+            keys and their respective multi-word lists of replacements
+            as values.
+
         """
         return self._SPLIT_ALWAYS
 
     @property
-    def LEXICON_ADDENDUM_(self):
+    def LEXICON_ADDENDUM_(self) -> list[str]:
+        """Words queued for entry into the pybear Lexicon.
+
+        Can only have words in it if `update_lexicon` is True. If in
+        auto mode (`auto_add_to_lexicon` is True), anything encountered
+        in the text that is not in the Lexicon is added to this list. In
+        manual mode, if the user selects to 'add to lexicon' then the
+        word is put in this list. TL does not automatically add new
+        words to the actual Lexicon directly. TL stages new words in
+        `LEXICON_ADDENDUM_` and at the end of a session prints them to
+        the screen and makes them available in this attribute.
+
+        Returns
+        -------
+        LEXICON_ADDENDUM_ : list[str]
+            Words queued for entry into the pybear Lexicon.
+
         """
-        list[str] - can only have words in it if :param: `update_lexicon`
-        is True. If in auto mode (:param: `auto_add_to_lexicon` is True),
-        anything encountered in the text that is not in the Lexicon is
-        added to this list. In manual mode, if the user selects to 'add
-        to lexicon' then the word is put in this list. TL does not
-        automatically add new words to the actual Lexicon directly.
-        TL stages new words in LEXICON_ADDENDUM_ and at the end of a
-        session prints them to the screen and makes them available in
-        this attribute.
-        """
+
         return self._LEXICON_ADDENDUM
 
     @property
-    def KNOWN_WORDS_(self):
+    def KNOWN_WORDS_(self) -> list[str]:
+        """A WIP object used by TL to determine "what is in the Lexicon."
+
+        At instantiation, this is just a copy of the `lexicon_` attribute
+        of the pybear :class:`Lexicon` class. If `update_lexicon` is
+        True, any words to be added to the `Lexicon` are inserted
+        at the front of this list (in addition to also being put
+        in :attr:`LEXICON_ADDENDUM_`.) If `auto_add_to_lexicon` is True,
+        then words are inserted into this list silently during the
+        auto-lookup process. If `auto_add_to_lexicon` is False, words
+        are inserted into this list if the user selects 'add to lexicon'.
+
+        Returns
+        -------
+        KNOWN_WORDS_ : list[str]
+            A WIP object used by TL to determine "what is in the Lexicon."
+
         """
-        list[str] - This is a WIP object used by TL to determine
-        "what is in the Lexicon." At instantiation, this is just a
-        copy of the 'lexicon_' attribute of the pybear Lexicon class.
-        If :param: `update_lexicon` is True, any words to be added to
-        the Lexicon are inserted at the front of this list (in addition
-        to also being put in :attr: `LEXICON_ADDENDUM_`.)
-        If :param: `auto_add_to_lexicon` is True, then words are inserted
-        into this list silently during the auto-lookup process.
-        If :param: `auto_add_to_lexicon` is False, words are inserted
-        into this list if the user selects 'add to lexicon'.
-        """
+
         return self._KNOWN_WORDS
 
     # END @property -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
     def reset(self) -> Self:
-        """
-        Reset the TextLookup instance. This will remove all attributes
-        that are exposed during :term: transform.
+        """Reset the TextLookup instance.
 
+        This will remove all attributes that are exposed during transform.
 
         Returns
         -------
-        -
-            None.
+        None
 
         """
 
-        if hasattr(self, '_n_rows'):
-            delattr(self, '_n_rows')
-        if hasattr(self, '_row_support'):
-            delattr(self, '_row_support')
+        _attrs = [
+            '_n_rows', '_row_support', '_DELETE_ALWAYS', '_REPLACE_ALWAYS',
+            '_SKIP_ALWAYS', '_SPLIT_ALWAYS', '_LEXICON_ADDENDUM', '_KNOWN_WORDS',
+            '_OOV', '_n_rows', '_row_support', '_DELETE_ALWAYS', '_REPLACE_ALWAYS',
+            '_SKIP_ALWAYS', '_SPLIT_ALWAYS', '_LEXICON_ADDENDUM', '_KNOWN_WORDS',
+            '_OOV'
+        ]
 
-        if hasattr(self, '_DELETE_ALWAYS'):
-            delattr(self, '_DELETE_ALWAYS')
-        if hasattr(self, '_REPLACE_ALWAYS'):
-            delattr(self, '_REPLACE_ALWAYS')
-        if hasattr(self, '_SKIP_ALWAYS'):
-            delattr(self, '_SKIP_ALWAYS')
-        if hasattr(self, '_SPLIT_ALWAYS'):
-            delattr(self, '_SPLIT_ALWAYS')
+        for _attr in _attrs:
+            if hasattr(self, _attr):
+                delattr(self, _attr)
 
-        if hasattr(self, '_LEXICON_ADDENDUM'):
-            delattr(self, '_LEXICON_ADDENDUM')
-        if hasattr(self, '_KNOWN_WORDS'):
-            delattr(self, '_KNOWN_WORDS')
-        if hasattr(self, '_OOV'):
-            delattr(self, '_OOV')
+        del _attrs
 
         return self
 
 
     def get_metadata_routing(self):
+        """`get_metadata_routing` is not implemented in TextLookup."""
         raise NotImplementedError(
             f"'get_metadata_routing' is not implemented in TextLookup"
         )
@@ -265,29 +309,24 @@ class _TextLookupMixin(
     def score(
         self,
         X: XContainer,
-        y: Optional[Union[any, None]] = None
+        y: Optional[Any] = None
     ) -> None:
+        """No-op score method.
 
-        """
-        No-op score method. Needs to be here for dask_ml wrappers.
-
+        Needs to be here for dask_ml wrappers.
 
         Parameters
         ----------
-        X:
-            XContainer - the (possibly ragged) 2D container of text to
-            have its contents cross-referenced against the pybear
-            Lexicon. Ignored.
-        y:
-            Optional[Union[any, None]], default=None - the target for
-            the data. Always ignored.
+        X : XContainer
+            The (possibly ragged) 2D container of text to have its
+            contents cross-referenced against the pybear Lexicon.
+            Ignored.
+        y : Optional[Any], default=None
+            The target for the data. Always ignored.
 
-
-        Return
-        ------
-        -
-            None
-
+        Returns
+        -------
+        None
 
         """
 
@@ -298,25 +337,19 @@ class _TextLookupMixin(
 
     def _display_lexicon_update(
         self,
-        n=None
+        n:Optional[Union[numbers.Integral, None]] = None
     ) -> None:
-
-        """
-        Prints :attr: `LEXICON_ADDENDUM_` object for copy and paste into
-        Lexicon.
-
+        """Print :attr:`LEXICON_ADDENDUM_` object for copy and paste
+        into `Lexicon`.
 
         Parameters
         ----------
-        n:
-            Optional[Union[int, None]], default=None - the number of
-            entries in :attr: `LEXICON_ADDENDUM_` to print.
+        n : Optional[Union[numbers.Integral, None]], default=None
+            The number of entries in :attr:`LEXICON_ADDENDUM_` to print.
 
-
-        Return
-        ------
-        -
-            None
+        Returns
+        -------
+        None
 
         """
 
@@ -338,34 +371,29 @@ class _TextLookupMixin(
         _word_idx: numbers.Integral,
         _NEW_WORDS: list[str]
     ) -> list[str]:
-
-        """
-        Handle removing a user-identified word from a line, substituting
-        in new word(s), and updating the attr: `LEXICON_ADDENDUM_`, if
+        """Handle removing a user-identified word from a line, substituting
+        in new word(s), and updating the attr:`LEXICON_ADDENDUM_`, if
         applicable.
 
         This is called after split, split always, replace, and replace
         always.
 
-
         Parameters
         ----------
-        _line:
-            list[str] - the full line of the data that holds the current
-            word.
-        _word_idx:
-            int - the index of the current word in _line.
-        _NEW_WORDS:
-            list[str] - the word(s) to be inserted into _line in place
-            of the original word.
-
+        _line : list[str]
+            The full line of the data that holds the current word.
+        _word_idx : numbers.Integral
+            The index of the current word in `_line`.
+        _NEW_WORDS : list[str]
+            The word(s) to be inserted into `_line` in place of the
+            original word.
 
         Returns
         -------
-        -
-            _line: list[str] - the full line in X that held the current
-            word with that word removed and the new word(s) inserted in
-            the that word's place.
+        _line: list[str]
+            The full line in `X` that held the current word with that
+            word removed and the new word(s) inserted in the that word's
+            place.
 
         """
 

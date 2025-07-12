@@ -11,6 +11,7 @@ from typing import (
     Sequence
 )
 from typing_extensions import (
+    Any,
     Self,
     Union
 )
@@ -45,62 +46,61 @@ from ....base._check_is_fitted import check_is_fitted
 
 
 class TextLookup(_TextLookupMixin):
+    """Handle words in a 2D array-like body of text that are not in the
+    pybear Lexicon.
 
-    """
-    Handle words in a 2D array-like body of text that are not in the
-    pybear Lexicon. Options include replacing, removing, splitting, or
-    skipping the word, or staging it to add to the pybear Lexicon.
+    Options include replacing, removing, splitting, or skipping the word,
+    or staging it to add to the pybear :class:`Lexicon`.
 
-    TextLookup (TL) has a dual-functionality :meth: `partial_fit` method.
+    TextLookup (TL) has a dual-functionality :meth:`partial_fit` method.
     TL can operate autonomously on your data for a completely hands-free
     experience, or can be driven in a fully interactive process. The
     interactive mode is a menu-driven process that prompts the user for
-    a decision about a word that is not in the Lexicon and lazily stores
-    edits to the data to be applied later during transform.
+    a decision about a word that is not in the `Lexicon` and lazily
+    stores edits to the data to be applied later during transform.
 
-    TL has a sister module called TextLookupRealTime which is not a
-    typical scikit-style transformer. TL is more conventional in that
-    the learning that takes place for both autonomous and manual modes
-    happens in :meth: `partial_fit` and :meth: `fit`, information is
+    TL has a sister module called :class:`TextLookupRealTime` which is
+    not a typical scikit-style transformer. TL is more conventional in
+    that the learning that takes place for both autonomous and manual
+    modes happens in :meth:`partial_fit` and :meth:`fit`, information is
     stored in 'holder' attributes, and then that information is applied
-    blindly to any data that is passed to :meth: `transform`. TL does
+    blindly to any data that is passed to :meth:`transform`. TL does
     not mutate your data during fitting, so the changes to your data do
     not happen in 'real time'. Because of this temporal dynamic, TL is
     not able to save changes to your data in-situ. If you log a lot of
-    changes to your data during :meth: `partial_fit` or :meth: `fit` and
-    then the program terminates for whatever reason, you lose all your
-    work. If you want to make edits to the data in real time and be able
-    to save your changes in-situ then use TextLookupRealTime.
+    changes to your data in `partial_fit` or `fit` and then the program
+    terminates for whatever reason, you lose all your work. If you want
+    to make edits to the data in real time and be able to save your
+    changes in-situ then use TextLookupRealTime.
 
-    To run TL in autonomous mode, set either :param: `auto_delete`
-    or :param: `auto_add_to_lexicon` to True; both cannot simultaneously
-    be True. :param: `auto_add_to_lexicon` can only be True if
-    the :param: `update_lexicon` parameter is True.
+    To run TL in autonomous mode, set either `auto_delete` or
+    `auto_add_to_lexicon` to True; both cannot simultaneously be True.
+    `auto_add_to_lexicon` can only be True if the `update_lexicon`
+    parameter is True.
 
-    When :param: `auto_add_to_lexicon` is True, if TL encounters a word
-    that is not in the Lexicon it will automatically stage the word in
-    the :attr: `LEXICON_ADDENDUM_` and go to the next word until all the
-    words in the text are exhausted. When :param: `auto_delete` is True,
-    if TL encounters a word that is not in the Lexicon, it will silently
-    add the word to the :attr: `DELETE_ALWAYS_` attribute and go to the
-    next word, until all the words in the text are exhausted. In these
-    cases, TL can never proceed into manual mode. To allow TL to go into
-    manual mode, :param: `auto_delete` and :param: `auto_add_to_lexicon`
-    both must be False.
+    When `auto_add_to_lexicon` is True, if TL encounters a word that is
+    not in the `Lexicon` it will automatically stage the word in
+    the :attr:`LEXICON_ADDENDUM_` and go to the next word until all the
+    words in the text are exhausted. When `auto_delete` is True, if TL
+    encounters a word that is not in the Lexicon, it will silently add
+    the word to the :attr:`DELETE_ALWAYS_` attribute and go to the next
+    word, until all the words in the text are exhausted. In these cases,
+    TL can never proceed into manual mode. To allow TL to go into manual
+    mode, `auto_delete` and `auto_add_to_lexicon` both must be False.
 
     In manual mode, when TL encounters a word that is not in the
-    Lexicon, the user will be prompted with an interactive menu for an
+    `Lexicon`, the user will be prompted with an interactive menu for an
     action. Choices that are always presented include: 'skip always',
     'delete always', 'replace always', and 'split always'. Conditionally,
-    if :param: `update_lexicon`. is True, an 'add to lexicon' option is
-    also presented. If you choose something from the 'always' group, the
-    word goes into a 'holder' object for the selected action so that TL
-    knows how to handle it during :term: transform. TL does not have the
-    ability to handle the same word in different ways at different times.
-    Whatever instruction is selected for one occurrence of a word must
-    be applied to all occurrences of the word because the storage
-    mechanisms for the operation/word combinations do not track the
-    exact locations of individual words.
+    if `update_lexicon`. is True, an 'add to lexicon' option is also
+    presented. If you choose something from the 'always' group, the word
+    goes into a 'holder' object for the selected action so that TL knows
+    how to handle it during transform. TL does not have the ability to
+    handle the same word in different ways at different times. Whatever
+    instruction is selected for one occurrence of a word must be applied
+    to all occurrences of the word because the storage mechanisms for
+    the operation/word combinations do not track the exact locations of
+    individual words.
 
     When you are in the manual text lookup process and are entering words
     at the prompts to replace unknown words in your text, whatever is
@@ -110,52 +110,52 @@ class TextLookup(_TextLookupMixin):
     the case that you want in the output, TL will not do it for you.
 
     The holder objects are all accessible attributes in the TL public
-    API. See the attributes section for more details. These holder
+    API. See the Attributes section for more details. These holder
     objects can also be passed at instantiation to give TL a head-start
     on words that aren't in the Lexicon and helps make a manual session
     more automated. Let's say, for example, that you know that your
-    text is full of some proper names that aren't in the Lexicon, and
+    text is full of some proper names that aren't in the `Lexicon`, and
     you don't want to add them permanently, and you don't want to have
     to always tell TL what to do with these words when they come up.
     You decide that you want to leave them in the text body and have
     TL ignore them. At instantiation pass a list of these strings to
-    the :param: `SKIP_ALWAYS` parameter. So you might pass ['ZEKE',
-    'YVONNE', 'XAVIER', ...] to :param: `SKIP_ALWAYS`. TL will always
-    skip these words without asking. The passed :param: `SKIP_ALWAYS`
-    becomes the starting seed of the :attr: `SKIP_ALWAYS_` attribute.
-    Any other manual inputs during the session that say to always skip
-    certain other words will be added to this list, so that at the end
-    of the session the :attr: `SKIP_ALWAYS_` attribute will contain your
-    originally passed words and the words added during the session.
+    the `SKIP_ALWAYS` parameter. So you might pass ['ZEKE', 'YVONNE',
+    'XAVIER', ...] to `SKIP_ALWAYS`. TL will always skip these words
+    without asking. The passed `SKIP_ALWAYS` becomes the starting seed
+    of the :attr:`SKIP_ALWAYS_` attribute. Any other manual inputs
+    during the session that say to always skip certain other words
+    will be added to this list, so that at the end of the session
+    the :attr:`SKIP_ALWAYS_` attribute will contain your originally
+    passed words and the words added during the session.
 
     TL always looks for special instructions before looking to see if
-    a word is in the Lexicon. Otherwise, if TL checked the word against
-    the Lexicon first and the word is in the Lexicon, TL would go to
+    a word is in the `Lexicon`. Otherwise, if TL checked the word against
+    the `Lexicon` first and the word is in the Lexicon, TL would go to
     the next word automatically. Doing it in this way allows for users
-    to give special instructions for words already in the Lexicon. Let's
-    say there is a word in the Lexicon but you want to delete it from
-    your text. You could pass it to :param: `DELETE_ALWAYS` and TL will
+    to give special instructions for words already in the `Lexicon`.
+    Let's say there is a word in the Lexicon but you want to delete it
+    from your text. You could pass it to `DELETE_ALWAYS` and TL will
     remove it regardless of what the Lexicon says.
 
-    The :param: `update_lexicon` parameter does not cause TL to directly
-    update the Lexicon. If the user opts to stage a word for addition to
-    the Lexicon, the word is added to the :attr: `LEXICON_ADDENDUM_`
-    attribute. This is a deliberate design choice to stage the words
-    rather than silently modify the Lexicon. This gives the user a layer
-    of protection where they can review the words staged to go into the
-    Lexicon, make any changes needed, then manually pass them to the
-    Lexicon().add_words() method.
+    The `update_lexicon` parameter does not cause TL to directly update
+    the `Lexicon`. If the user opts to stage a word for addition to the
+    `Lexicon`, the word is added to the `LEXICON_ADDENDUM_` attribute.
+    This is a deliberate design choice to stage the words rather than
+    silently modify the `Lexicon`. This gives the user a layer of
+    protection where they can review the words staged to go into the
+    `Lexicon`, make any changes needed, then manually pass them to the
+    `Lexicon` `add_words` method.
 
     TL requires (possibly ragged) 2D data formats. Accepted objects
     include python built-in lists and tuples, numpy arrays, pandas
-    dataframes, and polars dataframes. Use pybear TextSplitter to
-    convert 1D text to 2D tokens. Results are always returned as a 2D
+    dataframes, and polars dataframes. Use pybear :class:`TextSplitter`
+    to convert 1D text to 2D tokens. Results are always returned as a 2D
     python list of lists of strings.
 
     Your data should be in a highly processed state before using TL.
     This should be one of the last steps in a text wrangling workflow
     because the content of your text will be compared directly against
-    the words in the Lexicon, and all the words in the pybear Lexicon
+    the words in the `Lexicon`, and all the words in the pybear `Lexicon`
     have no non-alpha characters and are all majuscule. All junk
     characters should be removed and clear separators established. A
     pybear text wrangling workflow might look like:
@@ -163,17 +163,17 @@ class TextLookup(_TextLookupMixin):
     TextRemover > TextLookup > StopRemover > TextJoiner > TextJustifier
 
     Every operation in TL is case-sensitive. Remember that the formal
-    pybear Lexicon is majuscule; use pybear TextNormalizer to make all
-    your text majuscule before using TL. Otherwise, TL will always flag
-    every valid word that is not majuscule because it doesn't exactly
-    match the Lexicon. If you alter your local copy of the pybear Lexicon
-    with your own words of varying capitalization, TL honors your
-    capitalization scheme.
+    pybear `Lexicon` is majuscule; use pybear :class:`TextNormalizer` to
+    make all your text majuscule before using TL. Otherwise, TL will
+    always flag every valid word that is not majuscule because it doesn't
+    exactly match the `Lexicon`. If you alter your local copy of the
+    pybear `Lexicon` with your own words of varying capitalization, TL
+    honors your capitalization scheme.
 
-    If TL encounters a word during :term: transform that was not seen
-    during fitting and is not in the Lexicon, the way that it is handled
-    depends on the setting of the :param: `auto_delete` parameter. If
-    the :param: `auto_delete` is True, the word is deleted from the text
+    If TL encounters a word during transform that was not seen during
+    fitting and is not in the `Lexicon`, the way that it is handled
+    depends on the setting of the `auto_delete` parameter. If `auto_delete`
+    is True, the word is deleted from the text
     body. If False, the word is skipped. In both cases, the word is added
     to an :attr: `OOV_` (out of vocabulary) dictionary. :attr: `OOV_`
     is only available after data has been passed to :meth: `transform`.
@@ -536,8 +536,8 @@ class TextLookup(_TextLookupMixin):
             the data. Always ignored.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             self: the TextLookup instance.
 
@@ -853,8 +853,8 @@ class TextLookup(_TextLookupMixin):
             the data. Always ignored.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             self: the TextLookup instance.
 
@@ -886,8 +886,8 @@ class TextLookup(_TextLookupMixin):
             and deletions directly on the passed X or a deepcopy of X.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             list[list[str]] - the data with instructions from fitting
             applied.

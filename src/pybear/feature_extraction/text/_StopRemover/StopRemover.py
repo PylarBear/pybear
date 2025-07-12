@@ -234,7 +234,7 @@ class StopRemover(
 
     @property
     def n_rows_(self) -> int:
-        """Get the 'n_rows_' attribute.
+        """Get the `n_rows_` attribute.
 
         The number of rows in the data passed to :meth:`transform`.
 
@@ -249,7 +249,7 @@ class StopRemover(
 
     @property
     def row_support_(self) -> npt.NDArray[bool]:
-        """Get the row_support_ attribute.
+        """Get the `row_support_` attribute.
 
         A boolean vector indicating which rows were kept (True) in
         the data during the transform process. Only available if a
@@ -356,8 +356,8 @@ class StopRemover(
         y : Optional[Any], default=None
             The target for the data. Always ignored.
 
-        Return
-        ------
+        Returns
+        -------
         None
 
         """
@@ -424,8 +424,8 @@ class StopRemover(
             Whether to remove stop words directly from the passed `X` or
             a deepcopy of `X`.
 
-        Return
-        ------
+        Returns
+        -------
         X_tr : list[list[str]]
             The data with stop words removed.
 

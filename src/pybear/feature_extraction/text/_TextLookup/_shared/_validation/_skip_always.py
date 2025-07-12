@@ -16,24 +16,20 @@ from ......base._check_1D_str_sequence import check_1D_str_sequence
 def _val_skip_always(
     _skip_always: Union[Sequence[str], None]
 ) -> None:
+    """Validate skip_always.
 
-    """
-    Validate skip_always. Must be a 1D sequence of strings or None.
-
+    Must be a 1D sequence of strings or None.
 
     Parameters
     ----------
-    _skip_always:
-        Union[Sequence[str], None] - a 1D sequence of strings that when
-        there is a case-sensitive match against a word in the text, that
-        word is skipped without further action and left in the body of
-        text.
-
+    _skip_always : Union[Sequence[str], None]
+        A 1D sequence of strings that when there is a case-sensitive
+        match against a word in the text, that word is skipped without
+        further action and left in the body of text.
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 

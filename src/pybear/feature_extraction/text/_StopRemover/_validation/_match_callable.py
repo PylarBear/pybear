@@ -26,8 +26,8 @@ def _val_match_callable(
         custom callable that defines what constitutes matches of words
         in the text against the stop words.
 
-    Return
-    ------
+    Returns
+    -------
     None
 
     """

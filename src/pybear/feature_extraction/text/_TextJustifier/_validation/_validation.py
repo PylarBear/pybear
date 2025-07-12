@@ -6,7 +6,6 @@
 
 
 
-from typing import Sequence
 from typing_extensions import Union
 from .._type_aliases import (
     XContainer,
@@ -45,28 +44,28 @@ def _validation(
 
     When `sep` (and `line_breaks`, if passed) are passed as literal
     strings, there is validation in place that is not in place for
-    regular expressions. No sep can be a substring of another sep. No
-    sep can be identical to a line_break entry and no sep can be a
-    substring of a line_break. No line_break can be a substring of
-    another line_break. No line_break can be identical to a sep entry
-    and no line_break can be a substring of a sep.
+    regular expressions. No `sep` can be a substring of another `sep`.
+    No `sep` can be identical to a `line_break` entry and no sep can be
+    a substring of a `line_break`. No `line_break` can be a substring of
+    another `line_break`. No `line_break` can be identical to a `sep`
+    entry and no `line_break` can be a substring of a `sep`.
 
     `line_break_flags` cannot be passed if `line_break` is not passed.
 
 
     Parameters
     ----------
-    _X:
-        XContainer - the text to be justified. 2D containers can be
-        ragged.
-    _n_chars:
-        numbers.Integral - the number of characters per line to target
-        when justifying the text.
-    _sep:
+    _X : XContainer
+        The text to be justified. 2D containers can be ragged.
+    _n_chars : numbers.Integral
+        The number of characters per line to target when justifying the
+        text.
+    _sep : CoreSepBreakType
         STR
         Union[str, Sequence[str]] - the literal string character
         sequence(s) that indicate to TJ where it is allowed to wrap a
         line. Cannot be an empty string, cannot be an empty list-like.
+
         REGEX
         Union[None, re.Pattern[str], Sequence[re.Pattern[str]]] - the
         re.compile object(s) that indicate to TJ where it is allowed
@@ -84,30 +83,26 @@ def _validation(
         re.compile object(s) that indicate to TJ where it must force a
         new line. Can be None. Cannot be a regex pattern that blatantly
         returns zero-span matches, cannot be an empty list-like.
-    _line_break_flags:
-        Union[numbers.Integral, None] - the flags for the `line_break`
-        parameter.
-    _backfill_sep:
-        str - Some lines in the text may not have any of the given
-        wrap separators or line breaks at the end of the line. When
+    _line_break_flags : Union[numbers.Integral, None]
+        The flags for the `line_break` parameter.
+    _backfill_sep : str
+        Some lines in the text may not have any of the given wrap
+        separators or line breaks at the end of the line. When
         justifying text and there is a shortfall of characters in a
         line, TJ will look to the next line to backfill strings. In
         the case where the line being backfilled onto does not have a
         separator or line break at the end of the string, this character
         string will separate the otherwise separator-less string from
         the string being backfilled onto it.
-    _join_2D:
-        str - Ignored if the data is given as a 1D sequence. For 2D
-        containers of strings, this is the character string sequence
-        that is used to join the strings across rows to convert the data
-        to 1D for processing. The single string value is used to join
-        for all rows.
-
+    _join_2D : str
+        Ignored if the data is given as a 1D sequence. For 2D containers
+        of strings, this is the character string sequence that is used
+        to join the strings across rows to convert the data to 1D for
+        processing. The single string value is used to join for all rows.
 
     Return
     ------
-    -
-        None
+    None
 
     Notes
     -----

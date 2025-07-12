@@ -37,8 +37,8 @@ def _validation(
         numbers.Integral - the number of features for the filled data.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

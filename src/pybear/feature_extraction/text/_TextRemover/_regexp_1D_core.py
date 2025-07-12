@@ -40,8 +40,8 @@ def _regexp_1D_core(
         passed as 1D and _X is the X passed to transform. If _X is a
         row from 2D data, then _rr as list is disallowed.
 
-    Return
-    ------
+    Returns
+    -------
     tuple[list[str], RowSupportType]:
         the data with unwanted strings removed and a boolean vector
         indicating which indices of the data were kept. If the X passed

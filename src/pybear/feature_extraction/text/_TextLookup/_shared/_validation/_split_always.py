@@ -16,27 +16,23 @@ from ......base._check_1D_str_sequence import check_1D_str_sequence
 def _val_split_always(
     _split_always: Union[dict[str, Sequence[str]], None]
 ) -> None:
+    """Validate split_always.
 
-    """
-    Validate split_always. Must be None or a dictionary with strings as
-    keys and sequences of strings as values.
-
+    Must be None or a dictionary with strings as keys and sequences of
+    strings as values.
 
     Parameters
     ----------
-    _split_always:
-        Union[dict[str, Sequence[str]], None] - None or a dictionary with
-        strings as keys and sequences of strings as values. When a key
-        in the dictionary is a case-sensitive match against a word in
-        the text, the matching word is removed and the corresponding
-        words in the sequence are inserted, starting in the position of
-        the original word.
-
+    _split_always : Union[dict[str, Sequence[str]], None]
+        None or a dictionary with strings as keys and sequences of
+        strings as values. When a key in the dictionary is a
+        case-sensitive match against a word in the text, the matching
+        word is removed and the corresponding words in the sequence are
+        inserted, starting in the position of the original word.
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 
