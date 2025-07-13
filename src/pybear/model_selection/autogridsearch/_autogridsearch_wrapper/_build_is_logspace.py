@@ -36,8 +36,8 @@ def _build_is_logspace(
         searches for each parameter.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _IS_LOGSPACE: IsLogspaceType - a dictionary indicating whether
         a parameter's search space is logarithmic. If so, the logspace

@@ -29,8 +29,8 @@ def _cond_thresholds(
         ThresholdsInputType - user-defined threshold(s)
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         __thresholds: ThresholdsWIPType - user-defined or default floats
         sorted ascending

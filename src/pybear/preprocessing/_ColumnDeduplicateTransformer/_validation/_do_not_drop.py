@@ -19,35 +19,31 @@ def _val_do_not_drop(
     _n_features_in: int,
     _columns: Union[FeatureNamesInType, None]
 ) -> None:
+    """Validate `do_not_drop`.
 
-    """
-    Validate :param: `do_not_drop`. May be None, a sequence of integers
-    indicating column indices, or, if fitting is done on a container
-    with a header, a sequence of strings that match any combination of
-    the feature names in the data header.
-
+    May be None, a sequence of integers indicating column indices, or,
+    if fitting is done on a container with a header, a sequence of
+    strings that match any combination of the feature names in the data
+    header.
 
     Parameters
     ----------
-    _do_not_drop:
-        DoNotDropType - A list of columns not to be dropped. If fitting
-        is done on a container that has a header, a list of feature
-        names may be provided. Otherwise, a list of column indices must
-        be provided. If a conflict arises, such as two columns specified
-        in `do_not_drop` are duplicates of each other, the behavior is
-        managed by :param: `conflict`.
-    _n_features_in:
-        int - The number of features in the data seen at first fit.
-    _columns:
-        Union[FeatureNamesInType, None] of shape (n_features,) - if
-        fitting is done on a container that has a header, this is a
+    _do_not_drop : DoNotDropType
+        A list of columns not to be dropped. If fitting is done on a
+        container that has a header, a list of feature names may be
+        provided. Otherwise, a list of column indices must be provided.
+        If a conflict arises, such as two columns specified in
+        `do_not_drop` are duplicates of each other, the behavior is
+        managed by `conflict`.
+    _n_features_in : int
+        The number of features in the data seen at first fit.
+    _columns : Union[FeatureNamesInType, None] of shape (n_features,)
+        If fitting is done on a container that has a header, this is a
         ndarray of strings, otherwise is None.
-
 
     Return
     ------
-    -
-        None
+    None
 
     """
 

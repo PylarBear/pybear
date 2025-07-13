@@ -6,7 +6,10 @@
 
 
 
-from typing import Sequence, Optional
+from typing import (
+    Optional,
+    Sequence
+)
 from .._type_aliases import OverallStatisticsType
 
 import numpy as np
@@ -19,8 +22,8 @@ def _build_overall_statistics(
     STRINGS: Sequence[str],
     case_sensitive: Optional[bool] = False
 ) -> OverallStatisticsType:
+    """Populate a dictionary with the overall statistics.
 
-    """
     Populate a dictionary with the following statistics for the current
     batch of strings:
 
@@ -39,20 +42,16 @@ def _build_overall_statistics(
 
     Parameters
     ----------
-    STRINGS:
-        Sequence[str] - a list-like of strings passed to :meth: `fit`
-        or :meth: `partial_fit`.
-    case_sensitive:
-        Optional[bool], default = False - whether to normalize all
-        characters to the same case or preserve the original case.
-
+    STRINGS : Sequence[str]
+        A list-like of strings passed to `fit` or `partial_fit`.
+    case_sensitive : Optional[bool], default = False
+        Whether to normalize all characters to the same case or preserve
+        the original case.
 
     Return
     ------
-    -
-        overall_statistics: dict[str, numbers.Real] - the statistics for
-        the current batch of data.
-
+    overall_statistics: dict[str, numbers.Real]
+        The statistics for the current batch of data.
 
     """
 
@@ -93,10 +92,6 @@ def _build_overall_statistics(
 
 
     return overall_statistics
-
-
-
-
 
 
 

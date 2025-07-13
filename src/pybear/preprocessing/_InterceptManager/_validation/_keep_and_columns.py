@@ -20,12 +20,12 @@ def _val_keep_and_columns(
     _columns: Union[Sequence[str], None],
     _X: XContainer
 ) -> None:
+    """Validate `keep` and `columns`.
 
-    """
-    Validate columns:
+    Validate `columns`:
         must be None or Sequence[str] with len==X.shape[1]
 
-    Validate keep:
+    Validate `keep`:
         must be any of:
             Literal['first', 'last', 'random', 'none'],
             dict[str, Any],
@@ -33,41 +33,37 @@ def _val_keep_and_columns(
             str (feature name),
             callable(X) that returns an integer (column index)
 
-        keep dict:
+        `keep` dict:
             must be len==1
             key is str
             warns if key already in columns
             value cannot be list-like or callable
-        keep callable:
+        `keep` callable:
             must return non-bool integer in range of num features
-        keep as column index:
+        `keep` as column index:
             must be non-bool integer, in range of num features
-        keep str literal:
+        `keep` str literal:
             must be lower case
             cannot conflict with a feature name
-        keep feature str:
+        `keep` feature str:
             columns must be passed
             must be in columns
 
-
     Parameters
     ----------
-    _keep:
-        KeepType - The strategy for handling the constant columns. See
-        'The keep Parameter' section for a lengthy explanation of the
-        'keep' parameter.
-    _columns:
-        Union[NDArray[str], None] - An NDArray[str] of shape (n_features,)
-        if X was passed in a container that has a header, otherwise None.
-    _X:
-        array-like of shape (n_samples, n_features). The data to be
-        searched for constant columns.
-
+    _keep : KeepType
+        The strategy for handling the constant columns. See 'The keep
+        Parameter' section for a lengthy explanation of the `keep`
+        parameter.
+    _columns : Union[NDArray[str], None] of shape (n_features,)
+        Exposed if `X` was passed in a container that has a header,
+        otherwise None.
+    _X : XContainer of shape (n_samples, n_features)
+        The data to be searched for constant columns.
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 

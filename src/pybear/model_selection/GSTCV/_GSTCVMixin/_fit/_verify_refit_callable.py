@@ -46,8 +46,8 @@ def _verify_refit_callable(
         output of the refit callable.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

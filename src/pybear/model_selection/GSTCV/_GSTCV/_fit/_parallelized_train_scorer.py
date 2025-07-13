@@ -86,8 +86,8 @@ def _parallelized_train_scorer(
         process. 0 means no output, 10 means maximum output.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         TRAIN_SCORER__SCORE_LAYER: MaskedHolderType - masked array of
         shape (n_scorers, ). The score for this fold of train data using

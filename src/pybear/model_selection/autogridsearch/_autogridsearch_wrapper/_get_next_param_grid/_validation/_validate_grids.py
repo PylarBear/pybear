@@ -27,8 +27,8 @@ def _validate_grids(_GRIDS: GridsType) -> None:
         GridsType - search grids for completed GridSearchCV passes
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

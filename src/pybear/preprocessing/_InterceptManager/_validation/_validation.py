@@ -30,47 +30,40 @@ def _validation(
     _rtol: numbers.Real,
     _atol: numbers.Real
 ) -> None:
+    """Centralized hub for performing parameter validation.
 
-    """
-    Centralized hub for performing parameter validation.
     See the individual modules for more information.
-
 
     Parameters
     ----------
-    _X:
-        array-like of shape (n_samples, n_features) - The data to be
-        searched for constant columns.
-    _columns:
-        Union[NDArray[str], None] - An NDArray[str] of shape (n_features,)
-        if X was passed in a container that has a header, otherwise None.
-    _keep:
-        KeepType - The strategy for handling the constant columns. See
-        'The Keep Parameter' discussion section for a lengthy explanation
-        of the 'keep' parameter.
-    _equal_nan:
-        bool - If equal_nan is True, exclude nan-likes from computations
-        that discover constant columns. This essentially assumes that
-        the nan value would otherwise be equal to the mean of the non-nan
-        values in the same column. If equal_nan is False and any value
-        in a column is nan, do not assume that the nan value is equal to
-        the mean of the non-nan values in the same column, thus making
-        the column non-constant. This is in line with the normal numpy
+    _X : XContainer of shape (n_samples, n_features)
+        The data to be searched for constant columns.
+    _columns : Union[NDArray[str], None] of shape (n_features,)
+        Exposed if `X` was passed in a container that has a header,
+        otherwise None.
+    _keep : KeepType
+        The strategy for handling the constant columns. See 'The Keep
+        Parameter' discussion section for a lengthy explanation of the
+        `keep` parameter.
+    _equal_nan : bool
+        If `equal_nan` is True, exclude nan-likes from computations that
+        discover constant columns. This essentially assumes that the nan
+        value would otherwise be equal to the mean of the non-nan values
+        in the same column. If `equal_nan` is False and any value in a
+        column is nan, do not assume that the nan value is equal to the
+        mean of the non-nan values in the same column, thus making the
+        column non-constant. This is in line with the normal numpy
         handling of nan values.
-    _rtol:
-        numbers.Real - The relative difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number. See
-        numpy.allclose.
-    _atol:
-        numbers.Real - The absolute difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number. See
-        numpy.allclose.
-
+    _rtol : numbers.Real
+        The relative difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
+    _atol : numbers.Real
+        The absolute difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 

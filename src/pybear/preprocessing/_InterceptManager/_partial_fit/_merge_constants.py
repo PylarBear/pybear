@@ -21,38 +21,33 @@ def _merge_constants(
     _rtol: numbers.Real,
     _atol: numbers.Real
 ) -> ConstantColumnsType:
+    """Merge the constants found in the current partial fit with those
+    found in previous partial fits.
 
-    """
-    Merge the constants found in the current partial fit with those
-    found in previous partial fits. Constant columns can only stay the
-    same or decrease on later partial fits, never increase.
-
+    Constant columns can only stay the same or decrease on later partial
+    fits, never increase.
 
     Parameters
     ----------
-    _old_constants:
-        Union[ConstantColumnsType, None] - the column indices of constant
-        columns found in previous partial fits and the values in the
-        columns. None if on the first partial fit.
-    _new_constants:
-        ConstantColumnsType - the column indices of constant columns
-        found in the current partial fit and the values in the columns.
-    _rtol:
-        numbers.Real - The relative difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number. See
-        numpy.allclose.
-    _atol:
-        numbers.Real - The absolute difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number. See
-        numpy.allclose.
-
+    _old_constants : Union[ConstantColumnsType, None]
+        The column indices of constant columns found in previous partial
+        fits and the values in the columns. None if on the first partial
+        fit.
+    _new_constants : ConstantColumnsType
+        The column indices of constant columns found in the current
+        partial fit and the values in the columns.
+    _rtol : numbers.Real
+        The relative difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
+    _atol : numbers.Real
+        The absolute difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
 
     Returns
     -------
-    -
-        _final_constants: ConstantColumnsType - the compiled column
-        indices and values of constant columns found over all partial
-        fits.
+    _final_constants : ConstantColumnsType
+        The compiled column indices and values of constant columns found
+        over all partial fits.
 
     """
 

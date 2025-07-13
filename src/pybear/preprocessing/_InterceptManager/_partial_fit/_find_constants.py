@@ -35,49 +35,44 @@ def _find_constants(
     _rtol: numbers.Real,
     _atol: numbers.Real
 ) -> ConstantColumnsType:
+    """Scan across the columns of `_X` looking for columns of constants.
 
-    """
-    Scan across the columns of _X looking for columns of constants. Use
-    _columns_getter() to pull columns from _X as numpy arrays. Use
-    _parallel_constant_finder() to determine the constancy of a column
-    with respect to rtol, atol, and equal_nan. Render the constant
-    columns found as dict[int, Any], with column indices as keys and
-    the respective constant values of the columns as values.
+    Use :funct:`_columns_getter` to pull columns from `_X` as numpy
+    arrays. Use :func:`_parallel_constant_finder` to determine the
+    constancy of a column with respect to `rtol`, `atol`, and `equal_nan`.
+    Render the constant columns found as dict[int, Any], with column
+    indices as keys and the respective constant values of the columns as
+    values.
 
-    
+
     Parameters
     ----------
-    _X:
-        array-like of shape (n_samples, n_features) - The data to
-        be searched for constant columns. _X will be passed to
-        _columns_getter and must observe the container restrictions
-        imposed there. _X should be in the correct state when passed to
-        this module.
-    _equal_nan:
-        bool - If equal_nan is True, exclude nan-likes from computations
+    _X : XInternalContainer of shape (n_samples, n_features)
+        The data to be searched for constant columns. `_X` will be
+        passed to :func:`_columns_getter` and must observe the container
+        restrictions imposed there. `_X` should be in the correct state
+        when passed to this module.
+    _equal_nan : bool
+        If `equal_nan` is True, exclude nan-likes from computations
         that discover constant columns. This essentially assumes that
         the nan value would otherwise be equal to the mean of the non-nan
-        values in the same column. If equal_nan is False and any value
+        values in the same column. If `equal_nan` is False and any value
         in a column is nan, do not assume that the nan value is equal to
         the mean of the non-nan values in the same column, thus making
         the column non-constant. This is in line with the normal numpy
         handling of nan values.
-    _rtol:
-        numbers.Real - The relative difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number. See
-        numpy.allclose.
-    _atol:
-        numbers.Real - The absolute difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number. See
-        numpy.allclose.
-    
-    
+    _rtol : numbers.Real
+        The relative difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
+    _atol : numbers.Real
+        The absolute difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
+
     Returns
     -------
-    -
-        _new_constants: ConstantColumnsType - dictionary of the indices
-        of the columns of constants and the values in them for the
-        current partial fit.
+    _new_constants : ConstantColumnsType
+        Dictionary of the indices of the columns of constants and the
+        values in them for the current partial fit.
 
     """
 

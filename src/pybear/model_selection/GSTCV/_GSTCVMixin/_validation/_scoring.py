@@ -66,8 +66,8 @@ def _val_scoring(
         already been conditioned into dict[str, Callable].
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

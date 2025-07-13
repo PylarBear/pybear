@@ -341,7 +341,7 @@ class StopRemover(
 
     def score(
         self,
-        X: XContainer,
+        X: Any,
         y: Optional[Any] = None
     ) -> None:
         """No-op score method.
@@ -350,11 +350,10 @@ class StopRemover(
 
         Parameters
         ----------
-        X : XContainer
-            The (possibly ragged) 2D container of text from which to
-            remove stop words. Ignored.
+        X : Any
+            The data. Ignored.
         y : Optional[Any], default=None
-            The target for the data. Always ignored.
+            The target for the data. Ignored.
 
         Returns
         -------

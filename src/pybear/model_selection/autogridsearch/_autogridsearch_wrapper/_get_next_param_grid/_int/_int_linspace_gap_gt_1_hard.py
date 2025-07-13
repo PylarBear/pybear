@@ -48,8 +48,8 @@ def _int_linspace_gap_gt_1_hard(
         Ignored if not hard.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _left: IntDataType - the minimum value for the next search grid
         after application of the hard minimum

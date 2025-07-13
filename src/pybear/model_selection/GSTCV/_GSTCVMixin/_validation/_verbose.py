@@ -31,8 +31,8 @@ def _val_verbose(
         during the grid search.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

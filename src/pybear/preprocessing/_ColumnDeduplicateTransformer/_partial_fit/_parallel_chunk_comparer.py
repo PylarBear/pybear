@@ -28,56 +28,47 @@ def _parallel_chunk_comparer(
     _atol: numbers.Real,
     _equal_nan: bool
 ) -> list[tuple[int, int]]:
-
-    """
-    Compare the columns in chunk1 against the columns in chunk2 for
-    equality, subject to rtol, atol, and equal_nan. chunk1 and chunk2
-    must be ndarray.
-
+    """Compare the columns in `chunk1` against the columns in `chunk2`
+    for equality, subject to rtol, atol, and equal_nan. `chunk1` and
+    `chunk2` must be ndarray.
 
     Parameters
     ----------
-    _chunk1:
-        npt.NDArray[Any] - a chunk of columns from X to be compared
-        column-by-column against another chunk of columns from X for
-        equality.
-    _chunk1_X_indices:
-        tuple[int, ...] - the X column indices that correspond to the
-        columns in chunk1.
-    _chunk2:
-        npt.NDArray[Any] - the other chunk of columns from X.
-    _chunk2_X_indices:
-        tuple[int, ...] - the X column indices that correspond to the
-        columns in chunk2.
-    _rtol:
-        numbers.Real - The relative difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number.
-        See numpy.allclose.
-    _atol:
-        numbers.Real - The absolute difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number.
-        See numpy.allclose.
-    _equal_nan:
-        bool - When comparing pairs of columns row by row:
+    _chunk1 : npt.NDArray[Any]
+        A chunk of columns from `X` to be compared column-by-column
+        against another chunk of columns from `X` for equality.
+    _chunk1_X_indices : tuple[int, ...]
+        The `X` column indices that correspond to the columns in `chunk1`.
+    _chunk2 : npt.NDArray[Any]
+        The other chunk of columns from `X`.
+    _chunk2_X_indices : tuple[int, ...]
+        The `X` column indices that correspond to the columns in `chunk2`.
+    _rtol : numbers.Real
+        The relative difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
+    _atol : numbers.Real
+        The absolute difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
+    _equal_nan : bool
+        When comparing pairs of columns row by row:
 
-        If equal_nan is True, exclude from comparison any rows where one
-        or both of the values is/are nan. If one value is nan, this
+        If `equal_nan` is True, exclude from comparison any rows where
+        one or both of the values is/are nan. If one value is nan, this
         essentially assumes that the nan value would otherwise be the
         same as its non-nan counterpart. When both are nan, this
         considers the nans as equal (contrary to the default numpy
         handling of nan, where numpy.nan != numpy.nan) and will not in
         and of itself cause a pair of columns to be considered unequal.
-        If equal_nan is False and either one or both of the values in
+        If `equal_nan` is False and either one or both of the values in
         the compared pair of values is/are nan, consider the pair to be
         not equivalent, thus making the column pair not equal. This is
         in line with the normal numpy handling of nan values.
 
-
     Return
     ------
-    _pairs:
-        list[tuple[int, int]] - The X column indices for the pairs of
-        columns that are equal between chunk1 and chunk2.
+    _pairs : list[tuple[int, int]]
+        The `X` column indices for the pairs of columns that are equal
+        between `chunk1` and `chunk2`.
 
     """
 

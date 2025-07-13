@@ -7,7 +7,10 @@
 
 
 from typing import Sequence
-from typing_extensions import Union
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 from ._type_aliases import MaxSplitsType
 
 import numbers
@@ -15,33 +18,53 @@ import re
 
 
 
+
+PatternsType: TypeAlias = \
+    Union[
+        None, re.Pattern[str], tuple[re.Pattern[str], ...],
+        list[Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]]
+    ]
+
+
+
 def _regexp_core(
     _X: Sequence[str],
-    _rs: Union[None, re.Pattern[str], tuple[re.Pattern[str], ...],
-            list[Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]]],
+    _rs: PatternsType,
     _maxsplit: MaxSplitsType
 ) -> list[list[str]]:
-
-    """
-    Split the strings in X based on the criteria in 'sep', 'maxsplit'
-    and 'flags'. 'sep' and 'flags' have been rolled into re.compile
-    objects by _param_conditioner() and are in '_rs'.
-
+    """Split the strings in `X` based on the criteria in `sep`, `maxsplit`
+    and `flags`. `sep` and `flags` have been rolled into re.compile
+    objects by _param_conditioner() and are in `_rs`.
 
     Parameters
     ----------
-    _X:
-        XContainer - the data, 1D vector of strings.
-    _rs:
-        Union[None, re.Pattern[str], tuple[re.Pattern[str], ...],
-        list[Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]]] -
-        the pattern(s) by which to identify where strings will be split.
+    _X : XContainer
+        The data, 1D vector of strings.
+    _rs : PatternsType
+        The pattern(s) by which to identify where strings will be split.
 
 
     Return
     ------
-    -
-        list[list[str]] - the split data.
+    _X : list[list[str]]
+        The split data.
+
+    Notes
+    -----
+
+    **Type Aliases**
+
+    PatternsType:
+        Union[
+            None, re.Pattern[str], tuple[re.Pattern[str], ...],
+            list[Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]]
+        ]
+
+    MaxSplitType:
+        Union[None, numbers.Integral]
+
+    MaxSplitsType:
+        Optional[Union[MaxSplitType, list[MaxSplitType]]]
 
     """
 

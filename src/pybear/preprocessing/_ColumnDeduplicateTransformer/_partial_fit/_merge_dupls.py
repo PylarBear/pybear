@@ -19,34 +19,30 @@ def _merge_dupls(
     _previous_duplicates: Union[DuplicatesType, None],
     _current_duplicates: DuplicatesType
 ) -> DuplicatesType:
+    """Compare the newest duplicates found in the current partial fit
+    with previous duplicates found on earlier partial fits and meld
+    together to produce overall duplicates.
 
-    """
-    Compare the newest duplicates found in the current partial fit with
-    previous duplicates found on earlier partial fits and meld together
-    to produce overall duplicates. Any columns previously not identified
-    as equal but currently are equal, are coincidentally equal and are
-    not added to the final list. Columns previously found to be equal
-    but are not currently equal are removed from the final lists of
-    duplicates. The only duplicates retained are those columns found to
-    be identical for all partial fits.
-
+    Any columns previously not identified as equal but currently are
+    equal, are coincidentally equal and are not added to the final list.
+    Columns previously found to be equal but are not currently equal are
+    removed from the final lists of duplicates. The only duplicates
+    retained are those columns found to be identical for all partial
+    fits.
 
     Parameters
     ----------
-    _previous_duplicates:
-        Union[DuplicatesType, None] - the duplicate columns carried over
-        from the previous partial fits. Is None if on the first partial
-        fit.
-    _current_duplicates:
-        DuplicatesType - the duplicate columns found on the current
-        partial fit.
-
+    _previous_duplicates : Union[DuplicatesType, None]
+        The duplicate columns carried over from the previous partial
+        fits. Is None if on the first partial fit.
+    _current_duplicates : DuplicatesType
+        The duplicate columns found on the current partial fit.
 
     Return
     ------
-    -
-        duplicates_: DuplicatesType - the groups of identical columns,
-        indicated by their zero-based column index positions.
+    duplicates_ : DuplicatesType
+        The groups of identical columns, indicated by their zero-based
+        column index positions.
 
     """
 

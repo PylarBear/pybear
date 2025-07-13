@@ -77,8 +77,8 @@ def _float_logspace(
         to constraints of hard_min, hard_max, universal lower bound, etc.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _OUT_GRID:
             FloatGridType - new search grid for the current pass'

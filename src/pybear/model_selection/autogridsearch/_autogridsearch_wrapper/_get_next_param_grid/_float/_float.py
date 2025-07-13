@@ -66,8 +66,8 @@ def _float(
         int - the number of points for the current grid as read from _params.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
          _NEW_GRID:
             FloatGridType - new search grid for the current pass'

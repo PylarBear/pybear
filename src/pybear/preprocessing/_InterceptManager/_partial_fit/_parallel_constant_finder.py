@@ -27,65 +27,60 @@ def _parallel_constant_finder(
     _rtol: numbers.Real,
     _atol: numbers.Real
 ) -> list[Union[uuid.UUID, Any]]:
-
     """
-    Determine if a column holds a constant value, subject to _equal_nan,
-    _rtol, and _atol. If there is a constant value, return the value.
+    Determine if a column holds a constant value, subject to `_equal_nan`,
+    `_rtol`, and `_atol`. If there is a constant value, return the value.
     Otherwise, return a uuid4.
 
     For numerical columns, get the mean of all the values and compare
-    against each of the values; if all of the values are within rtol /
-    atol of the mean, then the column is constant.
+    against each of the values; if all of the values are within `rtol` /
+    `atol` of the mean, then the column is constant.
 
     For non-numerical columns, count the number of unique values and if
     there is only one, then that column is constant.
 
     For both data types, if no nan-like values are present then the
     operation is straightforward as above. When nan-like values are
-    present and _equal_nan is False, then the column is not constant.
-    If _equal_nan is True, then perform the above operations on the
+    present and `_equal_nan` is False, then the column is not constant.
+    If `_equal_nan` is True, then perform the above operations on the
     non-nan-like values; if the column contains all nan-likes then
     return the nan value.
 
-    Originally this module took in one column from X and returned a
+    Originally this module took in one column from `X` and returned a
     single value. Joblib choked on this one-column-at-a-time approach,
     serializing individual columns just to do this operation was a waste.
-    So this module was converted to handle a chunk of columns of X, scan
-    it, and return a list of results. Handling chunks instead of columns
-    still was not enough to make the cost of serializing the data
+    So this module was converted to handle a chunk of columns of `X`,
+    scan it, and return a list of results. Handling chunks instead of
+    columns still was not enough to make the cost of serializing the data
     worthwhile compared to the low cost of assessing if a column is
     constant. Joblib has been removed completely.
 
-
     Parameters
     ----------
-    _chunk:
-        NDArray[Any] - Columns drawn from X as a numpy array.
-    _equal_nan:
-        bool - If equal_nan is True, exclude nan-likes from computations
+    _chunk : NDArray[Any]
+        Columns drawn from `X` as a numpy array.
+    _equal_nan : bool
+        If `equal_nan` is True, exclude nan-likes from computations
         that discover constant columns. This essentially assumes that
         the nan value would otherwise be equal to the mean of the non-nan
-        values in the same column. If equal_nan is False and any value
+        values in the same column. If `equal_nan` is False and any value
         in a column is nan, do not assume that the nan value is equal to
         the mean of the non-nan values in the same column, thus making
         the column non-constant. This is in line with the normal numpy
         handling of nan values.
-    _rtol:
-        numbers.Real - The relative difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number. See
-        numpy.allclose.
-    _atol:
-        numbers.Real - The absolute difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number. See
-        numpy.allclose.
-
+    _rtol : numbers.Real
+        The relative difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
+    _atol : numbers.Real
+        The absolute difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
 
     Returns
     -------
-    _constants:
-        list[Union[uuid.uuid4, Any]] - a list of the results for each
-        column in _chunk. if a column is not constant, returns a uuid4
-        identifier; if it is constant, returns the constant value.
+    _constants : list[Union[uuid.uuid4, Any]]
+        A list of the results for each column in `_chunk`. if a column
+        is not constant, returns a uuid4 identifier; if it is constant,
+        returns the constant value.
 
     """
 

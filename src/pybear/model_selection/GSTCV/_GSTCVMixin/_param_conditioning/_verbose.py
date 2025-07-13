@@ -33,8 +33,8 @@ def _cond_verbose(
         during the grid search.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _verbose: int - `verbose` scaled from 0 to 10
 

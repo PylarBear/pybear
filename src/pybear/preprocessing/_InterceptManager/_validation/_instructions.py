@@ -18,28 +18,25 @@ def _val_instructions(
     _instructions: InstructionType,
     _n_features_in: int
 ) -> None:
+    """Validate the `instructions` dictionary.
 
-    """
-    _instructions must be a dictionary with 3 keys: 'keep', 'delete',
+    `_instructions` must be a dictionary with 3 keys: 'keep', 'delete',
     and 'add'. Values can only be None or list[int], where ints are
     column indices in the data. All column indices must be in range of
     the number of features in the data. A column index cannot be in
     multiple lists.
 
-
     Parameters
     ----------
-    _instructions:
-        InstructionType - instructions for keeping, deleting, or adding
-        constant columns, to be applied during :meth: `transform`.
-    _n_features_in:
-        int - number of features in the fitted data before transform.
-
+    _instructions : InstructionType
+        Instructions for keeping, deleting, or adding constant columns,
+        to be applied during transform.
+    _n_features_in : int
+        Number of features in the fitted data before transform.
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 

@@ -39,8 +39,8 @@ def _int_linspace_gap_gt_1_soft(
         best value fell
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _left: IntDataType - the minimum value for the next search grid
         (may be changed by another algorithm later)

@@ -45,8 +45,8 @@ def _estimator_fit_params_helper(
         train / test splits of data.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _fit_params_helper: dict[int, dict[str, Any]] - a dictionary of
         customized fit params for each pass of cv.

@@ -42,47 +42,41 @@ def _validation(
     _n_jobs: Union[numbers.Integral, None],
     _job_size: numbers.Integral
 ) -> None:
+    """Centralized hub for performing parameter validation.
 
-    """
-    Centralized hub for performing parameter validation.
     See the individual modules for more information.
-
 
     Parameters
     ----------
-    _X:
-        array-like of shape (n_samples, n_features) - The data.
-    _columns:
-        Union[FeatureNamesInType, None] - An vector of shape (n_features,)
-        if X was passed in a container that has a header, otherwise None.
-    _conflict:
-        ConflictType
-    _do_not_drop:
-        DoNotDropType
-    _keep:
-        KeepType
-    _rtol:
-        numbers.Real - The relative difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number. See
-        numpy.allclose.
-    _atol:
-        numbers.Real - The absolute difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number. See
-        numpy.allclose.
-    _equal_nan:
-        bool
-    _n_jobs:
-        Union[numbers.Integral, None] - The number of joblib Parallel
-        jobs to use when scanning the data for duplicates.
-    _job_size:
-        numbers.Integral - The number of columns to send to a joblib job.
-        Must be an integer greater than or equal to 2.
-
+    _X : XContainer of shape (n_samples, n_features)
+        The data.
+    _columns : Union[FeatureNamesInType, None]
+        An vector of shape (n_features,) if `X` was passed in a container
+        that has a header, otherwise None.
+    _conflict : ConflictType
+        How to manage a conflict between the instructions.
+    _do_not_drop : DoNotDropType
+        Columns to preferentially keep during deduplication.
+    _keep : KeepType
+        Instructions for what column to keep out of a set of duplicates
+    _rtol : numbers.Real
+        The relative difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
+    _atol : numbers.Real
+        The absolute difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
+    _equal_nan : bool
+        How to handle nan values during comparisons.
+    _n_jobs : Union[numbers.Integral, None]
+        The number of joblib Parallel jobs to use when scanning the data
+        for duplicates.
+    _job_size : numbers.Integral
+        The number of columns to send to a joblib job. Must be an integer
+        greater than or equal to 2.
 
     Return
     ------
-    -
-        None
+    None
 
     """
 

@@ -55,8 +55,8 @@ def _int_logspace_gap_gt_1_hard(
         Ignored if not hard.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _left: np.float64 - the minimum value for the next search grid
         after application of the hard minimum

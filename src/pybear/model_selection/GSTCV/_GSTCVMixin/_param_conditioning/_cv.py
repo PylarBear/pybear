@@ -61,8 +61,8 @@ def _cond_cv(
         to be applied when `cv` is None.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _cv: Union[int, list[GenericKFoldType]] - conditioned `cv` input
 

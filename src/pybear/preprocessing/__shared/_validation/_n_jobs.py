@@ -15,22 +15,16 @@ import numbers
 def _val_n_jobs(
     _n_jobs: Union[numbers.Integral, None]
 ) -> None:
-
-    """
-    Validate n_jobs is None, -1, or integer >= 1.
-
+    """Validate `n_jobs` is None, -1, or integer >= 1.
 
     Parameters
     ----------
-    _n_jobs:
-        Union[numbers.Integral, None] - the number of processors/threads
-        to use for CPU bound tasks.
-
+    _n_jobs : Union[numbers.Integral, None]
+        The number of processors/threads to use for CPU bound tasks.
 
     Return
     ------
-    -
-        None
+    None
 
     """
 

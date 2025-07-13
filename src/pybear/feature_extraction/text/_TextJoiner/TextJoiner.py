@@ -60,9 +60,9 @@ class TextJoiner(
     corresponding row of text in the data.
 
     TJ is a full-fledged scikit-style transformer. It has fully
-    functional get_params, set_params, transform, and fit_transform
-    methods. It also has partial_fit, fit, and score methods, which are
-    no-ops. TJ technically does not need to be fit because it already
+    functional `get_params`, `set_params`, `transform`, and `fit_transform`
+    methods. It also has `partial_fit`, `fit`, and `score` methods, which
+    are no-ops. TJ technically does not need to be fit because it already
     knows everything it needs to do transformations from `sep`. These
     no-op methods are available to fulfill the scikit transformer API
     and make TJ suitable for incorporation into larger workflows, such
@@ -283,7 +283,7 @@ class TextJoiner(
 
     def score(
         self,
-        X: XContainer,
+        X: Any,
         y: Optional[Any] = None
     ) -> None:
         """No-op score method.
@@ -292,11 +292,10 @@ class TextJoiner(
 
         Parameters
         ----------
-        X : XContainer
-            The (possibly ragged) 2D container of text to be joined along
-            rows using the `sep` character string(s). Ignored.
+        X : Any
+            The data. Ignored.
         y : Optional[Any], default=None
-            The target for the data. Always ignored.
+            The target for the data. Ignored.
 
         Returns
         -------

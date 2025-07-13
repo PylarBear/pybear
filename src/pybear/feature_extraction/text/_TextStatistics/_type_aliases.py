@@ -6,8 +6,15 @@
 
 
 
-from typing import Sequence, TypedDict
-from typing_extensions import Required, TypeAlias, Union
+from typing import (
+    Sequence,
+    TypedDict
+)
+from typing_extensions import (
+    Required,
+    TypeAlias,
+    Union
+)
 import numpy.typing as npt
 
 import numbers

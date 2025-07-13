@@ -43,8 +43,8 @@ def _val_estimator(
         ClassifierProtocol - the estimator to be validated
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

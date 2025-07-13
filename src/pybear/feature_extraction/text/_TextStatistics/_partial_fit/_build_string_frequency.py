@@ -6,7 +6,10 @@
 
 
 
-from typing import Sequence, Optional
+from typing import (
+    Optional,
+    Sequence
+)
 
 import numbers
 
@@ -18,27 +21,22 @@ def _build_string_frequency(
     STRINGS: Sequence[str],
     case_sensitive: Optional[bool] = False
 ) -> dict[str, numbers.Integral]:
-
-    """
-    Build a dictionary of the unique strings in STRINGS and their counts.
-
+    """Build a dictionary of the unique strings in `STRINGS` and their
+    counts.
 
     Parameters
     ----------
-    STRINGS:
-        Sequence[str] - the sequence of strings currently being fitted.
-    case_sensitive:
-        Optional[bool], default = False - whether to preserve the case
-        of the characters when getting the uniques. When False, normalize
-        the case of all characters.
-
+    STRINGS : Sequence[str]
+        The sequence of strings currently being fitted.
+    case_sensitive : Optional[bool], default = False
+        Whether to preserve the case of the characters when getting the
+        uniques. When False, normalize the case of all characters.
 
     Return
     ------
-    -
-        dict[str, int] - a dictionary with the unique strings in STRINGS
-        as keys and their respective counts as values.
-
+    _string_frequency : dict[str, int]
+        A dictionary with the unique strings in STRINGS as keys and
+        their respective counts as values.
 
     """
 

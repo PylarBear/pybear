@@ -16,31 +16,24 @@ def _merge_character_frequency(
     _current_character_frequency: dict[str, numbers.Integral],
     _character_frequency: dict[str, numbers.Integral]
 ) -> dict[str, int]:
-
-    """
-    Merge the unique first characters and counts in the current partial
-    fit's character frequency dictionary with those found in all
-    previous partial fits of the TextStatistics instance.
-
+    """Merge the unique first characters and counts in the current
+    partial fit's character frequency dictionary with those found in
+    all previous partial fits of the TextStatistics instance.
 
     Parameters
     ----------
-    _current_character_frequency:
-        dict[str, numbers.Integral] - the unique characters and their
-        counts found in the current partial fit.
-    _character_frequency:
-        dict[str, numbers.Integral] - the unique characters and their
-        counts found in all previous partial fits on the TextStatistics
-        instance.
-
+    _current_character_frequency : dict[str, numbers.Integral]
+        The unique characters and their counts found in the current
+        partial fit.
+    _character_frequency : dict[str, numbers.Integral]
+        The unique characters and their counts found in all previous
+        partial fits on the `TextStatistics` instance.
 
     Return
     ------
-    -
-        _character_frequency: dict[str, int] - the merged unique
-        characters and counts for all strings seen across all partial
-        fits of the TextStatistics instance.
-
+    _character_frequency : dict[str, int]
+        The merged unique characters and counts for all strings seen
+        across all partial fits of the `TextStatistics` instance.
 
     """
 

@@ -27,33 +27,28 @@ def _columns_getter(
     _X: InternalXContainer,
     _col_idxs: Union[int, tuple[int, ...]]
 ) -> npt.NDArray[Any]:
+    """Handles the mechanics of extracting one or more columns from the
+    various allowed data container types.
 
-    """
-    This supports _find_duplicates. Handles the mechanics of extracting
-    one or more columns from the various allowed data container types.
-    The container must be numpy ndarray, pandas dataframe, polars
-    dataframe, or scipy csc only. Return extracted column(s) as a numpy
-    array. In the case of scipy sparse, the columns are converted to
-    dense.
-
+    This supports _find_duplicates. The container must be numpy ndarray,
+    pandas dataframe, polars dataframe, or scipy csc only. Return
+    extracted column(s) as a numpy array. In the case of scipy sparse,
+    the columns are converted to dense.
 
     Parameters
     ----------
-    _X:
-        InternalXContainer - The data to extract columns from. The
-        container must be numpy ndarray, pandas dataframe, polars
-        dataframe, or scipy csc only. This module expects _X to be in
-        a valid state when passed, and will not condition it.
-    _col_idxs:
-        Union[int, tuple[int, ...]] - the column index / indices to
-        extract from _X.
-
+    _X : InternalXContainer
+        The data to extract columns from. The container must be numpy
+        ndarray, pandas dataframe, polars dataframe, or scipy csc only.
+        This module expects `_X` to be in a valid state when passed, and
+        will not condition it.
+    _col_idxs : Union[int, tuple[int, ...]]
+        The column index / indices to extract from `_X`.
 
     Return
     ------
-    -
-        _columns: NDArray[Any] - The column(s) from _X corresponding to
-        the given index/indices.
+    _columns : NDArray[Any]
+        The column(s) from `_X` corresponding to the given index/indices.
 
     """
 

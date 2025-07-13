@@ -39,8 +39,8 @@ def _int_grid_mapper(
         preserve equal intervals as much as possible.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _OUT_GRID: IntGridType - list of integers fulfilling the input
         criteria

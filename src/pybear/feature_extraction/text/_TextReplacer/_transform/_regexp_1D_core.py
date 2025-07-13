@@ -16,24 +16,21 @@ def _regexp_1D_core(
     _X: list[str],
     _rr: WipReplaceType
 ) -> list[str]:
-
-    """
-    Search and replace substrings in a 1D list of strings using re.sub.
-
+    """Search and replace substrings in a 1D list of strings using
+    `re.sub`.
 
     Parameters
     ----------
-     _X:
-        list[str] - the original 1D data or one row of 2D data.
-    _rr:
-        WipReplaceType - the pattern(s) by which to identify substrings
-        to replace and their replacement(s).
-
+     _X : list[str]
+        The original 1D data or one row of 2D data.
+    _rr :W ipReplaceType
+        The pattern(s) by which to identify substrings to replace and
+        their replacement(s).
 
     Returns
     -------
-    -
-        list[str]: the 1D vector with substring replacements made.
+    _X : list[str]
+        The 1D vector with substring replacements made.
 
     """
 

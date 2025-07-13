@@ -16,30 +16,24 @@ def _merge_string_frequency(
     _current_string_frequency: dict[str, numbers.Integral],
     _string_frequency: dict[str, numbers.Integral]
 ) ->  dict[str, int]:
-
-    """
-    Merge the uniques and counts in the current partial fit's string
+    """Merge the uniques and counts in the current partial fit's string
     frequency dictionary with the uniques and counts found in all
-    previous partial fits of the TextStatistics instance.
-
+    previous partial fits of the `TextStatistics` instance.
 
     Parameters
     ----------
-    _current_string_frequency:
-        dict[str, numbers.Integral] - the unique strings and their counts
-        found in the current partial fit.
-    _string_frequency:
-        dict[str, numbers.Integral] - the unique strings and their counts
-        found in all previous partial fits on the TextStatistics instance.
-
+    _current_string_frequency : dict[str, numbers.Integral]
+        The unique strings and their counts found in the current partial
+        fit.
+    _string_frequency : dict[str, numbers.Integral]
+        The unique strings and their counts found in all previous partial
+        fits on the `TextStatistics` instance.
 
     Return
     ------
-    -
-        _string_frequency: dict[str, int] - the merged uniques and counts
-        for all strings seen across all partial fits of the TextStatistics
-        instance.
-
+    _string_frequency : dict[str, int]
+        The merged uniques and counts for all strings seen across all
+        partial fits of the `TextStatistics` instance.
 
     """
 

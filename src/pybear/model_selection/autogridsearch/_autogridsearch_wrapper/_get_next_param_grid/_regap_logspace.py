@@ -56,8 +56,8 @@ def _regap_logspace(
         search grid. Ignored otherwise.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _NEW_GRID: NumGridType - _grid updated with logspace intervals
         reduced to 1

@@ -22,28 +22,22 @@ def _transform(
     _X: InternalXContainer,
     _instructions: InstructionType
 ) -> InternalXContainer:
+    """Manage the constant columns in `X`.
 
-    """
-    Manage the constant columns in X. Apply the removal criteria given
-    by :param: keep via _instructions to the constant columns found
-    during fit.
-
+    Apply the removal criteria given by `keep` via `_instructions` to
+    the constant columns found during fit.
 
     Parameters
     ----------
-    _X:
-        array-like of shape (n_samples, n_features) - The data to be
-        transformed. Must be numpy ndarray, pandas dataframe, polars
-        dataframe, or scipy sparse csc matrix/array.
-    _instructions:
-        InstructionType - instructions for keeping, deleting, or adding
-        constant columns.
-
+    _X : InternalXContainer of shape (n_samples, n_features)
+        The data to be transformed. Must be numpy ndarray, pandas
+        dataframe, polars dataframe, or scipy sparse csc matrix/array.
+    _instructions : InstructionType
+        Instructions for keeping, deleting, or adding constant columns.
 
     Returns
     -------
-    -
-        _X: array-like of shape (n_samples, n_transformed_features) -
+    _X : InternalXContainer of shape (n_samples, n_transformed_features)
         The transformed data.
 
     """

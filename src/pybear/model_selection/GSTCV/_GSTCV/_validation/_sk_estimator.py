@@ -33,8 +33,8 @@ def _val_sk_estimator(
         ClassifierProtocol - the estimator to be validated
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

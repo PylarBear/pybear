@@ -19,7 +19,7 @@ def variable_finder(
     text:Optional[str] = None,
     filepath:Optional[str] = None
 ) -> list[str]:
-    """Search a string OR a text files for substrings that appear to be
+    """Search a string OR a text file for substrings that appear to be
     variable declarations.
 
     Parameters

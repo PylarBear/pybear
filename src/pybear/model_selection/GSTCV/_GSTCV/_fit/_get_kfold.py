@@ -63,8 +63,8 @@ def _get_kfold(
         output, 10 means full output.
 
 
-    Return
-    ------
+    Returns
+    ------=
     -
         KFOLD: Iterator[SKKFoldType] - A generator object yielding
         pairs of train test indices as NDArray[int].

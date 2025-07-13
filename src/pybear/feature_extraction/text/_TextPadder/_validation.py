@@ -6,42 +6,58 @@
 
 
 
-from typing import Sequence
-
 import numbers
 
 from ..__shared._validation._2D_X import _val_2D_X
 from ..__shared._validation._any_integer import _val_any_integer
 from ..__shared._validation._any_string import _val_any_string
 
+from ._type_aliases import XContainer
+
 
 
 def _validation(
-    _X: Sequence[Sequence[str]],
+    _X: XContainer,
     _fill:str,
     _n_features: numbers.Integral
 ) -> None:
+    """Centralized hub for validating parameters and `X`.
 
-    """
-    Centralized hub for validating parameters and X.
     See the individual validation modules for more details.
 
 
     Parameters
     ----------
-    _X:
-        Sequence[Sequence[str]] - the data.
-    _fill:
-        str - the fill value for the void space in the data.
-    _n_features:
-        numbers.Integral - the number of features for the filled data.
-
+    _X : XContainer
+        The data.
+    _fill : str
+        The fill value for the void space in the data.
+    _n_features : numbers.Integral
+        The number of features for the filled data.
 
     Returns
     -------
-    -
-        None
+    None
 
+    Notes
+    -----
+
+    **Type Aliases**
+
+    PythonTypes:
+        Sequence[Sequence[str]]
+
+    NumpyTypes:
+        numpy.ndarray[str]
+
+    PandasTypes:
+        pandas.core.frame.DataFrame
+
+    PolarsTypes:
+        polars.dataframe.DataFrame
+
+    XContainer:
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 
     """
 

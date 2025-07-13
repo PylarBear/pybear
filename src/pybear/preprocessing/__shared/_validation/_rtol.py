@@ -13,24 +13,18 @@ import numpy as np
 
 
 def _val_rtol(_rtol: numbers.Real) -> None:
-
-    """
-    Verify rtol is a non-boolean, non-negative, real number that is
+    """Verify rtol is a non-boolean, non-negative, real number that is
     accepted by numpy allclose.
-
 
     Parameters
     ----------
-    _rtol:
-        numbers.Real - The relative difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number. See
+    _rtol : numbers.Real - The relative difference tolerance for
+        equality. Must be a non-boolean, non-negative, real number. See
         numpy.allclose.
-
 
     Return
     ------
-    -
-        None
+    None
 
     """
 

@@ -17,28 +17,23 @@ def _validation(
     _X: XContainer,
     _store_uniques: bool
 ) -> None:
+    """Centralized hub for validation.
 
-    """
-    Centralized hub for validation. See the individual modules for more
-    details.
-
+    See the individual modules for more details.
 
     Parameters
     ----------
-    _X:
-        XContainer - The text data. Must be a 1D list-like or 2D
-        array-like of strings.
-    _store_uniques:
-        bool - If True, all attributes and print methods are fully
-        informative. If False, the 'string_frequencies_' and 'uniques_'
-        attributes are always empty, and functionality that depends on
-        these attributes have reduced capability.
-
+    _X : XContainer
+        The text data. Must be a 1D list-like or 2D array-like of strings.
+    _store_uniques : bool
+        If True, all attributes and print methods are fully informative.
+        If False, the `string_frequencies_` and `uniques_` attributes
+        are always empty, and functionality that depends on these
+        attributes have reduced capability.
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 

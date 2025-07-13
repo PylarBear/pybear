@@ -19,26 +19,22 @@ import polars as pl
 def _val_X(
     _X: XContainer
 ) -> None:
+    """Validate the container type of the data.
 
-    """
-    Validate the container type of the data. Cannot be None. Otherwise,
-    X can be a numpy ndarray, a pandas dataframe, polars dataframe, or
-    any scipy sparse matrix / array.
+    Cannot be None. Otherwise, `X` can be a numpy ndarray, a pandas
+    dataframe, polars dataframe, or any scipy sparse matrix / array.
 
     All other validation of the data is handled in the individual
     methods by pybear.base.validate_data.
 
-
     Parameters
     ----------
-    _X:
-        array-like of shape (n_samples, n_features) - the data.
-
+    _X : XContainer of shape (n_samples, n_features)
+        The data.
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 

@@ -50,8 +50,8 @@ def _int_logspace_gap_gt_1_soft(
         best value fell
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _left: np.float64 - the minimum value for the next search grid
         (may be changed by another algorithm later)

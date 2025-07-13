@@ -24,47 +24,42 @@ def _parallel_column_comparer(
     _atol: numbers.Real,
     _equal_nan: bool
 ) -> list[bool]:
-
-    """
-    Compare column1 against column2 for equality, subject to rtol, atol,
-    and equal_nan. column1 and column2 must be ndarray.
-
+    """ Compare `column1` against `column2` for equality, subject to
+    `rtol`, `atol`, and `equal_nan`. `column1` and `column2` must be
+    ndarray.
 
     Parameters
     ----------
-    _column1:
-        npt.NDArray[Any] - a column from X to compare against another
-        column from X for equality.
-    _column2:
-        npt.NDArray[Any] - the other column from X.
-    _rtol:
-        numbers.Real - The relative difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number.
-        See numpy.allclose.
-    _atol:
-        numbers.Real - The absolute difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number.
-        See numpy.allclose.
-    _equal_nan:
-        bool - When comparing pairs of columns row by row:
+    _column1 : npt.NDArray[Any]
+        A column from `X` to compare against another column from `X` for
+        equality.
+    _column2 : npt.NDArray[Any]
+        The other column from `X`.
+    _rtol : numbers.Real
+        The relative difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
+    _atol : numbers.Real
+        The absolute difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
+    _equal_nan : bool
+        When comparing pairs of columns row by row:
 
-        If equal_nan is True, exclude from comparison any rows where one
-        or both of the values is/are nan. If one value is nan, this
+        If `equal_nan` is True, exclude from comparison any rows where
+        one or both of the values is/are nan. If one value is nan, this
         essentially assumes that the nan value would otherwise be the
         same as its non-nan counterpart. When both are nan, this
         considers the nans as equal (contrary to the default numpy
         handling of nan, where numpy.nan != numpy.nan) and will not in
         and of itself cause a pair of columns to be considered unequal.
-        If equal_nan is False and either one or both of the values in
+        If `equal_nan` is False and either one or both of the values in
         the compared pair of values is/are nan, consider the pair to be
         not equivalent, thus making the column pair not equal. This is
         in line with the normal numpy handling of nan values.
 
-
     Return
     ------
-    _match:
-        bool - Whether the pair of columns are equal.
+    _match : bool
+        Whether the pair of columns are equal.
 
     """
 

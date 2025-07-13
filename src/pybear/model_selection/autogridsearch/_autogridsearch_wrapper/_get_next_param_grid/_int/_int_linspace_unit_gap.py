@@ -62,8 +62,8 @@ def _int_linspace_unit_gap(
         constraints of hard_min, hard_max, minimum of 1, etc.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _OUT_GRID:
             IntGridType - new search grid for the current pass' upcoming

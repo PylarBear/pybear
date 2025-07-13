@@ -49,8 +49,8 @@ def _val_refit(
         allowed for the `refit` param.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

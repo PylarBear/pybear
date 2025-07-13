@@ -50,8 +50,8 @@ def _shift_grid(
         parameter
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         NEW_GRID: GridType - left-shifted or right-shifted grid
 

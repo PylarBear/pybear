@@ -15,29 +15,23 @@ from .._validation._string_frequency import _val_string_frequency
 def _build_startswith_frequency(
     _string_frequency: dict[str, numbers.Integral]
 ) -> dict[str, numbers.Integral]:
-
-    """
-    Build a dictionary that contains the first character of every string
-    in '_string_frequency' as keys and the number of times that that
-    character appears as the first character of a string as the values.
-
+    """Build a dictionary that contains the first character of every
+    string in `_string_frequency` as keys and the number of times that
+    that character appears as the first character of a string as the
+    values.
 
     Parameters
     ----------
-    _string_frequency:
-        dict[str, numbers.Integral] - the dictionary holding the unique
-        strings passed to the current partial fit and their respective
-        frequencies.
-
+    _string_frequency : dict[str, numbers.Integral]
+        The dictionary holding the unique strings passed to the current
+        partial fit and their respective frequencies.
 
     Return
     ------
-    -
-        _startswith_frequency: dict[str, numbers.Integral] - a dictionary
-        that holds the first characters of every string passed to this
-        partial fit and their respective number of appearances in the
-        first position as values.
-
+    _startswith_frequency: dict[str, numbers.Integral]
+        A dictionary that holds the first characters of every string
+        passed to this partial fit and their respective number of
+        appearances in the first position as values.
 
     """
 

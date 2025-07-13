@@ -85,8 +85,8 @@ def _int_logspace_core(
         divisible.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _OUT_GRID:
             IntGridType - new linspace search grid for the current pass'

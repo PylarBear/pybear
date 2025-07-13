@@ -40,8 +40,8 @@ def _string(
         str - best value returned from parent GridSearch's best_params_
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _grid: StrGridType - new search grid for the current pass
 

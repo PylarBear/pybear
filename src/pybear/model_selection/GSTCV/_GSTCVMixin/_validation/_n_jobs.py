@@ -30,8 +30,8 @@ def _val_n_jobs(
         default.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

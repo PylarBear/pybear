@@ -31,8 +31,8 @@ def _display_true_best(
         as provided by the user or generated randomly.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

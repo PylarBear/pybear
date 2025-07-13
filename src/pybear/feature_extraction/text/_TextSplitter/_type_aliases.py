@@ -7,7 +7,10 @@
 
 
 from typing import Optional
-from typing_extensions import TypeAlias, Union
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 import numpy.typing as npt
 
 import re

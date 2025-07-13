@@ -36,8 +36,8 @@ def _cond_refit(
         which impacts the final value for the `refit` param.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _refit: RefitType, default=True - conditioned refit.
 

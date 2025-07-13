@@ -13,25 +13,21 @@ import numbers
 def _val_string_frequency(
     _string_frequency: dict[str, numbers.Integral]
 ) -> None:
+    """Validate `string_frequency`.
 
-    """
     Validate the string_frequency dictionary
     - is a dictionary
     - has strings for keys
     - has non-bool integers for values, and all values are >= 1
 
-
     Parameters
     ----------
-    _string_frequency:
-        dict[str, numbers.Integral] - a dictionary of unique character
-        strings and counts.
-
+    _string_frequency : dict[str, numbers.Integral]
+        A dictionary of unique character strings and counts.
 
     Return
     ------
-    -
-        None
+    None
 
 
     """

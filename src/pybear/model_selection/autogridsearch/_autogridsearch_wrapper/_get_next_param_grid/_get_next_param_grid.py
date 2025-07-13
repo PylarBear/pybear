@@ -103,8 +103,8 @@ def _get_next_param_grid(
         shift grids
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _GRIDS: GridsType - search grids for completed GridSearchCV
         passes and the filled grid for the upcoming search
