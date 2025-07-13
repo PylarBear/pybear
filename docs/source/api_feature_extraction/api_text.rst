@@ -14,6 +14,7 @@ text
    TextJoiner
    TextJustifier
    TextLookup
+   TextLookupRealTime
    TextNormalizer
    TextPadder
    TextRemover
