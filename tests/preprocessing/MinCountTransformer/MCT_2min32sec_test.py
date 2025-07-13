@@ -830,8 +830,7 @@ class TestDeleteAxis0Works:
             dtype=np.uint8,
             handle_unknown='error',
             min_frequency=None,
-            max_categories=None,
-            feature_name_combiner='concat'
+            max_categories=None
         )
 
         expanded = onehot.fit_transform(STR_DF)
