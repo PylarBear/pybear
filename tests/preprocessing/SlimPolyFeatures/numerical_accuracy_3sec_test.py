@@ -123,9 +123,13 @@ class TestRiggedCasePolyHasConstantsAndDupls:
 
         assert len(BATCH_XS) == partial_fits
 
-        _ohe = OHE(sparse_output=False)
+        _ohe = OHE()
         for batch_idx, batch in enumerate(BATCH_XS):
-            BATCH_XS[batch_idx] = _ohe.fit_transform(batch)
+            _expanded = _ohe.fit_transform(batch)
+            # need to manage for versions of OHE that do/dont have sparse_output
+            if hasattr(_expanded, 'toarray'):
+                _expanded = _expanded.toarray()
+            BATCH_XS[batch_idx] = _expanded
 
         for _X_np in BATCH_XS:
 
