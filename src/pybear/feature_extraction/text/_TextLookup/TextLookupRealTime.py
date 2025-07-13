@@ -70,22 +70,22 @@ class TextLookupRealTime(_TextLookupMixin):
     disrupted at some point midstream, you won't lose all of your work.
 
     That aspect is the key difference between TLRT and :class:`TextLookup`
-    (TL), that TLRT works on your data in real time, meaning that the
-    data is modified in-situ immediately when you indicate an action. TL
-    is a more conventional scikit-style transformer in that the learning
-    that takes place for both autonomous and manual modes happens in
-    (partial_)fit, information is stored in 'holder' attributes, and
-    then that information is applied blindly to any data that is passed
-    to transform. TL does not mutate your data during fitting, so the
-    changes to your data do not happen in 'real time'. Because of this
-    temporal dynamic, TL is not able to save changes to your data
-    in-situ. If you log a lot of changes to your data during
-    (partial_)fit and then the program terminates for whatever reason,
-    you lose all your work. TLRT affords you the opportunity to save
-    your work in-situ, making your changes permanent. Another benefit of
-    operating directly on the data in-situ, unlike TL, is that you can
-    perform a different operation on each occurrence of a particular
-    word.
+    (TL), that TLRT works on your data in real time, meaning that
+    the data is modified in-situ immediately when you indicate an
+    action. TL is a more conventional scikit-style transformer in
+    that the learning that takes place for both autonomous and manual
+    modes happens in (partial_)fit, information is stored in 'holder'
+    attributes, and then that information is applied blindly to any
+    data that is passed to transform. TL does not mutate your data
+    during fitting, so the changes to your data do not happen in
+    'real time'. Because of this temporal dynamic, TL is not able to
+    save changes to your data in-situ. If you log a lot of changes
+    to your data during (partial_)fit and then the program terminates
+    for whatever reason, you lose all your work. TLRT affords you
+    the opportunity to save your work in-situ, making your changes
+    permanent. Another benefit of operating directly on the data
+    in-situ, unlike TL, is that you can perform a different operation
+    on each occurrence of a particular word.
 
     To run TLRT in autonomous mode, set either `auto_delete` or
     `auto_add_to_lexicon` to True; both cannot simultaneously be True.
@@ -117,7 +117,7 @@ class TextLookupRealTime(_TextLookupMixin):
     session proceeds.
 
     The holder objects are all accessible attributes in the TLRT public
-    API. See the attributes section for more details. These holder
+    API. See the Attributes section for more details. These holder
     objects can also be passed at instantiation to give TLRT a head-start
     on words that aren't in the `Lexicon` and helps make a manual session
     more automated. Let's say, for example, that you know that your
@@ -137,12 +137,12 @@ class TextLookupRealTime(_TextLookupMixin):
 
     TLRT always looks for special instructions before looking to see if
     a word is in the `Lexicon`. Otherwise, if TLRT checked the word
-    against the `Lexicon` first and the word is in the Lexicon, TLRT
-    would go to the next word automatically. Doing it in this way allows
-    for users to give special instructions for words already in the
-    `Lexicon`. Let's say there is a word in the `Lexicon` but you want
-    to delete it from your text. You could pass it to `DELETE_ALWAYS`
-    and TLRT will remove it regardless of what the `Lexicon` says.
+    against the `Lexicon` first and the word is in it, TLRT would go to
+    the next word automatically. Doing it in this way allows for users
+    to give special instructions for words already in the `Lexicon`.
+    Let's say there is a word in the `Lexicon` but you want to delete it
+    from your text. You could pass it to `DELETE_ALWAYS` and TLRT will
+    remove it regardless of what the `Lexicon` says.
 
     The `update_lexicon` parameter does not cause TLRT to directly update
     the `Lexicon`. If the user opts to stage a word for addition to the
@@ -306,18 +306,19 @@ class TextLookupRealTime(_TextLookupMixin):
     n_rows_ : int
         The number of rows in the last data passed to :meth:`transform`.
         Not necessarily the number of rows in the outputted data.
-    row_support_ : npt.NDArray[bool] - A 1D boolean vector of shape
-        (n_rows, ) that indicates which rows have been kept in the data.
-        Only reflects the last dataset passed to `transform`.
+    row_support_ : npt.NDArray[bool]
+        A 1D boolean vector of shape (n_rows, ) that indicates which
+        rows have been kept in the data. Only reflects the last dataset
+        passed to `transform`.
     LEXICON_ADDENDUM_ : list[str]
         Can only have words in it if `update_lexicon` is True. If in
         auto mode (`auto_add_to_lexicon` is True), anything encountered
-        in the text that is not in the Lexicon is added to this list. In
-        manual mode, if the user selects to 'add to lexicon' then the
-        word is put in this list. TLRT does not automatically add new
-        words to the actual `Lexicon` directly. TLRT stages new words
-        in `LEXICON_ADDENDUM_` and at the end of a session prints them
-        to the screen and makes them available in this attribute.
+        in the text that is not in the :class:`Lexicon` is added to this
+        list. In manual mode, if the user selects to 'add to lexicon'
+        then the word is put in this list. TLRT does not automatically
+        add new words to the actual `Lexicon` directly. TLRT stages new
+        words in `LEXICON_ADDENDUM_` and at the end of a session prints
+        them to the screen and makes them available in this attribute.
     KNOWN_WORDS_ : list[str]
         This is a WIP object used by TLRT to determine "what is in the
         `Lexicon`." At instantiation, this is just a copy of the
@@ -329,8 +330,8 @@ class TextLookupRealTime(_TextLookupMixin):
         auto-transform process. If `auto_add_to_lexicon` is False, words
         are inserted into this list if the user selects 'add to lexicon'.
     DELETE_ALWAYS_ : list[str]
-        A list of words that will always be deleted from the  text body
-        by TLRT, even if they are in the Lexicon. This list is comprised
+        A list of words that will always be deleted from the text body
+        by TLRT, even if they are in the `Lexicon`. This list is comprised
         of any words passed to `DELETE_ALWAYS` at instantiation and any
         words added to this list in manual mode when the user selects
         'delete always'. Unknown words are not added to this list in
@@ -347,12 +348,12 @@ class TextLookupRealTime(_TextLookupMixin):
         mode, TLRT will not add any entries to this dictionary.
     SKIP_ALWAYS_ : list[str]
         A list of words that are always ignored by TLRT, even if they
-        are not in the Lexicon. This list holds any words passed to the
-        `SKIP_ALWAYS` parameter at instantiation and any words added to
-        it when the user selects 'skip always' in manual mode. In manual
-        mode, the next time TLRT sees a word that is in this list it
-        will not prompt the user again, it will silently skip the word.
-        TLRT does not make additions to this list in auto mode.
+        are not in the `Lexicon`. This list holds any words passed to
+        the `SKIP_ALWAYS` parameter at instantiation and any words added
+        to it when the user selects 'skip always' in manual mode. In
+        manual mode, the next time TLRT sees a word that is in this list
+        it will not prompt the user again, it will silently skip the
+        word. TLRT does not make additions to this list in auto mode.
     SPLIT_ALWAYS_ : dict[str, Sequence[str]]
         Similar to :attr:`REPLACE_ALWAYS_`, a dictionary with words
         expected to be in the text body as keys and their respective
@@ -550,9 +551,8 @@ class TextLookupRealTime(_TextLookupMixin):
         X:XContainer,
         copy:Optional[bool] = False
     ):
-        """
-        Scan tokens in `X` and either autonomously handle tokens not in
-        the pybear `Lexicon` or prompt for handling.
+        """Scan tokens in `X` and either autonomously handle tokens not
+        in the pybear `Lexicon` or prompt for handling.
 
         Parameters
         ----------
@@ -974,14 +974,6 @@ class TextLookupRealTime(_TextLookupMixin):
 
 
         return X_tr
-
-
-
-
-
-
-
-
 
 
 

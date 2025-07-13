@@ -130,13 +130,12 @@ class TextLookup(_TextLookupMixin):
 
     TL always looks for special instructions before looking to see if
     a word is in the `Lexicon`. Otherwise, if TL checked the word against
-    the `Lexicon` first and the word is in the Lexicon, TL would go to
-    the next word automatically. Doing it in this way allows for users
-    to give special instructions for words already in the `Lexicon`.
-    Let's say there is a word in the `Lexicon` but you want to delete it
-    from your text. You could pass it to `DELETE_ALWAYS` and TL will
-    remove it regardless of what the `Lexicon` says.
-    remove it regardless of what the `Lexicon` says.
+    the `Lexicon` first and the word is it`, TL would go to the next
+    word automatically. Doing it in this way allows for users to give
+    special instructions for words already in the `Lexicon`. Let's say
+    there is a word in the `Lexicon` but you want to delete it from your
+    text. You could pass it to `DELETE_ALWAYS` and TL will remove it
+    regardless of what the `Lexicon` says.
 
     The `update_lexicon` parameter does not cause TL to directly update
     the `Lexicon`. If the user opts to stage a word for addition to the
@@ -325,7 +324,7 @@ class TextLookup(_TextLookupMixin):
         are inserted into this list if the user selects 'add to lexicon'.
     DELETE_ALWAYS_ : list[str]
         A list of words that will always be deleted from the  text body
-        by TL, even if they are in the Lexicon. This list is comprised
+        by TL, even if they are in the `Lexicon`. This list is comprised
         of any words passed to `DELETE_ALWAYS` at instantiation and any
         words added to this list during (partial_)fit.
     REPLACE_ALWAYS_ : dict[str, str]
@@ -469,6 +468,7 @@ class TextLookup(_TextLookupMixin):
     @property
     def n_rows_(self) -> int:
         """Get the `n_rows_` attribute.
+
         The cumulative number of rows of text passed to (partial_)fit.
         Not necessarily the number of rows in the outputted data.
 
