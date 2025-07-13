@@ -266,7 +266,8 @@ class _TextLookupMixin(
 
         Returns
         -------
-        None
+        self : object
+            Thr reset `TextLookup` instance.
 
         """
 
@@ -308,7 +309,7 @@ class _TextLookupMixin(
 
     def score(
         self,
-        X: XContainer,
+        X: Any,
         y: Optional[Any] = None
     ) -> None:
         """No-op score method.
@@ -317,12 +318,10 @@ class _TextLookupMixin(
 
         Parameters
         ----------
-        X : XContainer
-            The (possibly ragged) 2D container of text to have its
-            contents cross-referenced against the pybear Lexicon.
-            Ignored.
+        X : Any
+            The data. Ignored.
         y : Optional[Any], default=None
-            The target for the data. Always ignored.
+            The target for the data. Ignored.
 
         Returns
         -------

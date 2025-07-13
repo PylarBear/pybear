@@ -75,8 +75,8 @@ def _parallelized_fit(
         way as X and y.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _estimator:
             EstimatorProtocol - the fit estimator

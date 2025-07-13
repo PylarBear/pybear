@@ -46,8 +46,8 @@ def _val_thresholds(
         conditioned into a list-like.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

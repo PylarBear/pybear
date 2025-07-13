@@ -46,8 +46,8 @@ def _val_cv(
         3) An iterable yielding (train, test) split indices as arrays.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

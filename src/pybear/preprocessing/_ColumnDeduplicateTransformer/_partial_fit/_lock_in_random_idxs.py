@@ -24,61 +24,55 @@ def _lock_in_random_idxs(
     _do_not_drop: DoNotDropType,
     _columns: Union[FeatureNamesInType, None]
 ) -> tuple[int, ...]:
+    """Lock in random indices for when `keep` is 'random'.
 
-    """
-
-    The :meth: `transform` method needs to mask the same indices for
+    The :meth:`transform` method needs to mask the same indices for
     all batch-wise transforms, otherwise the outputted batches will
-    have different columns. When :param: `keep` is set to 'random',
-    `transform` needs a static set of random column indices to use
-    repeatedly, rather than a set of dynamic indices that are regenerated
-    with each call to `transform`.
+    have different columns. When `keep` is set to 'random', `transform`
+    needs a static set of random column indices to use repeatedly,
+    rather than a set of dynamic indices that are regenerated with each
+    call to `transform`.
 
     Goal: Create a static set of random indices that is regenerated with
-    each call to :meth: `partial_fit`, but is unchanged when `transform`
+    each call to :meth:`partial_fit`, but is unchanged when `transform`
     is called.
 
     This module builds a static ordered tuple of randomly selected
     indices, one index from each set of duplicates, subject to any
-    constraints imposed by :param: `do_not_drop`, if passed. For
-    example, a simple case would be if :param: `_duplicates` is
-    [[0, 8], [1, 5, 9]], and `do_not_drop` is not passed, then a
-    possible _rand_idxs might look like (8, 1). THE ORDER OF THE
-    INDICES IN _rand_idxs IS CRITICALLY IMPORTANT AND MUST ALWAYS
-    MATCH THE ORDER IN `_duplicates`.
+    constraints imposed by `do_not_drop`, if passed. For example, a
+    simple case would be if `_duplicates` is [[0, 8], [1, 5, 9]], and
+    `do_not_drop` is not passed, then a possible `_rand_idxs` might look
+    like (8, 1). THE ORDER OF THE INDICES IN `_rand_idxs` IS CRITICALLY
+    IMPORTANT AND MUST ALWAYS MATCH THE ORDER IN `_duplicates`.
 
-    This module assumes that :param: `keep` == 'random', even though
-    that may not be the case. This makes the static list ready and
-    waiting for use by `transform` should at any time 'keep' be changed
-    to 'random' via :meth: `set_params` after fitting.
-
+    This module assumes that `keep` == 'random', even though that may
+    not be the case. This makes the static list ready and waiting for
+    use by `transform` should at any time `keep` be changed to 'random'
+    via :meth:`set_params` after fitting.
 
     Parameters
     ----------
-    _duplicates: DuplicatesType - the groups of identical columns,
-        indicated by their zero-based column index positions.
-    _do_not_drop:
-        DoNotDropType - A list of columns not to be dropped. If fitting
-        is done on a container that has a header, a list of feature
-        names may be provided. Otherwise, a list of column indices must
-        be provided.
-    _columns:
-        Union[FeatureNamesInType, None] of shape (n_features,) - if
-        fitting is done on a container that has a header, this is a
+    _duplicates : DuplicatesType
+        The groups of identical columns, indicated by their zero-based
+        column index positions.
+    _do_not_drop : DoNotDropType
+        A list of columns not to be dropped. If fitting is done on a
+        container that has a header, a list of feature names may be
+        provided. Otherwise, a list of column indices must be provided.
+    _columns : Union[FeatureNamesInType, None] of shape (n_features,)
+        If fitting is done on a container that has a header, this is a
         ndarray of strings, otherwise is None.
-
 
     Return
     ------
-    -
-        _rand_idxs: tuple[int] - An ordered tuple whose values are a
-        sequence of column indices, one index selected from each set of
-        duplicates in :param: `_duplicates`.
+    _rand_idxs : tuple[int]
+        An ordered tuple whose values are a sequence of column indices,
+        one index selected from each set of duplicates in `_duplicates`.
 
     """
 
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     # _duplicates must be list of lists of ints
     assert isinstance(_duplicates, list)
@@ -122,7 +116,7 @@ def _lock_in_random_idxs(
                 f"if _columns is not passed, _do_not_drop can only be passed "
                 f"as integers"
             )
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     # do_not_drop can be None! if do_not_drop is strings, convert to idxs

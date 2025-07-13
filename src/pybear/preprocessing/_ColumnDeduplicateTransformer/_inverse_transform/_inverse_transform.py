@@ -25,34 +25,29 @@ def _inverse_transform(
     _removed_columns: RemovedColumnsType,
     _feature_names_in: Union[FeatureNamesInType, None]
 ) -> InternalXContainer:
+    """Revert deduplicated data back to its original state.
 
-    """
-    Revert deduplicated data back to its original state. CDT cannot
-    restore any nan-like values that may have been in the original data
-    (unless the column was all nans.)
-
+    CDT cannot restore any nan-like values that may have been in the
+    original data (unless the column was all nans.)
 
     Parameters
     ----------
-    _X:
-        array-like of shape (n_samples, n_transformed_features) - A
-        deduplicated data set. The container must be numpy ndarray,
+    _X : InternalXContainer of shape (n_samples, n_transformed_features)
+        A deduplicated data set. The container must be numpy ndarray,
         pandas dataframe, polars dataframe, or scipy csc only.
-    _removed_columns:
-        RemovedColumnsType - the keys are the indices of duplicate
-        columns removed from the original data, indexed by their column
-        location in the original data; the values are the column index
-        in the original data of the respective duplicate that was kept.
-    _feature_names_in:
-        Union[FeatureNamesInType, None] - the feature names found during
-        fitting, if X was passed in a container with a header.
-
+    _removed_columns : RemovedColumnsType
+        The keys are the indices of duplicate columns removed from the
+        original data, indexed by their column location in the original
+        data; the values are the column index in the original data of
+        the respective duplicate that was kept.
+    _feature_names_in : Union[FeatureNamesInType, None]
+        The feature names found during fitting, if X was passed in a
+        container with a header.
 
     Returns
     -------
-    -
-        X_tr: array-like of shape (n_samples, n_features) - Transformed
-        data reverted to its original state.
+    X_tr : InternalXContainer of shape (n_samples, n_features)
+        Transformed data reverted to its original state.
 
     """
 

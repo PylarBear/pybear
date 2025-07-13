@@ -90,8 +90,8 @@ def _parallelized_scorer(
         process. 0 means no output, 10 means maximum output.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         TEST_THRESHOLD_x_SCORER__SCORE_LAYER: MaskedHolderType - masked
         array of shape (n_thresholds, n_scorers) holding the scores for

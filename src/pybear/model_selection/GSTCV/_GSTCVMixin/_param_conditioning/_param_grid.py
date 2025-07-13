@@ -45,8 +45,8 @@ def _cond_param_grid(
         that did not have thresholds passed inside.
 
 
-    Return
-    ------
+    Returns
+    -------
         ParamGridsWIPType - returns param grid(s) inside a list with
         thresholds inside every param_grid, no matter how (or if)
         thresholds was passed in the param_grid.

@@ -34,8 +34,8 @@ def _val_y(
         for the data.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

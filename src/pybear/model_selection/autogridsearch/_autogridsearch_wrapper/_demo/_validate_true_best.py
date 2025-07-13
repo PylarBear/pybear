@@ -41,8 +41,8 @@ def _validate_true_best(
         identical to sklearn GridSearchCV.best_params_
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

@@ -13,25 +13,19 @@ import numpy as np
 
 
 def _val_uniques(_uniques: Sequence[str]) -> None:
-
-    """
-    Validate that '_uniques' is a sequence of strings, and that all the
-    values in it are unique.
-
+    """Validate that `_uniques` is a sequence of strings, and that all
+    the values in it are unique.
 
     Parameters
     ----------
-    _uniques:
-        Sequence[str] - a sequence of unique strings. Could be the
-        uniques seen on one partial fit, or all uniques seen during fits
-        on the TextStatistics instance.
-
+    _uniques : Sequence[str]
+        A sequence of unique strings. Could be the uniques seen
+        on one partial fit, or all uniques seen during fits on the
+        `TextStatistics` instance.
 
     Return
     ------
-    -
-        None
-
+    None
 
     """
 
@@ -47,10 +41,6 @@ def _val_uniques(_uniques: Sequence[str]) -> None:
         raise TypeError(
             f"'_uniques' must be a sequence of strings without any duplicates"
         )
-
-
-
-
 
 
 

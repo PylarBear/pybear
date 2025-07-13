@@ -23,8 +23,8 @@ def _val_return_train_score(
         bool - whether to score the training data.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

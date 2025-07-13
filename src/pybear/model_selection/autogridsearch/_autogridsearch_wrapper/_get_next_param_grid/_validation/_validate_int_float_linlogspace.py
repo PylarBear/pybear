@@ -70,8 +70,8 @@ def _validate_int_float_linlogspace(
         str - the name of the module calling this module
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _SINGLE_GRID:
         NumGridType - search grid converted to a list

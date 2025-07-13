@@ -8,7 +8,10 @@
 
 from typing import Optional, Sequence
 import numpy.typing as npt
-from typing_extensions import Union, TypeAlias
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 
 import pandas as pd
 import polars as pl

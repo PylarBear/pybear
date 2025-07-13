@@ -21,8 +21,8 @@ def _build_overall_statistics(
     string_frequency_: dict[str, numbers.Integral],
     case_sensitive: Optional[bool] = False
 ) -> OverallStatisticsType:
+    """Populate a dictionary with the overall statistics.
 
-    """
     Populate a dictionary with the following statistics for all strings
     seen by the TextStatistics instance:
 
@@ -38,24 +38,20 @@ def _build_overall_statistics(
 
     - min_length
 
-
     Parameters
     ----------
-    string_frequency_:
-        dict[str, numbers.Integral] - a dictionary holding all the
-        unique strings seen and their frequencies across all fits on the
-        TextStatistics instance.
-    case_sensitive:
-        Optional[bool], default = False - whether to normalize all
-        characters to the same case or preserve the original case.
-
+    string_frequency_ : dict[str, numbers.Integral]
+        A dictionary holding all the unique strings seen and their
+        frequencies across all fits on the `TextStatistics` instance.
+    case_sensitive : Optional[bool], default = False
+        Whether to normalize all characters to the same case or preserve
+        the original case.
 
     Return
     ------
-    -
-        overall_statistics: dict[str, numbers.Real] - the statistics for
-        the all the strings seen by the TextStatistics instance.
-
+    overall_statistics : dict[str, numbers.Real]
+        The statistics for the all the strings seen by the
+        `TextStatistics` instance.
 
     """
 
@@ -100,11 +96,6 @@ def _build_overall_statistics(
 
 
     return overall_statistics
-
-
-
-
-
 
 
 

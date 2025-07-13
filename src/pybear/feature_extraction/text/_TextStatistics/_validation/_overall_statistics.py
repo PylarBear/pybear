@@ -15,25 +15,19 @@ import numbers
 def _val_overall_statistics(
     _overall_statistics: OverallStatisticsType
 ) -> None:
-
-    """
-    Validate overall_statistics is a dictionary with the required
+    """Validate `overall_statistics` is a dictionary with the required
     keys and valid values.
-
 
     Parameters
     ----------
-    _overall_statistics:
-        dict[str, numbers.Real] - the dictionary containing summary
-        statistics about the strings fit on the TextStatistics instance,
-        such as number of strings, average length of strings, etc.
-
+    _overall_statistics : dict[str, numbers.Real]
+        The dictionary containing summary statistics about the strings
+        fit on the `TextStatistics` instance, such as number of strings,
+        average length of strings, etc.
 
     Return
     ------
-    -
-        None
-
+    None
 
     """
 

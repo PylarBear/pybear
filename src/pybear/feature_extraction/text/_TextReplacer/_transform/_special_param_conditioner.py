@@ -7,7 +7,10 @@
 
 
 from typing import Callable
-from typing_extensions import TypeAlias, Union
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 from .._type_aliases import (
     ReplaceType,
     WipReplaceType,
@@ -34,43 +37,53 @@ def _special_param_conditioner(
     _flags: FlagsType,
     _n_rows: numbers.Integral,
 ) -> WipReplaceType:
+    """Standardize the `replace` parameter with (escaped!) re.compiles
+    in every 'find' position and global flags applied.
 
-
-    """
-    Standardize the 'replace' parameter with (escaped!) re.compiles in
-    every 'find' position and global flags applied. Do not condense any
-    duplicate find/replace pairs that may be in a tuple of pairs because
-    the user may have actually wanted to run the same pair several times.
-    This means we cannot use most of the param_conditioning modules to
-    handle this, which will blindly condense any group of equal objects,
-    but we can use the _flag_maker module. Need to get the pattern
-    portion of 'replace' into the format for that module. So we will
-    extract both the 'find' and 'replace' parts of the Replacer tuples,
-    package 'find' so it can go into _flag_maker, and package 'replace'
-    in the same way to that it is easy to stitch them back together into
-    the original format of the 'replacer' param.
-
+    Do not condense any duplicate find/replace pairs that may be in a
+    tuple of pairs because the user may have actually wanted to run the
+    same pair several times. This means we cannot use most of the
+    param_conditioning modules to handle this, which will blindly
+    condense any group of equal objects, but we can use the `_flag_maker`
+    module. Need to get the pattern portion of `replace` into the format
+    for that module. So we will extract both the 'find' and 'replace'
+    parts of the Replacer tuples, package 'find' so it can go into
+    `_flag_maker`, and package 'replace' in the same way to that it is
+    easy to stitch them back together into the original format of the
+    'replacer' param.
 
     Parameters
     ----------
-    _replace:
-        ReplaceType - the 'replace' parameter as passed at init.
-    _case_sensitive:
-        ReplaceType - the 'case_sensitive' parameter as passed at init.
-    _flags:
-        ReplaceType - the 'flags' parameter as passed at init.
-    _n_rows:
-        numbers.Integral - the number of rows in the data passed to
-        transform.
-
+    _replace : ReplaceType - the 'replace' parameter as passed at init.
+    _case_sensitive : CaseSensitiveType
+        The 'case_sensitive' parameter as passed at init.
+    _flags : FlagsType
+        The 'flags' parameter as passed at init.
+    _n_rows : numbers.Integral
+        The number of rows in the data passed to :meth:`transform`.
 
     Returns
     -------
-    -
-        WipReplaceType - the original 'replace' parameter with all
-        literals converted to re.compile and any flags also put into the
-        re.compiles.
+    _replace : WipReplaceType
+        The original 'replace' parameter with all literals converted to
+        re.compile and any flags also put into the re.compiles.
 
+    Notes
+    -----
+
+    **Type Aliases**
+
+    ReplaceType:
+        Optional[Union[ReplaceSubType, list[ReplaceSubType]]]
+
+    WipReplaceType:
+        Optional[Union[WipReplaceSubType, list[WipReplaceSubType]]]
+
+    CaseSensitiveType:
+        Optional[Union[bool, list[Union[bool, None]]]]
+
+    FlagsType:
+        Optional[Union[FlagType, list[FlagType]]]
 
     """
 
@@ -270,11 +283,6 @@ def _special_param_conditioner(
 
 
     return _replace
-
-
-
-
-
 
 
 

@@ -85,8 +85,8 @@ def _cv_results_update(
         addition to the test folds.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _cv_results: CVResultsType - cv_results updated with scores,
         thresholds, and times.

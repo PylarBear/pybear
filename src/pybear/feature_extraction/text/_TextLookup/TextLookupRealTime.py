@@ -185,9 +185,9 @@ class TextLookupRealTime(_TextLookupMixin):
     the case that you want in the output, TLRT will not do it for you.
 
     TLRT is a full-fledged scikit-style transformer. It has fully
-    functional get_params, set_params, transform, and fit_transform
-    methods. It also has partial_fit, fit, and score methods, which are
-    no-ops. TLRT technically does not need to be fit for 2 reasons.
+    functional `get_params`, `set_params`, `transform`, and `fit_transform`
+    methods. It also has `partial_fit`, `fit`, and `score` methods, which
+    are no-ops. TLRT technically does not need to be fit for 2 reasons.
     First, in autonomous mode, TLRT already knows everything it needs to
     do transformations from the parameters and the `Lexicon`. Secondly,
     in manual mode the user interacts with the data during transform,

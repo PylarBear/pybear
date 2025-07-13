@@ -13,21 +13,16 @@ from .._type_aliases import XContainer
 def _val_X(
     _X: XContainer
 ) -> None:
-
-    """
-    Validate the data.
-
+    """Validate the data.
 
     Parameters
     ----------
-    _X:
-        XContainer - the data to have nan-like values replaced.
-
+    _X : XContainer
+        The data to have nan-like values replaced.
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 

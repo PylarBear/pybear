@@ -13,25 +13,20 @@ from .._type_aliases import KeepType
 def _val_keep(
     _keep: KeepType
 ) -> None:
-
-    """
-    Validate keep - must be 'first', 'last', or 'random'.
-
+    """Validate keep - must be 'first', 'last', or 'random'.
 
     Parameters
     ----------
-    _keep:
-        KeepType - The strategy for keeping a single representative from
-        a set of identical columns. 'first' retains the column left-most
-        in the data; 'last' keeps the column right-most in the data;
-        'random' keeps a single randomly-selected column from the set of
+    _keep : KeepType
+        The strategy for keeping a single representative from a set of
+        identical columns. 'first' retains the column left-most in the
+        data; 'last' keeps the column right-most in the data; 'random'
+        keeps a single randomly-selected column from the set of
         duplicates.
-
 
     Return
     ------
-    -
-        None
+    None
 
     """
 

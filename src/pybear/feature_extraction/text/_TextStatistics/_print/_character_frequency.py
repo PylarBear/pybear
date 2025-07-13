@@ -18,29 +18,21 @@ def _print_character_frequency(
     lp: numbers.Integral,
     rp: numbers.Integral
 ) -> None:
-
-    """
-    Print the 'character_frequency_' attribute to screen.
-
+    """Print the `character_frequency_` attribute to screen.
 
     Parameters
     ----------
-    character_frequency:
-        dict[str, numbers.Integral] - the dictionary holding all the
-        unique characters and their respective counts seen by the fitted
-        TextStatistics instance.
-
-    lp:
-        numbers.Integral - the left padding for the display.
-    rp:
-        numbers.Integral - the right padding for the display.
-
+    character_frequency : dict[str, numbers.Integral]
+        The dictionary holding all the unique characters and their
+        respective counts seen by the fitted `TextStatistics` instance.
+    lp : numbers.Integral
+        The left padding for the display.
+    rp : numbers.Integral
+        The right padding for the display.
 
     Return
     ------
-    -
-        None
-
+    None
 
     """
 

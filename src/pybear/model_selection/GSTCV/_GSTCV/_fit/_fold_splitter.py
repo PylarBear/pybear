@@ -53,8 +53,8 @@ def _fold_splitter(
         slicing by train_idxs and test_idxs.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         SPLITS: tuple[SKSplitType, ...] - return the
         train / test splits for the given data objects in the order

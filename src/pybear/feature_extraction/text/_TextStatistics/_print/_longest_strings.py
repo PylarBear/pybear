@@ -23,33 +23,28 @@ def _print_longest_strings(
     rp: numbers.Integral,
     n: Optional[numbers.Integral] = 10
 ) -> None:
+    """Print the longest strings in the 'string_frequency_' attribute
+    and their frequencies to screen.
 
-    """
-    Print the longest strings in the 'string_frequency_' attribute and
-    their frequencies to screen. Only available if TS parameter
-    'store_uniques' is True. If False, string_frequency is empty, so
-    print a message that uniques are not available.
-
+    Only available if TS parameter `store_uniques` is True. If False,
+    `string_frequency` is empty, so print a message that uniques are not
+    available.
 
     Parameters
     ----------
-    string_frequency:
-        dict[str, numbers.Integral] - the dictionary holding all the
-        unique strings and their frequencies seen by the fitted
-        TextStatistics instance.
-    lp:
-        numbers.Integral - the left padding for the display.
-    rp:
-        numbers.Integral - the right padding for the display.
-    n:
-        Optional[numbers.Integral], default = 10 - the number of longest
-        strings to print to screen.
-
+    string_frequency : dict[str, numbers.Integral]
+        The dictionary holding all the unique strings and their
+        frequencies seen by the fitted `TextStatistics` instance.
+    lp : numbers.Integral
+        The left padding for the display.
+    rp : numbers.Integral
+        The right padding for the display.
+    n : Optional[numbers.Integral], default = 10
+        The number of longest strings to print to screen.
 
     Return
     ------
-    -
-        None
+    None
 
     """
 

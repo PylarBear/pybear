@@ -46,24 +46,24 @@ class TextNormalizer(
 
     The data can only contain strings.
 
-    TextNormalizer (TN) accepts 1D list-like vectors of strings, such as
-    python lists, tuples, and sets, numpy vectors, pandas series, and
+    `TextNormalizer` (TN) accepts 1D list-like vectors of strings, such
+    as Python lists, tuples, and sets, numpy vectors, pandas series, and
     polars series. TN also accepts 2D array-like containers such as
     (possibly ragged) nested 2D python objects, numpy arrays, pandas
     dataframes, and polars dataframes. If you pass dataframes that have
     feature names, TN does not retain them. The returned objects are
-    always constructed with python lists, and have shape identical to
+    always constructed with Python lists, and have shape identical to
     the shape of the inputted data.
 
-    TN is a scikit-style transformer with partial_fit, fit, transform,
-    fit_transform, get_params, set_params, and score methods. An
-    instance is always in a 'fitted' state, and checks for fittedness
-    will always return True. This is because TN technically does not
-    need to be fit; it already knows everything it needs to know to do
-    transforms from the single parameter. The partial_fit, fit, and
-    score methods are no-op; they exist to fulfill the API and to enable
-    TN to be incorporated into workflows such as scikit pipelines and
-    dask_ml wrappers.
+    TN is a scikit-style transformer with `partial_fit`, `fit`,
+    `transform`, `fit_transform`, `get_params`, `set_params`, and `score`
+    methods. An instance is always in a 'fitted' state, and checks for
+    fittedness will always return True. This is because TN technically
+    does not need to be fit; it already knows everything it needs to
+    know to do transforms from the single parameter. The `partial_fit`,
+    `fit`, and `score` methods are no-op; they exist to fulfill the API
+    and to enable TN to be incorporated into workflows such as scikit
+    pipelines and dask_ml wrappers.
 
     Parameters
     ----------
@@ -123,7 +123,7 @@ class TextNormalizer(
         *,
         upper: UpperType = True
     ) -> None:
-        """Initialize the TextNormalizer instance."""
+        """Initialize the `TextNormalizer` instance."""
         self.upper = upper
 
 
@@ -133,7 +133,7 @@ class TextNormalizer(
 
 
     def get_metadata_routing(self):
-        """get_metadata_routing is not implemented in TextNormalizer."""
+        """get_metadata_routing is not implemented in `TextNormalizer`."""
         raise NotImplementedError(
             f"'get_metadata_routing' is not implemented in TextNormalizer"
         )
@@ -160,15 +160,15 @@ class TextNormalizer(
 
         Parameters
         ----------
-        X : Union[Sequence[str], Sequence[Sequence[str]]]
+        X : XContainer
             The data whose text will be normalized.
-        y : Optional[Union[any, None]], default=None
+        y : Optional[Any], default=None
             The target for the data. Always ignored.
 
         Returns
         -------
         self : object
-            The TextNormalizer instance.
+            The `TextNormalizer` instance.
 
         """
 
@@ -185,15 +185,15 @@ class TextNormalizer(
 
         Parameters
         ----------
-        X : Union[Sequence[str], Sequence[Sequence[str]]]
+        X : XContainer
             The data whose text will be normalized.
-        y : Optional[Union[any, None]], default=None
+        y : Optional[Any], default=None
             The target for the data. Always ignored.
 
         Returns
         -------
         self : object
-            The TextNormalizer instance.
+            The `TextNormalizer` instance.
 
         """
 
@@ -210,11 +210,11 @@ class TextNormalizer(
 
         Parameters
         ----------
-        X : Union[Sequence[str], Sequence[Sequence[str]]]
+        X : XContainer
             The data whose text will be normalized.
         copy : Optional[bool], default=False
-            whether to normalize the text in the original X object or a
-            deepcopy of X.
+            whether to normalize the text in the original `X` object or
+            a deepcopy of `X`.
 
         Returns
         -------
@@ -246,17 +246,17 @@ class TextNormalizer(
 
     def score(
         self,
-        X: XContainer,
+        X: Any,
         y: Optional[Any] = None
     ) -> None:
         """No-op score method.
 
         Parameters
         ----------
-        X : Union[Sequence[str], Sequence[Sequence[str]]]
-            The data.
-        y : Optional[Union[any, None]], default=None
-            The target for the data. Always ignored.
+        X : Any
+            The data. Ignored.
+        y : Optional[Any], default=None
+            The target for the data. Ignored.
 
         Returns
         -------
@@ -268,6 +268,7 @@ class TextNormalizer(
         check_is_fitted(self)
 
         return
+
 
 
 

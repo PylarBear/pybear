@@ -7,6 +7,7 @@
 
 
 from .._type_aliases import XContainer
+from typing_extensions import Any
 
 import numpy as np
 import pandas as pd
@@ -19,31 +20,27 @@ from .._validation._X import _val_X
 
 def _transform(
     _X: XContainer,
-    _new_value: any
+    _new_value: Any
 ) -> XContainer:
+    """Map new values to the nan-like representations in X.
 
-    """
-    Map new values to the nan-like representations in X. If scipy sparse,
-    cannot be dok or lil, it must have a 'data' attribute.
-
+    If scipy sparse, cannot be dok or lil, it must have a `data`
+    attribute.
 
     Parameters
     ----------
-    _X:
-        array-like of shape (n_samples, n_features) or (n_samples,) -
-        the object for which to replace nan-like representations.
-    _new_value:
-        any - the new value to put in place of the nan-like values.
-        There is no validation for this value, the user is free to enter
-        whatever they like. If there is a casting problem, i.e., the
-        receiving object, the data, will not receive the given value,
-        then any exceptions would be raised by the receiving object.
-
+    _X : XContainer of shape (n_samples, n_features) or (n_samples,)
+        The object for which to replace nan-like representations.
+    _new_value: Any
+        The new value to put in place of the nan-like values. There is
+        no validation for this value, the user is free to enter whatever
+        they like. If there is a casting problem, i.e., the receiving
+        object, the data, will not receive the given value, then any
+        exceptions would be raised by the receiving object.
 
     Returns
     -------
-    _X:
-        array-like of shape (n_samples, n_features) or (n_samples,) -
+    _X : XContainer of shape (n_samples, n_features) or (n_samples,)
         The original data with new values in the locations previously
         occupied by nan-like values.
 

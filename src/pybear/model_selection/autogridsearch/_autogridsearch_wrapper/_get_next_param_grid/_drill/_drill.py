@@ -67,8 +67,8 @@ def _drill(
     )
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _grid: GridType - the new param_grid for this parameter
 

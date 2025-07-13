@@ -15,22 +15,16 @@ from ...__shared._validation._any_integer import _val_any_integer
 def _val_n(
     _n: numbers.Integral
 ) -> None:
-
-    """
-    Validate 'n'. Must be an integer >= 1>
-
+    """Validate 'n'. Must be an integer >= 1.
 
     Parameters
     ----------
-    _n:
-        numbers.Integral - something expected to be an integer that is
-        >= 1
+    _n : numbers.Integral
+        Something expected to be an integer that is >= 1
 
     Returns
     -------
-    -
-        None
-
+    None
 
     """
 

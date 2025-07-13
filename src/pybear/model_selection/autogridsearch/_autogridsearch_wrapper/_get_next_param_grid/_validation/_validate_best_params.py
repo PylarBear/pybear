@@ -35,8 +35,8 @@ def _validate_best_params(
         BestParamsType - best_params_ as returned by parent GridSearchCV
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

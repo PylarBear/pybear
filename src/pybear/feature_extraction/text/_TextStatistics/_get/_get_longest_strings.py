@@ -21,30 +21,25 @@ def _get_longest_strings(
     string_frequency: dict[str, numbers.Integral],
     n: Optional[numbers.Integral] = 10
 ) -> dict[str, int]:
+    """Return the longest strings in the `string_frequency_` attribute
+    as a dictionary with strings as keys and frequencies as values.
 
-    """
-    Return the longest strings in the 'string_frequency_' attribute as a
-    dictionary with strings as keys and frequencies as values. If TS
-    parameter 'store_uniques' is False, 'string_frequency' will be empty,
-    so just return an empty dictionary.
-
+    If TS parameter `store_uniques` is False, `string_frequency` will be
+    empty, so just return an empty dictionary.
 
     Parameters
     ----------
-    string_frequency:
-        dict[str, numbers.Integral] - the dictionary holding the unique
-        strings seen by the fitted TextStatistics instance, and the
-        number of occurrences of each string.
-    n:
-        Optional[numbers.Integral], default = 10 - the number of top
-        longest strings to retrieve.
-
+    string_frequency : dict[str, numbers.Integral]
+        The dictionary holding the unique strings seen by the fitted
+        `TextStatistics` instance, and the number of occurrences of each
+        string.
+    n : Optional[numbers.Integral], default = 10
+        The number of top longest strings to retrieve.
 
     Return
     ------
-    -
-        longest_strings: dict[str, int] - the top 'n' longest strings
-        and their frequencies.
+    longest_strings: dict[str, int]
+        The top 'n' longest strings and their frequencies.
 
     """
 
@@ -79,9 +74,6 @@ def _get_longest_strings(
 
 
     return longest_strings
-
-
-
 
 
 

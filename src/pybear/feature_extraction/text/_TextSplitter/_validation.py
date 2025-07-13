@@ -31,39 +31,32 @@ def _validation(
     _maxsplit: MaxSplitsType,
     _flags: FlagsType
 ) -> None:
+    """Centralized hub for validation.
 
-    """
-    Centralized hub for validation. See the individual modules for more
-    details.
+    See the individual modules for more details.
 
     Beyond the individual modules' validation, this module also checks:
-    1) cannot pass anything to 'maxsplit' if 'sep' is None
-    2) cannot pass anything to 'flags' if 'sep' is None
-    3) cannot pass a list to 'case_sensitive' if 'sep' is None
+        1) cannot pass anything to `maxsplit` if `sep` is None
+        2) cannot pass anything to `flags` if `sep` is None
+        3) cannot pass a list to `case_sensitive` if `sep` is None
 
-    
     Parameters
     ----------
-    _X:
-        XContainer - the data, a 1D vector of strings.
-    _sep:
-        SepsType - the literal string(s) and/or the re.compile object(s)
-        to split with.
-    _case_sensitive:
-        CaseSensitiveType - whether the search for separators is
-        case-sensitive.
-    _maxsplit:
-        MaxSplitType - the maximum number of splits to perform working
-        left to right.
-    _flags:
-        FlagsType - the flag value(s) to be applied to the search for
-        separators.
-
+    _X : XContainer
+        The data, a 1D vector of strings.
+    _sep : SepsType
+        The literal string(s) and/or the re.compile object(s) to split
+        with.
+    _case_sensitive : CaseSensitiveType
+        Whether the search for separators is case-sensitive.
+    _maxsplit : MaxSplitType
+        The maximum number of splits to perform working left to right.
+    _flags : FlagsType
+        The flag value(s) to be applied to the search for separators.
 
     Return
     ------
-    -
-        None
+    None
      
     """
 

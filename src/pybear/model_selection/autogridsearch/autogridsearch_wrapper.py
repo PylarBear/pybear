@@ -62,8 +62,8 @@ def autogridsearch_wrapper(GridSearchParent):
         Sci-kit, pybear, or dask_ml GridSearchCV CLASS, not instance.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         AutoGridSearch: Wrapped GridSearchCV class. The original fit
         method is replaced with a new fit method that can make multiple
@@ -221,8 +221,8 @@ def autogridsearch_wrapper(GridSearchParent):
                 GridSearch.
 
 
-            Return
-            ------
+            Returns
+            -------
             -
                 _DemoCls: AutoGridSearchCV instance - The AutoGridSearch
                 instance created to run simulations, not the instance
@@ -272,8 +272,8 @@ def autogridsearch_wrapper(GridSearchParent):
             parameters in all passes.
 
 
-            Return
-            ------
+            Returns
+            -------
             -
                 None
 
@@ -306,8 +306,8 @@ def autogridsearch_wrapper(GridSearchParent):
                 estimator's parameters are prefixed with 'estimator__'.
 
 
-            Return
-            ------
+            Returns
+            -------
             -
                 params: dict[str, Any] - Parameter names mapped to their
                 values.
@@ -363,8 +363,8 @@ def autogridsearch_wrapper(GridSearchParent):
                 new values.
 
 
-            Return
-            ------
+            Returns
+            -------
             -
                 self - the AutoGridSearch instance with new parameter
                 values.
@@ -414,8 +414,8 @@ def autogridsearch_wrapper(GridSearchParent):
                 that expose this keyword argument for more information.
 
 
-            Return
-            ------
+            Returns
+            -------
             -
                 self: AutoGridSearch instance.
 

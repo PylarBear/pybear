@@ -26,36 +26,33 @@ def _remove_intercept(
     _X_inv: InternalXContainer,
     _keep: KeepType
 ) -> InternalXContainer:
+    """Remove an intercept previously appended by `InterceptManager`.
 
-    """
     If `keep` was a dictionary during fitting/transform, then a column
     of constants was appended to the data after the removal of all
     the other constant columns that were in the data. That column
     needs to be removed first to do an inverse_transform. The core
-    IM _inverse_transform function expects that that column is not
-    present.
-
+    IM :func:`_inverse_transform` function expects that that column is
+    not present.
 
     Parameters
     ----------
-    _X_inv:
-        XContainer - Technically, at the point where this module is
-        called in IM.inverse_transform, X is still X_tr. X_tr is
-        midstream in the process of becoming X_inv. So although called
-        X_inv here, it is technically still X_tr, which is data that has
-        been transformed.
-    _keep:
-        KeepType - The strategy for handling the constant columns. See
-        'The keep Parameter' section for a lengthy explanation of the
-        `keep` parameter.
-
+    _X_inv : XContainer
+        Technically, at the point where this module is called in
+        `IM.inverse_transform`, `X` is still `X_tr`. `X_tr` is
+        midstream in the process of becoming `X_inv`. So although called
+        `X_inv` here, it is technically still `X_tr`, which is data that
+        has been transformed.
+    _keep : KeepType
+        The strategy for handling the constant columns. See 'The keep
+        Parameter' section for a lengthy explanation of the `keep`
+        parameter.
 
     Returns
     -------
-    -
-        _X_inv: XContainer - The transformed data reverted back to
-        the pre-transform state, with the full set of original constant
-        columns, if any.
+    _X_inv : XContainer
+        The transformed data reverted back to the pre-transform state,
+        with the full set of original constant columns, if any.
 
     """
 

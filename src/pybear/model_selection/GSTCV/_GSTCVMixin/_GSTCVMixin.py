@@ -243,8 +243,8 @@ class _GSTCVMixin(
             of the step, such that parameter p for step s has key s__p.
 
 
-        Return
-        ------
+        Returns
+        -------
         -
             self: the fitted GSTCV instance.
 

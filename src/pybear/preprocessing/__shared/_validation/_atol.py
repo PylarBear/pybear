@@ -13,24 +13,18 @@ import numpy as np
 
 
 def _val_atol(_atol: numbers.Real) -> None:
-
-    """
-    Verify atol is a non-boolean, non-negative, real number that is
+    """Verify atol is a non-boolean, non-negative, real number that is
     accepted by numpy allclose.
-
 
     Parameters
     ----------
-    _atol:
-        numbers.Real - The absolute difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number. See
-        numpy.allclose.
-
+    _atol : numbers.Real
+        The absolute difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
 
     Return
     ------
-    -
-        None
+    None
 
     """
 

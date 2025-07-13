@@ -622,7 +622,7 @@ class TestInfMaskNumeric(Fixtures):
         assert np.array_equal(out, MASK)
 
 
-    # polars can take any of the infs in a pd dataframes when cast with
+    # polars can take any of the infs in a pd dataframe when cast with
     # from_pandas as float64, and pd dataframes take everything.
     # 'strinf' and decimalinf' are changing dtype from float64 to object
     @pytest.mark.parametrize('_dim', (1, 2))
@@ -727,8 +727,8 @@ class TestInfMaskNumeric(Fixtures):
 
         # prepare pd dataframe for conversion to polars -- -- -- -- --
         X = pd.DataFrame(
-            data = np.random.randint(0, 10, _shape),
-            columns = _columns,
+            data=np.random.randint(0, 10, _shape),
+            columns=_columns,
             dtype=np.uint32
         )
 

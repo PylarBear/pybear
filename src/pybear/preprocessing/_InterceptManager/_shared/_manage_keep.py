@@ -34,63 +34,62 @@ def _manage_keep(
     _feature_names_in: FeatureNamesInType,
     _rand_idx: int
 ) -> Union[Literal['none'], dict[str, Any], int]:
+    """Before going into `_make_instructions`, process some of the
+    mapping of `keep` to a column index and validate against
+    `_constant_columns`.
 
-    """
-    Before going into _make_instructions, process some of the mapping of
-    'keep' to a column index and validate against _constant_columns.
-
-    Helps to simplify _make_instructions and makes for easier testing.
+    Helps to simplify `_make_instructions` and makes for easier testing.
 
     If dict[int, Any], just pass through without validation.
     If callable, convert to int and verify is a constant column.
     If a feature name, convert to int and verify is a constant column.
-    If a keep literal ('first', 'last', 'random'):
-        if there are no constant columns, warn and set keep to 'none'
+    If a `keep` literal ('first', 'last', 'random'):
+        if there are no constant columns, warn and set `keep` to 'none'
         otherwise map to a column index.
-    If keep literal 'none':
+    If `keep` literal 'none':
         if there are no constant columns, warn, otherwise pass through.
-    If keep is integer, verify is a constant column.
+    If `keep` is integer, verify is a constant column.
 
 
     FROM columns & keep VALIDATION, WE KNOW ** * ** * ** * ** * ** * **
 
-    'feature_names_in_' could be:
+    `feature_names_in_` could be:
         type(None),
         Sequence[str] whose len == X.shape[1]
 
-    'keep' could be
+    `keep` could be
         Literal['first', 'last', 'random', 'none'],
         dict[str, Any],
         callable(X),
         int,
         a feature name
 
-    if 'keep' is str in ('first', 'last', 'random', 'none'):
+    if `keep` is str in ('first', 'last', 'random', 'none'):
     	if 'feature_names_in_' is not None, keep literal is not in it
-    if 'keep' is dict:
+    if `keep` is dict:
     	len == 1
     	key is str
     	warns if 'feature_names_in_' is not None and key is in it
         value cannot be callable, cannot be non-str sequence
-    if 'keep' is callable(X):
+    if `keep` is callable(X):
     	output is int
     	output is not bool
     	output is in range(X.shape[1])
-    if 'keep' is number:
+    if `keep` is number:
     	is int
     	is not bool
     	is in range(X.shape[1])
-    if 'keep' is str not in literals:
-    	'feature_names_in_' cannot be None
-    	'keep' must be in 'feature_names_in_'
+    if `keep` is str not in literals:
+    	`feature_names_in_` cannot be None
+    	`keep` must be in `feature_names_in_`
 
     END WHAT WE KNOW FROM columns & keep VALIDATION ** * ** * ** * ** *
 
-    RULES FOR _manage_keep:
+    RULES FOR `_manage_keep`:
 
-    'feature_names_in_' is not changed
+    `feature_names_in_` is not changed
 
-    'keep':
+    `keep`:
     --'first', 'last', 'random'         converted to int, validated--
     --'none'                            passes thru--
     --dict[str, Any]                    passes thru--
@@ -100,39 +99,35 @@ def _manage_keep(
 
     keep can only leave here as dict[int, Any], int, or Literal['none']
 
-
     Parameters
     ----------
-    _keep:
-        KeepType - The strategy for handling the constant columns. See
-        'The keep Parameter' section for a lengthy explanation of the
-        'keep' parameter.
-    _X:
-        array-like of shape (n_samples, n_features) - the data that
-        was searched for constant columns. The data need not be
-        InternalXContainer.
-    _constant_columns:
-        ConstantColumnsType - constant column indices and their values
-        found in all partial fits.
-    _n_features_in:
-        int - number of features in the fitted data before transform.
-    _feature_names_in:
-        Union[npt.NDArray[str], None] - The names of the features as seen
-        during fitting. Only accessible if X is passed to :meth: `fit`
-        or :meth: `partial_fit` in a container that has a header.
-    _rand_idx:
-        int - Instance attribute that specifies the random column index
-        to keep when :param: `keep` is 'random'. This value must be
-        static on calls to :meth: `transform`.
-
+    _keep : KeepType
+        The strategy for handling the constant columns. See 'The keep
+        Parameter' section for a lengthy explanation of the `keep`
+        parameter.
+    _X : XContainer of shape (n_samples, n_features)
+        The data that was searched for constant columns. The data need
+        not be InternalXContainer.
+    _constant_columns : ConstantColumnsType
+        Constant column indices and their values found in all partial
+        fits.
+    _n_features_in : int
+        Number of features in the fitted data before transform.
+    _feature_names_in : Union[npt.NDArray[str], None]
+        The names of the features as seen during fitting. Only accessible
+        if `X` is passed to `fit` or `partial_fit` in a container that
+        has a header.
+    _rand_idx : int
+        Instance attribute that specifies the random column index to
+        keep when `keep` is 'random'. This value must be static on calls
+        to `transform`.
 
     Returns
     -------
-    -
-        __keep: Union[dict[int, Any], int, Literal['none']] - _keep
-        converted to integer for callable, 'first', 'last', 'random', or
-        feature name. __keep can only return as an integer, dict, or
-        Literal['none']
+    __keep : Union[dict[int, Any], int, Literal['none']]
+        `_keep` converted to integer for callable, 'first', 'last',
+        'random', or feature name. `__keep` can only return as an
+        integer, dict, or Literal['none']
 
     """
 

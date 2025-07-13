@@ -128,8 +128,8 @@ class AutoTextCleaner(
     Technically ATC does not need to be fit and is always in a fitted
     state (any 'is_fitted' checks of an instance will always return
     True) because ATC knows everything it needs to know to transform
-    data from the parameters. It also has a no-op :meth:`score` method
-    to allow dask_ml wrappers.
+    data from the parameters. It also has a no-op `score` method to
+    allow dask_ml wrappers.
 
     When using `set_params` to change the ATC instance's parameters away
     from those passed at instantiation, always make a call to no-op `fit`
@@ -746,17 +746,17 @@ class AutoTextCleaner(
 
     def score(
         self,
-        X: XContainer,
+        X: Any,
         y: Optional[Any] = None
     ) -> None:
         """No-op score method.
 
         Parameters
         ----------
-        X : XContainer
-            The 1D or (possibly ragged) 2D text data. Ignored.
+        X : Any
+            The data. Ignored.
         y : Optional[Any], default=None
-            The target for the data. Always ignored.
+            The target for the data. Ignored.
 
         Returns
         -------
@@ -815,7 +815,7 @@ class AutoTextCleaner(
             X_tr = X
 
 
-        X_tr = _map_X_to_list(X_tr)
+        X_tr: XWipContainer = _map_X_to_list(X_tr)
 
         self._n_rows = getattr(self, '_n_rows', 0) + len(X_tr)
 

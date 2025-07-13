@@ -31,80 +31,71 @@ def _identify_idxs_to_delete(
     _conflict: ConflictType,
     _rand_idxs: tuple[int, ...]
 ) -> RemovedColumnsType:
+    """Apply the rules given by `keep`, `conflict`, and `do_not_drop`
+    to the sets of duplicates in `_duplicates`.
 
-    """
-    Apply the rules given by :param: `keep`, :param: `conflict`,
-    and :param: `do_not_drop` to the sets of duplicates
-    in :param: `_duplicates`. Produce the :attr: `removed_columns_`
-    dictionary, which has all the deleted column indices as keys and
-    the respective kept column as values.
-
+    Produce the :attr:`removed_columns_` dictionary, which has all the
+    deleted column indices as keys and the respective kept column as
+    values.
 
     Parameters
     ----------
-    _duplicates:
-        DuplicatesType - the groups of identical columns, indicated by
-        their zero-based column index positions.
-    _keep:
-        KeepType - The strategy for keeping a single representative from
-        a set of identical columns. 'first' retains the column left-most
-        in the data; 'last' keeps the column right-most in the data;
-        'random' keeps a single randomly-selected column of the set of
-        duplicates.
-    _do_not_drop:
-        DoNotDropType - A list of columns not to be dropped. If fitting
-        is done on a container that has a header, a list of feature
-        names may be provided. Otherwise, a list of column indices must
-        be provided. If a conflict arises, such as two columns specified
-        in :param: `do_not_drop` are duplicates of each other, the
-        behavior is managed by :param: `conflict`.
-    _columns:
-        Union[FeatureNamesInType, None] of shape (n_features,) - if
-        fitting is done on a container that has a header, this is a
+    _duplicates : DuplicatesType
+        The groups of identical columns, indicated by their zero-based
+        column index positions.
+    _keep : KeepType
+        The strategy for keeping a single representative from a set of
+        identical columns. 'first' retains the column left-most in the
+        data; 'last' keeps the column right-most in the data; 'random'
+        keeps a single randomly-selected column of the set of duplicates.
+    _do_not_drop : DoNotDropType
+        A list of columns not to be dropped. If fitting is done on a
+        container that has a header, a list of feature names may be
+        provided. Otherwise, a list of column indices must be provided.
+        If a conflict arises, such as two columns specified in `do_not_drop`
+        are duplicates of each other, the behavior is managed by `conflict`.
+    _columns : Union[FeatureNamesInType, None] of shape (n_features,)
+        If fitting is done on a container that has a header, this is a
         ndarray of strings, otherwise is None.
-    _conflict:
-        ConflictType - Ignored when :param: `do_not_drop` is not passed.
-        Instructs CDT how to deal with a conflict between the
-        instructions in :param: `keep` and :param: `do_not_drop`. A
-        conflict arises when the instruction in :param: `keep` ('first',
-        'last', 'random') is applied and column in :param: `do_not_drop`
-        is found to be a member of the columns to be deleted.
-        When :param: `conflict` is 'raise', an exception is raised in
-        the case of such a conflict. When :param: `conflict` is 'ignore',
-        there are 2 possible scenarios:
+    _conflict : ConflictType
+        Ignored when `do_not_drop` is not passed. Instructs CDT how to
+        deal with a conflict between the instructions in `keep` and
+        `do_not_drop`. A conflict arises when the instruction in `keep`
+        ('first', 'last', 'random') is applied and column in `do_not_drop`
+        is found to be a member of the columns to be deleted. When
+        `conflict` is 'raise', an exception is raised in the case of
+        such a conflict. When `conflict` is 'ignore', there are 2
+        possible scenarios:
 
-        1) when only one column in :param: `do_not_drop` is among the
-        columns to be removed, the :param: `keep` instruction is overruled
-        and the do-not-drop column is kept
+        1) when only one column in `do_not_drop` is among the columns to
+        be removed, the `keep` instruction is overruled and the
+        do-not-drop column is kept
 
-        2) when multiple columns in :param: `do_not_drop` are among the
-        columns to be deleted, the :param: `keep` instruction ('first',
-        'last', 'random') is applied to the set of do-not-delete columns
-        that are amongst the duplicates --- this may not give the same
-        result as applying the :param: `keep` instruction to the entire
-        set of duplicate columns. This also causes at least one member
-        of the columns not to be dropped to be removed.
-    _rand_idxs:
-        tuple[int] - An ordered tuple whose values are a sequence of
-        column indices, one index selected from each set of duplicates
-        in :param: `_duplicates`. For example, if :param: `_duplicates`
-        is [[0, 8], [1, 5, 9]], then a possible _rand_idxs might look
-        like (8, 1).
-
+        2) when multiple columns in `do_not_drop` are among the columns
+        to be deleted, the `keep` instruction ('first', 'last', 'random')
+        is applied to the set of do-not-delete columns that are amongst
+        the duplicates --- this may not give the same result as applying
+        the `keep` instruction to the entire set of duplicate columns.
+        This also causes at least one member of the columns not to be
+        dropped to be removed.
+    _rand_idxs : tuple[int]
+        An ordered tuple whose values are a sequence of column indices,
+        one index selected from each set of duplicates in `_duplicates`.
+        For example, if `_duplicates` is [[0, 8], [1, 5, 9]], then a
+        possible `_rand_idxs` might look like (8, 1).
 
     Return
     ------
-    -
-        removed_columns_: RemovedColumnsType - the keys are the indices
-        of duplicate columns removed from the original data, indexed by
-        their column location in the original data; the values are the
-        column index in the original data of the respective duplicate
-        that was kept.
+    removed_columns_ : RemovedColumnsType
+        The keys are the indices of duplicate columns removed from the
+        original data, indexed by their column location in the original
+        data; the values are the column index in the original data of
+        the respective duplicate that was kept.
 
     """
 
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     # _duplicates must be list of list of ints
     assert isinstance(_duplicates, list)
@@ -178,7 +169,7 @@ def _identify_idxs_to_delete(
             assert list(_rand_idxs)[_idx] in _dupl_set, \
                 f'rand idx = {list(_rand_idxs)[_idx]}, dupl set = {_dupl_set}'
 
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     # apply the keep, do_not_drop, and conflict rules to the duplicate idxs

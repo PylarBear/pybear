@@ -9,8 +9,7 @@
 from typing import Optional
 from typing_extensions import (
     Any,
-    Self,
-    Union
+    Self
 )
 from ._type_aliases import XContainer
 
@@ -38,69 +37,72 @@ class NanStandardizer(
     ReprMixin,
     SetParamsMixin
 ):
+    """Convert all nan-like representations in a dataset to the same value.
 
-    """
-    Convert all nan-like representations in a dataset to the same value.
     Standardize different nan-likes to the same nan-like value, or change
     them to a non-nan-like value. "nan-like representations" recognized
     by this transformer include, at least, np.nan, pandas.NA, None (of
     type None, not string "None"), and string representations of "nan".
 
-    For details, see the docs for pybear.utilities nan_mask_numerical
-    and nan_mask_string.
+    For details, see the docs for :func:`nan_mask_numerical`
+    and :func:`nan_mask_string`.
 
     This transformer accepts numpy arrays, pandas dataframes/series,
     and polars dataframes/series of shape (n_samples, n_features) or
     (n_samples, ) and returns the same container with the value specified
-    by the 'new_value' parameter in the former positions of nan-like
+    by the `new_value` parameter in the former positions of nan-like
     values. Also, when passing numerical data, this transformer accepts
     scipy sparse matrices / arrays of all formats except dok and lil. In
     that case, the original container is returned with the replacements
-    made in the 'data' attribute.
+    made in the `data` attribute.
 
     NanStandardizer (NS) is a full-fledged scikit-style transformer with
-    partial_fit, fit, transform, fit_transform, get_params, set_params,
-    and score methods. The partial_fit, fit, and score methods are
-    no-ops that are available so that NS can be incorporated into larger
-    workflows like scikit pipelines and dask_ml wrappers. NS is
-    technically always in a fitted state because it does not to need to
-    learn anything from data to do transformations, it knows everything
-    it needs to know from its parameters. Tests for fittedness of a NS
-    instance will always return True. Because the instance is always
-    fitted, the fit and partial_fit methods are no-ops.
-
+    `partial_fit`, `fit`, `transform`, `fit_transform`, `get_params`,
+    `set_params`, and `score` methods. The `partial_fit`, `fit`, and
+    `score` methods are no-ops that are available so that NS can be
+    incorporated into larger workflows like scikit pipelines and dask_ml
+    wrappers. NS is technically always in a fitted state because it does
+    not to need to learn anything from data to do transformations, it
+    knows everything it needs to know from its parameters. Tests for
+    fittedness of a NS instance will always return True. Because the
+    instance is always fitted, the `fit` and `partial_fit` methods are
+    no-ops.
 
     Parameters
     ----------
-    new_value:
-        Optional[Any], default=np.nan - the new value to put in place of
-        the nan-like values. There is no validation for this value, the
-        user is free to enter whatever they like. If there is a casting
-        problem, i.e., the receiving object, the data, will not receive
-        the given value, then any exceptions would be raised by the
-        receiving object.
-
+    new_value : Optional[Any], default=np.nan
+        The new value to put in place of the nan-like values. There is
+        no validation for this value, the user is free to enter whatever
+        they like. If there is a casting problem, i.e., the receiving
+        object, the data, will not receive the given value, then any
+        exceptions would be raised by the receiving object.
 
     Notes
     -----
-    Type Aliases
 
-    PythonTypes: Union[Sequence, Sequence[Sequence]]
+    **Type Aliases**
 
-    NumpyTypes: npt.NDArray
+    PythonTypes:
+        Union[Sequence, Sequence[Sequence]]
 
-    PandasTypes: Union[pd.DataFrame, pd.Series]
+    NumpyTypes:
+        numpy.ndarray
 
-    PolarsTypes: Union[pl.DataFrame, pl.Series]
+    PandasTypes:
+        Union[pandas.core.frame.DataFrame, pandas.core.series.Series]
 
-    SparseTypes: Union[ss._csr.csr_matrix, ss._csc.csc_matrix,
-        ss._coo.coo_matrix, ss._dia.dia_matrix, ss._bsr.bsr_matrix,
-        ss._csr.csr_array, ss._csc.csc_array, ss._coo.coo_array,
-        ss._dia.dia_array, ss._bsr.bsr_array]
+    PolarsTypes:
+        Union[polars.dataframe.DataFrame, polars.series.Series]
+
+    SparseTypes: Union[
+        ss._csr.csr_matrix, ss._csc.csc_matrix, ss._coo.coo_matrix,
+        ss._dia.dia_matrix, ss._bsr.bsr_matrix, ss._csr.csr_array,
+        ss._csc.csc_array, ss._coo.coo_array, ss._dia.dia_array,
+        ss._bsr.bsr_array
+    ]
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasType, PolarsType, SparseTypes]
-
 
     See Also
     --------
@@ -108,7 +110,6 @@ class NanStandardizer(
     pybear.utilities.nan_mask_string
     numpy.nan
     pandas.NA
-
 
     Examples
     --------
@@ -135,8 +136,7 @@ class NanStandardizer(
         *,
         new_value: Optional[Any] = np.nan
     ):
-
-        """Instantiate the NanStandardizer instance."""
+        """Instantiate the `NanStandardizer` instance."""
 
         self.new_value = new_value
 
@@ -146,7 +146,7 @@ class NanStandardizer(
 
 
     def get_metadata_routing(self):
-        """Get metadata routing is not implemented."""
+        """Get metadata routing is not implemented in NanStandardizer."""
 
         __ = type(self).__name__
         raise NotImplementedError(
@@ -166,31 +166,23 @@ class NanStandardizer(
     def partial_fit(
         self,
         X: XContainer,
-        y: Optional[Union[Any, None]] = None
+        y: Optional[Any] = None
     ) -> Self:
-
-        """
-        No-op batch-wise fit of the NanStandardizer instance.
-
+        """No-op batch-wise fit of the `NanStandardizer` instance.
 
         Parameters
         ----------
-        X:
-            array-like of shape (n_samples, n_features) or (n_samples,) -
-            the object for which to replace nan-like representations.
+        X : XContainer of shape (n_samples, n_features) or (n_samples,)
+            The object for which to replace nan-like representations.
             Ignored.
-        y:
-            Optional[Union[Any, None]], default=None - the target for
-            the data. Ignored.
-
+        y : Optional[Any], default=None
+            The target for the data. Ignored.
 
         Returns
         -------
-        -
-            None
+        None
 
         """
-
 
         return self
 
@@ -198,31 +190,23 @@ class NanStandardizer(
     def fit(
         self,
         X: XContainer,
-        y: Optional[Union[Any, None]] = None
+        y: Optional[Any] = None
     ) -> Self:
-
-        """
-        No-op one-shot fit of the NanStandardizer instance.
-
+        """No-op one-shot fit of the NanStandardizer instance.
 
         Parameters
         ----------
-        X:
-            array-like of shape (n_samples, n_features) or (n_samples,) -
-            the object for which to replace nan-like representations.
+        X : XContainer of shape (n_samples, n_features) or (n_samples,)
+            The object for which to replace nan-like representations.
             Ignored.
-        y:
-            Optional[Union[Any, None]], default=None - the target for
-            the data. Ignored.
-
+        y : Optional[Union[Any, None]], default=None
+            The target for the data. Ignored.
 
         Returns
         -------
-        -
-            None
+        None
 
         """
-
 
         return self.partial_fit(X, y)
 
@@ -232,25 +216,19 @@ class NanStandardizer(
         X:XContainer,
         copy:Optional[bool]=False
     ) -> XContainer:
-
-        """
-        Map the nan-like representations in X to new values.
-
+        """Map the nan-like representations in `X` to new values.
 
         Parameters
         ----------
-        X:
-            array-like of shape (n_samples, n_features) or (n_samples,) -
-            the object for which to replace nan-like representations.
-        copy:
-            Optional[bool], default=False - whether to replace the values
-            directly in the original X or in a deepcopy of X.
-
+        X : XContainer of shape (n_samples, n_features) or (n_samples,)
+            The object for which to replace nan-like representations.
+        copy : Optional[bool], default=False
+            Whether to replace the values directly in the original `X`
+            or in a deepcopy of `X`.
 
         Returns
         -------
-        _X:
-            array-like of shape (n_samples, n_features), (n_samples,) -
+        X_tr : XContainer of shape (n_samples, n_features), (n_samples,)
             The data with new values in the locations previously occupied
             by nan-like values.
 
@@ -264,39 +242,33 @@ class NanStandardizer(
         _val_X(X)
 
         if copy:
-            _X = copy_X(X)
+            X_tr = copy_X(X)
         else:
-            _X = X
+            X_tr = X
 
 
-        return _transform(_X, self.new_value)
+        return _transform(X_tr, self.new_value)
 
 
     def score(
         self,
-        X: XContainer,
-        y: Optional[Union[Any, None]] = None
+        X: Any,
+        y: Optional[Any] = None
     ) -> None:
+        """No-op score method.
 
-        """
-        No-op score method. Needs to be here for dask_ml wrappers.
-
+        Needs to be here for dask_ml wrappers.
 
         Parameters
         ----------
-        X:
-            array-like of shape (n_samples, n_features) or (n_samples,) -
-            the object for which to replace nan-like representations.
-            Ignored.
-        y:
-            Optional[Union[Any, None]], default=None - the target for
-            the data. Ignored.
-
+        X : Any
+            The data. Ignored.
+        y : Optional[Any], default=None
+            The target for the data. Ignored.
 
         Returns
         -------
-        -
-            None
+        None
 
         """
 

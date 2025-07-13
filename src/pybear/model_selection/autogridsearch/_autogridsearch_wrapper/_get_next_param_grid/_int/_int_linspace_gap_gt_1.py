@@ -66,8 +66,8 @@ def _int_linspace_gap_gt_1(
         divisible.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _OUT_GRID:
             IntGridType - new search grid for the current pass' upcoming

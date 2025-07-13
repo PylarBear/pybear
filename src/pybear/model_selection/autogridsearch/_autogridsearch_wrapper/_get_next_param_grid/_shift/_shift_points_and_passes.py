@@ -33,8 +33,8 @@ def _shift_points_and_passes(
         if False, increment total_passes each time a shift pass is made.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _params: ParamsType - updated grid-building instructions
 

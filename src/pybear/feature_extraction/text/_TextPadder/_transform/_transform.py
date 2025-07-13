@@ -6,34 +6,40 @@
 
 
 
-from .._type_aliases import XContainer
-
 import numbers
 import itertools
+
+from .._type_aliases import XWipContainer
 
 
 
 def _transform(
-    _X: XContainer,
+    _X: XWipContainer,
     _fill: str,
     _n_features: numbers.Integral
 ) -> list[list[str]]:
+    """Pad ragged `X` vector with fill value to make a full array.
 
-    """
-    Pad ragged X vector with fill value to make a full array. Returns
-    a python list of python lists of strings.
-
+    Returns a Python list of python lists of strings.
 
     Parameters
     ----------
-    _X:
-        Sequence[Sequence[str]] - the data to be padded to a structured
-        array.
-    _fill:
-        str - the string value to fill void space with.
-    _n_features:
-        numbers.Integral - the number of features to create for the
-        padded data.
+    _X : XWipContainer
+        The data to be padded to a structured array.
+    _fill : str
+        The string value to fill void space with.
+    _n_features : numbers.Integral
+        The number of features to create for the padded data.
+
+    Returns
+    -------
+    _X : XWipContainer
+        `X` padded with fill value to a full array.
+
+    Notes
+    -----
+    XWipContainer:
+        list[list[str]]
 
     """
 

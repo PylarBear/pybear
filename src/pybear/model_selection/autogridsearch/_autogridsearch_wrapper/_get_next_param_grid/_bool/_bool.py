@@ -40,8 +40,8 @@ def _bool(
         BoolDataType - best value returned from GSCV best_params_
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _grid: BoolGridType - new search grid for the current pass
 

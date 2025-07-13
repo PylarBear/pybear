@@ -83,8 +83,8 @@ def _int(
         pass of GridSearchCV, as read from _params.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _NEW_GRID:
         IntGridType - new search grid for the current pass' upcoming

@@ -39,8 +39,8 @@ def _val_param_grid_helper(
         grids were passed to GSTCV.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

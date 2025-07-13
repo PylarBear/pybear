@@ -181,10 +181,10 @@ class TextLookup(_TextLookupMixin):
     unseen word.
 
     TL is a full-fledged scikit-style transformer. It has fully
-    functional get_params, set_params, partial_fit, fit, transform, and
-    fit_transform methods. It also has a no-op score method that allows
-    TL to be wrapped by dask_ml wrappers, on the off-chance that you
-    actually have text data in dask format.
+    functional `get_params`, `set_params`, `partial_fit`, `fit`,
+    `transform`, and `fit_transform` methods. It also has a no-op
+    `score` method that allows TL to be wrapped by dask_ml wrappers,
+    on the off-chance that you actually have text data in dask format.
 
     TL has an :attr:`n_rows_` attribute which is only available after
     data has been passed to :meth:`partial_fit` or :meth:`fit`. It is

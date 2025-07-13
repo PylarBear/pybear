@@ -400,7 +400,15 @@ class NGramMerger(
 
 
     def reset(self) -> Self:
-        """No-op reset method."""
+        """No-op reset method.
+
+        Returns
+        -------
+        self : object
+            The reset `NGramMerger` instance.
+
+        """
+
         return self
 
 
@@ -503,7 +511,7 @@ class NGramMerger(
         else:
             X_tr = X
 
-        X_tr = _map_X_to_list(X_tr)
+        X_tr: XWipContainer = _map_X_to_list(X_tr)
 
         self._n_rows: int = len(X_tr)
 
@@ -533,7 +541,7 @@ class NGramMerger(
 
     def score(
         self,
-        X: XContainer,
+        X: Any,
         y: Optional[Any] = None
     ) -> None:
         """No-op score method.
@@ -542,10 +550,10 @@ class NGramMerger(
 
         Parameters
         ----------
-        X : XContainer
+        X : Any
             The data. Ignored.
         y : Optional[Any], default=None
-            The target for the data. Always ignored.
+            The target for the data. Ignored.
 
         Returns
         -------

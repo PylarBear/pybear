@@ -23,14 +23,12 @@ def _make_instructions(
     constant_columns_: ConstantColumnsType,
     _n_features_in: int
 ) -> InstructionType:
-
-    """
-    'keep' must have been conditioned into dict[str, Any], int, or
-    Literal['none'] before this module in _manage_keep.
-
-    Based on the 'keep' instructions provided, and the constant columns
-    found during fitting, build a dictionary that gives explicit
+    """Based on the `keep` instructions provided, and the constant
+    columns found during fitting, build a dictionary that gives explicit
     instructions about what constant columns to keep, delete, or add.
+    `keep` must have been conditioned into dict[str, Any], int, or
+    Literal['none'] before this module in :func:`_manage_keep`.
+
 
     The form of the dictionary is:
     {
@@ -39,36 +37,33 @@ def _make_instructions(
         'add': Union[None, dict['{new column name}', fill value]]
     }
 
-    if keep == 'none', keep none, add none, delete all.
-    if keep == a dict, keep none, delete all, append fill value to data.
-    if keep == int, keep that idx, delete the remaining constant columns.
+    if `keep` == 'none', keep none, add none, delete all.
+    if `keep` == a dict, keep none, delete all, append fill value to data.
+    if `keep` == int, keep that idx, delete the remaining constant columns.
 
-    keep callable, str feature name, and the other str literals besides
-    'none' should not get in here, should have been converted to int in
-    _manage_keep
+    `keep` callable, str feature name, and the other str literals besides
+    'none' should not get in here, should have been converted to int
+    in :func:`_manage_keep`.
 
-    The column that is to be built by 'add' is not added to 'keep'.
-
+    The column that is to be built by 'add' is not added to `keep`.
 
     Parameters
     ----------
-    _keep:
-        Union[int, Literal['none'], dict[str, Any]] - The strategy for
-        handling the constant columns. See 'The keep Parameter' section
-        for a lengthy explanation of the 'keep' parameter.
-    constant_columns_:
-        ConstantColumnsType - constant column indices and their values
-        found in all partial fits.
-    _n_features_in:
-        int - number of features in the fitted data before transform.
-
+    _keep : Union[int, Literal['none'], dict[str, Any]]
+        The strategy for handling the constant columns. See 'The keep
+        Parameter' section for a lengthy explanation of the `keep`
+        parameter.
+    constant_columns_ : ConstantColumnsType
+        Constant column indices and their values found in all partial
+        fits.
+    _n_features_in : int
+        Number of features in the fitted data before transform.
 
     Returns
     -------
-    -
-        _instructions: InstructionType - instructions for keeping,
-        deleting, or adding constant columns to be applied during
-        transform.
+    _instructions : InstructionType
+        Instructions for keeping, deleting, or adding constant columns
+        to be applied during transform.
 
     """
 

@@ -15,28 +15,21 @@ from .._validation._string_frequency import _val_string_frequency
 def _build_character_frequency(
     _string_frequency: dict[str, numbers.Integral]
 ) -> dict[str, numbers.Integral]:
-
-    """
-    Build a dictionary that contains all the unique characters in
-    '_string_frequency' as keys and the number of times that that
+    """Build a dictionary that contains all the unique characters in
+    `_string_frequency` as keys and the number of times that that
     character appears as the values.
-
 
     Parameters
     ----------
-    _string_frequency:
-        dict[str, numbers.Integral] - the dictionary holding the unique
-        strings passed to the current partial fit and their respective
-        frequencies.
-
+    _string_frequency : dict[str, numbers.Integral]
+        The dictionary holding the unique strings passed to the current
+        partial fit and their respective frequencies.
 
     Return
     ------
-    -
-        _character_frequency: dict[str, numbers.Integral] - a dictionary
-        that holds the unique characters passed to this partial fit and
-        their respective number of appearances as values.
-
+    _character_frequency: dict[str, numbers.Integral]
+        A dictionary that holds the unique characters passed to this
+        partial fit and their respective number of appearances as values.
 
     """
 

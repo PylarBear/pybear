@@ -50,8 +50,8 @@ def _get_best_thresholds(
         param grids.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         TEST_BEST_THRESH_IDXS_BY_SCORER: MaskedHolderType - A vector of
         shape (n_scorers, ) that holds the index in the 'thresholds'

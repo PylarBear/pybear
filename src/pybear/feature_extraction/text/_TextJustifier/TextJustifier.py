@@ -189,9 +189,9 @@ class TextJustifier(
     TextSplitter.
 
     TJ is a full-fledged scikit-style transformer. It has fully
-    functional get_params, set_params, transform, and fit_transform
-    methods. It also has partial_fit, fit, and score methods, which are
-    no-ops. TJ technically does not need to be fit because it already
+    functional `get_params`, `set_params`, `transform`, and `fit_transform`
+    methods. It also has `partial_fit`, `fit`, and `score` methods, which
+    are no-ops. TJ technically does not need to be fit because it already
     knows everything it needs to do transformations from the parameters.
     These no-op methods are available to fulfill the scikit transformer
     API and make TJ suitable for incorporation into larger workflows,
@@ -506,7 +506,7 @@ class TextJustifier(
 
     def score(
         self,
-        X: XContainer,
+        X: Any,
         y: Optional[Any] = None
     ) -> None:
         """No-op score method.
@@ -515,10 +515,10 @@ class TextJustifier(
 
         Parameters
         ----------
-        X : XContainer
-            The data to justify. Ignored.
+        X : Any
+            The data. Ignored.
         y : Optional[Any], default=None
-            The target for the data. Always ignored.
+            The target for the data. Ignored.
 
         Returns
         ------

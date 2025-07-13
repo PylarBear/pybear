@@ -80,8 +80,8 @@ def _int_logspace_gap_gt_1(
         divisible.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _OUT_GRID:
             IntGridType - new linspace search grid for the current pass'

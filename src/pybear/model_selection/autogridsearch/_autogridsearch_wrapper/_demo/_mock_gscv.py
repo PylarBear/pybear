@@ -56,8 +56,8 @@ def _mock_gscv(
             GridSearchCV
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _best_params_: BestParamsType - The values in each search grid
         closest to the true best value.

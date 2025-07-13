@@ -44,8 +44,8 @@ def _val_param_grid(
         already been conditioned into a list of dictionaries.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

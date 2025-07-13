@@ -37,60 +37,52 @@ def _find_duplicates(
     _n_jobs: Union[numbers.Integral, None],
     _job_size: numbers.Integral
 ) -> DuplicatesType:
+    """Find identical columns in X.
 
-    """
-    Find identical columns in X. Create a list of lists, where each list
-    indicates the zero-based column indices of columns that are identical.
-    For example, if column indices 0 and 23 are identical, and indices
-    8, 12, and 19 are identical, the returned object would be
-    [[0, 23], [8, 12, 19]]. It is important that the first indices of
-    each subset be sorted ascending in the outer container, i.e., in
-    this example, 0 is before 8.
-
+    Create a list of lists, where each list indicates the zero-based
+    column indices of columns that are identical. For example, if column
+    indices 0 and 23 are identical, and indices 8, 12, and 19 are
+    identical, the returned object would be [[0, 23], [8, 12, 19]].
+    It is important that the first indices of each subset be sorted
+    ascending in the outer container, i.e., in this example, 0 is before 8.
 
     Parameters
     ----------
-    _X:
-        array-like of shape (n_samples, n_features) - The data to be
-        deduplicated. The container must be numpy ndarray, pandas
-        dataframe, polars dataframe, or scipy csc only. There is no
-        conditioning of the data here, it must be passed to this module
-        in suitable state.
-    _rtol:
-        numbers.Real - the relative difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number. See
-        numpy.allclose.
-    _atol:
-        numbers.Real - the absolute difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number. See
-        numpy.allclose.
-    _equal_nan:
-        bool - When comparing pairs of columns row by row:
+    _X : InternalXContainer of shape (n_samples, n_features)
+        The data to be deduplicated. The container must be numpy ndarray,
+        pandas dataframe, polars dataframe, or scipy csc only. There is
+        no conditioning of the data here, it must be passed to this
+        module in suitable state.
+    _rtol : numbers.Real
+        The relative difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
+    _atol : numbers.Real
+        The absolute difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
+    _equal_nan : bool
+        When comparing pairs of columns row by row:
 
-        If equal_nan is True, exclude from comparison any rows where one
-        or both of the values is/are nan. If one value is nan, this
+        If `equal_nan` is True, exclude from comparison any rows where
+        one or both of the values is/are nan. If one value is nan, this
         essentially assumes that the nan value would otherwise be the
         same as its non-nan counterpart. When both are nan, this
         considers the nans as equal (contrary to the default numpy
         handling of nan, where numpy.nan != numpy.nan) and will not in
         and of itself cause a pair of columns to be considered unequal.
-        If equal_nan is False and either one or both of the values in
+        If `equal_nan` is False and either one or both of the values in
         the compared pair of values is/are nan, consider the pair to be
         not equivalent, thus making the column pair not equal. This is
         in line with the normal numpy handling of nan values.
-    _n_jobs:
-        Union[numbers.Integral, None] - The number of joblib Parallel
-        jobs to use when comparing columns.
-    _job_size:
-        numbers.Integral - The number of columns to send to a joblib job.
-        Must be an integer greater than or equal to 2.
-
+    _n_jobs : Union[numbers.Integral, None]
+        The number of joblib Parallel jobs to use when comparing columns.
+    _job_size : numbers.Integral
+        The number of columns to send to a joblib job. Must be an integer
+        greater than or equal to 2.
 
     Return
     ------
-    -
-        duplicates_: DuplicatesType - lists indicating the column indices
-        of identical columns.
+    duplicates_ : DuplicatesType
+        Lists indicating the column indices of identical columns.
 
     """
 

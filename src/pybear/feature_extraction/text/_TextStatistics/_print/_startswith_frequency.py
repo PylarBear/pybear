@@ -19,29 +19,22 @@ def _print_startswith_frequency(
     lp: numbers.Integral,
     rp: numbers.Integral
 ) -> None:
-
-    """
-    Print the 'startswith_frequency_' attribute to screen.
-
+    """Print the `startswith_frequency_` attribute to screen.
 
     Parameters
     ----------
-    startswith_frequency:
-        dict[str, numbers.Integral] - the dictionary holding the unique
-        first characters and the number of times those characters
-        appeared in the first position for every string fitted on the
-        TextStatistics instance.
-
-    lp:
-        numbers.Integral - the left padding for the display.
-    rp:
-        numbers.Integral - the right padding for the display.
-
+    startswith_frequency : dict[str, numbers.Integral]
+        The dictionary holding the unique first characters and the number
+        of times those characters appeared in the first position for
+        every string fitted on the `TextStatistics` instance.
+    lp : numbers.Integral
+        The left padding for the display.
+    rp : numbers.Integral
+        The right padding for the display.
 
     Return
     ------
-    -
-        None
+    None
 
     """
 

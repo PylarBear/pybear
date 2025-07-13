@@ -35,8 +35,8 @@ def _validation(
     See the individual modules for more details.
 
     Beyond the individual modules' validation, this module also checks:
-    1) cannot pass anything to 'flags' if 'remove' is None
-    2) cannot pass a list to 'case_sensitive' if 'remove' is None
+    1) cannot pass anything to `flags` if `remove` is None
+    2) cannot pass a list to `case_sensitive` if `remove` is None
 
     Parameters:
     -----------
@@ -56,6 +56,40 @@ def _validation(
     Returns
     -------
     None
+
+    Notes
+    -----
+
+    **Type Aliases**
+
+    PythonTypes:
+        Union[Sequence[str], Sequence[Sequence[str]], set[str]]
+
+    NumpyTypes:
+        numpy.ndarray[str]
+
+    PandasTypes
+        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+
+    PolarsTypes:
+        Union[polars.series.Series, polars.dataframe.DataFrame]
+
+    XContainer:
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+
+    XWipContainer: TypeAlias = Union[list[str], list[list[str]]]
+
+    RemoveType:
+        Optional[Union[PatternType, list[PatternType]]]
+
+    CaseSensitiveType:
+        Optional[Union[bool, list[Union[bool, None]]]]
+
+    RemoveEmptyRowsType:
+        Optional[bool]
+
+    FlagsType:
+        Optional[Union[FlagType, list[FlagType]]]
 
     """
 

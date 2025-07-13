@@ -23,32 +23,27 @@ def _print_string_frequency(
     rp: numbers.Integral,
     n: Optional[numbers.Integral] = 10
 ) -> None:
+    """Print the `string_frequency_` attribute to screen.
 
-    """
-    Print the 'string_frequency_' attribute to screen. Only available if
-    TS parameter 'store_uniques' is True. If False, string_frequency is
-    empty, so print a message that uniques are not available.
-
+    Only available if TS parameter `store_uniques` is True. If False,
+    `string_frequency` is empty, so print a message that uniques are not
+    available.
 
     Parameters
     ----------
-    string_frequency:
-        dict[str, numbers.Integral] - the dictionary holding the unique
-        strings and their respective counts for all strings fitted on
-        the TextStatistics instance.
-    lp:
-        numbers.Integral - the left padding for the display.
-    rp:
-        numbers.Integral - the right padding for the display.
-    n:
-        Optional[numbers.Integral], default = 10 - the number of most
-        frequent strings to print.
-
+    string_frequency : dict[str, numbers.Integral]
+        The dictionary holding the unique strings and their respective
+        counts for all strings fitted on the `TextStatistics` instance.
+    lp : numbers.Integral
+        The left padding for the display.
+    rp : numbers.Integral
+        The right padding for the display.
+    n : Optional[numbers.Integral], default = 10
+        The number of most frequent strings to print.
 
     Return
     ------
-    -
-        None
+    None
 
     """
 

@@ -38,8 +38,8 @@ def _validate_is_logspace(
         ParamsType - the agscv instructions for all parameters
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         None
 

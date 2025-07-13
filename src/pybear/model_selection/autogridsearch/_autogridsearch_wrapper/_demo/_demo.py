@@ -55,8 +55,8 @@ def _demo(
         work being done by the parent GridSearch.
 
 
-    Return
-    ------
+    Returns
+    -------
     -
         _DemoCls: AutoGridSearchCV instance - The AutoGridSearch instance
         created to run simulations, not "self". This return is integral

@@ -23,32 +23,25 @@ def _set_attributes(
     _instructions: InstructionType,
     _n_features_in: int
 ) -> tuple[KeptColumnsType, RemovedColumnsType, ColumnMaskType]:
-
-    """
-    Use the constant_columns_ and _instructions attributes to build the
-    kept_columns_, removed_columns_, and column_mask_ attributes.
-
+    """Use the `constant_columns_` and `_instructions` attributes to
+    build the `kept_columns_`, `removed_columns_`, and `column_mask_`
+    attributes.
 
     Parameters
     ----------
-    constant_columns_:
-        ConstantColumnsType - constant column indices and their values
-        found in all partial fits.
-    _instructions:
-        InstructionType - instructions for keeping, deleting, or adding
-        constant columns to be applied during :meth: `transform`.
-    _n_features_in:
-        int - number of features in the fitted data before transform.
-
+    constant_columns_ : ConstantColumnsType
+        Constant column indices and their values found in all partial
+        fits.
+    _instructions : InstructionType
+        Instructions for keeping, deleting, or adding constant columns
+        to be applied during transform.
+    _n_features_in : int
+        Number of features in the fitted data before transform.
 
     Returns
     -------
-    -
-        tuple[
-            kept_columns_: KeptColumnsType,
-            removed_columns_: RemovedColumnsType,
-            column_mask_: ColumnMaskType
-        ]
+    tuple[kept_columns_, removed_columns_, column_mask_]:
+        The populated attributes.
 
     """
 

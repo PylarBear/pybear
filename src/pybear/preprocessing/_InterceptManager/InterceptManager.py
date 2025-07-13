@@ -81,8 +81,8 @@ class InterceptManager(
     other undesirable effects. The analyst is often forced to address
     the issue to perform a meaningful analysis of the data.
 
-    InterceptManager (IM) has several key characteristics that make it a
-    versatile and powerful tool that can help fix this condition.
+    `InterceptManager` (IM) has several key characteristics that make it
+    a versatile and powerful tool that can help fix this condition.
 
     IM...
 
@@ -106,36 +106,35 @@ class InterceptManager(
 
     The computation for numerical columns is slightly more complex.
     IM calculates the mean of the column then compares it against the
-    individual values via numpy.allclose. allclose has rtol and atol
+    individual values via numpy.allclose. allclose has 'rtol' and 'atol'
     parameters that give latitude to the definition of 'equal'. They
     provide a tolerance window whereby numerical data that are not
     exactly equal are considered equal if their difference falls within
     the tolerance. IM affords some flexibility in defining 'equal'
     when identifying constants by providing direct access to the
-    numpy.allclose rtol and atol parameters via its own, identically
-    named, :param: `rtol` and :param: `atol` parameters. IM requires
-    that :param: `rtol` and :param: `atol` be non-boolean, non-negative
-    real numbers, in addition to any other restrictions enforced by
-    numpy.allclose. See the numpy docs for clarification of the technical
-    details.
+    numpy.allclose 'rtol' and 'atol' parameters via its own, identically
+    named, `rtol` and `atol` parameters. IM requires that `rtol` and
+    `atol` be non-boolean, non-negative real numbers, in addition to any
+    other restrictions enforced by numpy.allclose. See the numpy docs
+    for clarification of the technical details.
 
-    The :param: `equal_nan` parameter controls how IM handles nan-like
-    values. If :param: `equal_nan` is True, exclude any nan-like values
-    from the allclose comparison. This essentially assumes that the nan
-    values are equal to the mean of the non-nan values within their
-    column. nan-like values will not in and of themselves cause a column
-    to be considered non-constant when :param: `equal_nan` is True.
-    If :param: `equal_nan` is False, IM does not make the same assumption
-    that the nan values are implicitly equal to the mean of the non-nan
-    values, thus making the column not constant. This is in line with
-    the normal numpy handling of nan-like values. See the Notes section
-    below for a discussion on the handling of nan-like values.
+    The `equal_nan` parameter controls how IM handles nan-like values.
+    If `equal_nan` is True, exclude any nan-like values from the allclose
+    comparison. This essentially assumes that the nan values are equal
+    to the mean of the non-nan values within their column. nan-like
+    values will not in and of themselves cause a column to be considered
+    non-constant when `equal_nan` is True. If `equal_nan` is False, IM
+    does not make the same assumption that the nan values are implicitly
+    equal to the mean of the non-nan values, thus making the column not
+    constant. This is in line with the normal numpy handling of nan-like
+    values. See the Notes section below for a discussion on the handling
+    of nan-like values.
 
     IM also has a `keep` parameter that allows the user to manage
-    the constant columns that are identified. :param:`keep` accepts
-    several types of arguments. The 'Keep' discussion section has a list
-    of all the options that can be passed to :param:`keep`, what they
-    do, and how to use them.
+    the constant columns that are identified. `keep` accepts several
+    types of arguments. The 'Keep' discussion section has a list of all
+    the options that can be passed to `keep`, what they do, and how to
+    use them.
 
     The :meth:`partial_fit`, :meth:`fit`, and :meth:`inverse_transform`
     methods of IM accept data as numpy arrays, pandas dataframes, polars
@@ -155,26 +154,25 @@ class InterceptManager(
     ParallelPostFit wrappers.
 
     There are no safeguards in place to prevent the user from changing
-    the :param: `rtol`, :param: `atol`, or :param: `equal_nan` values
-    between calls to `partial_fit`. These 3 parameters have strong
-    influence over whether IM classifies a column as constant, and
-    therefore is instrumental in dictating what IM learns during fitting.
-    Changes to these parameters between partial fits can drastically
-    change IM's understanding of the constant columns in the data versus
-    what would otherwise be learned under constant settings. pybear
-    recommends against this practice, however, it is not strictly
-    blocked.
+    the `rtol`, `atol`, or `equal_nan` values between calls to
+    `partial_fit`. These 3 parameters have strong influence over whether
+    IM classifies a column as constant, and therefore is instrumental in
+    dictating what IM learns during fitting. Changes to these parameters
+    between partial fits can drastically change IM's understanding of
+    the constant columns in the data versus what would otherwise be
+    learned under constant settings. pybear recommends against this
+    practice, however, it is not strictly blocked.
 
     When performing multiple batch-wise transformations of data, that
     is, making sequential calls to `transform`, it is critical that the
     same column indices be kept / removed at each call. This issue
-    manifests when :param: `keep` is set to 'random'; the random index
-    to keep must be the same at all calls to `transform`, and cannot
-    be dynamically randomized within `transform`. IM handles this by
-    generating a static random column index to keep at :term: fit time,
-    and does not change this number during transform time. This number
-    is dynamic with each call to `partial_fit`, and will likely change
-    at each call. Fits performed after calls to `transform` will change
+    manifests when `keep` is set to 'random'; the random index to keep
+    must be the same at all calls to `transform`, and cannot be
+    dynamically randomized within `transform`. IM handles this by
+    generating a static random column index to keep at fit time, and
+    does not change this number during transform time. This number is
+    dynamic with each call to `partial_fit`, and will likely change at
+    each call. Fits performed after calls to `transform` will change
     the random index away from that used in the previous transforms,
     causing IM to perform entirely different transformations than those
     previously being done. IM cannot block calls to `partial_fit` after
@@ -186,11 +184,11 @@ class InterceptManager(
     **The 'keep' Parameter**
 
     IM learns which columns are constant during fitting. At the time
-    of :term: transform, IM applies the instruction given to it via
-    the :param: `keep` parameter. The :param: `keep` parameter takes
-    several types of arguments, providing various ways to manage the
-    columns of constants within a dataset. Below is a comprehensive list
-    of all the arguments that can be passed to :param: `keep`.
+    of transform, IM applies the instruction given to it via the `keep`
+    parameter. The `keep` parameter takes several types of arguments,
+    providing various ways to manage the columns of constants within a
+    dataset. Below is a comprehensive list of all the arguments that can
+    be passed to `keep`.
 
     Literal 'first':
         Retains the constant column left-most in the data (if any) and
@@ -234,38 +232,38 @@ class InterceptManager(
         passed data, 3) the integer that is returned does not correspond
         to a constant column.
         IM does not retain state information about what indices have
-        been returned from the callable during :term: transform. IM
-        cannot catch if the callable is returning different indices
-        for different batches of data within a sequence of calls
-        to `transform`. When doing multiple batch-wise transforms, it
-        is up to the user to ensure that the callable returns the same
-        index for each call to `transform`. If the callable returns a
-        different index for any of the batches of data passed in a
-        sequence of transforms then the results will be nonsensical.
+        been returned from the callable during transform. IM cannot catch
+        if the callable is returning different indices for different
+        batches of data within a sequence of calls to `transform`. When
+        doing multiple batch-wise transforms, it is up to the user to
+        ensure that the callable returns the same index for each call to
+        `transform`. If the callable returns a different index for any
+        of the batches of data passed in a sequence of transforms then
+        the results will be nonsensical.
     dictionary[str, Any]:
         dictionary of {feature name:str, constant value:Any}. A column
         of constants is appended to the right end of the data, with the
-        constant being the value in the dictionary. The :param: `keep`
-        dictionary requires a single key:value pair. The key must be a
-        string indicating feature name. This applies to any format of
-        data that is transformed. If the data is a pandas dataframe or
-        polars dataframe, then this string will become the feature name
-        of the new constant feature. If the fitted data is a numpy array
-        or scipy sparse, then this column name is ignored. The dictionary
-        value is the constant value for the new feature. This value has
-        only two restrictions: it cannot be a non-string sequence (e.g.
-        list, tuple, etc.) and it cannot be a callable. Essentially, the
+        constant being the value in the dictionary. The `keep` dictionary
+        requires a single key:value pair. The key must be a string
+        indicating feature name. This applies to any format of data that
+        is transformed. If the data is a pandas or polars dataframe,
+        then this string will become the feature name of the new constant
+        feature. If the fitted data is a numpy array or scipy sparse,
+        then this column name is ignored. The dictionary value is the
+        constant value for the new feature. This value has only two
+        restrictions: it cannot be a non-string sequence (e.g. list,
+        tuple, etc.) and it cannot be a callable. Essentially, the
         constant value is restricted to being integer, float, string, or
         boolean.
 
         When appending a constant value to a pandas dataframe, if the
-        constant is numeric it is appended as np.float64; if it is not
-        numeric it is appended as py object. When appending a constant
-        value to a polars dataframe, if the constant is numeric it is
-        appended as pl.Float64; if it is not numeric it is appended as
-        pl.Object. Otherwise, if the constant is being appended to a
-        numpy array or scipy sparse it will be forced to the dtype of
-        the transformed data (with some caveats.)
+        constant is numeric it is appended as numpy.float64; if it is
+        not numeric it is appended as Python object. When appending a
+        constant value to a polars dataframe, if the constant is numeric
+        it is appended as polars.Float64; if it is not numeric it is
+        appended as polars.Object. Otherwise, if the constant is being
+        appended to a numpy array or scipy sparse it will be forced to
+        the dtype of the transformed data (with some caveats.)
 
         When transforming a pandas dataframe or polars dataframe and
         the new feature name is already a feature in the data, there
@@ -278,118 +276,72 @@ class InterceptManager(
         terminate the program. It is up to the user to manage the
         feature names in this situation.
 
-        The :attr: `column_mask_` attribute is not adjusted for the new
-        feature appended by the :param: `keep` dictionary (see the
-        discussion on `column_mask_`.) But the `keep` dictionary does
-        make adjustment to :meth: `get_feature_names_out`. Because
-        `get_feature_names_out` reflects the state of transformed data,
-        and the :param: `keep` dictionary modifies the data at transform
-        time, `get_feature_names_out` reflects this modification.
-        `column_mask_` is intended to be applied to pre-transform data,
-        therefore that dimensionality is preserved.
+        The :attr:`column_mask_` attribute is not adjusted for the new
+        feature appended by the `keep` dictionary (see the discussion on
+        `column_mask_`.) But the `keep` dictionary does make adjustment
+        to :meth:`get_feature_names_out`. Because `get_feature_names_out`
+        reflects the state of transformed data, and the `keep` dictionary
+        modifies the data at transform time, `get_feature_names_out`
+        reflects this modification. `column_mask_` is intended to be
+        applied to pre-transform data, therefore that dimensionality is
+        preserved.
 
-    To access the :param: `keep` literals ('first', 'last', 'random',
-    'none'), these MUST be passed as lower-case. If a pandas dataframe
-    or a polars dataframe is fitted and there is a conflict between a
-    literal that has been passed to `keep` and a feature name, IM will
-    raise because it is not clear to IM whether you want to indicate the
-    literal or the feature name. To afford a little more flexibility
-    with feature names, IM does not normalize case for this parameter.
-    This means that if :param: `keep` is passed as 'first',  feature
-    names such as 'First', 'FIRST', 'FiRsT', etc. will not raise, only
-    'first' will.
+    To access the `keep` literals ('first', 'last', 'random', 'none'),
+    these MUST be passed as lower-case. If a pandas or polars dataframe
+    is fitted and there is a conflict between a literal that has been
+    passed to `keep` and a feature name, IM will raise because it is not
+    clear to IM whether you want to indicate the literal or the feature
+    name. To afford a little more flexibility with feature names, IM
+    does not normalize case for this parameter. This means that if
+    `keep` is passed as 'first',  feature names such as 'First', 'FIRST',
+    'FiRsT', etc. will not raise, only 'first' will.
 
     The only value that removes all constant columns is 'none'. All other
-    valid arguments for :param: `keep` leave one column of constants
-    behind and all other constant columns are removed from the dataset.
-    If IM does not find any constant columns, 'first', 'last', 'random',
-    and 'none' will not raise an exception. It is like telling IM: "I
-    don't know if there are any constant columns, but if you find some,
-    then apply this rule." However, if using an integer, feature name,
-    or callable, IM will raise an exception if it does not find a
-    constant column at that index. It is like telling IM: "I know that
-    this column is constant, and you need to keep it and remove any
-    others." If IM finds that it is not constant, it will raise an
-    exception because you lied to it.
+    valid arguments for `keep` leave one column of constants behind and
+    all other constant columns are removed from the dataset. If IM does
+    not find any constant columns, 'first', 'last', 'random', and 'none'
+    will not raise an exception. It is like telling IM: "I don't know if
+    there are any constant columns, but if you find some, then apply
+    this rule." However, if using an integer, feature name, or callable,
+    IM will raise an exception if it does not find a constant column at
+    that index. It is like telling IM: "I know that this column is
+    constant, and you need to keep it and remove any others." If IM
+    finds that it is not constant, it will raise an exception because
+    you lied to it.
 
     Parameters
     ----------
-    keep:
-        Optional[Union[Literal['first', 'last', 'random', 'none'],
-        dict[str, Any], int, str, callable[[X], int], default='last' -
+    keep : Optional[KeepType], default='last'
         The strategy for handling the constant columns. See 'The keep
         Parameter' section for a lengthy explanation of the 'keep'
         parameter.
-
-    equal_nan:
-        Optional[bool], default=True - If equal_nan is True, exclude
-        nan-likes from computations that discover constant columns.
-        This essentially assumes that the nan value would otherwise be
-        equal to the mean of the non-nan values in the same column.
-        If equal_nan is False and any value in a column is nan, do not
-        assume that the nan value is equal to the mean of the non-nan
-        values in the same column, thus making the column non-constant.
-        This is in line with the normal numpy handling of nan values.
-
-    rtol:
-        Optional[numbers.Real], default=1e-5 - The relative difference
-        tolerance for equality. Must be a non-boolean, non-negative,
-        real number. See numpy.allclose.
-
-    atol:
-        Optional[numbers.Real], default=1e-8 - The absolute difference
-        tolerance for equality. Must be a non-boolean, non-negative,
-        real number. See numpy.allclose.
+    equal_nan : Optional[bool], default=True
+        If `equal_nan` is True, exclude nan-likes from computations that
+        discover constant columns. This essentially assumes that the nan
+        value would otherwise be equal to the mean of the non-nan values
+        in the same column. If `equal_nan` is False and any value in a
+        column is nan, do not assume that the nan value is equal to the
+        mean of the non-nan values in the same column, thus making the
+        column non-constant. This is in line with the normal numpy
+        handling of nan values.
+    rtol : Optional[numbers.Real], default=1e-5
+        The relative difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
+    atol : Optional[numbers.Real], default=1e-8
+        The absolute difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
 
     Attributes
     ----------
-    n_features_in_:
-        int - number of features in the fitted data before transform.
-
-    feature_names_in_:
-        NDArray[str] - The feature names seen during fitting. Only
-        accessible if X is passed to :meth: `partial_fit` or :meth: `fit`
-        as a pandas dataframe or polars dataframe that has a header.
-
-    constant_columns_:
-        dict[int, Any] - A dictionary whose keys are the indices of the
-        constant columns found during fit, indexed by their column
-        location in the original data. The dictionary values are the
-        constant values in those columns. For example, if a dataset has
-        two constant columns, the first in the third index and the
-        constant value is 1, and the other is in the tenth index and the
-        constant value is 0, then constant_columns_ will be {3:1, 10:0}.
-        If there are no constant columns, then constant_columns_ is an
-        empty dictionary.
-
-    kept_columns_:
-        dict[int, Any] - A subset of the :attr: `constant_columns_`
-        dictionary, constructed with the same format. This holds the
-        subset of constant columns that are retained in the data. If a
-        constant column is kept, then this contains one key:value pair
-        from :attr: `constant_columns_`. If there are no constant columns
-        or no columns are kept, then this is an empty dictionary.
-        When :param: `keep` is a dictionary, all the original constant
-        columns are removed and a new constant column is appended to the
-        data. That column is NOT included in kept_columns_.
-
-    removed_columns_:
-        dict[int, Any] - A subset of the :attr: `constant_columns_`
-        dictionary, constructed with the same format. This holds the
-        subset of constant columns that are removed from the data. If
-        there are no constant columns or no constant columns are removed,
-        then this is an empty dictionary.
-
-    column_mask_:
-        NDArray[bool] - shape (n_features,) - Indicates which columns
-        of the fitted data are kept (True) and which are removed (False)
-        during :term: transform. When :param: `keep` is a dictionary,
-        all original constant columns are removed and a new column of
-        constants is appended to the data. This new column is NOT
-        appended to column_mask_. This mask is intended to be applied
-        to data of the same dimension as that seen during fit, and
-        the new column of constants is a feature added after :term:
-        transform.
+    n_features_in_ : int
+        Number of features in the fitted data before transform.
+    feature_names_in_ : NDArray[object] - The feature names seen during
+        fitting. Only accessible if `X` is passed to :meth:`partial_fit`
+        or :meth:`fit` as a pandas or polars dataframe that has a header.
+    constant_columns_
+    kept_columns_
+    removed_columns_
+    column_mask_
 
     Notes
     -----
@@ -424,7 +376,7 @@ class InterceptManager(
     allows for efficient handling of constant column calculations that
     would otherwise involve implicit non-dense values.
 
-    Type Aliases
+    **Type Aliases**
 
     XContainer:
         Union[
@@ -474,7 +426,6 @@ class InterceptManager(
     FeatureNamesInType:
         npt.NDArray[str]
 
-
     See Also
     --------
     numpy.ndarray
@@ -484,7 +435,6 @@ class InterceptManager(
     numpy.allclose
     numpy.isclose
     numpy.unique
-
 
     Examples
     --------
@@ -530,7 +480,6 @@ class InterceptManager(
         rtol: Optional[numbers.Real]=1e-5,
         atol: Optional[numbers.Real]=1e-8
     ) -> None:
-
         """Initialize the InterceptManager instance."""
 
         self.keep = keep
@@ -542,8 +491,25 @@ class InterceptManager(
     # properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
     @property
     def constant_columns_(self) -> ConstantColumnsType:
-        """Retrieve the constant_columns_ attribute. Read the main docs
-        for more information."""
+        """Get the `constant_columns_` attribute.
+
+        A dictionary whose keys are the indices of the constant columns
+        found during fit, indexed by their column location in the
+        original data. The dictionary values are the constant values in
+        those columns. For example, if a dataset has two constant columns,
+        the first in the third index and the constant value is 1, and
+        the other is in the tenth index and the constant value is 0,
+        then `constant_columns_` will be {3:1, 10:0}. If there are no
+        constant columns, then `constant_columns_` is an empty dictionary.
+
+        Returns
+        -------
+        constant_columns_ : dict[int, Any]
+            A dictionary whose keys are the indices of the constant
+            columns found during fit, indexed by their column location
+            in the original data.
+
+        """
 
         check_is_fitted(self)
 
@@ -552,8 +518,25 @@ class InterceptManager(
 
     @property
     def kept_columns_(self) -> KeptColumnsType:
-        """Retrieve the kept_columns_ attribute. Read the main docs
-        for more information."""
+        """Get the `kept_columns_` attribute.
+
+        A subset of the :attr:`constant_columns_` dictionary, constructed
+        with the same format. This holds the subset of constant columns
+        that are retained in the data. If a constant column is kept, then
+        this contains one key:value pair from `constant_columns_`. If
+        there are no constant columns or no columns are kept, then this
+        is an empty dictionary. When `keep` is a dictionary, all the
+        original constant columns are removed and a new constant column
+        is appended to the data. That column is NOT included in
+        `kept_columns_`.
+
+        Returns
+        -------
+        kept_columns_ : dict[int, Any]
+            A subset of the `constant_columns_` dictionary, constructed
+            with the same format.
+
+        """
 
         check_is_fitted(self)
 
@@ -562,8 +545,21 @@ class InterceptManager(
 
     @property
     def removed_columns_(self) -> RemovedColumnsType:
-        """Retrieve the removed_columns_ attribute. Read the main docs
-        for more information."""
+        """Get the `removed_columns_` attribute.
+
+        A subset of the :attr:`constant_columns_` dictionary, constructed
+        with the same format. This holds the subset of constant columns
+        that are removed from the data. If there are no constant columns
+        or no constant columns are removed, then this is an empty
+        dictionary.
+
+        Returns
+        -------
+        removed_columns_ : dict[int, Any]
+            A subset of the `constant_columns_` dictionary, constructed
+            with the same format.
+
+        """
 
         check_is_fitted(self)
 
@@ -572,8 +568,24 @@ class InterceptManager(
 
     @property
     def column_mask_(self) -> ColumnMaskType:
-        """Retrieve the column_mask_ attribute. Read the main docs
-        for more information."""
+        """Get the `column_mask_` attribute.
+
+        Indicates which columns of the fitted data are kept (True) and
+        which are removed (False) during transform. When `keep` is a
+        dictionary, all original constant columns are removed and a new
+        column of constants is appended to the data. This new column is
+        NOT appended to `column_mask_`. This mask is intended to be
+        applied to data of the same dimension as that seen during fit,
+        and the new column of constants is a feature added after
+        transform.
+
+        Returns
+        -------
+        column_mask_ : NDArray[bool] of shape (n_features,)
+            Indicates which columns of the fitted data are kept (True)
+            and which are removed (False) during transform.
+
+        """
 
         check_is_fitted(self)
 
@@ -582,10 +594,15 @@ class InterceptManager(
 
 
     def _reset(self) -> Self:
+        """Reset the internal data-dependent state of `InterceptManager`.
 
-        """
-        Reset the internal data-dependent state of InterceptManager.
         __init__ parameters are not changed.
+
+        Returns
+        -------
+        self : object
+            The `InterceptManager` instance.
+
         """
 
         if hasattr(self, '_constant_columns'):
@@ -613,43 +630,38 @@ class InterceptManager(
         self,
         input_features:Optional[Union[Sequence[str], None]]=None
     ) -> FeatureNamesInType:
+        """Get the feature names for the output of `transform`.
 
-        """
-        Get the feature names for the output of :meth: `transform`.
-        When :param: `keep` is a dictionary, the appended column of
-        constants is included in the outputted feature name vector.
-
+        When `keep` is a dictionary, the appended column of constants is
+        included in the outputted feature name vector.
 
         Parameters
         ----------
-        input_features:
-            Optional[Union[Sequence[str], None]], default=None -
+        input_features : Optional[Union[Sequence[str], None]], default=None
             Externally provided feature names for the fitted data, not
             the transformed data.
 
-            If input_features is None:
+            If `input_features` is None:
 
-            - if feature_names_in_ is defined, then feature_names_in_ is
-                used as the input features.
+            - if `feature_names_in_` is defined, then `feature_names_in_`
+                is used as the input features.
 
-            - if feature_names_in_ is not defined, then the following
+            - if `feature_names_in_` is not defined, then the following
                 input feature names are generated:
                 ["x0", "x1", ..., "x(n_features_in_ - 1)"].
 
-            If input_features is not None:
+            If `input_features` is not None:
 
-            - if feature_names_in_ is not defined, then input_features
+            - if `feature_names_in_` is not defined, then `input_features`
                 is used as the input features.
 
-            - if feature_names_in_ is defined, then input_features must
-                exactly match the features in feature_names_in_.
-
+            - if `feature_names_in_` is defined, then `input_features`
+                must exactly match the features in `feature_names_in_`.
 
         Returns
         -------
-        -
-            feature_names_out: FeatureNamesInType - The feature names of
-            the transformed data.
+        feature_names_out : FeatureNamesInType
+            The feature names of the transformed data.
 
         """
 
@@ -695,26 +707,23 @@ class InterceptManager(
     def partial_fit(
         self,
         X: XContainer,
-        y: Optional[Union[Any, None]]=None
+        y: Optional[Any]=None
     ) -> Self:
+        """Perform incremental fitting on one or more batches of data.
 
-        """
-        Perform incremental fitting on one or more batches of data.
         Determine the constant columns in the data.
-
 
         Parameters
         ----------
-        X : array_like of shape (n_samples, n_features)
+        X : XContainer of shape (n_samples, n_features)
             Required. Data to find constant columns in.
-        y : Optional[Union[Any, None]], default=None
+        y : Optional[Any], default=None
             Ignored. The target for the data.
-
 
         Returns
         -------
-        -
-            self - the fitted InterceptManager instance.
+        self : object
+            The fitted `InterceptManager` instance.
 
         """
 
@@ -865,26 +874,21 @@ class InterceptManager(
         X: XContainer,
         y: Optional[Union[Any, None]]=None
     ) -> Self:
+        """Perform a single fitting on a dataset.
 
-        """
-        Perform a single fitting on a dataset. Determine the constant
-        columns in the data.
-
+        Determine the constant columns in the data.
 
         Parameters
         ----------
-        X:
-            array-like of shape (n_samples, n_features) - Required. The
-            data to find constant columns in.
-        y:
-            Optional[Union[Any, None]], default=None - Ignored. The
-            target for the data.
-
+        X : XContainer of shape (n_samples, n_features)
+            Required. The data to find constant columns in.
+        y : Optional[Union[Any, None]], default=None
+            Ignored. The target for the data.
 
         Returns
         -------
-        -
-            self - the fitted InterceptManager instance.
+        self : object
+            The fitted `InterceptManager` instance.
 
         """
 
@@ -907,38 +911,33 @@ class InterceptManager(
         X:XContainer,
         copy:Optional[Union[bool, None]] = None
     ) -> XContainer:
+        """Revert transformed data back to its original state.
 
-        """
-        Revert transformed data back to its original state. This
-        operation cannot restore any nan-like values that may have been
-        in the original untransformed data. :meth: `set_output` does not
-        control the output container here, the output container is always
-        the same as passed.
+        This operation cannot restore any nan-like values that may have
+        been in the original untransformed data. :meth:`set_output` does
+        not control the output container here, the output container is
+        always the same as passed.
 
         Very little validation is possible to ensure that the passed
         data is valid for the current state of IM. It is only possible
         to ensure that the number of columns in the passed data match
         the number of columns that are expected to be outputted
-        by :meth: `transform` for the current state of IM. It is up to
+        by :meth:`transform` for the current state of IM. It is up to
         the user to ensure the state of IM aligns with the state of the
         data that is to undergo inverse transform. Otherwise, the output
         will be nonsensical.
 
-
         Parameters
         ----------
-        X:
-            array-like of shape (n_samples, n_transformed_features) - A
-            transformed data set.
-        copy:
-            Optional[Union[bool, None]], default=None - Whether to make
-            a deepcopy of X before the inverse transform.
-
+        X : XContainer of shape (n_samples, n_transformed_features)
+            A transformed data set.
+        copy : Optional[Union[bool, None]], default=None
+            Whether to make a deepcopy of `X` before the inverse
+            transform.
 
         Returns
         -------
-        -
-            X_inv: array-like of shape (n_samples, n_features) -
+        X_inv : XContainer of shape (n_samples, n_features)
             Transformed data reverted to its original untransformed
             state.
 
@@ -1020,13 +1019,25 @@ class InterceptManager(
 
     def score(
         self,
-        X: XContainer,
-        y: Optional[Union[Any, None]]=None
+        X: Any,
+        y: Optional[Any]=None
     ) -> None:
+        """Dummy method to spoof dask Incremental and ParallelPostFit
+        wrappers.
 
-        """
-        Dummy method to spoof dask Incremental and ParallelPostFit
-        wrappers. Verified must be here for dask wrappers.
+        Verified must be here for dask wrappers.
+
+        Parameters
+        ----------
+        X: Any
+            The data. Ignored.
+        y: Optional[Any], default = None
+            THe target for the data. Ignored.
+
+        Returns
+        -------
+        None
+
         """
 
         check_is_fitted(self)
@@ -1040,28 +1051,22 @@ class InterceptManager(
         X:XContainer,
         copy:Optional[Union[bool, None]] = None
     ) -> XContainer:
+        """Manage the constant columns in X.
 
-        """
-        Manage the constant columns in X. Apply the removal criteria
-        given by :param: `keep` to the constant columns found
-        during :term: fit.
-
+        Apply the removal criteria given by `keep` to the constant
+        columns found during fit.
 
         Parameters
         ----------
-        X:
-            array-like of shape (n_samples, n_features) - Required. The
-            data to be transformed.
-        copy:
-            Optional[Union[bool, None]], default=None - Whether to make
-            a deepcopy of X before the transform.
-
+        X : XContainer of shape (n_samples, n_features)
+            Required. The data to be transformed.
+        copy : Optional[Union[bool, None]], default=None
+            Whether to make a deepcopy of `X` before the transform.
 
         Returns
         -------
-        -
-            X_tr: array-like of shape (n_samples, n_transformed_features)
-            - The transformed data.
+        X_tr : XContainer of shape (n_samples, n_transformed_features)
+            The transformed data.
 
         """
 
