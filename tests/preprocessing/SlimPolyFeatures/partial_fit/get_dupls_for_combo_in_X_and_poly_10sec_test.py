@@ -242,7 +242,11 @@ class TestGetDuplsForComboAccuracy(Fixtures):
 
         _X_np = _X_np.reshape((-1, 1))
 
-        _X_ohe = OneHotEncoder(drop=None, sparse_output=False).fit_transform(_X_np)
+        _X_ohe = OneHotEncoder(drop=None).fit_transform(_X_np)
+
+        # need to manage for versions where OHE does/doesnt have sparse_output
+        if hasattr(_X_ohe, 'toarray'):
+            _X_ohe = _X_ohe.toarray()
 
         assert _X_ohe.shape[1] == 3
 

@@ -15,7 +15,7 @@ engage with the pybear community, you are expected to adhere to these rules.
 `Code of Conduct <https://github.com/PylarBear/pybear/blob/main/CODE_OF_CONDUCT.md>`__
 
 
-The Original Pybear Mission Statement
+The Original pybear Mission Statement
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 pybear seeks to add to and/or enhance existing functionality in the Python data 
