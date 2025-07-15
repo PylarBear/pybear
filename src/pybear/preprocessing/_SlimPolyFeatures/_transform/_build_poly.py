@@ -24,33 +24,28 @@ def _build_poly(
     _X: InternalXContainer,
     _active_combos: CombinationsType
 ) -> ss.csc_array:
+    """Build the polynomial expansion for `_X` as a scipy sparse
+    csc array using `_X` and `_active_combos`. `_X` is passed
+    to :func:`_columns_getter` and must observe the restrictions
+    imposed there. That is, `_X` can be np.ndarray, pd.DataFrame,
+    pl.DataFrame, or scipy sparse csc matrix/array. `_X` should already
+    be conditioned for this when passed here.
 
-    """
-    Build the polynomial expansion for X as a scipy sparse csc array
-    using X and _active_combos. X is passed to _columns_getter and must
-    observe the restrictions imposed there. That is, X can be np.ndarray,
-    pd.DataFrame, pl.DataFrame, or scipy sparse csc matrix/array. X
-    should already be conditioned for this when passed here.
-
-    _active_combos is all combinations from the original combinations
-    that are not in dropped_poly_duplicates_ or poly_constants_.
-
+    `_active_combos` is all combinations from the original combinations
+    that are not in `dropped_poly_duplicates_` or `poly_constants_`.
 
     Parameters
     ----------
-    _X:
-        InternalXContainer - The data to undergo polynomial expansion.
-    _active_combos:
-        CombinationsType - the index tuple combinations to be kept in
-        the final polynomial expansion.
+    _X : InternalXContainer
+        The data to undergo polynomial expansion.
+    _active_combos : CombinationsType
+        The index tuple combinations to be kept in the final polynomial
+        expansion.
 
-
-    Return
-    ------
-    -
-        POLY: scipy sparse csc array of shape (n_samples,
-        n_kept_polynomial_features) - The polynomial expansion component
-        of the final output.
+    Returns
+    -------
+    POLY : scipy sparse csc array of shape (n_samples, n_kept_polynomial_features)
+        The polynomial expansion component of the final output.
 
     """
 

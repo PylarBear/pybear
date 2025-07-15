@@ -1051,7 +1051,7 @@ class InterceptManager(
         X:XContainer,
         copy:Optional[Union[bool, None]] = None
     ) -> XContainer:
-        """Manage the constant columns in X.
+        """Manage the constant columns in `X`.
 
         Apply the removal criteria given by `keep` to the constant
         columns found during fit.

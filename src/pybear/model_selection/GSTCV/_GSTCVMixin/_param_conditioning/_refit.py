@@ -17,30 +17,27 @@ def _cond_refit(
     _refit: RefitType,
     _scorer: ScorerWIPType
 ) -> RefitType:
+    """Condition the `refit` parameter.
 
-    """
-    Condition the `refit` parameter. If `refit` is a string, make sure
-    it is lower-case, and if there is only one scorer, change the string
-    to 'score'. If `refit` is True, change `refit` to 'score'.
-
+    If `refit` is a string, make sure it is lower-case, and if there is
+    only one scorer, change the string to 'score'. If `refit` is True,
+    change `refit` to 'score'.
 
     Parameters
     ----------
-    _refit:
-        RefitType - Whether to refit the estimator on the 'best'
-        parameters after completing the grid searches, and if so, which
-        scoring metric to use to determine the 'best' parameters.
-    _scorer:
-        dict[str, Callable] - previously conditioned scorer object, must
-        be dict[str, Callable]. used to determine the number of scorers,
-        which impacts the final value for the `refit` param.
-
+    _refit : RefitType
+        Whether to refit the estimator on the 'best' parameters after
+        completing the grid searches, and if so, which scoring metric to
+        use to determine the 'best' parameters.
+    _scorer : dict[str, Callable]
+        Previously conditioned scorer object, must be dict[str, Callable].
+        Used to determine the number of scorers, which impacts the final
+        value for the `refit` param.
 
     Returns
     -------
-    -
-        _refit: RefitType, default=True - conditioned refit.
-
+    _refit: RefitType, default=True
+        Conditioned `refit`.
 
     """
 

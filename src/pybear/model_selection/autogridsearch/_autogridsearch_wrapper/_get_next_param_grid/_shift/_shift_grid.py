@@ -25,36 +25,29 @@ def _shift_grid(
     _single_is_logspace: LogspaceType,
     _single_best: DataType
 ) -> GridType:
+    """Left-shift or right-shift a single linear-space or log-space
+    search grid.
 
-    """
-    Left-shift or right-shift a single linear-space or log-space search
-    grid.
-
-    Remember: _single_old_grid is the grid out of the last grid search,
-    and is not necessarily the same as the grid in _single_param which
+    Remember: `_single_old_grid` is the grid out of the last grid search,
+    and is not necessarily the same as the grid in `_single_param` which
     is the first round search grid. Cannot simply take the grid out of
-    a _single_param and call it _single_old_grid.
-
+    a `_single_param` and call it `_single_old_grid`.
 
     Parameters
     ----------
-    _single_param:
-        ParamType - instruction set out of `params` for a single
-        parameter
-    _single_old_grid:
-        GridType - most recent search grid for a single parameter
-    _single_is_logspace:
-        LogspaceType - IS_LOGSPACE value for a single parameter
-    _single_best:
-        DataType - best value returned in best_params_ for a single
-        parameter
-
+    _single_param : ParamType
+        Instruction set out of `params` for a single parameter.
+    _single_old_grid : GridType
+        Most recent search grid for a single parameter.
+    _single_is_logspace : LogspaceType
+        `IS_LOGSPACE` value for a single parameter.
+    _single_best : DataType
+        Best value returned in best_params_ for a single parameter.
 
     Returns
     -------
-    -
-        NEW_GRID: GridType - left-shifted or right-shifted grid
-
+    NEW_GRID : GridType
+        Left-shifted or right-shifted grid.
 
     """
 

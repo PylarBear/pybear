@@ -19,30 +19,25 @@ def _threshold_listifier(
     _n_features_in: int,
     *_threshold: CountThresholdType
 ) -> Union[list[int], tuple[list[int], ...]]:
+    """Return `_threshold` as list-like(s) of integers with number of
+    entries equaling the number of features in the data.
 
-    """
-    Return '_threshold' as list-like(s) of integers with number of
-    entries equaling the number of features in the data. Any number of
-    threshold values can be passed as positional arguments to be
-    converted to a list, if not already a list. This module will return
-    the number of threshold values that are passed to it.
-
+    Any number of threshold values can be passed as positional arguments
+    to be converted to a list, if not already a list. This module will
+    return the number of threshold values that are passed to it.
 
     Parameters
     ----------
-    _n_features_in:
-        int - the number of features in the data.
-    *_threshold:
-        CountThresholdType - the threshold value(s) to be converted to
-        list[int]. Any number of threshold values can be passed as
-        positional arguments.
-
+    _n_features_in : int
+        The number of features in the data.
+    *_threshold : CountThresholdType
+        The threshold value(s) to be converted to list[int]. Any number
+        of threshold values can be passed as positional arguments.
 
     Return
     ------
-    -
-        _threshold_lists: Union[list[int], tuple[list[int], ...]] -
-        a single list[int] or a tuple of list[int]s that indicate the
+    _threshold_lists : Union[list[int], tuple[list[int], ...]]
+        A single list[int] or a tuple of list[int]s that indicate the
         threshold for each feature in the data.
 
     """

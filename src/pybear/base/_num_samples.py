@@ -39,7 +39,7 @@ def num_samples(X: XContainer) -> int:
 
     Returns
     -------
-    rows: int
+    rows : int
         Number of samples.
 
     Notes

@@ -21,19 +21,20 @@ import numpy as np
 def _lock_in_random_combos(
     poly_duplicates_: PolyDuplicatesType
 ) -> CombinationsType:
+    """Build a static ordered tuple of randomly selected combo tuples,
+    one tuple from each set of duplicates.
 
-    """
-    When SPF :param: `keep` is set to 'random', SPF :meth: `transform`
-    needs to keep the same poly terms for all batch-wise transforms,
-    otherwise the outputted batches will have different columns.
-    `transform` needs a static set of random combo tuples to use
-    repeatedly, rather than a set of dynamic tuples that are regenerated
-    with each call to `transform`.
+    When SPF `keep` is set to 'random', SPF `transform` needs to keep
+    the same poly terms for all batch-wise transforms, otherwise the
+    outputted batches will have different columns. `transform` needs
+    a static set of random combo tuples to use repeatedly, rather
+    than a set of dynamic tuples that are regenerated with each call to
+    `transform`.
 
-    _identify_combos_to_keep (_ictk) handles setting the combos to keep
-    from sets of duplicates on every call to SPF :meth: `partial_fit`
-    and `transform`. Random tuples can't be chosen in _ictk because it
-    is called in `transform` as well as `partial_fit`. There must be a
+    `_identify_combos_to_keep` (_ictk) handles setting the combos to
+    keep from sets of duplicates on every call to SPF `partial_fit` and
+    `transform`. Random tuples can't be chosen in _ictk because it is
+    called in `transform` as well as `partial_fit`. There must be a
     stand-alone module in `partial_fit` that locks in random tuples for
     all `transform` calls.
 
@@ -44,36 +45,33 @@ def _lock_in_random_combos(
     This module builds a static ordered tuple of randomly selected
     combo tuples, one tuple from each set of duplicates. For example,
     a simple case would be if `poly_duplicates_` is
-    [[(1, 2), (3, 5)], [(0, 8), (6, 7)]], then a possible _rand_combos
+    [[(1, 2), (3, 5)], [(0, 8), (6, 7)]], then a possible `_rand_combos`
     might look like ((1, 2), (6, 7)). THE ORDER OF THE TUPLES IN
     _rand_combos IS CRITICALLY IMPORTANT AND MUST ALWAYS MATCH THE ORDER
     OF GROUPS IN `poly_duplicates_`.
 
     We can just randomly pick tuples from dupl groups where a column from
     X is included, e.g., [[(1,), (1,2), (1,3)]], because when we choose
-    the actual columns to keep, _ictk will ignore _rand_combos for that
-    dupl group and the column from X will always be kept.
+    the actual columns to keep, _ictk will ignore `_rand_combos` for
+    that dupl group and the column from X will always be kept.
 
     This module assumes that `keep` == 'random', even though that may
     not be the case. This makes the static list ready and waiting for
-    use by `transform` should at any time SPF :param: `keep` be changed
-    to 'random' via :meth: `set_params` after fitting.
-
+    use by `transform` should at any time SPF `keep` be changed to
+    'random' via `set_params` after fitting.
 
     Parameters
     ----------
-    poly_duplicates_:
-        PolyDuplicatesType - the groups of column index tuples that
-        create identical columns.
+    poly_duplicates_ : PolyDuplicatesType
+        The groups of column index tuples that create identical columns.
 
-
-    Return
-    ------
-    -
-        _rand_combos: CombinationsType - An ordered tuple whose values
-        are tuples of column indices from X, each tuple being selected
-        from a group of duplicates in poly_duplicates_. One tuple is
-        selected from each group of duplicates.
+    Returns
+    -------
+    _rand_combos : CombinationsType
+        An ordered tuple whose values are tuples of column indices from
+        X, each tuple being selected from a group of duplicates in
+        `poly_duplicates_`. One tuple is selected from each group of
+        duplicates.
 
     """
 

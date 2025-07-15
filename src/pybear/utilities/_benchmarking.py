@@ -5,6 +5,8 @@
 # License: BSD 3 clause
 
 
+from typing import Callable
+import numpy.typing as npt
 
 from functools import wraps
 import numbers
@@ -16,7 +18,7 @@ import psutil
 
 
 
-def timer(orig_func):
+def timer(orig_func) -> Callable:
     """Wraps a function with a timer that displays the time in seconds
     it took for a function to run.
 
@@ -27,7 +29,7 @@ def timer(orig_func):
 
     Returns
     -------
-    wrapper:
+    wrapper : Callable
         wrapped original function
 
     Examples
@@ -72,7 +74,7 @@ def time_memory_benchmark(
     number_of_trials:numbers.Integral = 7,
     rest_time:numbers.Real = 1,
     verbose:numbers.Real = 1
-) -> np.ndarray:
+) -> npt.NDArray:
     """Measure the average time (seconds) and the average change in system
     RAM (MB) when computing functions.
 
@@ -209,7 +211,7 @@ def time_memory_benchmark(
 
 
     ###### CORE MEASUREMENT FUNCTIONS ##################################
-    def timer(user_fxn):
+    def timer(user_fxn) -> Callable:
         """Decorator for the user function."""
 
         def wrapped1(ARGS, KWARGS):
@@ -223,7 +225,7 @@ def time_memory_benchmark(
         return wrapped1
 
 
-    def mem(timer_fxn):
+    def mem(timer_fxn) -> Callable:
         """Decorator for the user function."""
 
         def wrapped2(ARGS, KWARGS):

@@ -44,7 +44,7 @@ def _special_param_conditioner(
 
     Returns
     -------
-    Union[None, list[tuple[re.Pattern[str], ...]]]
+    _wip_ngrams : Union[None, list[tuple[re.Pattern[str], ...]]]
         The ngrams with any literal strings converted to re.compile and
         any flags from 'case_sensitive' and 'flags' applied to the
         compile objects.

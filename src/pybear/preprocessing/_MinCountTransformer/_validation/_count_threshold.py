@@ -26,37 +26,32 @@ def _val_count_threshold(
     _allowed: Sequence[Union[Literal['int', 'Sequence[int]']]],
     _n_features_in: int
 ) -> None:
-
-    """
-    Validate a threshold is non-bool integer >= 2, or a 1D list-like
+    """Validate a threshold is non-bool integer >= 2, or a 1D list-like
     of non-bool integers >= 1 with at least one value >= 2 and length
-    that equals '_n_features_in'. Validate the passed dtype of
-    _count_threshold is in the allowed dtypes. _count_threshold must
-    exist, cannot be None.
+    that equals `_n_features_in`.
 
+    Validate the passed dtype of `_count_threshold` is in the allowed
+    dtypes. `_count_threshold` must exist, cannot be None.
 
     Parameters
     ----------
-    _count_threshold:
-        CountThresholdType - integer >= 2 or list-like of integers of
-        shape (n_features, ) with all values >= 1 and at least one
-        value >= 2. The minimum frequency a value must have within a
-        column in order to not be removed. if list-like, the length
-        must equal the number of features in the data.
-    _allowed:
-        Sequence[Union[Literal['int', 'Sequence[int]']] - must be 1D
-        list-like of literal strings. Indicates the dtype(s) of
-        _count_threshold that is/are allowed for this validation
+    _count_threshold : CountThresholdType
+        Integer >= 2 or list-like of integers of shape (n_features, )
+        with all values >= 1 and at least one value >= 2. The minimum
+        frequency a value must have within a column in order to not be
+        removed. if list-like, the length must equal the number of
+        features in the data.
+    _allowed : Sequence[Union[Literal['int', 'Sequence[int]']]
+        Must be 1D list-like of literal strings. Indicates the dtype(s)
+        of `_count_threshold` that is/are allowed for this validation
         session. Cannot be empty, can contain either 'Sequence[int]',
         'int', or both.
-    _n_features_in:
-        int - the number of features in the data.
+    _n_features_in : int
+        The number of features in the data.
 
-
-    Return
-    ------
-    -
-        None
+    Returns
+    -------
+    None
 
     """
 

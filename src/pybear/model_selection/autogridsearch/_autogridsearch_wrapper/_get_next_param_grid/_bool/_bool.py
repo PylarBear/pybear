@@ -20,31 +20,25 @@ def _bool(
     _pass: int,
     _best_param_from_previous_pass: BoolDataType
 ) -> BoolGridType:
-
-    """
-    Create the current round's search grid for a boolean parameter based
-    on results from _best_params.
-
+    """Create the current round's search grid for a boolean parameter
+    based on results from `_best_params`.
 
     Parameters
     ----------
-    _param_value:
-        BoolParamType - boolean parameter grid instructions
-    _grid:
-        BoolGridType - previous round's gridsearch values for boolean
-        parameter
-    _pass:
-        int - zero-indexed count of passes to this point, inclusive; the
-        current pass
-    _best_param_from_previous_pass:
-        BoolDataType - best value returned from GSCV best_params_
-
+    _param_value : BoolParamType
+        Boolean parameter grid instructions.
+    _grid : BoolGridType
+        Previous round's gridsearch values for boolean parameter.
+    _pass : int
+        Zero-indexed count of passes to this point, inclusive; the
+        current pass.
+    _best_param_from_previous_pass : BoolDataType
+        Best value returned from GSCV `best_params_`.
 
     Returns
     -------
-    -
-        _grid: BoolGridType - new search grid for the current pass
-
+    _grid : BoolGridType
+        New search grid for the current pass
 
     """
 

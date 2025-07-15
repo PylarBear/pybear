@@ -20,30 +20,23 @@ def _val_param_grid_helper(
     _param_grid: ParamGridInputType,
     _grid_idx: int
 ) -> None:
-
-    """
-    Validate a single `param_grid` and `thresholds` if they were passed
-    in the `param_grid`. Validate format is dict[str, list-like].
+    """Validate a single `param_grid` and `thresholds` if they were
+    passed in the `param_grid`. Validate format is dict[str, list-like].
     Validate `thresholds` is a list-like of numbers, with numbers in
     [0, 1] interval.
 
-
     Parameters
     ----------
-    _param_grid:
-        ParamGridInputType - Dictionary with hyperparameters names (str)
-        as keys and list-likes of hyperparameter settings to try as
-        values.
-    _grid_idx:
-        int - the index of this grid in the sequence of grids if multiple
+    _param_grid : ParamGridInputType
+        Dictionary with hyperparameters names (str) as keys and
+        list-likes of hyperparameter settings to try as values.
+    _grid_idx : int
+        The index of this grid in the sequence of grids if multiple
         grids were passed to GSTCV.
-
 
     Returns
     -------
-    -
-        None
-
+    None
 
     """
 

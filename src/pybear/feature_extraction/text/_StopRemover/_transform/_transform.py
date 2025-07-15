@@ -47,7 +47,7 @@ def _transform(
 
     Returns
     -------
-    tuple[list[list[str]], npt.NDArray[bool]]
+    X_tr : tuple[list[list[str]], npt.NDArray[bool]]
         The data with stop words removed and a boolean numpy vector
         indicating with rows were kept from the original data (True).
 
@@ -76,7 +76,7 @@ def _transform(
 
         Returns
         -------
-        list[str]
+        line : list[str]
             A single row of `X` with stop words removed.
 
         """

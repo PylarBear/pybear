@@ -19,28 +19,23 @@ def _print_results(
     _GRIDS: GridsType,
     _RESULTS: ResultsType
 ) -> None:
+    """Print the contents of `GRIDS_` and `RESULTS_`.
 
-    """
-    Print the contents of GRIDS_ and RESULTS_. GRIDS_ are the search
-    grids used for every pass of a real or demo agscv session. RESULTS_
-    are the best_params_ outputs for every pass of a real or demo agscv
-    session.
-
+    `GRIDS_` are the search grids used for every pass of a real or demo
+    agscv session. `RESULTS_` are the `best_params_` outputs for every
+    pass of a real or demo agscv session.
 
     Parameters
     ----------
-    _GRIDS:
-        GridsType - the grids used in each pass of a real or demo agscv
+    _GRIDS : GridsType
+        The grids used in each pass of a real or demo agscv session.
+    _RESULTS : ResultsType
+        The `best_params_` outputs for each pass of a real or demo agscv
         session.
-    _RESULTS:
-        ResultsType - the best_params_ outputs for each pass of a real
-        or demo agscv session.
-
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 

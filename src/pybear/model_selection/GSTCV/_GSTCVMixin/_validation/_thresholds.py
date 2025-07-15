@@ -19,37 +19,37 @@ def _val_thresholds(
     _idx: int,
     _must_be_list_like:Optional[bool]=True
 ) -> None:
+    """Validate `_thresholds`.
 
-    """
-    Validate _thresholds is
+    Validate `_thresholds` is
+
     1) None
-    2) a single number
-    3) a vector-like of numbers, vector-like is not empty
-    4) 0 <= all numbers <= 1.
 
+    2) a single number
+
+    3) a vector-like of numbers, not empty
+
+    4) 0 <= all numbers <= 1.
 
     Parameters
     ----------
-    _thresholds:
-        ThresholdsInputType - user-defined threshold(s)
-    _is_from_kwargs:
-        bool - whether _thresholds was passed via the __init__ kwarg
-        or inside a param grid.
-    _idx:
-        int - the index of the param grid associated with _thresholds.
-        If _thresholds was not passed in param grid, a dummy _idx value
-        of 0 is used, and cannot be accessed because the code routes
-        through '_is_from_kwargs'.
-    _must_be_list_like:
-        Optional[bool], default=True - whether 'thresholds' can be in
-        the raw state as passed to init or must have already been
-        conditioned into a list-like.
-
+    _thresholds : ThresholdsInputType
+        User-defined threshold(s).
+    _is_from_kwargs : bool
+        Whether `_thresholds` was passed via the __init__ kwarg or inside
+        a param grid.
+    _idx : int
+        The index of the param grid associated with `_thresholds`.
+        If `_thresholds` was not passed in param grid, a dummy `_idx`
+        value of 0 is used, and cannot be accessed because the code routes
+        through `_is_from_kwargs`.
+    _must_be_list_like : Optional[bool], default=True
+        Whether `thresholds` can be in the raw state as passed to init
+        or must have already been conditioned into a list-like.
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 

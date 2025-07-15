@@ -21,35 +21,31 @@ def _verify_refit_callable(
     refit_callable: RefitCallableType,
     DUMMY_CV_RESULTS: CVResultsType
 ) -> None:
+    """If refit is a callable, fill the just-built and mostly empty
+    `cv_results_` arrays with dummy data (all empties should take floats.)
 
-    """
-    If refit is a callable, fill the just-built and mostly empty
-    cv_results arrays with dummy data (all empties should take floats.)
-    Pass the dummy cv_results to the callable to see if it returns an
-    integer within range of cv_results, before running the entirety of
-    GSTCV which could be hours or days just to have the whole thing
+    Pass the dummy `cv_results_` to the callable to see if it returns an
+    integer within range of `cv_results_`, before running the entirety
+    of `GSTCV` which could be hours or days just to have the whole thing
     crash because of a bad refit function. Remember that the refit
-    callable finds best_idx_, which is the row of cv_results whose search
-    grid params are deemed "best".
-
+    callable finds `best_idx_`, which is the row of `cv_results_` whose
+    search grid params are deemed "best".
 
     Parameters
     ----------
-    refit_callable:
-        RefitCallableType - A callable that takes cv_results as an
-        argument and returns an integer that is best_index_, that
-        indicates the row of cv_results that is "best".
+    refit_callable : RefitCallableType
+        A callable that takes `cv_results_` as an argument and returns
+        an integer that is `best_index_`, that indicates the row of
+        `cv_results_` that is "best".
 
-    DUMMY_CV_RESULTS:
-        CVResultsType - A deepcopy of the just-built cv_results
-        dictionary to be filled with dummy floats and used to test the
-        output of the refit callable.
-
+    DUMMY_CV_RESULTS : CVResultsType
+        A deepcopy of the just-built `cv_results_` dictionary to be
+        filled with dummy floats and used to test the`output of the
+        refit callable.
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 

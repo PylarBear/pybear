@@ -22,47 +22,44 @@ def _int_logspace_gap_gt_1_hard(
     _log_hard_min: np.float64,
     _log_hard_max: np.float64
 ) -> tuple[np.float64, np.float64]:
-
-
-    """
-    Determine the left and right bounds using _int_logspace_gap_gt_1_soft
-    then truncate left and right as necessary based on _hard_min and
-    _hard_max. Interstitial values are determined by another module.
-
+    """Use :func:`_int_logspace_gap_gt_1_soft` to determine the left and
+    right bounds then truncate left and right as necessary based on
+    `_hard_min` and `_hard_max`. Interstitial values are determined by
+    another module.
 
     Parameters
     ----------
-    _LOG_SINGLE_GRID:
-        npt.NDArray[np.float64] - The last round's search grid for a
-        single integer parameter that is in logspace.
-        _SINGLE_GRID must be sorted ascending, and is presumed to be by
-        _param_conditioning._params (at least initially).
-    _is_logspace:
-        LogspaceType - For numerical params, if the space is linear,
-        or some other non-standard interval, it is False. If it is
-        logspace, the 'truth' of being a logspace is represented by a
-        number indicating the interval of the logspace. E.g.,
-        np.logspace(-5, 5, 11) would be represented by 1.0, and
-        np.logspace(-20, 20, 9) would be represented by 5.0.
-    _posn:
-        int - the index position in the previous round's grid where the
-        best value fell
-    _log_hard_min:
-        np.float64 - The minimum value in the first round's search grid.
-        Ignored if not hard.
-    _log_hard_max:
-        np.float64 - The maximum value in the first round's search grid.
-        Ignored if not hard.
-
+    _LOG_SINGLE_GRID : npt.NDArray[np.float64]
+        The last round's search grid for a single integer parameter that
+        is in logspace. `_SINGLE_GRID` must be sorted ascending, and is
+        presumed to be by :func:`_param_conditioning._params` (at least
+        initially).
+    _is_logspace : LogspaceType
+        For numerical params, if the space is linear, or some other
+        non-standard interval, it is False. If it is logspace, the
+        'truth' of being a logspace is represented by a number indicating
+        the interval of the logspace. E.g., np.logspace(-5, 5, 11) would
+        be represented by 1.0, and np.logspace(-20, 20, 9) would be
+        represented by 5.0.
+    _posn : int
+        The index position in the previous round's grid where the best
+        value fell.
+    _log_hard_min : np.float64
+        The minimum value in the first round's search grid. Ignored if
+        not hard.
+    _log_hard_max : np.float64
+        The maximum value in the first round's search grid. Ignored if
+        not hard.
 
     Returns
     -------
-    -
-        _left: np.float64 - the minimum value for the next search grid
-        after application of the hard minimum
-
-        _right: np.float64 - the maximum value for the next search grid
-        after application of the hard maximum
+    __ : tuple[np.float64, np.float64]
+        _left : np.float64
+            The minimum value for the next search grid after application
+            of the hard minimum.
+        _right : np.float64
+            The maximum value for the next search grid after application
+            of the hard maximum.
 
     """
 

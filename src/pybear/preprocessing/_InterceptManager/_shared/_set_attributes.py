@@ -40,7 +40,7 @@ def _set_attributes(
 
     Returns
     -------
-    tuple[kept_columns_, removed_columns_, column_mask_]:
+    _attributes : tuple[kept_columns_, removed_columns_, column_mask_]
         The populated attributes.
 
     """

@@ -19,32 +19,27 @@ def _validate_true_best(
     _IS_LOGSPACE: IsLogspaceType,
     _true_best: BestParamsType
 ) -> None:
+    """Ensure `_true_best` matches GridSearchCV `best_params_` format
+    and  best values are valid for the given starting search grids.
 
-    """
-    Ensure _true_best matches GridSearchCV best_params_ format and best
-    values are valid for the given starting search grids.
-    _make_true_best() may intentionally put some best values outside of
-    starting search grid to verify autogridsearch's ability to shift.
-
+    :func:`_make_true_best` may intentionally put some best values
+    outside of starting search grid to verify autogridsearch's ability
+    to shift.
 
     Parameters
     ----------
-    _params:
-        ParamsType - full set of grid-building instructions for all
-        params
-    _IS_LOGSPACE:
-        IsLogspaceType - False | float for the full set of parameters
-        indicating if is not logspace or if logspace, what the logspace
-        gap is.
-    _true_best:
-        BestParamsType - mocked best GridSearchCV results in format
-        identical to sklearn GridSearchCV.best_params_
-
+    _params : ParamsType
+        Full set of grid-building instructions for all params.
+    _IS_LOGSPACE : IsLogspaceType
+        False | float for the full set of parameters indicating if is
+        not logspace or if logspace, what the logspace gap is.
+    _true_best : BestParamsType
+        Mocked best GridSearchCV results in format identical to sklearn
+        GridSearchCV.best_params_
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 

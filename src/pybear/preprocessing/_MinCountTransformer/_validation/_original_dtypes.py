@@ -18,27 +18,23 @@ def _val_original_dtypes(
     _original_dtypes: OriginalDtypesType,
     _n_features_in: int
 ) -> None:
-
-    """
-    Validate that datatypes in the passed '_original_datatypes' container
-    are valid MCT internal datatypes. Allowed values are 'bin_int',
-    'int', 'float', and 'obj'. Entries are case-sensitive. Validate
-    number of entries against the number of features in the data.
-
+    """Validate that datatypes in the passed `_original_datatypes`
+    container are valid MCT internal datatypes. Allowed values are
+    'bin_int', 'int', 'float', and 'obj'. Entries are case-sensitive.
+    Validate number of entries against the number of features in the
+    data.
 
     Parameters
     ----------
-    _original_dtypes:
-        OriginalDtypesType - the datatypes read from the data. must be a
-        1D list-like with values in 'bin_int', int', 'float', or 'obj'.
-    _n_features_in:
-        int - the number of features in the data.
+    _original_dtypes : OriginalDtypesType
+        The datatypes read from the data. must be a 1D list-like with
+        values in 'bin_int', int', 'float', or 'obj'.
+    _n_features_in : int
+        The number of features in the data.
 
-
-    Return
-    ------
-    -
-        None
+    Returns
+    -------
+    None
 
     """
 

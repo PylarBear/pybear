@@ -19,12 +19,10 @@ def _three_or_more_uniques_hab(
     _COLUMN_UNQ_CT_DICT: dict[DataType, int],
     _delete_axis_0: bool
 ) -> list[Union[Literal['DELETE COLUMN'], DataType]]:
-
-    """
-    Make delete instructions for a column with three or more unique
+    """Make delete instructions for a column with three or more unique
     non-nan values that is handled as bool.
 
-    Since _handle_as_bool, _delete_axis_0 matters.
+    Because `_handle_as_bool` is True, `_delete_axis_0` matters.
 
     WHEN 3 items (NOT INCLUDING nan):
     *** BIN INT COLUMNS ARE HANDLED DIFFERENTLY THAN OTHER DTYPES ***
@@ -38,47 +36,43 @@ def _three_or_more_uniques_hab(
     if no nans or ignoring
       look at the cts in the 2 classes (bool False & bool True)
       if any below threshold
-          if delete_axis_0, mark associated values to delete
+          if `delete_axis_0`, mark associated values to delete
           DELETE COLUMN
     if not ignoring nans
-      if delete_axis_0:
+      if `delete_axis_0`:
           look at the cts in the 2 classes and nan ct
           if any below threshold
-              if delete_axis_0, mark associated values to delete
+              mark associated values to delete
           if either zero or non-zero classes below threshold
-               DELETE COLUMN
-      if not delete_axis_0
+              DELETE COLUMN
+      if not `delete_axis_0`
           look at the cts in the 2 classes
           if any of zero or non-zero classes below threshold
           DELETE COLUMN
           if no class below threshold, column is staying, look at nan ct,
           if below threshold, delete nan rows
 
-
     Parameters
     ----------
-    _threshold:
-        int - the minimum frequency threshold for this column
-    _nan_key:
-        Union[float, str, Literal[False]] - the nan value in the column.
-        _columns_getter converts all nan-likes to numpy.nan.
-    _nan_ct:
-        Union[int,  Literal[False]] - the frequency of nan in the column
-    _COLUMN_UNQ_CT_DICT:
-        dict[DataType, int] - the value from _total_cts_by_column for
-         this column which is a dictionary that holds the uniques and
-         their frequencies. must have had nan removed, and must have at
-         least 3 non-nan uniques.
-    _delete_axis_0:
-        bool - whether to delete along the sample axis if either or both
-        of the boolean values fall below the minimum count threshold.
-
+    _threshold : int
+        The minimum frequency threshold for this column
+    _nan_key : Union[float, str, Literal[False]]
+        The nan value in the column. `_columns_getter` converts all
+        nan-likes to numpy.nan.
+    _nan_ct : Union[int,  Literal[False]]
+        The frequency of nan in the column
+    _COLUMN_UNQ_CT_DICT : dict[DataType, int]
+        The value from `_total_cts_by_column` for this column which is a
+        dictionary that holds the uniques and their frequencies. Must
+        have had nan removed, and must have at least 3 non-nan uniques.
+    _delete_axis_0 : bool
+        Whether to delete along the sample axis if either or both of the
+        boolean values fall below the minimum count threshold.
 
     Return
     ------
-    -
-        _instr_list: list[Union[Literal['DELETE COLUMN', DataType]] -
-        the row and column operation instructions for this column.
+    _instr_list : list[Union[Literal['DELETE COLUMN', DataType]]
+        The row and column operation instructions for this column.
 
     """
 

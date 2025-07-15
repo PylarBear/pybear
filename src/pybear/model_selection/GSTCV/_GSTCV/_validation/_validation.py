@@ -21,26 +21,21 @@ def _validation(
     _estimator: ClassifierProtocol,
     _pre_dispatch: Union[Literal['all'], str, numbers.Integral]
 ) -> None:
+    """Centralized hub for sklearn GSTCV validation.
 
-    """
-    Centralized hub for sklearn GSTCV validation. See the submodules for
-    more information.
-
+    See the submodules for more information.
 
     Parameters
     ----------
-    _estimator:
-        ClassifierProtocol - the estimator to be validated
-    _pre_dispatch:
-        _pre_dispatch: Union[Literal['all'], str, numbers.Integral] -
+    _estimator : ClassifierProtocol
+        The estimator to be validated.
+    _pre_dispatch : Union[Literal['all'], str, numbers.Integral]
         The number of batches (of tasks) to be pre-dispatched. See the
         joblib.Parallel docs for more information.
 
-
     Returns
     -------
-    -
-        None
+    None
 
     """
 

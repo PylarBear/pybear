@@ -40,58 +40,53 @@ def _parallelized_train_scorer(
 
     # dont adjust the spacing, is congruent with test scorer
 
-    """
-    Using the estimators fit on each train fold, use predict_proba and
-    _X_trains to generate _y_preds and score against the corresponding
-    _y_trains using all of the scorers.
+    """Using the estimators fit on each train fold, use `predict_proba`
+    and _X_trains to generate _y_preds and score against the
+    corresponding _y_trains using all of the scorers.
+
     Fill one layer of the TRAIN_FOLD_x_SCORER__SCORE.
-
-
 
     Parameters
     ----------
-    _X_train:
-        SKXType - A train partition of the data that was fit.
-    _y_train:
-        SKYType - The corresponding train partition of the target for
-        the X train partition.
-    _FIT_OUTPUT_TUPLE:
-        tuple[ClassifierProtocol, float, bool] - A tuple holding the
-        fitted estimator, the fit time (not needed here), and the
-        fit_excepted boolean (needed here.)
-    _f_idx:
-        int - the zero-based split index of the train partition used here;
+    _X_train : SKXType
+        A train partition of the data that was fit.
+    _y_train : SKYType
+        The corresponding train partition of the target for the X train
+        partition.
+    _FIT_OUTPUT_TUPLE : tuple[ClassifierProtocol, float, bool]
+        A tuple holding the fitted estimator, the fit time (not needed
+        here), and the fit_excepted boolean (needed here.)
+    _f_idx : int
+        The zero-based split index of the train partition used here;
         parallelism occurs over the different splits.
-    _SCORER_DICT:
-        ScorerWIPType - a dictionary with scorer name as keys and the
-        scorer callables as values. The scorer callables are scoring
-        metrics (or similar), not make_scorer.
-    _BEST_THRESHOLDS_BY_SCORER:
-        NDArrayHolderType: after all of the fold / threshold / scorer
-        combinations are scored, the folds are averaged and the threshold
-        with the maximum score for each scorer is found. This vector has
-        length n_scorers and in each position holds a float indicating
-        the threshold value that is the best threshold for that scorer.
-    _error_score:
-        Union[numbers.Real, Literal['raise']] - if this training fold
-        excepted during fitting and error_score was set to the 'raise'
-        literal, this module cannot be reached. Otherwise, a number or
-        number-like was passed to 'error_score'. If 'fit_excepted' is
-        True, this module puts the 'error_score' value in every position
-        of the TRAIN_SCORER__SCORE_LAYER vector. If 'error_score' is set
-        to np.nan, that layer is also masked.
-    _verbose:
-        int - a number from 0 to 10 that indicates the amount of
-        information to display to the screen during the grid search
-        process. 0 means no output, 10 means maximum output.
-
+    _SCORER_DICT : ScorerWIPType
+        A dictionary with scorer name as keys and the scorer callables
+        as values. The scorer callables are scoring metrics (or similar),
+        not 'make_scorer'.
+    _BEST_THRESHOLDS_BY_SCORER : NDArrayHolderType
+        After all of the fold / threshold / scorer combinations are
+        scored, the folds are averaged and the threshold with the maximum
+        score for each scorer is found. This vector has length n_scorers
+        and in each position holds a float indicating the threshold
+        value that is the best threshold for that scorer.
+    _error_score : Union[numbers.Real, Literal['raise']]
+        If this training fold excepted during fitting and `error_score`
+        was set to the 'raise' literal, this module cannot be reached.
+        Otherwise, a number or number-like was passed to `error_score`.
+        If 'fit_excepted' is True, this module puts the `error_score`
+        value in every position of the TRAIN_SCORER__SCORE_LAYER vector.
+        If `error_score` is set to np.nan, that layer is also masked.
+    _verbose : int
+        A number from 0 to 10 that indicates the amount of information
+        to display to the screen during the grid search process. 0 means
+        no output, 10 means maximum output.
 
     Returns
     -------
-    -
-        TRAIN_SCORER__SCORE_LAYER: MaskedHolderType - masked array of
-        shape (n_scorers, ). The score for this fold of train data using
-        every scorer and the best threshold associated with that scorer.
+    TRAIN_SCORER__SCORE_LAYER : MaskedHolderType
+        Masked array of shape (n_scorers, ). The score for this fold of
+        train data using every scorer and the best threshold associated
+        with that scorer.
 
 
 

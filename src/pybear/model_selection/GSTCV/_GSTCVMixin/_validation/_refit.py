@@ -20,9 +20,7 @@ def _val_refit(
     _refit: RefitType,
     _scoring: ScorerInputType
 ) -> None:
-
-    """
-    Validate the `refit` parameter with respect to the number of scorers.
+    """Validate the `refit` parameter with respect to the number of scorers.
 
     In all cases, `refit` can be boolean False, a string that indicates
     the scorer to use to determine the best parameters (when there is
@@ -34,26 +32,22 @@ def _val_refit(
     The `refit` callable takes in `cv_results_` and returns `best_index_`
     (an integer).
 
-
     Parameters
     ----------
-    _refit:
-        RefitType - Whether to refit the estimator on the 'best'
-        parameters after completing the grid search, and if so, which
-        scoring metric to use to determine the 'best' parameters.
-    _scoring:
-        ScorerInputType - previously validated `scoring` parameter, the
-        scoring metric(s) used to evaluate the predictions on the test
-        (and possibly train) sets. Used to determine the number of
-        scorers and valid scorer names, which impacts what values are
-        allowed for the `refit` param.
-
+    _refit : RefitType
+        Whether to refit the estimator on the 'best' parameters after
+        completing the grid search, and if so, which scoring metric to
+        use to determine the 'best' parameters.
+    _scoring : ScorerInputType
+        Previously validated `scoring` parameter, the scoring metric(s)
+        used to evaluate the predictions on the test (and possibly train)
+        sets. Used to determine the number of scorers and valid scorer
+        names, which impacts what values are allowed for the `refit`
+        param.
 
     Returns
     -------
-    -
-        None
-
+    None
 
     """
 

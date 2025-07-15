@@ -6,7 +6,10 @@
 
 
 
-from typing import Sequence, Tuple
+from typing import (
+    Sequence,
+    Tuple
+)
 from typing_extensions import (
     TypeAlias,
     TypeVar,

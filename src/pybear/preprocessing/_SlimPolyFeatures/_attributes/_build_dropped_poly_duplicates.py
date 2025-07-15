@@ -20,35 +20,29 @@ def _build_dropped_poly_duplicates(
     poly_duplicates_: PolyDuplicatesType,
     _kept_combos: CombinationsType
 ) -> DroppedPolyDuplicatesType:
+    """Build `dropped_poly_duplicates_`.
 
-    """
-    Build dropped_poly_duplicates_.
-
-    dropped_poly_duplicates_ is the subset of poly_duplicates_ that is
-    left out of the final polynomial expansion. It is a dictionary with
-    the combo tuples of the excluded duplicates as keys. The value for
-    each key is the combo tuple that is identical to the key that is
+    `dropped_poly_duplicates_` is the subset of `poly_duplicates_` that
+    is left out of the final polynomial expansion. It is a dictionary
+    with the combo tuples of the excluded duplicates as keys. The value
+    for each key is the combo tuple that is identical to the key that is
     kept in the final expansion.
-
 
     Parameters
     ---------
-    poly_duplicates_:
-        PolyDuplicatesType - The groups of duplicates found in the
-        polynomial expansions across all partial fits. If :param:
-        `min_degree` is 1 and any combos were equal to a column in X,
-        then the X idx tuple ... (c_idx, ) ... must be included, must
-        be first, and there can only be one.
-    _kept_combos:
-        CombinationsType - the combo to keep for each set of duplicates 
-        in poly_duplicates_. Length must equal the length of
-        poly_duplicates_.
+    poly_duplicates_ : PolyDuplicatesType
+        The groups of duplicates found in the polynomial expansions
+        across all partial fits. If `min_degree` is 1 and any combos
+        were equal to a column in `X`, then the `X` idx tuple (c_idx, )
+        must be included, must be first, and there can only be one.
+    _kept_combos : CombinationsType
+        The kept combo for each set of duplicates in `poly_duplicates_`.
+        Length must equal the length of `poly_duplicates_`.
 
-
-    Return
-    ------
-    -
-        dropped_poly_duplicates_: DroppedPolyDuplicatesType
+    Returns
+    -------
+    dropped_poly_duplicates_ : DroppedPolyDuplicatesType
+        A dictionary with the dropped poly duplicate combos as keys.
 
     """
 

@@ -5,12 +5,13 @@
 #
 
 
-from pybear.new_numpy import _random_ as random
+
+from pybear.new_numpy import random
 
 
 
 __all__ = [
-    "random",
+    "random"
 ]
 
 

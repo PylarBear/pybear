@@ -27,40 +27,36 @@ def _demo(
     _true_best: Union[None, BestParamsType] = None,
     _mock_gscv_pause_time: numbers.Real = 5
 ):
-
-    """
-    Simulated trials of this AutoGridSearch instance.
+    """Simulated trials of this `AutoGridSearch` instance.
 
     Assess AutoGridSearch's ability to generate appropriate grids with
     the given parameters (`params`) against mocked true best values.
     Visually inspect the generated grids and performance of the
-    AutoGridSearch instance in converging to the mock targets provided
-    in true_best_params. If no true best values are provided via
-    true_best_params, random true best values are generated from
-    the set of first search grids provided in `params`.
-
+    `AutoGridSearch` instance in converging to the mock targets provided
+    in `_true_best`. If no true best values are provided via `_true_best`,
+    random true best values are generated from the set of first search
+    grids provided in `params`.
 
     Parameters
     ----------
-    _DemoCls:
-        Instance of AutoGridSearch created for demo purposes, not "self".
-    _true_best:
-        Union[None, BestParamsType], default=None - dict of mocked true
-        best values for an estimator's hyperparameters, as provided by
-        the user. If not passed, random true best values are generated
-        based on the first round grids made from the instructions in
-        `params`.
-    _mock_gscv_pause_time:
-        numbers.Real, default=5 - time in seconds to pause, simulating
-        work being done by the parent GridSearch.
-
+    _DemoCls : object
+        Instance of `AutoGridSearch` created for demo purposes, not
+        "self".
+    _true_best : Union[None, BestParamsType], default=None
+        Dictionary of mocked true best values for an estimator's
+        hyperparameters,  as provided by the user. If not passed, random
+        true best values are generated based on the first round grids
+        made from the instructions in `params`.
+    _mock_gscv_pause_time : numbers.Real, default=5
+        Time in seconds to pause, simulating work being done by the
+        parent GridSearch.
 
     Returns
     -------
-    -
-        _DemoCls: AutoGridSearchCV instance - The AutoGridSearch instance
-        created to run simulations, not "self". This return is integral
-        for testing demo functionality, but has no other internal use.
+    _DemoCls: object
+        The AutoGridSearch instance created to run simulations, not
+        "self". This return is integral for testing demo functionality,
+        but has no other internal use.
 
     """
 

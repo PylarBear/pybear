@@ -20,31 +20,25 @@ def _int_grid_mapper(
     _right: IntDataType,
     _points: int
 ) -> IntGridType:
-
-    """
-    Given a left and right (minimum and maximum) value for a range,
-    populate that range inclusive of _left and _right with the number
-    of _points (approximately).
-
+    """Given a left and right (minimum and maximum) value for a range,
+    populate that range inclusive of `_left` and `_right` with the
+    number of `_points` (approximately).
 
     Parameters
     ----------
-    _left:
-        IntDataType - left bound of the range
-    _right:
-        IntDataType - right bound of the range
-    _points:
-        int - number of points to put in the range; this algorithm will
-        attempt to come as close as possible to this number and also
-        preserve equal intervals as much as possible.
-
+    _left : IntDataType
+        Left bound of the range.
+    _right : IntDataType
+        Right bound of the range.
+    _points : int
+        Number of points to put in the range; this algorithm will attempt
+        to come as close as possible to this number and also preserve
+        equal intervals as much as possible.
 
     Returns
     -------
-    -
-        _OUT_GRID: IntGridType - list of integers fulfilling the input
-        criteria
-
+    _OUT_GRID : IntGridType
+        List of integers fulfilling the input criteria.
 
     """
 

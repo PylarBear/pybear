@@ -15,24 +15,19 @@ import numpy as np
 def _val_total_counts_by_column(
     _total_counts_by_column: TotalCountsByColumnType
 ) -> None:
-
-    """
-    Validate _total_counts_by_column is dict, outer keys are integer >= 0,
-    values are dict with data values as keys and counts (integers >= 0)
-    as values.
-
+    """Validate `_total_counts_by_column` is dict, outer keys are
+    integer >= 0, values are dict with data values as keys and counts
+    (integers >= 0) as values.
 
     Parameters
     ----------
-    _total_counts_by_column:
-        dict[int, dict[DataType, int]] - the uniques and their frequencies
-        for all the columns in the data.
-
+    _total_counts_by_column : dict[int, dict[DataType, int]]
+        The uniques and their frequencies for all the columns in the
+        data.
 
     Return
     ------
-    -
-        None
+    None
 
     """
 

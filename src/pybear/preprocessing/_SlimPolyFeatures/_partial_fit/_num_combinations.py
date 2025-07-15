@@ -16,38 +16,33 @@ def _val_num_combinations(
     _max_degree: int,
     _intx_only: bool
 ) -> None:
-
-    """
-    Calculate the maximum number of features expected in the polynomial
+    """Calculate the maximum number of features expected in the polynomial
     expansion and compare against computer system capabilities.
-
 
     Parameters
     ----------
-    n_features_in_:
-        int - number of features in the fitted data, i.e., number of
-        features before expansion.
-    _n_poly_combos:
-        int - the number of column index tuples in self._combos (the
-        total number of polynomial features that are candidates for the
+    n_features_in_ : int
+        Number of features in the fitted data, i.e., number of features
+        before expansion.
+    _n_poly_combos : int
+        The number of column index tuples in self._combos (the total
+        number of polynomial features that are candidates for the
         polynomial portion of the expansion.)
-    _min_degree:
-        int  - The minimum polynomial degree of the generated features.
+    _min_degree : int
+        The minimum polynomial degree of the generated features.
         Polynomial terms with degree below 'min_degree' are not included
         in the final output array.
-    _max_degree:
-        int - The maximum polynomial degree of the generated features.
-    _intx_only:
-        bool - If True, only interaction features are produced, that is,
+    _max_degree : int
+        The maximum polynomial degree of the generated features.
+    _intx_only : bool
+        If True, only interaction features are produced, that is,
         polynomial features that are products of 'degree' distinct input
         features. Terms with power of 2 or higher for any feature are
         excluded. If False, produce the full polynomial expansion.
 
-
-    Return
-    ------
-    -
-        None
+    Returns
+    -------
+    None
 
     """
 

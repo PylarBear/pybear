@@ -28,14 +28,6 @@ from sklearn.model_selection import GridSearchCV
 class AutoGridSearchCV(autogridsearch_wrapper(GridSearchCV)):
 
 
-    #     AutoGridSearchCV = type(
-    #         'SklearnAutoGridSearch',
-    #         (autogridsearch_wrapper(GridSearchCV),),
-    #         {'__doc__': autogridsearch_docs,
-    #          '__init__.__doc__': autogridsearch_docs}
-    #     )
-
-
     __doc__ = autogridsearch_docs.__doc__
 
 
@@ -57,9 +49,7 @@ class AutoGridSearchCV(autogridsearch_wrapper(GridSearchCV)):
         agscv_verbose:Optional[bool] = False,
         **parent_gscv_kwargs
     ):
-
-        """Initialize the AutoGridSearchCV instance."""
-
+        """Initialize the `AutoGridSearchCV` instance."""
 
         super().__init__(
             estimator,

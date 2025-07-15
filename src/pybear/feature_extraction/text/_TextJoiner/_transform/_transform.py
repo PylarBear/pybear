@@ -31,12 +31,11 @@ def _transform(
         rows in the data, and each string in _sep is used to join the
         corresponding sequence of strings in the data.
 
-
     Returns
     -------
-    -
-        list[str] - A single list containing strings, one string
-        for each row in the original X.
+    X_tr : list[str]
+        A single list containing strings, one string for each row in the
+        original `X`.
 
     """
 

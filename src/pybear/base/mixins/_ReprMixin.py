@@ -248,7 +248,7 @@ class _EstimatorPrettyPrinter(pprint.PrettyPrinter):
         return {k: v for k, v in params.items() if has_changed(k, v)}
 
 
-    def is_scalar_nan(self, x):
+    def is_scalar_nan(self, x) -> bool:
         """Test if x is NaN.
 
         This function is meant to overcome the issue that np.isnan does
@@ -262,7 +262,7 @@ class _EstimatorPrettyPrinter(pprint.PrettyPrinter):
 
         Returns
         -------
-        bool:
+        is_nan : bool
             Returns true if x is NaN, and false otherwise.
 
         """

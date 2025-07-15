@@ -14,21 +14,17 @@ def _val_X_supplemental(
     _X: XContainer,
     _interaction_only: bool
 ) -> None:
+    """Supplemental validation of the data.
 
-    """
-    Supplemental validation of the data.
-
-    When interaction_only is True, X must have at least 2 columns.
-    When interaction_only is False, X must have at least 1 column.
-
+    When `_interaction_only` is True, `_X` must have at least 2 columns.
+    When `_interaction_only` is False, `_X` must have at least 1 column.
 
     Parameters
     ----------
-    _X:
-        array-like of shape (n_samples, n_features) - the data to undergo
-        polynomial expansion.
-    _interaction_only:
-        bool - If True, only interaction features are produced, that is,
+    _X : XContainer of shape (n_samples, n_features)
+        The data to undergo polynomial expansion.
+    _interaction_only : bool
+        If True, only interaction features are produced, that is,
         polynomial features that are products of 'degree' distinct input
         features. Terms with power of 2 or higher for any feature are
         excluded.
@@ -38,11 +34,9 @@ def _val_X_supplemental(
         interaction terms ['ab', 'ac', 'bc'] are returned in the
         polynomial expansion.
 
-
     Return
     ------
-    -
-        None
+    None
 
     """
 

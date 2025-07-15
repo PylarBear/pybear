@@ -15,15 +15,14 @@ def _tcbc_update(
     recursion_tcbc: TotalCountsByColumnType,
     MAP_DICT: dict[int, int]
 ) -> TotalCountsByColumnType:
+    """Iterate over self._tcbc (old_tcbc) and compare the counts to the
+    corresponding ones in RecursiveCls._tcbc (recursion_tcbc).
 
-    """
-    Iterate over self._tcbc (old_tcbc) and compare the counts to the
-    corresponding ones in RecursiveCls._tcbc (recursion_tcbc). If
-    RecursiveCls's value is lower, put it into self's; if key does not
-    exist in recursion_tcbc, set self's value to 0.
+    If RecursiveCls's value is lower, put it into self's; if key does
+    not exist in `recursion_tcbc`, set self's value to 0.
 
-    _total_counts_by_column is a dict of unqs and cts for each column in
-    X. If X had features deleted when it was processed by self before
+    `_total_counts_by_column` is a dict of unqs and cts for each column
+    in X. If X had features deleted when it was processed by self before
     being passed into recursion, then map feature locations in
     RecursiveCls._tcbc to their old locations in self._tcbc.
 
@@ -36,26 +35,20 @@ def _tcbc_update(
     Replace the unq_ct_dict in old_tcbc for that column index with the
     working version. Do this for all the columns. Return old_tcbc.
 
-
     Parameters
     ----------
-    old_tcbc:
-        TotalCountsByColumnType - the total_cts_by_column dictionary
-        from self.
-    recursion_tcbc:
-        TotalCountsByColumnType - the total_cts_by_column dictionary
-        from the recursion instance.
-    MAP_DICT:
-        dict[int, int] - dictionary mapping a feature's location in
-        Recursion._tcbc to its (possibly different) location in
-        self._tcbc.
+    old_tcbc : TotalCountsByColumnType
+        The total_cts_by_column dictionary from self.
+    recursion_tcbc : TotalCountsByColumnType
+        The total_cts_by_column dictionary from the recursion instance.
+    MAP_DICT : dict[int, int]
+        Dictionary mapping a feature's location in Recursion._tcbc to
+        its (possibly different) location in self._tcbc.
 
-
-    Return
-    ------
-    -
-        old_tcbc: TotalCountsByColumnType - updated with counts from
-        Recursion._tcbc
+    Returns
+    -------
+    old_tcbc : TotalCountsByColumnType
+        Updated with counts from Recursion._tcbc
 
     """
 

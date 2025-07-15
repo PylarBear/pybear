@@ -7,7 +7,11 @@
 
 
 from typing_extensions import Union
-from .._type_aliases import GridsType, ParamsType, BestParamsType
+from .._type_aliases import (
+    GridsType,
+    ParamsType,
+    BestParamsType
+)
 
 import numbers
 import time
@@ -25,42 +29,36 @@ def _mock_gscv(
     *,
     _pause_time: numbers.Real = 5
 ) -> BestParamsType:
+    """Simulate the behavior of `GridSearchCV`.
 
-
-    """
-    Simulate the behavior of GridSearchCV. Take a short pause to identify
-    the best parameters in a grid based on the underlying true best value.
-    For a string parameter, make it 10% chance that the returned "best"
-    is non-best option (simulate a discrete parameter moving around while
-    the other parameters hone in on their true best.) For numerical, use
-    min lsq to find the closest grid value.
-
+    Take a short pause to identify the best parameters in a grid based
+    on the underlying true best value. For a string parameter, make it
+    10% chance that the returned "best" is non-best option (simulate a
+    discrete parameter moving around while the other parameters hone in
+    on their true best.) For numerical, use min lsq to find the closest
+    grid value.
 
     Parameters
     ----------
-        _GRIDS:
-            GridsType - full set of search grids for every parameter in
-            every pass
-        _params:
-            ParamsType - full set of grid-building instructions
-        _true_best:
-            BestParamsType - the "true best" value for every parameter
-            as entered by the user or generated randomly
-        _best_params:
-            Union[None, BestParamsType] - best results from the previous
-            GridSearch pass. None if on pass 0.
-        _pass:
-            int - the zero-indexed count of GridSearches performed
-        _pause_time:
-            numbers.Real - seconds to pause to simulate work by
-            GridSearchCV
-
+    _GRIDS : GridsType
+        Full set of search grids for every parameter in every pass.
+    _params : ParamsType
+        Full set of grid-building instructions.
+    _true_best : BestParamsType
+        The "true best" value for every parameter as entered by the user
+        or generated randomly
+    _best_params : Union[None, BestParamsType]
+        Best results from the previous GridSearch pass. None if on the
+        first pass (pass 0).
+    _pass : int
+        The zero-indexed count of GridSearches performed.
+    _pause_time : numbers.Real
+        Seconds to pause to simulate work by GridSearchCV.
 
     Returns
     -------
-    -
-        _best_params_: BestParamsType - The values in each search grid
-        closest to the true best value.
+    _best_params_ : BestParamsType
+        The values in each search grid closest to the true best value.
 
     """
 
@@ -76,7 +74,7 @@ def _mock_gscv(
         raise TypeError(err_msg)
 
 
-    # display info about parameters ** * ** * ** * ** * ** * ** * ** * **
+    # display info about parameters ** * ** * ** * ** * ** * ** * ** *
     def padder(words):
         _pad = 11
         try:
@@ -154,7 +152,7 @@ def _mock_gscv(
             del _LSQ, _best_idx
 
         del _grid
-    # END SIMULATE WORK BY GridSearchCV ON AN ESTIMATOR ** * ** * ** * **
+    # END SIMULATE WORK BY GridSearchCV ON AN ESTIMATOR ** * ** * ** *
 
 
     return _best_params_

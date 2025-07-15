@@ -26,39 +26,36 @@ def _fold_splitter(
     test_idxs: SKSlicerType,
     *data_objects: Union[SKXType, SKYType]
 ) -> tuple[SKSplitType, ...]:
+    """Split given data objects into train / test pairs using the given
+    train and test indices.
 
-    """
-    Split given data objects into train / test pairs using the given
-    train and test indices. The train and test indices independently
-    slice the given data objects; the entire data object need not be
-    consumed in a train / test split and the splits can also possibly
-    share indices. Standard indexing rules apply. Returns a tuple whose
-    length is equal to the number of data objects passed, holding tuples
-    of the train / test splits for the respective data objects.
-    train_idxs and test_idxs must be 1D vectors of indices, not booleans.
-
+    The train and test indices independently slice the given data
+    objects; the entire data object need not be consumed in a train /
+    test split and the splits can also possibly share indices. Standard
+    indexing rules apply. Returns a tuple whose length is equal to the
+    number of data objects passed, holding tuples of the train / test
+    splits for the respective data objects. `train_idxs` and `test_idxs`
+    must be 1D vectors of indices, not booleans.
 
     Parameters
     ----------
-    train_idxs:
-        SKSlicerType - 1D vector of row indices used to slice train
-        sets out of every given data object.
-    test_idxs:
-        SKSlicerType - 1D vector of row indices used to slice test
-        sets out of every given data object.
-    *data_objects:
-        Union[SKXType, SKYType] - The data objects to slice. Need
-        not be of equal size, and need not be completely consumed in the
-        train / test splits. However, standard indexing rules apply when
-        slicing by train_idxs and test_idxs.
-
+    train_idxs : SKSlicerType
+        1D vector of row indices used to slice train sets out of every
+        given data object.
+    test_idxs : SKSlicerType
+        1D vector of row indices used to slice test sets out of every
+        given data object.
+    *data_objects : Union[SKXType, SKYType]
+        The data objects to slice. Need not be of equal size, and need
+        not be completely consumed in the train / test splits. However,
+        standard indexing rules apply when slicing by `train_idxs` and
+        `test_idxs`.
 
     Returns
     -------
-    -
-        SPLITS: tuple[SKSplitType, ...] - return the
-        train / test splits for the given data objects in the order
-        passed in a tuple of tuples, each inner tuple containing a
+    SPLITS : tuple[SKSplitType, ...]
+        Return the train / test splits for the given data objects in the
+        order passed in a tuple of tuples, each inner tuple containing a
         train/test pair.
 
     """

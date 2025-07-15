@@ -137,7 +137,7 @@ class FileDumpMixin:
         return
 
 
-    def _validate_X_container(self, _X: XContainer):
+    def _validate_X_container(self, _X: XContainer) -> bool:
         """Validate that `X` is an allowed container and is 1D or 2D.
         This checks the dimensionality of `X`. Must be 1D or 2D. Returns
         True if the data is 1D, False if the data is 2D.
@@ -149,7 +149,7 @@ class FileDumpMixin:
 
         Returns
         -------
-        bool:
+        is_1D : bool
             True if 1D, False if 2D
 
         """

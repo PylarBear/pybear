@@ -23,32 +23,28 @@ def _columns_getter(
     _X: InternalXContainer,
     _col_idxs: Union[int, tuple[int, ...]]
 ) -> npt.NDArray:
+    """Handles the mechanics of extracting one or more columns from the
+    various allowed data container types.
 
-    """
-    This supports _get_dtypes_unqs_cts and _make_row_and_column_masks.
-    Handles the mechanics of extracting one or more columns from the
-    various allowed data container types. Container must be numpy array,
-    pandas dataframe, polars dataframe, or scipy csc matrix/array.
-    Return extracted column(s) as a numpy array. In the case of scipy
-    sparse, the columns are converted to dense.
-
+    This supports `_get_dtypes_unqs_cts` and `_make_row_and_column_masks`.
+    Container must be numpy array, pandas dataframe, polars dataframe,
+    or scipy csc matrix/array. Return extracted column(s) as a numpy
+    array. In the case of scipy sparse, the columns are converted to
+    dense.
 
     Parameters
     ----------
-    _X:
-        InternalXContainer - The data to undergo minimum frequency
-        thresholding. There is no conditioning of the data here and
-        this module expects to receive it in suitable form.
-    _col_idxs:
-        Union[int, tuple[int, ...]] - the column index / indices to
-        extract from _X.
+    _X : InternalXContainer
+        The data to undergo minimum frequency thresholding. There is no
+        conditioning of the data here and this module expects to receive
+        it in suitable form.
+    _col_idxs : Union[int, tuple[int, ...]]
+        The column index / indices to extract from `_X`.
 
-
-    Return
-    ------
-    -
-        _columns: NDArray - The column(s) from _X corresponding to the
-        given index/indices.
+    Returns
+    -------
+    _columns : NDArray
+        The column(s) from `_X` corresponding to the given index/indices.
 
     """
 

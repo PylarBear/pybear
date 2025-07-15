@@ -23,40 +23,36 @@ def _int_linspace_gap_gt_1_hard(
     _hard_min: IntDataType,
     _hard_max: IntDataType
 ) -> tuple[IntDataType, IntDataType]:
-
-
-    """
-    Determine the left and right bounds using _int_linspace_gap_gt_1_soft
-    then truncate left and right as necessary based on _hard_min and
-    _hard_max. Interstitial values are determined by another module.
-
+    """Determine the left and right bounds using
+    :func:`_int_linspace_gap_gt_1_soft` then truncate left and right as
+    necessary based on `_hard_min` and `_hard_max`. Interstitial values
+    are determined by another module.
 
     Parameters
     ----------
-    _SINGLE_GRID:
-        IntGridType - The last round's search grid for a single integer
-        parameter. _SINGLE_GRID must be sorted ascending, and is presumed
-        to be by _param_conditioning._params (at least initially).
-    _posn:
-        int - the index position in the previous round's grid where the
-        best value fell
-    _hard_min:
-        IntDataType - The minimum value in the first round's search grid.
-        Ignored if not hard.
-    _hard_max:
-        IntDataType - The maximum value in the first round's search grid.
-        Ignored if not hard.
-
+    _SINGLE_GRID : IntGridType
+        The last round's search grid for a single integer parameter.
+        `_SINGLE_GRID` must be sorted ascending, and is presumed to be
+        by :func:`_param_conditioning._params` (at least initially).
+    _posn : int
+        The index position in the previous round's grid where the best
+        value fell.
+    _hard_min : IntDataType
+        The minimum value in the first round's search grid. Ignored if
+        not hard.
+    _hard_max : IntDataType
+        The maximum value in the first round's search grid. Ignored if
+        not hard.
 
     Returns
     -------
-    -
-        _left: IntDataType - the minimum value for the next search grid
-        after application of the hard minimum
-
-        _right: IntDataType - the maximum value for the next search grid
-        after application of the hard maximum
-
+    __ : tuple[IntDataType, IntDataType]
+        _left : IntDataType
+            The minimum value for the next search grid after application
+            of the hard minimum.
+        _right : IntDataType
+            The maximum value for the next search grid after application
+            of the hard maximum.
 
     """
 
@@ -83,8 +79,6 @@ def _int_linspace_gap_gt_1_hard(
 
 
     return _left, _right
-
-
 
 
 

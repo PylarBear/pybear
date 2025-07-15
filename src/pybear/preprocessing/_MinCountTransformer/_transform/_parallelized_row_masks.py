@@ -24,48 +24,44 @@ def _parallelized_row_masks(
     _instr: InstructionsType,
     _reject_unseen_values: bool
 ) -> npt.NDArray[np.uint32]:
+    """Create mask indicating row indices to delete for a chunk of
+    columns from X.
 
-    """
-    Create mask indicating row indices to delete for a chunk of columns
-    from X. Use the instructions provided in _instr to get the uniques
-    to delete from a column. For each unique to be deleted from that
-    column, locate the positions of that unique within the column and
-    store the locations in a vector that has the same number of rows as
-    the chunk. Sum the vectors from each unique to create a vector that
-    indicates all the row indices to be deleted from that column.
-    Finally, sum the vectors for each column in the array to produce a
-    single vector that indicates row indices to delete from this chunk.
+    Use the instructions provided in `_instr` to get the uniques to
+    delete from a column. For each unique to be deleted from that column,
+    locate the positions of that unique within the column and store the
+    locations in a vector that has the same number of rows as the chunk.
+    Sum the vectors from each unique to create a vector that indicates
+    all the row indices to be deleted from that column. Finally, sum the
+    vectors for each column in the array to produce a single vector that
+    indicates row indices to delete from this chunk.
 
     Simultaneously, if rejecting unseen values, compare the uniques
-    in _UNQ_CT_DICT (which were found during fit) against the uniques
+    in `_UNQ_CT_DICT` (which were found during fit) against the uniques
     currently found in each column (during transform, this is a transform
     sub-module). Raise exception if rejecting unseen values and there
     are new uniques.
 
-
     Parameters
     ----------
-    _X_CHUNK:
-        npt.NDArray - A block of columns from X. Must be 2D numpy array.
-    _UNQ_CT_DICT:
-        TotalCountsByColumnType - The _total_counts_by_column entries
-        for the column(s) in the chunk.
-    _instr:
-        InstructionsType - The _delete_instr entries for the column(s)
-        in the chunk.
-    _reject_unseen_values:
-        bool - If False, do not even look to see if there are unknown
-        uniques. If True, compare uniques in each column against uniques
-        in _UNQ_CT_DICT and raise exception if there is a value not
+    _X_CHUNK : npt.NDArray
+        A block of columns from X. Must be 2D numpy array.
+    _UNQ_CT_DICT : TotalCountsByColumnType
+        The `_total_counts_by_column` entries for the column(s) in the
+        chunk.
+    _instr : InstructionsType
+        The `_delete_instr` entries for the column(s) in the chunk.
+    _reject_unseen_values : bool
+        If False, do not even look to see if there are unknown uniques.
+        If True, compare uniques in each column against uniques in
+        `_UNQ_CT_DICT` and raise exception if there is a value not
         previously seen.
 
-
-    Return
-    ------
-    -
-        CHUNK_ROW_MASK: npt.NDArray[np.uint32]: A 1D mask of rows to
-        delete from X based on the instructions in _delete_instr for
-        these columns.
+    Returns
+    -------
+    CHUNK_ROW_MASK : npt.NDArray[np.uint32]
+        A 1D mask of rows to delete from X based on the instructions in
+        `_delete_instr` for these columns.
 
     """
 

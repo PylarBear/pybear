@@ -20,31 +20,25 @@ def _val_f_s(
     _n_splits: int,
     _n_scorers: int
 ) -> None:
-
-    """
-    Validate the dimensions of _FOLD_x_SCORER, either the score holder
+    """Validate the dimensions of _FOLD_x_SCORER, either the score holder
     or the time holder.
-
 
     Parameters
     ----------
-    _FOLD_x_SCORER:
-        MaskedHolderType - the raw scores from _parallelized_scorer.
-    _name:
-        str - which object is being validated.
-    _n_splits:
-        int - the number of folds.
-    _n_scorers:
-        int - the number of scorers.
-
+    _FOLD_x_SCORER : MaskedHolderType
+        The raw scores from :func:`_parallelized_scorer`.
+    _name : str
+        Which object is being validated.
+    _n_splits : int
+        The number of folds.
+    _n_scorers : int
+        The number of scorers.
 
     Returns
     -------
-    -
-        None
+    None
 
     """
-
 
     _TFS = _FOLD_x_SCORER
 

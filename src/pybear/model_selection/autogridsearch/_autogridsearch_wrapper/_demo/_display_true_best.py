@@ -6,7 +6,10 @@
 
 
 
-from .._type_aliases import ParamsType, BestParamsType
+from .._type_aliases import (
+    ParamsType,
+    BestParamsType
+)
 
 
 # benchmark tests only
@@ -15,30 +18,22 @@ def _display_true_best(
     _demo_cls_params: ParamsType,
     _true_best: BestParamsType
 ) -> None:
-
-    """
-    Display the best values in _true_best for reference against the best
-    values being returned by autogridsearch.
-
+    """Display the best values in `_true_best` for reference against the
+    best values being returned by `AutoGridSearch`.
 
     Parameters
     ----------
-    _demo_cls_params:
-        ParamsType - full set of grid-building instructions for all
-        parameters
-    _true_best:
-        BestParamsType - True best values for estimator's hyperparameters,
-        as provided by the user or generated randomly.
-
+    _demo_cls_params : ParamsType
+        Full set of grid-building instructions for all parameters.
+    _true_best : BestParamsType
+        True best values for estimator's hyperparameters, as provided by
+        the user or generated randomly.
 
     Returns
     -------
-    -
-        None
-
+    None
 
     """
-
 
 
     _TYPES = {'string': [], 'bool': [], 'num':[]}

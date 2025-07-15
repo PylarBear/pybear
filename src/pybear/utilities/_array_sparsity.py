@@ -46,7 +46,6 @@ def array_sparsity(a: Container) -> float:
     series and dataframes, polars series and dataframes, and all scipy
     sparse matrices / arrays except bsr.
 
-
     Parameters
     -----------
     a : array_like of shape (n_samples, n_features) or (n_samples,)

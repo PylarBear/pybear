@@ -17,27 +17,21 @@ import numpy as np
 def _val_y(
     _y: Iterable[numbers.Integral]  # not SKYType... see the notes.
 ) -> None:
+    """Validate `_y`.
 
-    """
-    Validate y.
-
-    y must be single label and binary in [0, 1]. This validation is
+    `_y` must be single label and binary in [0, 1]. This validation is
     fairly loose in that it allows *any* 1D container that is binary in
     0 and 1. If there is a problem with the container let the estimator
     raise it.
 
-
     Parameters
     ----------
-    _y:
-        vector-like of shape (n_samples,) or (n_samples, 1) - The target
-        for the data.
-
+    _y : vector-like of shape (n_samples,) or (n_samples, 1)
+        The target for the data.
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 

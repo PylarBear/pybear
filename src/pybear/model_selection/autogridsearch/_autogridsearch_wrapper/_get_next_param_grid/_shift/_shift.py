@@ -33,14 +33,11 @@ def _shift(
     _best_params_from_previous_pass: BestParamsType,
     _total_passes_is_hard: bool
 ) -> tuple[GridsType, ParamsType]:
-
-    """
-
-    When prompted by False value(s) for any param(s) in PHLITE, shift
+    """When prompted by False value(s) for any param(s) in PHLITE, shift
     the respective params' grids based on whether the best value fell
     on a left or right edge of the search grid.
 
-    When there is a shift, update the 'points' field in _params to
+    When there is a shift, update the 'points' field in `_params` to
     replicate the last round's number of points into the current round.
     (During a shift, the values in the search grid are being reduced or
     increased, but the number of points in the grid does not change.)
@@ -52,43 +49,39 @@ def _shift(
     pass is inserted and what previously would have been the final pass
     is truncated, preserving the original number of total passes.
 
-
     Parameters
     ----------
-    _GRIDS:
-        GridsType - holds all of the param_grids run so far, and an
-        empty dict for the current pass, to be filled here.
-    _PHLITE:
-        PhliteType - holds bools for soft params indicating if it is to
-        be shifted
-    _IS_LOGSPACE:
-        IsLogspaceType - _IS_LOGSPACE is a dictionary keyed by all param
-        names, including string params. String params are always False.
-        For numerical params, if the space is linear, or some other
+    _GRIDS : GridsType
+        Holds all of the param_grids run so far, and an empty dict for
+        the current pass, to be filled here.
+    _PHLITE : PhliteType
+        Holds bools for soft params indicating if it is to be shifted.
+    _IS_LOGSPACE : IsLogspaceType
+        `_IS_LOGSPACE` is a dictionary keyed by all param names,
+        including string params. String params are always False. For
+        numerical params, if the space is linear, or some other
         non-standard interval, it is False. If it is logspace, The
         'truth' of being a logspace is represented by a number indicating
         the interval of the logspace. E.g., np.logspace(-5, 5, 11) would
         be represented by 1.0, and np.logspace(-20, 20, 9) would be
         represented by 5.0.
-    _params:
-        ParamsType - search instructions for each param
-    _pass:
-        int - the index of the current gridsearch we are preparing to
-        do by being in here
-    _best_params_from_previous_pass:
-        BestParamsType - best_params_ from the parent GridsearchCV
-    _total_passes_is_hard:
-        bool - whether to increment total_passes when a shift is needed
-
+    _params : ParamsType
+        Search instructions for each param
+    _pass : int
+        The index of the current gridsearch we are preparing to do by
+        being in here.
+    _best_params_from_previous_pass : BestParamsType
+        `best_params_` from the parent GridsearchCV
+    _total_passes_is_hard : bool
+        Whether to increment total_passes when a shift is needed.
 
     Returns
     -------
-    -
-        _GRIDS: GridsType - _GRIDS filled with new grids for the current
-        pass
-
-        _params: ParamsType - _params with updated points field
-
+    __ : tuple[GridsType, ParamsType]
+        _GRIDS : GridsType
+            `_GRIDS` filled with new grids for the current pass.
+        _params : ParamsType
+            `_params` with updated points field.
 
     """
 

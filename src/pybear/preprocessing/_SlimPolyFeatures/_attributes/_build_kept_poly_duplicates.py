@@ -20,36 +20,30 @@ def _build_kept_poly_duplicates(
     poly_duplicates_: PolyDuplicatesType,
     _kept_combos: CombinationsType
 ) -> KeptPolyDuplicatesType:
+    """Build `kept_poly_duplicates_`.
 
-    """
-    Build kept_poly_duplicates_.
-
-    kept_poly_duplicates_ is the subset of poly_duplicates_ that is kept
-    in the polynomial expansion. It is a dictionary with the kept combo
-    tuples as keys. There should be only one representative from each
-    group of duplicates. The values are lists of combo tuples that were
-    from the same group of duplicates as the key, but they are the combos
-    that are omitted from the final expansion.
-
+    `kept_poly_duplicates_` is the subset of `poly_duplicates_` that is
+    kept in the polynomial expansion. It is a dictionary with the kept
+    combo tuples as keys. There should be only one representative from
+    each group of duplicates. The values are lists of combo tuples that
+    were from the same group of duplicates as the key, but they are the
+    combos that are omitted from the final expansion.
 
     Parameters
     ---------
-    poly_duplicates_:
-        PolyDuplicatesType - The groups of duplicates found in the
-        polynomial expansions across all partial fits. If :param:
-        `min_degree` is 1 and any combos were equal to a column in X,
-        then the X idx tuple ... (c_idx, ) ... must be included, must
-        be first, and there can only be one.
-    _kept_combos:
-        CombinationsType - the combo to keep for each set of duplicates
-        in poly_duplicates_. Length must equal the length of
-        poly_duplicates_.
+    poly_duplicates_ : PolyDuplicatesType
+        The groups of duplicates found in the polynomial expansions
+        across all partial fits. If `min_degree` is 1 and any combos
+        were equal to a column in X, then the X idx tuple (c_idx, )
+        must be included, must be first, and there can only be one.
+    _kept_combos : CombinationsType
+        The kept combo for each set of duplicates in `poly_duplicates_`.
+        Length must equal the length of `poly_duplicates_`.
 
-
-    Return
-    ------
-    -
-        kept_poly_duplicates_: KeptPolyDuplicatesType
+    Returns
+    -------
+    kept_poly_duplicates_ : KeptPolyDuplicatesType
+        A dictionary with the kept poly duplicate combos as keys.
 
     """
 

@@ -16,25 +16,20 @@ def _val_verbose(
     _verbose: numbers.Real,
     _can_be_raw_value:Optional[bool] = False
 ) -> None:
-
-    """
-    Validate `verbose`, the amount of verbosity to display to screen
+    """Validate `verbose`, the amount of verbosity to display to screen
     during the grid search.
 
     Must be number-like >= 0 , non-numbers are rejected.
 
-
     Parameters
     ---------
-    _verbose:
-        numbers.Real - the amount of verbosity to display to screen
-        during the grid search.
-
+    _verbose : numbers.Real
+        The amount of verbosity to display to screen during the grid
+        search.
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 

@@ -22,14 +22,14 @@ def _original_dtypes_merger(
     _previous_col_dtypes: Union[OriginalDtypesType, None],
     _n_features_in: int
 ) -> OriginalDtypesType:
+    """Merge the datatypes found for the current partial fit with the
+    datatypes seen in previous partial fits.
 
-    """
-    Merge the datatypes found for the current partial fit with the
-    datatypes seen in previous partial fits. Prior to the existence of
-    this module, MCT would raise if datatypes in the current partial
-    fit did not match those from previous partial fits.
+    Prior to the existence of this module, MCT would raise if datatypes
+    in the current partial fit did not match those from previous partial
+    fits.
 
-    If _previous_col_dtypes is not None, check its dtypes against the
+    If `_previous_col_dtypes` is not None, check its dtypes against the
     dtypes in the currently passed data, use the hierarchy to set the
     merged dtype.
 
@@ -42,24 +42,20 @@ def _original_dtypes_merger(
 
     --anything that matches stays the same
 
-
     Parameters
     ----------
-    _col_dtypes:
-        OriginalDtypesType - the datatypes found by MCT in the data for
-        the current partial fit.
-    _previous_col_dtypes:
-        Union[OriginalDtypesType, None] - the datatypes found by MCT in
-        data seen in previous partial fits.
-    _n_features_in:
-        int - the number of features in the data.
+    _col_dtypes : OriginalDtypesType
+        The datatypes found by MCT in the data for the current partial
+        fit.
+    _previous_col_dtypes : Union[OriginalDtypesType, None]
+        The datatypes found by MCT in data seen in previous partial fits.
+    _n_features_in : int
+        The number of features in the data.
 
-
-    Return
-    ------
-    -
-        _merged_col_dtypes: OriginalDtypesType - the datatypes merged
-        based on the hierarchy.
+    Returns
+    -------
+    _merged_col_dtypes : OriginalDtypesType
+        The datatypes merged based on the hierarchy.
 
     """
 

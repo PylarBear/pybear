@@ -25,48 +25,43 @@ def _regap_logspace(
     _hard_min: NumDataType,
     _hard_max: NumDataType
 ) -> tuple[NumGridType, NumParamType, float]:
-
-    """
-    If a logspace numerical parameter has log gap > 1 and has landed
+    """If a logspace numerical parameter has log gap > 1 and has landed
     inside the edges of its grid (or is forced into here due to
-    max_shifts), re-gap the logspace to 1.
-
+    `max_shifts`), re-gap the logspace to 1.
 
     Parameters
     ----------
-    _param_name:
-        str - parameter's key in `params`
-    _grid:
-        NumGridType - the previous search grid for a single logspace
-        param which will be regapped here for the current round
-    _is_logspace:
-        float - the log interval of the parameter's search space
-    _param_value:
-        NumParamType - agscv instructions this single logspace parameter
-    _pass:
-        int - the index of the current pass (upcoming gridsearch)
-    _best_param_from_previous_pass:
-        NumDataType - best result for this param from best_params_
-        returned by the parent GridsearchCV
-    _hard_min:
-        NumDataType - if hard, the minimum value in the first round's
-        search grid. Ignored otherwise.
-    _hard_max:
-        NumDataType - if hard, the maximum value in the first round's
-        search grid. Ignored otherwise.
-
+    _param_name : str
+        Parameter's key in `params`.
+    _grid : NumGridType
+        The previous search grid for a single logspace param which will
+        be regapped here for the current round.
+    _is_logspace : float
+        The log interval of the parameter's search space.
+    _param_value : NumParamType
+        agscv instructions this single logspace parameter.
+    _pass : int
+        The index of the current pass (upcoming gridsearch).
+    _best_param_from_previous_pass : NumDataType
+        Best result for this param from `best_params_` returned by the
+        parent `GridsearchCV`.
+    _hard_min : NumDataType
+        If hard, the minimum value in the first round's search grid.
+        Ignored otherwise.
+    _hard_max : NumDataType
+        If hard, the maximum value in the first round's search grid.
+        Ignored otherwise.
 
     Returns
     -------
-    -
-        _NEW_GRID: NumGridType - _grid updated with logspace intervals
-        reduced to 1
-
-        _param_value: NumParamType - _param updated with points
-        reflective of new points for logspace interval == 1
-
-        _is_logspace: float - updated with the unitized gaps, should
-        be 1.0
+    __ : tuple[NumGridType, NumParamType, float]
+        _NEW_GRID : NumGridType
+            `_grid` updated with logspace intervals reduced to 1.
+        _param_value : NumParamType
+            `_param` updated with points reflective of new points for
+            logspace interval == 1
+        _is_logspace : float
+            Updated with the unitized gaps, should be 1.0
 
     """
 

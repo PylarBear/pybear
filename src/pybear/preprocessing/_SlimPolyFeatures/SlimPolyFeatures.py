@@ -7,7 +7,6 @@
 
 
 from typing import (
-    Callable,
     Literal,
     Optional,
     Sequence
@@ -24,7 +23,8 @@ from ._type_aliases import (
     KeptPolyDuplicatesType,
     DroppedPolyDuplicatesType,
     CombinationsType,
-    FeatureNamesInType
+    FeatureNamesInType,
+    FeatureNameCombinerType
 )
 from ..__shared._type_aliases import XContainer
 
@@ -72,7 +72,11 @@ from ...base import (
     validate_data
 )
 
-from ...base import is_fitted, check_is_fitted, get_feature_names_out
+from ...base import (
+    is_fitted,
+    check_is_fitted,
+    get_feature_names_out
+)
 from ...utilities._nan_masking import nan_mask
 from ...utilities._union_find import union_find
 
@@ -86,22 +90,20 @@ class SlimPolyFeatures(
     FitTransformMixin,
     ReprMixin
 ):
-
-    """
-    SlimPolyFeatures (SPF) performs a polynomial feature expansion on a
-    dataset, where any feature produced that is a column of constants or
-    is a duplicate of another column is omitted from the final output.
+    """SlimPolyFeatures (SPF) performs a polynomial feature expansion on
+    a dataset, where any feature produced that is a column of constants
+    or is a duplicate of another column is omitted from the final output.
 
     SPF follows the standard scikit-learn transformer API, and makes the
-    standard transformer methods available: `fit`, `partial_fit`,
-    `transform`, `fit_transform`, `set_params`, `get_params`, and
-    `get_feature_names_out`. SPF also has a `reset` method which is
-    covered elsewhere in the docs.
+    standard transformer methods available: `get_feature_names_out`,
+    `fit`, `partial_fit`, `transform`, `fit_transform`, `set_params`,
+    and `get_params`. SPF also has a `reset` method which is covered
+    elsewhere in the docs.
 
     Numpy arrays, pandas dataframes, polars dataframes, and all scipy
     sparse objects (csr, csc, coo, lil, dia, dok, and bsr matrices
-    and arrays) are accepted by :meth: `partial_fit`, :meth: `fit`,
-    and :meth: `transform`. SPF only accepts numerical data, and will
+    and arrays) are accepted by :meth:`partial_fit`, :meth:`fit`,
+    and :meth:`transform`. SPF only accepts numerical data, and will
     raise an exception if passed non-numerical values.
 
     SPF requires that data passed to it have no duplicates and no
@@ -152,16 +154,16 @@ class SlimPolyFeatures(
     further discussion in these documents about how SPF handles these
     conditions in-situ during multiple partial fits, but ultimately
     SPF requires that the totality of seen data has no constants and no
-    duplicates. When SPF :param: `scan_X` is True, SPF is able to find
-    any columns in the original data that are constant/duplicate and
-    prevent transform until the condition is fixed; it could only be
-    fixed in-situ with more partial fits. To properly pre-condition your
-    data beforehand, remove constant columns from your data with pybear
-    InterceptManager, and remove duplicate columns from your data with
-    pybear ColumnDeduplicateTransformer. If there are no constant or
-    duplicate columns in the data, setting :param: `scan_X` to False can
-    reduce the cost of the polynomial expansion. See more discussion in
-    the :param: `scan_X` parameter.
+    duplicates. When `scan_X` is True, SPF is able to find any columns
+    in the original data that are constant/duplicate and prevent
+    transform until the condition is fixed; it could only be fixed
+    in-situ with more partial fits. To properly pre-condition your
+    data beforehand, remove constant columns from your data with
+    pybear :class:`InterceptManager`, and remove duplicate columns from
+    your data with pybear :class:`ColumnDeduplicateTransformer`. If
+    there are no constant or duplicate columns in the data, setting
+    `scan_X` to False can reduce the cost of the polynomial expansion.
+    See more discussion in the `scan_X` parameter.
 
     During the fitting process, SPF learns what columns in the expansion
     would be constant and/or duplicate. SPF does the expansion out
@@ -171,60 +173,60 @@ class SlimPolyFeatures(
     based on what was learned about constant and duplicate columns
     during the building of the preliminary expansion.
 
-    At :term: transform time, SPF applies the rules it learned during
-    fitting and only builds the polynomial features that could add
-    value to the dataset. The internal construction of the polynomial
-    expansion is always as a scipy sparse csc array to minimize the RAM
-    footprint of the expansion. The expansion is also always done with
-    float64 datatypes, regardless of datatype of the passed data, to
-    prevent any overflow problems that might arise from multiplication
-    of low bit number types. However, overflow is still possible with
-    64 bit datatypes, especially when the data has large values or the
-    degree of the expansion is high. SPF HAS NO PROTECTIONS FOR OVERFLOW.
-    IT IS UP TO THE USER TO AVOID OVERFLOW CONDITIONS AND VERIFY RESULTS.
+    At transform time, SPF applies the rules it learned during fitting
+    and only builds the polynomial features that could add value to the
+    dataset. The internal construction of the polynomial expansion is
+    always as a scipy sparse csc array to minimize the RAM footprint
+    of the expansion. The expansion is also always done with float64
+    datatypes, regardless of datatype of the passed data, to prevent any
+    overflow problems that might arise from multiplication of low bit
+    number types. However, overflow is still possible with 64 bit
+    datatypes, especially when the data has large values or the degree
+    of the expansion is high. SPF HAS NO PROTECTIONS FOR OVERFLOW. IT IS
+    UP TO THE USER TO AVOID OVERFLOW CONDITIONS AND VERIFY RESULTS.
 
     Even though `transform` always constructs the expansion as scipy
     sparse csc, SPF will return the expansion in the format of the data
     passed to `transform`, unless instructed otherwise. If dense data
     is passed to `transform`, this negates the memory savings from
     building as sparse csc because the sparse format will be converted
-    to the dense format for return. SPF can be instructed to return the
-    output in sparse format via the :param: `sparse_output` parameter
-    that preserves the lower memory footprint of the internal expansion.
-    If :param: `sparse_output` is set to True, the expansion is returned
-    as scipy sparse csr array. If :param: `sparse_output` is set to
-    False, then SPF will convert the polynomial expansion from a sparse
-    csc_array to the same format passed to `transform`.
+    to the dense format for return. SPF can be instructed to return
+    the output in sparse format via the `sparse_output` parameter, which
+    preserves the lower memory footprint of the internal expansion. If
+    `sparse_output` is set to True, the expansion is returned as scipy
+    sparse csr array. If `sparse_output` is set to False, then SPF will
+    convert the polynomial expansion from a sparse csc_array to the same
+    format passed to `transform`.
 
     The SPF `partial_fit` method allows for incremental fitting. Through
     this method, even if the data is bigger-than-memory, SPF is able to
     learn what columns in X are constant/duplicate and what columns in
     the expansion are constant/duplicate, and carry out instructions to
-    build the expansion batch-wise. `partial_fit` makes SPF amenable to
-    batch-wise fitting and transforming, such as via dask_ml Incremental
-    and ParallelPostFit wrappers.
+    build the expansion batch-wise. This makes SPF amenable to batch-wise
+    fitting and transforming via dask_ml Incremental and ParallelPostFit
+    wrappers.
 
-    SPF takes parameters to set the minimum (:param: `min_degree`) and
-    maximum (:param: `degree`) degrees of the polynomial terms produced
-    during the expansion. The edge case of returning only the 0-degree
-    column of ones is disallowed. SPF never returns the 0-degree column
-    of ones under any circumstance. The lowest degree SPF ever returns
-    is degree one (the original data in addition to whatever other order
-    terms are required). SPF terminates if :param: `min_degree` is set
-    to zero (minimum allowed setting is 1). To append a zero-degree
-    column to your data, use pybear InterceptManager after using SPF.
-    Also, SPF does not allow the no-op case of :param: `degree` = 1,
-    where the original data would be returned unchanged without any
-    polyomial features. The minimum setting for :param: `degree` is 2.
+    SPF takes parameters to set the minimum (`min_degree`) and maximum
+    (`degree`) degrees of the polynomial terms produced during the
+    expansion. The edge case of returning only the 0-degree column of
+    ones is disallowed. SPF never returns the 0-degree column of ones
+    under any circumstance. The lowest degree SPF ever returns is degree
+    one (the original data in addition to whatever other order terms are
+    required). SPF terminates if `min_degree` is set to zero (minimum
+    allowed setting is 1). To append a zero-degree column to your data,
+    use pybear `InterceptManager` after using SPF. Also, SPF does not
+    allow the no-op case of `degree` = 1, where the original data would
+    be returned unchanged without any polyomial features. The minimum
+    setting for `degree` is 2.
 
     When searching for constant and duplicate columns, SPF ONLY LOOKS IN
-    WHAT IS TO BE RETURNED. That is, if you specify :param: `min_degree`
-    to be 1, then SPF will compare the created polynomial terms against
-    the original data and themselves. If you specify :param: `min_degree`
-    to be 2 or greater, SPF will only compare the created polynomial
-    terms against themselves. The ramifications of the latter case is
-    that if you were merge your original data onto the SPF output, there
-    may be duplicates.
+    WHAT IS TO BE RETURNED. That is, if you specify `min_degree` to be
+    1, then SPF will compare the created polynomial terms against the
+    original data and themselves. If you specify `min_degree` to be 2 or
+    greater, SPF will only compare the created polynomial terms against
+    themselves. The ramifications of the latter case is that if you were
+    to merge your original data onto the SPF output, there may be
+    duplicates.
 
     During fitting, SPF is able to tolerate constants and duplicates in
     the passed data. While this condition exists, however, SPF remains
@@ -244,59 +246,53 @@ class SlimPolyFeatures(
     duplicates in the training data, otherwise attempts to access them
     will result in a no-op that gives a warning and returns None.
 
-    Once SPF is fit, setting of most params via :meth: `set_params` is
+    Once SPF is fit, setting of most params via :meth:`set_params` is
     blocked. This is to prevent SPF from failing because of new learning
     states that cannot be reconciled with earlier learning states. The
-    only parameters that can be set after a fit are
-    1) :param: `keep`, 2) :param: `n_jobs`, 3) :param: `job_size`,
-    4) :param: `sparse_output`, and 5) :param: `feature_name_combiner`.
-    SPF has a :meth: `reset` method that resets the data-dependent state
-    of SPF. This allows for re-initializing the instance and setting
-    different learning parameters without forcing the user to create a
-    new instance.
-
+    only parameters that can be set after a fit are `keep`, `n_jobs`,
+    `job_size`, `sparse_output`, and `feature_name_combiner`. SPF has
+    a :meth:`reset` method that resets the data-dependent state of SPF.
+    This allows for re-initializing the instance and setting different
+    learning parameters without forcing the user to create a new instance.
 
     Parameters
     ----------
-    degree:
-        numbers.Integral, default=2 - The maximum polynomial degree of
-        the generated features. The minimum value accepted by SPF is 2;
-        the no-op case of simply returning the original degree-one data
-        is not allowed.
-    min_degree:
-        numbers.Integral, default=1 - The minimum polynomial degree of
-        the generated features. Polynomial terms with degree below
-        'min_degree' are not included in the final output array. The
-        minimum value accepted by SPF is 1; SPF cannot be used to
-        generate a zero-degree column (a column of all ones).
-    interaction_only:
-        bool, default=False - If True, only interaction features are
-        produced, that is, polynomial features that are products of
-        'degree' distinct input features. Terms with power of 2 or higher
-        for any feature are excluded. If False, produce the full
-        polynomial expansion.
+    degree : numbers.Integral, default=2
+        The maximum polynomial degree of the generated features. The
+        minimum value accepted by SPF is 2; the no-op case of simply
+        returning the original degree-one data is not allowed.
+    min_degree : numbers.Integral, default=1
+        The minimum polynomial degree of the generated features.
+        Polynomial terms with degree below `min_degree` are not included
+        in the final output array. The minimum value accepted by SPF is
+        1; SPF cannot be used to generate a zero-degree column (a column
+        of all ones).
+    interaction_only : bool, default=False
+        If True, only interaction features are produced, that is,
+        polynomial features that are products of 'degree' distinct input
+        features. Terms with power of 2 or higher for any feature are
+        excluded. If False, produce the full polynomial expansion.
 
-        Consider 3 features 'a', 'b', and 'c'. If 'interaction_only' is
-        True, 'min_degree' is 1, and 'degree' is 2, then only the first
+        Consider 3 features 'a', 'b', and 'c'. If `interaction_only` is
+        True, `min_degree` is 1, and `degree` is 2, then only the first
         degree interaction terms ['a', 'b', 'c'] and the second degree
         interaction terms ['ab', 'ac', 'bc'] are returned in the
         polynomial expansion.
-    scan_X:
-        bool, default=True - SPF requires that the data being fit has
-        no columns of constants and no duplicate columns. When scan_X is
-        True, SPF does not assume that the analyst knows these states of
-        the data and diagnoses them during fitting, which can be very
-        expensive to do, especially finding duplicate columns. If the
-        analyst knows that there are no constant or duplicate columns in
-        the data, setting this to False can greatly reduce the cost of
-        the polynomial expansion. When in doubt, pybear recommends
-        setting this to True (the default). When this is False, it is
-        possible to pass columns of constants or duplicates, but SPF
-        will continue to operate under the assumptions of the stated
-        design requirement, and the output will be nonsensical.
-    keep:
-        Literal['first', 'last', 'random'], default='first' - The
-        strategy for keeping a single representative from a set of
+    scan_X : bool, default=True
+        SPF requires that the data being fit has no columns of constants
+        and no duplicate columns. When `scan_X` is True, SPF does not
+        assume that the analyst knows these states of the data and
+        diagnoses them during fitting, which can be very expensive to do,
+        especially finding duplicate columns. If the analyst knows that
+        there are no constant or duplicate columns in the data, setting
+        this to False can greatly reduce the cost of the polynomial
+        expansion. When in doubt, pybear recommends setting this to True
+        (the default). When this is False, it is possible to pass columns
+        of constants or duplicates, but SPF will continue to operate
+        under the assumptions of the stated design requirement, and the
+        output will be nonsensical.
+    keep : Literal['first', 'last', 'random'], default='first'
+        The strategy for keeping a single representative from a set of
         identical columns in the polynomial expansion. This is overruled
         if a polynomial feature is a duplicate of one of the original
         features, as the original feature will always be kept and the
@@ -310,24 +306,20 @@ class SlimPolyFeatures(
         (lowest degree); 'last' keeps the column right-most in the
         expansion (highest degree); 'random' keeps a single randomly
         selected feature of the set of duplicates.
-    sparse_output:
-        bool, default=True - If set to True, the polynomial expansion
-        is returned from `transform` as a scipy sparse csr array. If
-        set to False, the polynomial expansion is returned in the same
-        format as passed to `transform`.
-    feature_name_combiner:
-        Union[
-            Callable[[Sequence[str], tuple[int, ...]], str],
-            Literal['as_feature_names', 'as_indices']]
-        ], default='as_indices' - Sets the naming convention for the
-        created polynomial features. This does not set nor change any
-        original feature names that may have been seen during fitting on
-        containers that have a header.
+    sparse_output : bool, default=True
+        If set to True, the polynomial expansion is returned from
+        `transform` as a scipy sparse csr array. If set to False, the
+        polynomial expansion is returned in the same format as passed
+        to `transform`.
+    feature_name_combiner : FeatureNameCombinerType, default='as_indices'
+        Sets the naming convention for the created polynomial features.
+        This does not set nor change any original feature names that may
+        have been seen during fitting on containers that have a header.
 
-        feature_name_combiner must be:
+        `feature_name_combiner` must be:
+
         1) Literal 'as_feature_names',
         2) Literal 'as_indices',
-        - or -
         3) a user-defined function (callable) for mapping polynomial
             column index combination tuples to polynomial feature names.
 
@@ -350,125 +342,74 @@ class SlimPolyFeatures(
                 names of X, as is used internally in SPF,
             b) the polynomial column combination tuple, which is a tuple
                 of integers of variable length. The minimum length of
-                the tuple must be :param: 'min_degree', and the maximum
-                length must be :param: 'degree', with each integer
-                falling in the range of [0, n_features_in_-1]
+                the tuple must be `min_degree`, and the maximum length
+                must be `degree`, with each integer falling in the range
+                of [0, n_features_in_-1]
 
         2) Return a string that
             a) is not a duplicate of any originally seen feature name
             b) is not a duplicate of any other polynomial feature name
-
-    equal_nan:
-        bool, default=False -
+    equal_nan : bool, default=False
 
         When comparing two columns for equality:
 
-        If equal_nan is True, assume that a nan value would otherwise be
-        the same as the compared non-nan counterpart, or if both compared
-        values are nan, consider them as equal (contrary to the default
-        numpy handling of nan, where numpy.nan != numpy.nan).
-        If equal_nan is False and either one or both of the values in
+        If `equal_nan` is True, assume that a nan value would otherwise
+        be the same as the compared non-nan counterpart, or if both
+        compared values are nan, consider them as equal (contrary to the
+        default numpy handling of nan, where numpy.nan != numpy.nan).
+        If `equal_nan` is False and either one or both of the values in
         the compared pair of values is/are nan, consider the pair to be
         not equivalent, thus making the column pair not equal. This is
         in line with the normal numpy handling of nan values.
 
         When assessing if a column is constant:
 
-        If equal_nan is True, assume any nan values equal the mean of all
-        non-nan values in the respective column. If equal_nan is False,
-        any nan-values could never take the value of the mean of the
-        non-nan values in the column, making the column not constant.
-    rtol:
-        numbers.Real, default=1e-5 - The relative difference tolerance
-        for equality. Must be a non-boolean, non-negative, real number.
-        See numpy.allclose.
-    atol:
-        numbers.Real, default=1e-8 - The absolute difference tolerance
-        for equality. Must be a non-boolean, non-negative, real number.
-        See numpy.allclose.
-    n_jobs:
-        Union[numbers.Integral, None], default=None - The number of
-        joblib Parallel jobs to use when looking for duplicate columns.
-        The default is to use processes, but can be overridden externally
-        using a joblib parallel_config context manager. The default
-        number of jobs is None, which uses the joblib default setting.
-        To get maximum speed benefit, pybear recommends using -1, which
-        means use all processors.
-    job_size:
-        Optional[numbers.Integral], default=50 - The number of columns
-        to send to a joblib job. Must be an integer greater than or
-        equal to 2. This allows the user to optimize CPU utilization
-        for their particular circumstance. Long, thin datasets should
-        use fewer columns, and wide, flat datasets should use more
-        columns. Bear in mind that the columns sent to joblib jobs are
-        deep copies of the original data, and larger job sizes increase
-        RAM usage. Note that joblib is only engaged in scanning the
-        original data when the number of columns in the data is at
+        If `equal_nan` is True, assume any nan values equal the mean of
+        all non-nan values in the respective column. If `equal_nan` is
+        False, any nan-values could never take the value of the mean of
+        the non-nan values in the column, making the column not constant.
+    rtol : numbers.Real, default=1e-5
+        The relative difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
+    atol : numbers.Real, default=1e-8
+        The absolute difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
+    n_jobs : Union[numbers.Integral, None], default=None
+        The number of joblib Parallel jobs to use when looking for
+        duplicate columns. The default is to use processes, but can be
+        overridden externally using a joblib parallel_config context
+        manager. The default number of jobs is None, which uses the
+        joblib default setting. To get maximum speed benefit, pybear
+        recommends using -1, which means use all processors.
+    job_size : Optional[numbers.Integral], default=50
+        The number of columns to send to a joblib job. Must be an integer
+        greater than or equal to 2. This allows the user to optimize
+        CPU utilization for their particular circumstance. Long, thin
+        datasets should use fewer columns, and wide, flat datasets should
+        use more columns. Bear in mind that the columns sent to joblib
+        jobs are deep copies of the original data, and larger job sizes
+        increase RAM usage. Note that joblib is only engaged in scanning
+        the original data when the number of columns in the data is at
         least 2*job_size. Also, joblib is only engaged in scanning the
         polynomial expansion if the number of columns in it is at least
-        2*job_size. For example, if job_size is 10, data with 20 or more
-        columns will be processed with joblib, data with 19 or fewer
-        columns will be processed linearly.
-
+        2*job_size. For example, if `job_size` is 10, data with 20 or
+        more columns will be processed with joblib, data with 19 or
+        fewer columns will be processed linearly.
 
     Attributes
     ----------
-    n_features_in_:
-        int - number of features in the fitted data, i.e., number of
+    n_features_in_ : int
+        The number of features in the fitted data, i.e., number of
         features before expansion.
-
-    feature_names_in_:
-        NDArray[object] - The names of the features as seen during
-        fitting. Only accessible if X is passed to :meth: `partial_fit`
-        or :meth: `fit` in a container that has a header.
-
-    poly_combinations_:
-        tuple[tuple[int, ...], ...] - The polynomial column combinations
-        from X that are in the polynomial expansion part of the final
-        output. An example might be ((0,0), (0,1), ...), where each tuple
-        holds the column indices from X that are multiplied to produce
-        a feature in the polynomial expansion. This matches one-to-one
-        with the created features, and similarly does not have any
-        combinations that are excluded from the polynomial expansion for
-        being duplicate or constant.
-
-    poly_constants_:
-        dict[tuple[int, ...], Any] - A dictionary whose keys are tuples
-        of indices in the original data that produced a column of
-        constants in the polynomial expansion. The dictionary values are
-        the constant values in those columns. For example, if an
-        expansion has a constant column that was produced by multiplying
-        the second and third columns in X (index positions 1 and 2,
-        respectively) and the constant value is 0, then constant_columns_
-        will be {(1,2): 0}. If there are no constant columns, then
-        constant_columns_ is an empty dictionary. These are always
-        excluded from the polynomial expansion.
-
-    poly_duplicates_:
-        list[list[tuple[int, ...]]] - a list of the groups of identical
-        polynomial features, indicated by tuples of their zero-based
-        column index positions in the originally fit data. Columns from
-        the original data itself can be in a group of duplicates, along
-        with any duplicates from the polynomial expansion. For example,
-        poly_duplicates_ for some dataset might look like:
-        [[(1,), (2,3), (2,4)], [(5,6), (5,7), (6,7)]]
-
-    dropped_poly_duplicates_:
-        dict[tuple[int, ...], tuple[int, ...]] - A dictionary whose keys
-        are the tuples that are removed from the polynomial expansion
-        because they produced a duplicate of another column. The values
-        of the dictionary are the tuples of indices of the respective
-        duplicate that was kept.
-
-    kept_poly_duplicates_:
-        dict[tuple[int, ...], list[tuple[int, ...]]] - a dictionary whose
-        keys are tuples of the indices of the columns of X that produced
-        a polynomial column that was kept out of the sets of duplicates.
-        The dictionary values are lists of the tuples of indices that
-        created polynomial columns that were duplicate of the column
-        indicated by the dictionary key, but were removed from the
-        polynomial expansion.
-
+    feature_names_in_ : NDArray[object]
+        The names of the features as seen during fitting. Only accessible
+        if X is passed to :meth:`partial_fit` or :meth:`fit` in a
+        container that has a header.
+    poly_combinations_
+    poly_constants_
+    poly_duplicates_
+    dropped_poly_duplicates_
+    kept_poly_duplicates_
 
     Notes
     -----
@@ -479,7 +420,7 @@ class SlimPolyFeatures(
     (learning) expansion and during transform columns are extracted from
     the data as a numpy array with float64 dtype (see below for more
     detail about how scipy sparse is handled.) After the conversion to
-    numpy array and prior to calculating the product of the columns in
+    numpy array and prior to calculating the products of the columns in
     the extraction, SPF identifies any nan-like representations in the
     extracted numpy array and standardizes all of them to numpy.nan.
     The user is advised that whatever is used to indicate 'not-a-number'
@@ -504,6 +445,43 @@ class SlimPolyFeatures(
     This a compromise that causes some memory expansion but allows
     for efficient handling of polynomial calculations.
 
+    **Type Aliases**
+
+    XContainer:
+        Union[
+            numpy.ndarray,
+            pandas.core.frame.DataFrame,
+            polars.dataframe.DataFrame,
+            ss._csr.csr_matrix, ss._csc.csc_matrix, ss._coo.coo_matrix,
+            ss._dia.dia_matrix, ss._lil.lil_matrix, ss._dok.dok_matrix,
+            ss._bsr.bsr_matrix, ss._csr.csr_array, ss._csc.csc_array,
+            ss._coo.coo_array, ss._dia.dia_array, ss._lil.lil_array,
+            ss._dok.dok_array, ss._bsr.bsr_array
+        ]
+
+    FeatureNameCombinerType:
+        Union[
+            Callable[[Sequence[str], tuple[int, ...]], str],
+            Literal['as_feature_names', 'as_indices']
+        ]
+
+    CombinationsType:
+        tuple[tuple[int, ...], ...]
+
+    PolyDuplicatesType:
+        list[list[tuple[int, ...]]]
+
+    KeptPolyDuplicatesType:
+        dict[tuple[int, ...], list[tuple[int, ...]]]
+
+    DroppedPolyDuplicatesType:
+        dict[tuple[int, ...], tuple[int, ...]]
+
+    PolyConstantsType:
+        dict[tuple[int, ...], Any]
+
+    FeatureNamesInType:
+        numpy.ndarray[object]
 
     See Also
     --------
@@ -513,7 +491,6 @@ class SlimPolyFeatures(
     scipy.sparse
     numpy.allclose
     numpy.array_equal
-
 
     Examples
     --------
@@ -557,17 +534,13 @@ class SlimPolyFeatures(
         scan_X: Optional[bool]=True,
         keep: Optional[Literal['first', 'last', 'random']]='first',
         sparse_output: Optional[bool]=True,
-        feature_name_combiner: Optional[Union[
-            Callable[[Sequence[str], tuple[int, ...]], str],
-            Literal['as_feature_names', 'as_indices']
-        ]]='as_indices',
+        feature_name_combiner: FeatureNameCombinerType='as_indices',
         equal_nan: Optional[bool]=True,
         rtol: Optional[numbers.Real]=1e-5,
         atol: Optional[numbers.Real]=1e-8,
         n_jobs: Optional[Union[numbers.Integral, None]]=None,
         job_size: Optional[numbers.Integral]=50
     ) -> None:
-
         """Initialize the SlimPolyFeatures instance."""
 
         self.degree = degree
@@ -589,12 +562,17 @@ class SlimPolyFeatures(
 
 
     def _check_X_constants_and_dupls(self) -> None:
+        """Check X for constant and duplicate columns.
 
-        """
-        When :param: `scan_X` is True, SPF uses pybear InterceptManager
-        and pybear ColumnDeduplicateTransformer to scan X for constants
+        When `scan_X` is True, SPF uses pybear `InterceptManager` and
+        pybear `ColumnDeduplicateTransformer` to scan X for constants
         and duplicates. If any are found, this method will raise an
         exception.
+
+        Returns
+        -------
+        None
+
         """
 
         if self.scan_X and hasattr(self, '_IM') and hasattr(self, '_CDT'):
@@ -607,10 +585,15 @@ class SlimPolyFeatures(
 
 
     def _attr_access_warning(self) -> str:
-
-        """
-        Warning message for when duplicates and/or constants are found
+        """Warning message for when duplicates and/or constants are found
         in X.
+
+        Returns
+        -------
+        warning_message : str
+            Warning message for when duplicates and/or constants are
+            found in X.
+
         """
 
         return (
@@ -626,16 +609,20 @@ class SlimPolyFeatures(
     # properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
     @property
     def poly_combinations_(self) -> Union[CombinationsType, None]:
+        """Get the `poly_combinations_` attribute.
 
-        """
-        See the main SPF docs for a full description.
-
+        The polynomial column combinations from X that are in the
+        polynomial expansion part of the final output. An example might
+        be ((0,0), (0,1), ...), where each tuple holds the column indices
+        from X that are multiplied to produce a feature in the polynomial
+        expansion. This matches one-to-one with the created features,
+        and similarly does not have any combinations that are excluded
+        from the polynomial expansion for being duplicate or constant.
 
         Returns
         -------
-        -
-            poly_combinations_: Union[CombinationsType, None] - The
-            polynomial column combinations from X that are in the
+        poly_combinations_ : Union[CombinationsType, None]
+            The polynomial column combinations from X that are in the
             polynomial expansion part of the final output.
 
         """
@@ -666,15 +653,20 @@ class SlimPolyFeatures(
         # have constants in it (if applicable) and must be used for all
         # other internal operations.
 
-        """
-        See the main SPF docs for a full description.
+        """Get the `poly_duplicates_` attribute.
 
+        A list of the groups of identical polynomial features, indicated
+        by tuples of their zero-based column index positions in the
+        originally fit data. Columns from the original data itself can
+        be in a group of duplicates, along with any duplicates from the
+        polynomial expansion. For example, `poly_duplicates_` for some
+        dataset might look like:
+        [[(1,), (2,3), (2,4)], [(5,6), (5,7), (6,7)]]
 
         Returns
         -------
-        -
-            poly_duplicates_: Union[PolyDuplicatesType, None] - the
-            groups of identical polynomial features.
+        poly_duplicates_ : Union[PolyDuplicatesType, None]
+            The groups of identical polynomial features.
 
         """
 
@@ -695,18 +687,21 @@ class SlimPolyFeatures(
 
     @property
     def kept_poly_duplicates_(self) -> Union[KeptPolyDuplicatesType, None]:
+        """Get the `kept_poly_duplicates_` attribute.
 
-        """
-        See the main SPF docs for a full description.
-
+        A dictionary whose keys are tuples of the indices of the columns
+        of X that produced a polynomial column that was kept out of the
+        sets of duplicates. The dictionary values are lists of the tuples
+        of indices that created polynomial columns that were duplicate
+        of the column indicated by the dictionary key, but were removed
+        from the polynomial expansion.
 
         Returns
         -------
-        -
-            kept_poly_duplicates_: Union[KeptPolyDuplicatesType, None] -
-            keys: the poly combinations that were kept out of the groups
-            of duplicates; values: lists of the respective duplicate
-            combos that were removed.
+        kept_poly_duplicates_ : Union[KeptPolyDuplicatesType, None]
+            A dictionary whose keys are the columns that were kept out
+            of the sets of duplicates and the values are lists of the
+            columns that were duplicates of the respective key.
 
         """
 
@@ -727,18 +722,18 @@ class SlimPolyFeatures(
 
     @property
     def dropped_poly_duplicates_(self) -> Union[DroppedPolyDuplicatesType, None]:
+        """Get the `dropped_poly_duplicates_` attribute.
 
-        """
-        See the main SPF docs for a full description.
-
+        A dictionary whose keys are the tuples that are removed from the
+        polynomial expansion because they produced a duplicate of another
+        column. The values of the dictionary are the tuples of indices
+        of the respective duplicate that was kept.
 
         Returns
         -------
-        -
-            dropped_poly_duplicates_: Union[DroppedPolyDuplicatesType,
-            None] - keys: the poly combinations that were dropped from
-            the expansion; values: the respective duplicate that was
-            kept.
+        dropped_poly_duplicates_ : Union[DroppedPolyDuplicatesType, None]
+            keys: the poly combinations that were dropped from the
+            expansion; values: the respective duplicate that was kept.
 
         """
 
@@ -761,18 +756,25 @@ class SlimPolyFeatures(
 
     @property
     def poly_constants_(self) -> Union[PolyConstantsType, None]:
+        """Get the `poly_constants_` attribute.
 
-        """
-        See the main SPF docs for a full description.
-
+        A dictionary whose keys are tuples of indices in the original
+        data that produced a column of constants in the polynomial
+        expansion. The dictionary values are the constant values in
+        those columns. For example, if an expansion has a constant
+        column that was produced by multiplying the second and third
+        columns in X (index positions 1 and 2, respectively) and the
+        constant value is 0, then `constant_columns_` will be {(1,2): 0}.
+        If there are no constant columns, then `constant_columns_` is an
+        empty dictionary. These are always excluded from the polynomial
+        expansion.
 
         Returns
         -------
-        -
-            poly_constants_: Union[PolyConstantsType, None] - keys: the
-            poly combinations that produced a column of constants;
-            values: the constant value for that poly feature. These are
-            always omitted from the final expansion.
+        poly_constants_: Union[PolyConstantsType, None]
+            keys: the poly combinations that produced a column of
+            constants; values: the constant value for that poly feature.
+            These are always omitted from the final expansion.
 
         """
 
@@ -789,13 +791,18 @@ class SlimPolyFeatures(
 
 
     def reset(self) -> Self:
+        """Reset the internal data-dependent state of SPF.
 
-        """
-        Reset the internal data-dependent state of SPF. __init__
-        parameters are not changed. reset is part of the external API
-        because setting most params after a partial fit is blocked, and
-        this allows for re-initializing the instance without forcing the
-        user to create a new instance.
+        __init__ parameters are not changed. reset is part of the
+        external API because setting most params after a partial fit
+        is  blocked, and this allows for re-initializing the instance
+        without forcing the user to create a new instance.
+
+        Returns
+        -------
+        self : object
+            The `SlimPolyFeatures` instance.
+
         """
 
         if hasattr(self, "_poly_duplicates"):
@@ -835,44 +842,39 @@ class SlimPolyFeatures(
         self,
         input_features:Optional[Union[Sequence[str], None]]=None
     ) -> FeatureNamesInType:
+        """Get the feature names for the output of `transform`.
 
-        """
-        Get the feature names for the output of :meth: `transform`. Use
-        'input_features' and SPF :param: `feature_name_combiner` to build
-        the feature names for the polynomial component of the transformed
+        Use `input_features` and `feature_name_combiner` to build the
+        feature names for the polynomial component of the transformed
         data.
-
 
         Parameters
         ----------
-        input_features:
-            Optional[Union[Sequence[str], None]], default=None -
+        input_features : Optional[Union[Sequence[str], None]], default=None
             Externally provided feature names for the fitted data, not
             the transformed data.
 
-            If input_features is None:
+            If `input_features` is None:
 
-            - if feature_names_in_ is defined, then feature_names_in_ is
-                used as the input features.
+            - if `feature_names_in_` is defined, then `feature_names_in_`
+                is used as the input features.
 
-            - if feature_names_in_ is not defined, then the following
+            - if `feature_names_in_` is not defined, then the following
                 input feature names are generated:
                 ["x0", "x1", ..., "x(n_features_in_ - 1)"].
 
-            If input_features is not None:
+            If `input_features` is not None:
 
-            - if feature_names_in_ is not defined, then input_features
+            - if `feature_names_in_` is not defined, then `input_features`
                 is used as the input features.
 
-            - if feature_names_in_ is defined, then input_features must
-                exactly match the features in feature_names_in_.
-
+            - if `feature_names_in_` is defined, then `input_features`
+                must exactly match the features in `feature_names_in_`.
 
         Returns
         -------
-        -
-            feature_names_out: FeatureNamesInType - The feature names of
-            the transformed data.
+        feature_names_out : FeatureNamesInType
+            The feature names of the transformed data.
 
         """
 
@@ -930,28 +932,22 @@ class SlimPolyFeatures(
     def partial_fit(
         self,
         X: XContainer,
-        y: Optional[Union[Any, None]]=None
+        y: Optional[Any]=None
     ) -> Self:
-
-        """
-        Incrementally train the SPF transformer instance on one or more
-        batches of data.
-
+        """Incrementally train the SPF transformer instance on one or
+        more batches of data.
 
         Parameters
         ----------
-        X:
-            array-like of shape (n_samples, n_features) - Required. The
-            data to undergo polynomial expansion.
-        y:
-            Optional[Union[Any, None]], default=None - Ignored. The
-            target for the data.
-
+        X : XContainer of shape (n_samples, n_features)
+            Required. The data to undergo polynomial expansion.
+        y : Optional[Any], default=None
+            Ignored. The target for the data.
 
         Returns
         -------
-        -
-            self - the fitted SlimPolyFeatures instance.
+        self : object
+            The fitted `SlimPolyFeatures` instance.
 
         """
 
@@ -1244,27 +1240,21 @@ class SlimPolyFeatures(
     def fit(
         self,
         X: XContainer,
-        y: Optional[Union[Any, None]]=None
+        y: Optional[Any]=None
     ) -> Self:
-
-        """
-        Perform a single fitting on a dataset.
-
+        """Perform a single fitting on a dataset.
 
         Parameters
         ----------
-        X:
-            array-like of shape (n_samples, n_features) - Required. The
-            data to undergo polynomial expansion.
-        y:
-            Optional[Union[Any, None]], default=None - Ignored. The
-            target for the data.
-
+        X : XContainer of shape (n_samples, n_features)
+            Required. The data to undergo polynomial expansion.
+        y : Optional[Any], default=None
+            Ignored. The target for the data.
 
         Returns
         -------
-        -
-            self - the fitted SlimPolyFeatures instance.
+        self : object
+            The fitted `SlimPolyFeatures` instance.
 
         """
 
@@ -1279,13 +1269,25 @@ class SlimPolyFeatures(
 
     def score(
         self,
-        X: XContainer,
-        y:Optional[Union[Any, None]]=None
+        X: Any,
+        y:Optional[Any]=None
     ) -> None:
+        """Dummy method to spoof dask Incremental and ParallelPostFit
+        wrappers.
 
-        """
-        Dummy method to spoof dask Incremental and ParallelPostFit
-        wrappers. Verified must be here for dask wrappers.
+        Verified must be here for dask wrappers.
+
+        Parameters
+        ----------
+        X : Any
+            The data. Ignored.
+        y : Optional[Any], default = None
+            The target for the data. Ignored.
+
+        Returns
+        -------
+        None
+
         """
 
         check_is_fitted(self)
@@ -1297,39 +1299,31 @@ class SlimPolyFeatures(
 
 
     def set_params(self, **params) -> Self:
-
-        """
-        Set the parameters of the SPF instance.
+        """Set the parameters of the SPF instance.
 
         Pass the exact parameter name and its value as a keyword argument
         to the `set_params` method call. Or use ** dictionary unpacking
         on a dictionary keyed with exact parameter names and the new
         parameter values as the dictionary values. Valid parameter keys
-        can be listed with :meth: `get_params`. Note that you can
-        directly set the parameters of MinCountTransformer.
+        can be listed with :meth:`get_params`. Note that you can directly
+        set the parameters of `MinCountTransformer`.
 
         Once SPF is fitted, only the following parameters can be changed
-        via SPF set_params:
-        1) :param: `sparse_output`,
-        2) :param: `keep`,
-        3) :param: `feature_name_combiner`
-        4) :param: `n_jobs`, and
-        5) :param: `job_size`
-        All other parameters are blocked. To use different parameters
-        without creating a new instance of SPF, call SPF :meth: `reset`
-        on the instance, otherwise create a new SPF instance.
-
+        via `set_params`: `sparse_output`, `keep`,  `n_jobs`, `job_size`,
+        and `feature_name_combiner`. All other parameters are blocked.
+        To use different parameters without creating a new instance of
+        SPF, call SPF :meth:`reset` on the instance, otherwise create a
+        new SPF instance.
 
         Parameters
         ----------
-        **params:
-            dict[str, Any] - SlimPolyFeatures parameters.
-
+        **params : dict[str, Any]
+            `SlimPolyFeatures` parameters.
 
         Returns
         -------
-        -
-            self - the SlimPolyFeatures instance.
+        self : object
+            The `SlimPolyFeatures` instance.
 
         """
 
@@ -1392,28 +1386,23 @@ class SlimPolyFeatures(
         self,
         X: XContainer
     ) -> XContainer:
+        """Apply the expansion footprint that was learned during fitting
+        to the given data.
 
-        """
-        Apply the expansion footprint that was learned during fitting to
-        the given data. pybear strongly urges that only data that was
-        seen during fitting be passed here.
-
+        pybear strongly urges that only data that was seen during fitting
+        be passed here.
 
         Parameters
         ----------
-        X:
-            array-like of shape (n_samples, n_features) - The data to
-            undergo polynomial expansion.
+        X : XContainer of shape (n_samples, n_features)
+            The data to undergo polynomial expansion.
 
-
-        Return
+        Returns
         -------
-        -
-            X_tr: array-like of shape (n_samples, n_transformed_features)
-            - the polynomial feature expansion for X.
+        X_tr : XContainer of shape (n_samples, n_transformed_features)
+            The polynomial feature expansion for `X`.
 
         """
-
 
         check_is_fitted(self)
 

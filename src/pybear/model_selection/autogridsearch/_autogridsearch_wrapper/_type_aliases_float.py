@@ -6,8 +6,15 @@
 
 
 
-from typing import Literal, Sequence, Tuple
-from typing_extensions import TypeAlias, Union
+from typing import (
+    Literal,
+    Sequence,
+    Tuple
+)
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 
 import numbers
 

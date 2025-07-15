@@ -30,61 +30,80 @@ def _cv_results_builder(
     _scorer: ScorerWIPType,
     _return_train_score: bool
 ) -> tuple[CVResultsType, NDArrayHolderType]:
+    """Build the `cv_results_` attribute.
 
-    """
-    cv_results_ is a python dictionary that represents the columns of
+    `cv_results_` is a Python dictionary that represents the columns of
     a data table that contains times, scores, and other pertinent
     information gathered during the grid search trials. The dictionary
     keys are column headers that describe the contents of the column and
     the dictionary values are numpy masked arrays. The dictionary format
     can be quickly converted into a pandas DataFrame.
 
-    Consider the following param_grids passed to GSTCV for an SVC
+    Consider the following `param_grid` passed to `GSTCV` for an SVC
     classifier:
+
     [
         {'kernel': ['poly'], 'degree': [2,3], 'thresholds': np.linspace(0,1,21)},
+
         {'kernel': ['rbf'], 'gamma': [0.1, 0.2], 'thresholds': np.linspace(0,1,21)}
     ],
+
     using 2 folds for cv.
 
-    An example of GSTCV cv_results_ output might look like:
+    An example of `GSTCV` `cv_results_` output might look like:
 
     {
         'mean_fit_time'      : [0.73, 0.63, 0.43, 0.49],
+
         'std_fit_time'       : [0.01, 0.02, 0.01, 0.01],
+
         'mean_score_time'    : [0.007, 0.06, 0.04, 0.04],
+
         'std_score_time'     : [0.001, 0.002, 0.003, 0.005]
+
         'param_kernel'       : masked_array(
                                     data = ['poly', 'poly', 'rbf', 'rbf'],
                                     mask = [False False False False]
                                ),
+
         'param_gamma'        : masked_array(
                                     data = [np.nan, np.nan, 0.1, 0.2],
                                     mask = [ True  True False False]
                                ),
+
         'param_degree'       : masked_array(
                                     data = [2.0, 3.0, np.nan, np.nan],
                                     mask = [False False  True  True]
                                ),
+
         'params'             : [{'kernel': 'poly', 'degree': 2}, ...],
+
         'best_threshold'     : [0.45, 0.55, 0.50, 0,50],
+
         'split0_test_score'  : [0.8, 0.7, 0.8, 0.9],
+
         'split1_test_score'  : [0.82, 0.5, 0.7, 0.78],
+
         'mean_test_score'    : [0.81, 0.60, 0.75, 0.84],
+
         'std_test_score'     : [0.02, 0.01, 0.03, 0.03],
+
         'rank_test_score'    : [2, 4, 3, 1],
+
         'split0_train_score' : [0.8, 0.7, 0.8, 0.9],
+
         'split1_train_score' : [0.82, 0.7, 0.82, 0.5],
+
         'mean_train_score'   : [0.81, 0.7, 0.81, 0.7],
+
         'std_train_score'    : [0.03, 0.04, 0.03, 0.03]
     }
 
     *** ** * ** *** ** * ** *** ** * ** *** ** * ** *** ** * ** *** ** *
-    *** ** * ** *** ** * ** *** ** * ** *** ** * ** *** ** * ** *** ** *
 
     For construction, in order:
 
-    Format of sklearn cv_results has:
+    Format of sklearn `cv_results_` has:
         numerical columns are np.ma.zeros, masked=True with mask fill = np.nan
         other columns are np.ma.empty, masked=True with mask fill = np.nan
 
@@ -98,6 +117,7 @@ def _cv_results_builder(
     are all in seconds.
 
     ** **** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
     THEN ALWAYS 'param_{param}' (UNIQUE PARAMETERS IN ALL PARAM GRIDS
     in param_grid)
     for idx, _grid in enumerate(param_grid):
@@ -112,14 +132,16 @@ def _cv_results_builder(
     'param_degree': []
 
     ** **** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
     THEN ALWAYS params, WHICH FILLS WITH DICTS FOR EVERY POSSIBLE
-    PERMUTATION FOR THE PARAM GRIDS IN param_grid.
-    Note that cv_results_ dict key 'params' stores a vector of dictionaries
+    PERMUTATION FOR THE PARAM GRIDS IN `param_grid`.
+    Note that `cv_results_` dict key 'params' stores a vector of dictionaries
     that are the parameter settings for every search permutation.
     PASS THESE DICTS TO set_params FOR THE ESTIMATOR.
 
     In our example:
     'params': [{'kernel': 'poly', 'degree': 2}, ...]
+
     ** **** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
     #THEN ALWAYS
@@ -151,8 +173,9 @@ def _cv_results_builder(
         f'rank_test_accuracy': [],
 
         ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
         # CONDITIONALLY:
-        if return_train_score is True:
+        if `return_train_score` is True:
 
             for split in range(cv):
                 f'split{split}_train_{suffix}'
@@ -171,44 +194,44 @@ def _cv_results_builder(
             e.g.:
             f'mean_train_accuracy': []
             f'std_train_accuracy': []
-        ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
-    }
 
+        ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
     Parameters
     ----------
-    _param_grid:
-        ParamGridsWIPType - list of dictionaries, each dictionary being
-        keyed with parameter names and the values are iterables of their
-        respective values to be searched.
-    _n_splits:
-        int - number of folds (splits) to use for cross validation
-    _scorer:
-        ScorerWIPType - a dictionary keyed by scorer name with the
-        scorer callables as values. Note that these callables are
-        sklearn metrics and not sklearn make_scorer.
-    _return_train_score:
-        bool - when True, calculate the scores for the train folds in
-        addition to the test folds.
-
+    _param_grid : ParamGridsWIPType
+        List of dictionaries, each dictionary being keyed with parameter
+        names and the values are iterables of their respective values to
+        be searched.
+    _n_splits : int
+        The number of folds (splits) to use for cross validation.
+    _scorer : ScorerWIPType
+        A dictionary keyed by scorer name with the scorer callables as
+        values. Note that these callables are sklearn metrics and not
+        sklearn 'make_scorer'.
+    _return_train_score : bool
+        When True, calculate the scores for the train folds in addition
+        to the test folds.
 
     Returns
     -------
-    -
-        cv_results_: CVResults - a cv_results dictionary, empty other
-        than the individual 'param' columns and the 'params' column,
-        which are pre-filled with the hyperparameter values to be run
-        on the corresponding search permutation.
+    __ : tuple[CVResultsType, NDArrayHolderType]
+        cv_results_ : CVResultsType
+            A cv_results dictionary, empty other than the individual
+            'param' columns and the 'params' column, which are pre-filled
+            with the hyperparameter values to be run on the corresponding
+            search permutation.
 
-        PARAM_GRID_KEY: NDArrayHolderType - a vector of integers with
-        length equal to the number of trials in the grid search, i.e.,
-        the length of the masked arrays in cv_results. Indicates the
-        index of the param grid in 'param_grid' that the search trial
-        is associated with.
+        PARAM_GRID_KEY : NDArrayHolderType
+            A vector of integers with length equal to the number of
+            trials in the grid search, i.e., the length of the masked
+            arrays in `cv_results_`. Indicates the index of the param
+            grid in `param_grid` that the search trial is associated
+            with.
 
     """
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * *
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     _val_param_grid(_param_grid, _must_be_list_dict=True)
 
@@ -221,10 +244,10 @@ def _cv_results_builder(
 
     if not isinstance(_return_train_score, bool):
         raise TypeError("'return_train_score' must be bool")
-    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    # BUILD VECTOR OF COLUMN NAMES ** ** ** ** ** ** ** ** ** ** ** ** **
+    # BUILD VECTOR OF COLUMN NAMES ** ** ** ** ** ** ** ** ** ** ** **
 
     COLUMNS: list[str] = []
     DTYPES: list[Type[Union[np.float64, object]]] = []

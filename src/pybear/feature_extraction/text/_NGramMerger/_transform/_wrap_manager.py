@@ -69,7 +69,7 @@ def _wrap_manager(
 
     Returns
     -------
-    tuple[list[str], list[str]]
+    lines : tuple[list[str], list[str]]
         The current line and the line below it with any wrap-region
         ngrams joined into a contiguous string in the current line.
 

@@ -13,24 +13,20 @@ import numbers
 
 
 def _validate_grids(_GRIDS: GridsType) -> None:
+    """Validate `_GRIDS` is dict[int, dict[str, GridType]].
 
-    """
-    Validate _GRIDS is dict[int, dict[str, GridType]]. _GRIDS is the
-    object in the main autogridsearch_wrapper and get_next_param_grid()
-    modules that holds all the search grids that have been run and the
-    grid that is to be run.
-
+    `_GRIDS` is the object in the main :func:`autogridsearch_wrapper`
+    and :func:`get_next_param_grid` modules that holds all the search
+    grids that have been run and the grid that is to be run.
 
     Parameters
     ----------
-    _GRIDS:
-        GridsType - search grids for completed GridSearchCV passes
-
+    _GRIDS : GridsType
+        Search grids for completed GridSearchCV passes.
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 

@@ -48,16 +48,16 @@ def _make_instructions(
     _feature_names_in: Union[FeatureNamesInType, None],
     _total_counts_by_column: TotalCountsByColumnType
 ) -> InstructionsType:
-
     """
-    Convert compiled uniques and frequencies in _total_counts_by_column
+    Convert compiled uniques and frequencies in `_total_counts_by_column`
     that were found by MCT during fit into instructions for transforming
     data based on given parameters.
 
-    _delete_instr is a dictionary that is keyed by column index and the
-    values are lists. Within each list is information about operations
-    to perform with respect to the values in the corresponding column.
-    The following items may be in the list:
+    `_delete_instr` is a dictionary that is keyed by column index
+    and the values are lists. Within each list is information about
+    operations to perform with respect to the values in the corresponding
+    column. The following items may be in the list:
+
     -- 'INACTIVE' - Ignore the column and carry it through for all other
         operations
     -- Individual values (in raw datatype format, not converted to
@@ -73,44 +73,46 @@ def _make_instructions(
         to take place while the column is still in the data, then delete
         the column from the data along axis 1.
 
-    _total_counts_by_column is a dictionary that is keyed by column index
-    and the values are dictionaries. Each inner dictionary is keyed by
-    the uniques in that column and the values are the respective counts
-    in that column. 'nan' are documented in these dictionaries, which
-    complicates assessing if columns have 1, 2, or 3+ unique values. If
-    _ignore_nan, nans and their counts are removed from the dictionaries
-    and set aside while the remaining non-nan values are processed by
-    _make_instructions.
+    `_total_counts_by_column` is a dictionary that is keyed by column
+    index and the values are dictionaries. Each inner dictionary is
+    keyed by the uniques in that column and the values are the respective
+    counts in that column. 'nan' are documented in these dictionaries,
+    which complicates assessing if columns have 1, 2, or 3+ unique
+    values. If `_ignore_nan`, nans and their counts are removed from the
+    dictionaries and set aside while the remaining non-nan values are
+    processed by `_make_instructions`.
 
     Instructions are made based on the counts found in all the training
-    data seen up to the point of calling _make_instructions. Counts can
-    be accreted incrementally, as with partial_fit(), and then finally
-    _make_instructions is run to create instructions based on the total
-    counts. Because the instructions are agnostic to the origins of the
-    data they were created from, the instructions can be applied to any
-    data that matches the schema of the training data. This allows for
-    transformation of unseen data.
+    data seen up to the point of calling `_make_instructions`. Counts
+    can be accreted incrementally, as with `partial_fit`, and then
+    finally `_make_instructions` is run to create instructions based on
+    the total counts. Because the instructions are agnostic to the
+    origins of the data they were created from, the instructions can be
+    applied to any data that matches the schema of the training data.
+    This allows for transformation of unseen data.
 
     A) if col_idx is inactive, skip.
     column is 'INACTIVE' if:
-       - col_idx in _ignore_columns
+       - col_idx in `_ignore_columns`
        - the minimum frequency threshold for the column is 1
        - _total_counts_by_column[col_idx] is empty
-       - _ignore_float_columns and is float column
-       - _ignore_non_binary_integer_columns, is 'int', and num unqs >= 3
+       - `_ignore_float_columns` and is float column
+       - `_ignore_non_binary_integer_columns`, is 'int', and num unqs >= 3
 
     B) MANAGE nan
-        Get nan information if nan is in _total_counts_by_column[col_idx]
+    Get nan information if nan is in _total_counts_by_column[col_idx]
+
         1) Create holder objects to hold the nan value and the count.
-        - if ignore_nan, holder objects hold False
-        - if not ignoring nan:
-          -- 'nan' not in column, holder objects hold False
-          -- 'nan' in column, holder objects hold the nan value and ct
-        2) Temporarily remove nan from _total_counts_by_column, if
+            - if ignoring nan, holder objects hold False
+            - if not ignoring nan:
+              -- 'nan' not in column, holder objects hold False
+              -- 'nan' in column, holder objects hold the nan value and ct
+
+        2) Temporarily remove nan from `_total_counts_by_column`, if
         ignoring or not
 
     C) Assess the remaining values and counts and create instructions.
-    Now that nan is out of _total_counts_by_column, look at the number
+    Now that nan is out of `_total_counts_by_column`, look at the number
     of items in uniques and direct based on if is 1, 2, or 3+, and if
     handling as boolean.
 
@@ -121,88 +123,72 @@ def _make_instructions(
 
     See the individual modules for detailed explanation of the logic.
 
-
     Parameters
     ----------
-    _count_threshold:
-        CountThresholdType - The threshold that determines whether a
-        value is removed from the data (frequency is below threshold)
-        or retained (frequency is greater than or equal to threshold.)
-
-    _ignore_float_columns:
-        bool - If True, values and frequencies within float features are
-        ignored and instructions are not made for this feature. If False,
-        the feature's unique values are subject to count threshold rules
+    _count_threshold : CountThresholdType
+        The threshold that determines whether a value is removed from
+        the data (frequency is below threshold) or retained (frequency
+        is greater than or equal to threshold.)
+    _ignore_float_columns : bool
+        If True, values and frequencies within float features are ignored
+        and instructions are not made for this feature. If False, the
+        feature's unique values are subject to count threshold rules
         and possible removal.
-
-    _ignore_non_binary_integer_columns:
-        bool - If True, values and frequencies within non-binary integer
+    _ignore_non_binary_integer_columns : bool
+        If True, values and frequencies within non-binary integer
         features are ignored and instructions are not made for this
         feature. If False, the feature's unique values are subject to
         count threshold rules and possible removal.
-
-    _ignore_columns:
-        InternalIgnoreColumnsType - A one-dimensional vector of integer
-        index positions. Excludes the indicated features when making
-        instructions.
-
-    _ignore_nan:
-        bool - If True, nan is ignored in all features and passes through
-        the transform operation; it can only be removed collaterally by
+    _ignore_columns : InternalIgnoreColumnsType
+        A one-dimensional vector of integer index positions. Excludes
+        the indicated features when making instructions.
+    _ignore_nan : bool
+        If True, nan is ignored in all features and passes through the
+        transform operation; it can only be removed collaterally by
         removal of examples for causes dictated by other features. If
         False, frequency for nan-like values are calculated and assessed
-        against :param: 'count_threshold'.
+        against `count_threshold`.
+    _handle_as_bool : InternalHandleAsBoolType
+        A one-dimensional vector of integer index positions. For the
+        indicated features, non-zero values within the feature are
+        treated as if they are the same value.
+    _delete_axis_0 : bool
+        Only applies to binary integer features such as those generated
+        by OneHotEncoder or features indicated in `handle_as_bool`.
+        Under normal operation of MCT for datatypes other than binary
+        integer, when the frequency of one of the values in the feature
+        is below `count_threshold`, the respective examples are removed
+        (the entire row is deleted from the data). However, MCT does not
+        handle binary integers like this in that the rows with deficient
+        frequency are not removed, only the entire column is removed.
+        `delete_axis_0` overrides this behavior. When `delete_axis_0`
+        is False under the above conditions, MCT does the default
+        behavior for binary integers, the feature is removed without
+        deleting examples, preserving the data in the other features. If
+        `delete_axis_0` is True, however, the default behavior for other
+        datatypes is used and the rows associated with the minority
+        value are deleted from the data and the feature is then also
+        removed for having only one value.
+    _original_dtypes : OriginalDtypesType
+        The original datatypes for each column in the dataset as
+        determined by MCT. Values can be 'bin_int', 'int', 'float', or
+        'obj'.
+    _n_features_in : int
+        The number of features (columns) in the dataset.
+    _feature_names_in : Union[FeatureNamesInType, None]
+        If the data container passed to the first fit had features names
+        this is an ndarray of those feature names. Otherwise, this is
+        None.
+    _total_counts_by_column : dict[int, dict[DataType, int]]
+        A zero-indexed dictionary that holds dictionaries containing the
+        counts of the uniques in each column.
 
-    _handle_as_bool:
-        InternalHandleAsBoolType - A one-dimensional vector of integer
-        index positions. For the indicated features, non-zero values
-        within the feature are treated as if they are the same value.
-
-    _delete_axis_0:
-        bool - Only applies to binary integer features such as those
-        generated by OneHotEncoder or features indicated in :param:
-        handle_as_bool. Under normal operation of MCT for datatypes
-        other than binary integer, when the frequency of one of the
-        values in the feature is below :param: count_threshold, the
-        respective examples are removed (the entire row is deleted from
-        the data). However, MCT does not handle binary integers like this
-        in that the rows with deficient frequency are not removed, only
-        the entire column is removed. :param: delete_axis_0 overrides
-        this behavior. When :param: delete_axis_0 is False under the
-        above conditions, MCT does the default behavior for binary
-        integers, the feature is removed without deleting examples,
-        preserving the data in the other features. If delete_axis_0 is
-        True, however, the default behavior for other datatypes is used
-        and the rows associated with the minority value are deleted
-        from the data and the feature is then also removed for having
-        only one value.
-
-    _original_dtypes:
-        OriginalDtypesType - The original datatypes for each column in
-        the dataset as determined by MCT. Values can be 'bin_int', 'int',
-        'float', or 'obj'.
-
-    _n_features_in:
-        int - the number of features (columns) in the dataset.
-
-    _feature_names_in:
-        Union[FeatureNamesInType, None] - if the data container passed
-        to the first fit had features names this is an ndarray of those
-        feature names. Otherwise, this is None.
-
-    _total_counts_by_column:
-        dict[int, dict[DataType, int]] - a zero-indexed dictionary that
-        holds dictionaries containing the counts of the uniques in each
-        column.
-
-
-    Return
-    ------
-    -
-        _delete_instr: InstructionsType - a dictionary that is keyed by
-        column index and the values are lists. Within the lists is
-        information about operations to perform with respect to values
-        in each column.
+    Returns
+    -------
+    _delete_instr : InstructionsType
+        A dictionary that is keyed by column index and the values are
+        lists. Within the lists is information about operations to
+        perform with respect to values in each column.
 
     """
 

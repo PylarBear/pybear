@@ -41,46 +41,46 @@ def _validation(
     _n_features_in: int,
     _feature_names_in: Union[FeatureNamesInType, None]
 ) -> None:
+    """Validate parameters for `MinCountTransformer`.
 
-    """
-    Validate parameters for MinCountTransformer. This module is a
-    centralized hub for parameter validation. See the individual modules
-    for more details.
-
+    This module is a centralized hub for parameter validation. See the
+    individual modules for more details.
 
     Parameters
     ----------
-    _X:
-        XContainer
-    _count_threshold:
-        CountThresholdType
-    _ignore_float_columns:
-        bool
-    _ignore_non_binary_integer_columns:
-        bool
-    _ignore_columns:
-        IgnoreColumnsType
-    _ignore_nan:
-        bool
-    _handle_as_bool:
-        HandleAsBoolType
-    _delete_axis_0:
-        bool
-    _reject_unseen_values:
-        bool
-    _max_recursions:
-        numbers.Integral
-    _n_features_in:
-        int
-    _feature_names_in:
-        Union[FeatureNamesInType, None]
+    _X : XContainer
+        The data.
+    _count_threshold : CountThresholdType
+        The minimum frequency threshold.
+    _ignore_float_columns : bool
+        Whether to ignore float columns.
+    _ignore_non_binary_integer_columns : bool
+        Whether to ignore non-binary integer columns.
+    _ignore_columns : IgnoreColumnsType
+        Columns to ignore.
+    _ignore_nan : bool
+        Whether to ignore nan values or treat them like any other
+        discrete value.
+    _handle_as_bool : HandleAsBoolType
+        Columns to be handled as boolean.
+    _delete_axis_0 : bool
+        Whether to delete rows along the example axis for columns that
+        are handled as boolean.
+    _reject_unseen_values : bool
+        Whether to reject values seen during transform that were not
+        seen during fitting.
+    _max_recursions : numbers.Integral
+        The number of times to repeat the MCT algorithm on a single
+        dataset.
+    _n_features_in : int
+        The number of features in the data.
+    _feature_names_in : Union[FeatureNamesInType, None]
+        The feature names seen at first fit if the data was passed in
+        a container that has a header, like a pandas or polars dataframe.
 
-
-    Return
-    ------
-    -
-        None
-
+    Returns
+    -------
+    None
 
     """
 

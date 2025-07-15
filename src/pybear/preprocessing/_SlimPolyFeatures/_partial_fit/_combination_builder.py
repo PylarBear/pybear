@@ -20,38 +20,33 @@ def _combination_builder(
     _max_degree: numbers.Integral,
     _intx_only: bool
 ) -> list[tuple[int, ...]]:
+    """Create a list containing the tuples of the column indices to be
+    multiplied together for the polynomial expansion.
 
-    """
-    Create a list containing the tuples of the column indices to be
-    multiplied together for the polynomial expansion. The size of the
-    list is validated to ensure it is small enough to be indexed by the
-    current operating system.
-
+    The size of the list is validated to ensure it is small enough to be
+    indexed by the current operating system.
 
     Parameters
     ----------
-    n_features_in_:
-        numbers.Integral - the number of features in X.
-    _min_degree:
-        numbers.Integral - The minimum polynomial degree of the generated
-        features. Polynomial terms with degree below `_min_degree` are
-        not included in the final output array.
-    _max_degree:
-        numbers.Integral - The maximum polynomial degree of the generated
-        features.
-    _intx_only:
-        bool - If True, only interaction features are produced, that is,
+    n_features_in_ : numbers.Integral
+        The number of features in X.
+    _min_degree : numbers.Integral
+        The minimum polynomial degree of the generated features.
+        Polynomial terms with degree below `_min_degree` are not
+        included in the final output array.
+    _max_degree : numbers.Integral
+        The maximum polynomial degree of the generated features.
+    _intx_only : bool
+        If True, only interaction features are produced, that is,
         polynomial features that are products of 'degree' distinct input
         features. Terms with power of 2 or higher for any feature are
         excluded. If False, produce the full polynomial expansion.
 
-
-    Return
-    ------
-    -
-        _combinations: list[tuple[int, ...]] - a list containing the
-            tuples of column index combinations to be multiplied
-            together for the polynomial expansion.
+    Returns
+    -------
+    _combinations : list[tuple[int, ...]]
+        A list containing the tuples of column index combinations to be
+        multiplied together for the polynomial expansion.
 
     """
 

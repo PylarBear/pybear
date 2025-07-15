@@ -8,12 +8,13 @@
 
 
 from typing import (
-    Iterable,
     Literal,
-    Optional
+    Optional,
+    Sequence
 )
 from typing_extensions import (
     Any,
+    TypeAlias,
     Union
 )
 import numpy.typing as npt
@@ -21,10 +22,7 @@ import numpy.typing as npt
 import numbers
 
 import joblib
-from numpy import (
-    array, ceil, empty, hstack, int8, int32, prod, random as np_random,
-    sum, zeros
-)
+import numpy as np
 
 from pybear.utilities._serial_index_mapper import serial_index_mapper as sim
 from pybear.utilities._array_sparsity import array_sparsity as arsp
@@ -32,54 +30,47 @@ from pybear.utilities._array_sparsity import array_sparsity as arsp
 
 
 def choice(
-    a: Iterable[Any],
-    shape: Union[int, Iterable[int]],
+    a: Sequence[Any],
+    shape: Union[numbers.Integral, Sequence[numbers.Integral]],
     replace: Optional[bool]=True,
-    n_jobs: Optional[Union[int, None]]=None
+    n_jobs: Optional[Union[numbers.Integral, None]]=None
 ) -> npt.NDArray[Any]:
+    """Randomly select elements from the given pool `a`, with or without
+    replacement, to fill a numpy array of size `shape`.
 
-    """
-    Select math.prod(shape) quantity of elements from the given pool "a",
-    with or without replacement. This module improves on the impossible
-    slowness of numpy.random.choice on large "a" when replace=False.
-    Enter "a" as a 1-dimensional vector. A "p" argument is not available
-    as this algorithm as it relies on the assumption of equal likelihood
-    for all values in "a".
-
+    This module improves on the impossible slowness of numpy.random.choice
+    on large `a` when `replace=False`. Enter `a` as a 1-dimensional
+    vector. A 'p' argument is not available as this algorithm as this
+    algorithm relies on the assumption of equal likelihood for all
+    values in `a`.
 
     Parameters
     ----------
-    a:
-        Iterable[Any] - 1-dimensional list-like of elements to randomly
-        choose from.
-    shape:
-        Union[int, Iterable[int]] - Shape of returned numpy array
-        containing the randomly selected values.
-    replace:
-        bool - Select values from 'a' with (True) or without (False)
-        replacement of previous pick.
-    n_jobs:
-        Union[int, None], default=None - Number of CPU cores used
-        when parallelizing over subpartitions of 'a' during selection.
-        -1 means using all processors.
-
+    a : Sequence[Any]
+        1-dimensional list-like of elements to randomly choose from.
+    shape : Union[numbers.Integral, Sequence[numbers.Integral]]
+        Shape of returned numpy array containing the randomly selected
+        values.
+    replace : bool
+        Select values from `a` with (True) or without (False) replacement
+        of previous pick.
+    n_jobs : Union[numbers.Integral, None], default=None
+        Number of CPU cores used when parallelizing over subpartitions
+        of `a` during selection. -1 means using all processors.
 
     Returns
     -------
-    -
-        PICKED:
-            NPArray[Any] - elements selected from 'a' of shape 'shape'.
-
+    PICKED : numpy.ndarray[Any] of shape `shape`
+        Elements randomly selected from `a`.
 
     See Also
     --------
     numpy.random.choice
 
-
     Examples
     --------
-    >>> from pybear.new_numpy import random as pb_random
-    >>> result = pb_random.choice(list(range(20)), (3,2), n_jobs=1)
+    >>> from pybear.new_numpy.random import choice as pb_choice
+    >>> result = pb_choice(list(range(20)), (3,2), n_jobs=1)
     >>> print(result) #doctest:+SKIP
     [[ 9  6]
      [ 2  0]
@@ -88,86 +79,106 @@ def choice(
     """
 
 
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+    # a ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     err_msg = (f"'a' must be a non-empty 1-dimensional array-like that "
                f"can be converted to a numpy array")
 
-    if isinstance(a, (str, dict)):
-        raise TypeError(err_msg)
-
     try:
         list(a[:10])
-        a = array(a)
-    except:
+        if isinstance(a, (str, dict)):
+            raise Exception
+        a = np.array(a)
+        if len(a.shape) != 1:
+            raise UnicodeError
+        if len(a) == 0:
+            raise UnicodeError
+    except UnicodeError:
+        raise ValueError(err_msg)
+    except Exception as e:
         raise TypeError(err_msg)
 
-
-    if len(a.shape) != 1:
-        raise ValueError(err_msg)
-
-    if len(a) == 0:
-        raise ValueError(err_msg)
-
     del err_msg
+    # END a ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-
-    err_msg = f"'shape' must be an integer or a tuple"
+    # shape ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    err_msg = f"'shape' must be an integer or a tuple of integers"
     # shape can be > 2 dimensional
+
     try:
-        float(shape)
-        if not int(shape)==shape:
-            raise TypeError(err_msg)
-        shape = (int(shape),)
-    except:
+        list(shape)
+        shape = tuple(shape)
+    except Exception as e:
         try:
-            list(shape)
-            shape = tuple(shape)
-        except:
+            float(shape)
+            if not int(shape) == shape:
+                raise Exception
+            shape = (int(shape),)
+        except Exception as f:
             raise TypeError(err_msg)
 
     del err_msg
+    # END shape ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-
+    # replace ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     if not isinstance(replace, bool):
         raise TypeError(f"'replace' kwarg must be boolean")
 
-    pick_qty = prod(shape)
+    if replace is False and np.prod(shape) > a.size:
+        raise ValueError(
+            f'quantity of selected cannot be greater than pool size when '
+            f'`replace=False`'
+        )
+    # END replace ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    if replace is False and pick_qty > a.size:
-        raise ValueError(f'quantity of selected cannot be greater '
-                         f'than pool size when replace=False')
+    # n_jobs ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    err_msg = f"n_jobs must be a positive integer, -1, or None, got '{n_jobs}'"
+    try:
+        if n_jobs is None:
+            raise MemoryError
+        float(n_jobs)
+        if int(n_jobs) != n_jobs:
+            raise UnicodeError
+        n_jobs = int(n_jobs)
+        if n_jobs < -1 or n_jobs == 0:
+            raise UnicodeError
+    except MemoryError:
+        pass
+    except UnicodeError:
+        raise ValueError(err_msg)
+    except Exception as e:
+        raise TypeError(err_msg)
 
-
-    # n_jobs ** * ** * ** * ** * ** * ** * ** *
-    if n_jobs is not None:
-        err_msg = \
-            f"n_jobs must be a positive integer, -1, or None, got '{n_jobs}'"
-        try:
-            float(n_jobs)
-            if int(n_jobs) != n_jobs:
-                raise UnicodeError
-            n_jobs = int(n_jobs)
-            if n_jobs < 1 and n_jobs != -1:
-                raise UnicodeError
-        except UnicodeError:
-            raise ValueError(err_msg)
-        except Exception as e:
-            raise TypeError(err_msg)
-    # END n_jobs ** * ** * ** * ** * ** * ** * ** *
+    del err_msg
+    # END n_jobs ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
     partition_size = min(a.size, int(2**16))
 
     psis = range(0, a.size, partition_size)  # partition_start_indices
 
+    # parallelized function -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @joblib.wrap_non_picklable_objects
-    def _puller(subpartition_of_a, _size, pick_qty, replace):
+    def _puller(
+        subpartition_of_a: npt.NDArray,
+        _size: int,
+        pick_qty: int,
+        replace: bool
+    ):
+        """Parallelized random selector from subpartitions of `a`."""
 
-        PULL = np_random.choice(
+        PULL: npt.NDArray = np.random.choice(
             subpartition_of_a,
-            int(ceil(len(subpartition_of_a) / _size * pick_qty)),
+            int(np.ceil(len(subpartition_of_a) / _size * pick_qty)),
             replace=replace
         )
+
         return PULL
+    # END parallelized function -- -- -- -- -- -- -- -- -- -- -- -- --
+
+    pick_qty = np.prod(shape)
 
     ARGS = [a.size, pick_qty, replace]
 
@@ -177,13 +188,13 @@ def choice(
             joblib.delayed(_puller)(a[psi:psi+partition_size], *ARGS) for psi in psis
         )
 
-    PICKED = hstack((PULLED))
+    PICKED = np.hstack((PULLED))
 
     del partition_size, psis, _puller, ARGS, PULLED
 
 
     if PICKED.size > pick_qty:
-        PICKED = np_random.choice(PICKED, pick_qty, replace=False)
+        PICKED = np.random.choice(PICKED, pick_qty, replace=False)
     elif PICKED.size < pick_qty:
         raise AssertionError(
             f"'PICKED' is smaller than pick_qty, algorithm failure"
@@ -194,53 +205,38 @@ def choice(
 
 
 class Sparse:
+    """Return random values from a “discrete uniform” (integer) or
+    "uniform" (float) distribution of the specified dtype in the
+    “half-open” interval [`minimum`, `maximum`) (includes low, but
+    excludes the maximum), with desired sparsity.
 
-    """
-    Return random values from a “discrete uniform” (integer) or "uniform"
-    (float) distribution of the specified dtype in the “half-open”
-    interval [low, high) (includes low, but excludes high), with desired
-    sparsity.
+    Samples are uniformly over the interval. In other words, any value
+    within the given interval is equally likely to be drawn.
 
-    Samples are uniformly distributed over the half-open interval [low,
-    high) . In other words, any value within the given interval is
-    equally likely to be drawn.
+    **Engine**
 
+    `Sparse` has different engines for populating the output array with
+    zeros to the desired sparsity. Some engines offer higher speed with
+    lower accuracy, while others have higher accuracy at the expense of
+    speed. "default" behavior is a hybrid of "filter" and "iterative".
 
-    Parameters
-    ----------
-    minimum:
-        numbers.Real - Lowest (signed) value to be drawn from the
-        distribution.
-    maximum:
-        numbers.Real - Upper boundary of the output interval. All values
-        generated will be less than this number.
-    shape:
-        Union[int, Iterable[int]] - Dimensions of the returned array.
-    sparsity:
-        numbers.Real, default = 0 - Desired percentage of zeros in
-        the returned array.
-    engine:
-        Literal["choice", "filter", "serialized", "iterative", "default"],
-        default = "default" -  Selects the desired engine for generating
-        the returned array. Some engines offer higher speed with lower
-        accuracy, while others have higher accuracy at the expense of
-        speed. "default" behavior is a hybrid of "filter" and "iterative".
+    "choice"
+        Build a full-size mask with sparse locations determined by
+        numpy.random.choice on [0,1], with 'p' achieving amount of
+        sparsity. Apply the mask to a full-sized 100% dense numpy.ndarray
+        filled as dictated by parameters to populate it with zeros.
 
-        "choice" - Build a full-size mask with sparse locations
-        determined by numpy.random.choice on [0,1], with p achieving
-        amount of sparsity. Apply the mask to a full-sized 100% dense
-        numpy.ndarray filled as dictated by parameters to populate it
-        with zeros.
+    "filter"
+        Generate an array filled randomly from [1,100000] and convert
+        the array to a mask that fixes the sparse locations by applying
+        a number filter derived from the target sparsity. Generate a
+        100% dense array of ints or floats then apply the mask to it to
+        achieve sparsity.
 
-        "filter" - Generate an array filled randomly from [1,100000] and
-        convert the array to a mask that fixes the sparse locations by
-        applying a number filter derived from the tartet sparsity.
-        Generate a 100% dense array of ints or floats then apply the mask
-        to it to achieve sparsity.
-
-        "serialized" - Generate a serialized list of unique indices and
-        random values (or zeros) then map the values (or zeros) into a
-        fully sparse (or dense) array.
+    "serialized"
+        Generate a serialized list of unique indices and random values
+        (or zeros) then map the values (or zeros) into a fully sparse
+        (or dense) array.
 
         i) Deterimine the number of dense (or sparse) positions in
             the target array.
@@ -248,18 +244,18 @@ class Sparse:
             serially using pybear.new_numpy.random.choice *without
             replacement*. This guarantees no duplicate indices.
         iii) Generate an equally-sized vector of dense values (or zeros).
-        iv) Map the vector of values (or zeros) to the index
-            positions in a 100% sparse (or dense) full-sized array.
+        iv) Map the vector of values (or zeros) to the index positions
+            in a 100% sparse (or dense) full-sized array.
 
-        "iterative" - Generate a serialized list of not-necessarily-
-        unique indices and random values (or zeros), then map the values
-        (or zeros) into a fully sparse (or dense) array. Repeat
-        iteratively until the desired sparsity is achieved. Same as
-        _serialized except these indices are not necessarily unique and
-        the process is iterative.
+    "iterative"
+        Generate a serialized list of not-necessarily-unique indices and
+        random values (or zeros), then map the values (or zeros) into a
+        fully sparse (or dense) array. Repeat iteratively until the
+        desired sparsity is achieved. Same as 'serialized' except these
+        indices are not necessarily unique and the process is iterative.
 
-        i) Determine the number of dense (or sparse) positions in
-            the target array.
+        i) Determine the number of dense (or sparse) positions in the
+            target array.
         ii) Generate that number of random dense (or sparse) indices
             serially *with replacement*. This does not guarantee
             non-duplicate indices.
@@ -269,52 +265,76 @@ class Sparse:
         v) Because there may have been duplicate indices, repeat steps
             ii-iv until desired sparsity is achieved.
 
-        "default" - A hybrid method of "filter" and "iterative" that
-        maximizes speed and accuracy. When the size of the target object
-        is less than 1,000,000, the fastest methods "filter" and "choice"
-        have difficulty achieving the target sparsity. In this case, the
-        more accurate, but slower, "iterative" method is used. For target
+    "default"
+        A hybrid method of "filter" and "iterative" that maximizes speed
+        and accuracy. When the size of the target object is less than
+        1,000,000, the fastest methods "filter" and "choice" have
+        difficulty achieving the target sparsity. In this case, the more
+        accurate, but slower, "iterative" method is used. For target
         sizes over 1,000,000, the law of averages prevails and the
         "filter" method is able to achieve sufficiently close sparsities
         at speeds much faster than "iterative".
-    dtype:
-        Any, default = float - Desired dtype of the result.
 
+    Parameters
+    ----------
+    minimum : numbers.Real
+        Lowest (signed) value to be drawn from the distribution.
+    maximum : numbers.Real
+        Upper boundary of the output interval. All values generated will
+        be less than this number.
+    shape : Union[numbers.Integral, Sequence[numbers.Integral]]
+        Dimensions of the returned array.
+    sparsity : numbers.Real, default = 0
+        Desired percentage of zeros in the returned array.
+    engine : EngineType, default = "default"
+        Selects the desired engine for generating the returned array.
+        See the 'Engine' section of the docs for a detailed explanation.
+    dtype : Optional[object], default = float
+        Desired dtype of the result.
 
     Attributes
     ----------
-    sparse_array_:
-        ndarray of shape 'shape'.
-
+    sparse_array_ : numpy.ndarray[numbers.Real]
+        ndarray of shape 'shape' with desired dtype and sparsity.
 
     See Also
     --------
     numpy.random.randint
     numpy.random.uniform
 
+    Notes
+    -----
+
+    **Type Aliases**
+
+    EngineType:
+        Literal["choice", "filter", "serialized", "iterative", "default"]
 
     Examples
     --------
     >>> from pybear.new_numpy import random as pb_random
-    >>> instance = pb_random.Sparse(0, 10, (3,3), 50, dtype=int8)
+    >>> instance = pb_random.Sparse(0, 10, (3,3), 50, dtype=np.int8)
     >>> sparse_array = instance.sparse_array_
     >>> print(sparse_array) #doctest:+SKIP
     [[0 6 0]
      [8 8 0]
      [0 0 1]]
 
-
     """
+
+
+    EngineType: TypeAlias = \
+        Literal["choice", "filter", "serialized", "iterative", "default"]
+
 
     def __init__(
         self,
         minimum: numbers.Real,
         maximum: numbers.Real,
-        shape: Union[int, Iterable[int]],
+        shape: Union[numbers.Integral, Sequence[numbers.Integral]],
         sparsity: numbers.Real = 0,
-        engine: Literal['choice', 'filter', 'serialized', 'iterative', 'default'] = \
-            'default',
-        dtype: Optional[Any] = float,
+        engine: EngineType = 'default',
+        dtype: Optional[object] = float,
     ):
 
         self._min = minimum
@@ -324,7 +344,7 @@ class Sparse:
         self._engine = engine
         self._dtype = dtype
 
-        # VALIDATION ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+        # VALIDATION ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
         # dtype ** * ** * ** * ** * ** * ** * ** *
         # THIS MUST BE BEFORE _min & _max
@@ -353,7 +373,7 @@ class Sparse:
         try:
             float(self._max)
         except:
-            raise TypeError(f"'minimum' must be numeric")
+            raise TypeError(f"'maximum' must be numeric")
 
         if 'INT' in str(self._dtype).upper():
             if int(self._max) != self._max:
@@ -404,7 +424,7 @@ class Sparse:
                 del err_msg
 
 
-            if len(array(self._shape).shape) > 1:
+            if len(np.array(self._shape).shape) > 1:
                 raise TypeError(f"'shape' expected a sequence of integers or "
                     f"a single integer")
 
@@ -472,16 +492,16 @@ class Sparse:
 
         # END engine ** * ** * ** * ** * ** * ** * ** * ** *
 
-        # END VALIDATION ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+        # END VALIDATION ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
         if self._shape == 0:
-            self.sparse_array_ = array([], dtype=self._dtype)
+            self.sparse_array_ = np.array([], dtype=self._dtype)
 
         try:
             if 0 in self._shape:
                 self.sparse_array_ = \
-                    array([], dtype=self._dtype).reshape(self._shape)
+                    np.array([], dtype=self._dtype).reshape(self._shape)
         except:
             pass
 
@@ -495,7 +515,7 @@ class Sparse:
             ).astype(self._dtype)
 
         if self._sparsity == 100:
-            self.sparse_array_ = zeros(self._shape, dtype=self._dtype)
+            self.sparse_array_ = np.zeros(self._shape, dtype=self._dtype)
 
         if self._engine == "choice":
             self.sparse_array_ = self._choice()
@@ -516,7 +536,7 @@ class Sparse:
             # SPARSITY CLOSE ENOUGH. BUT WHEN SIZE IS SMALL, "FILTER" AND
             # "CHOICE" HAVE A HARD TIME GETTING SPARSITY CLOSE ENOUGH, SO USE
             # ITERATIVE.
-            if prod(self._shape) >= 1e6:
+            if np.prod(self._shape) >= 1e6:
                 self.sparse_array_ = self._filter()
             else:
                 self.sparse_array_ = self._iterative()
@@ -560,14 +580,14 @@ class Sparse:
         # Set the numpy array generators to be used based on dtype.
 
         if 'INT' in str(self._dtype).upper():
-            array_generator = np_random.randint
+            array_generator = np.random.randint
 
         elif 'FLOAT' in str(self._dtype).upper():
             # CREATE A WRAPPER FOR np.random.uniform SO THAT IT'S SIGNATURE IS
             # THE SAME AS np.random.randint. dtype WILL JUST PASS THROUGH.
 
             def new_rand_uniform(_min, _max, _shape, _dtype):
-                return np_random.uniform(_min, _max, _shape)
+                return np.random.uniform(_min, _max, _shape)
 
             array_generator = new_rand_uniform
 
@@ -585,11 +605,11 @@ class Sparse:
         # LOOP THEM OUT OF THE PATCH!
         if 0 in BASE_ARRAY:
             MASK = (BASE_ARRAY == 0)
-            PATCH = _make_patch(sum(MASK))
+            PATCH = _make_patch(np.sum(MASK))
 
             while 0 in PATCH:
                 PATCH_MASK = (PATCH == 0)
-                PATCH[PATCH_MASK] = _make_patch(sum(PATCH_MASK))
+                PATCH[PATCH_MASK] = _make_patch(np.sum(PATCH_MASK))
                 del PATCH_MASK
 
             BASE_ARRAY[MASK] = PATCH
@@ -607,14 +627,14 @@ class Sparse:
         if len(self._shape)==0:
             self._total_size = 0
         else:
-            self._total_size = prod(self._shape).astype(int32)
+            self._total_size = np.prod(self._shape).astype(np.int32)
 
         self._dense_size = self._total_size / 100 * (100 - self._sparsity)
 
         # IF SPARSITY DOESNT GO EVENLY INTO NUM ELEMENTS (I.E. _dense_size IS
         # NOT AN INTEGER), RANDOMLY ROUND OFF _dense_size
         if self._dense_size % 1 > 0:
-            self._dense_size = int(self._dense_size // 1 + np_random.randint(2))
+            self._dense_size = int(self._dense_size // 1 + np.random.randint(2))
         else:
             self._dense_size = int(self._dense_size)
 
@@ -653,7 +673,7 @@ class Sparse:
         # BASE ARRAY THAT WILL GO TO ZERO!  THAT MEANS THAT THE PLACES THAT
         # WILL BE ZERO MUST BE A ONE IN THE MASK, AND ZERO IF NOT GOING TO BE
         # ZERO! MAKE SENSE?
-        MASK = np_random.choice(
+        MASK = np.random.choice(
             [1, 0],
             self._shape,
             replace=True,
@@ -685,7 +705,6 @@ class Sparse:
         mask by applying a number filter. Generate a 100% dense array of
         ints or floats then apply the mask to it to achieve sparsity.
 
-
         Returns
         -------
         SPARSE_ARRAY : npt.NDArray[numbers.Real]
@@ -703,7 +722,7 @@ class Sparse:
         #######################################################################
 
         # USE THIS TO DETERMINE WHAT WILL BECOME ZEROS
-        MASK = np_random.randint(0, 100000, self._shape, dtype=int32)
+        MASK = np.random.randint(0, 100000, self._shape, dtype=np.int32)
         cutoff = (1 - self._sparsity / 100) * 100000
         MASK = (MASK >= cutoff).astype(bool)
 
@@ -766,7 +785,7 @@ class Sparse:
                 self._dense_size,
                 replace=False,
                 n_jobs=-1
-            ).astype(int32)
+            ).astype(np.int32)
 
             SERIAL_DENSE_POSNS.sort()
 
@@ -778,7 +797,7 @@ class Sparse:
                 self._dtype
             )
 
-            SPARSE_ARRAY = zeros(self._shape, dtype=self._dtype)
+            SPARSE_ARRAY = np.zeros(self._shape, dtype=self._dtype)
 
             MAPPED_INDICES = sim(self._shape, SERIAL_DENSE_POSNS)
 
@@ -798,7 +817,7 @@ class Sparse:
                     self._sparse_size,
                     replace=False,
                     n_jobs=-1
-                ).astype(int32)
+                ).astype(np.int32)
 
             SERIAL_SPARSE_POSNS.sort()
 
@@ -861,24 +880,24 @@ class Sparse:
 
         elif self._sparse_size >= self._dense_size:  # WHEN DENSE IS SMALLER
 
-            SPARSE_ARRAY = zeros(self._shape, dtype=self._dtype)
+            SPARSE_ARRAY = np.zeros(self._shape, dtype=self._dtype)
 
             _last_sparsity = 100
 
             # MAKE A RANDOM GRID OF COORDINATES
             while _last_sparsity != self._target_sparsity:
-                need_dense_size = sum(SPARSE_ARRAY == 0) - self._sparse_size
-                SERIAL_DENSE_POSNS = empty(
+                need_dense_size = np.sum(SPARSE_ARRAY == 0) - self._sparse_size
+                SERIAL_DENSE_POSNS = np.empty(
                     (need_dense_size, len(self._shape)),
-                    dtype=int32
+                    dtype=np.int32
                 )
                 for _dim in range(len(self._shape)):
                     SERIAL_DENSE_POSNS[:, _dim] = \
-                         np_random.randint(
+                         np.random.randint(
                             0,
                             self._shape[_dim],
                             need_dense_size,
-                            dtype=int32
+                            dtype=np.int32
                     )
 
                 # CREATE RANDOM VALUES MATCHING THE DENSE SIZE
@@ -912,17 +931,17 @@ class Sparse:
 
             # MAKE A RANDOM GRID OF COORDINATES
             while _last_sparsity != self._target_sparsity:
-                need_sparse_size = self._sparse_size - sum(SPARSE_ARRAY == 0)
-                SERIAL_SPARSE_POSNS = empty(
+                need_sparse_size = self._sparse_size - np.sum(SPARSE_ARRAY == 0)
+                SERIAL_SPARSE_POSNS = np.empty(
                     (need_sparse_size, len(self._shape)),
-                    dtype=int32
+                    dtype=np.int32
                 )
                 for _dim in range(len(self._shape)):
                     SERIAL_SPARSE_POSNS[:, _dim] = \
-                        np_random.randint(0,
+                        np.random.randint(0,
                             self._shape[_dim],
                             need_sparse_size,
-                            dtype=int32
+                            dtype=np.int32
                     )
 
                 SPARSE_ARRAY[tuple(zip(*SERIAL_SPARSE_POSNS))] = 0
@@ -943,45 +962,38 @@ class Sparse:
 def sparse(
     minimum: numbers.Real,
     maximum: numbers.Real,
-    shape: Union[int, Iterable[int]],
+    shape: Union[numbers.Integral, Sequence[numbers.Integral]],
     sparsity: numbers.Real,
-    dtype: Optional[Any] = float
+    dtype: Optional[object] = np.float64
 ):
+    """Return random values from a “discrete uniform” (integer) or
+    "uniform" (float) distribution of the specified dtype in the
+    “half-open” interval [`minimum`, `maximum`), with desired sparsity.
 
-    """
-    Return random values from a “discrete uniform” (integer) or "uniform"
-    (float) distribution of the specified dtype in the “half-open”
-    interval [low, high), with desired sparsity.
+    Samples are uniformly distributed over the interval. In other words,
+    any value within the given interval is equally likely to be drawn.
 
-    Samples are uniformly distributed over the half-open interval [low,
-    high) (includes low, but excludes high). In other words, any value
-    within the given interval is equally likely to be drawn.
-
+    This function is a simplified :class:`Sparse` implementation.
 
     Parameters
     --------
-    minimum:
-        numbers.Real - Lowest (signed) value to be drawn from the
-        distribution.
-    maximum:
-        numbers.Real - Upper boundary of the output interval. All values
-        generated will be less than high.
-    shape:
-        Union[int, Iterable[int]] - Dimensions of the returned array.
-    sparsity:
-        Optional[numbers.Real], default = 0 - Desired percentage of
-        zeros in the the returned array.
-    dtype:
-        Optional[Any], default = float - Desired dtype of the result.
-
+    minimum : numbers.Real
+        Lowest (signed) value to be drawn from the distribution.
+    maximum : numbers.Real
+        Upper boundary of the output interval. All values generated will
+        be less than high.
+    shape : Union[numbers.Integral, Sequence[numbers.Integral]]
+        Dimensions of the returned array.
+    sparsity : Optional[numbers.Real], default = 0
+        Desired percentage of zeros in the returned array.
+    dtype : Optional[object], default = float
+        Desired dtype of the result.
 
     Returns
     -------
-    -
-        SPARSE_ARRAY: ndarray - array of dimensions 'shape' with random
-            values from the appropriate distribution and with the
-            specified sparsity.
-
+    SPARSE_ARRAY : ndarray[numbers.Real]
+        Array of dimension `shape` with random values from the
+        appropriate distribution and with the specified sparsity.
 
     See Also
     -------
@@ -989,11 +1001,10 @@ def sparse(
     numpy.random.uniform
     pybear.random.Sparse
 
-
     Examples
     -------
-    >>> from pybear.new_numpy import random as pb_random
-    >>> sparse_array = pb_random.sparse(11, 20, (4,4), 70, dtype=int8)
+    >>> from pybear.new_numpy.random import sparse as pb_sparse
+    >>> sparse_array = pb_sparse(11, 20, (4,4), 70, dtype=np.int8)
     >>> print(sparse_array)   #doctest:+SKIP
     [12  0  0 13]
     [0 16  0  0]
@@ -1005,21 +1016,6 @@ def sparse(
     return Sparse(
         minimum, maximum, shape, sparsity, "default", dtype
     ).sparse_array_
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

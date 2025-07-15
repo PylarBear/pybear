@@ -32,9 +32,9 @@ def _condition_sep(
 
     Returns
     -------
-    list[str]:
+    seps : list[str]
         A single python list of strings holding `sep` for each row in
-        the  data.
+        the data.
 
     """
 

@@ -19,27 +19,22 @@ import polars as pl
 def _val_y(
     _y: YContainer
 ) -> None:
+    """Validate the target for the data is a valid data container.
 
-    """
-    Validate the target for the data is a valid data container. If y is
-    not passed (i.e is py None) then this validation is bypassed. Numpy
-    ndarrays, pandas dataframes, pandas series, polars dataframes,
+    If y is not passed (i.e is py None) then this validation is bypassed.
+    Numpy ndarrays, pandas dataframes, pandas series, polars dataframes,
     and polars series are allowed. This validation is only performed
-    for :meth: `transform` and is necessary because y may be reduced
-    along the sample axis.
-
+    for `transform` and is necessary because y may be reduced along the
+    sample axis.
 
     Parameters
     ----------
-    _y:
-        Optional array-like of shape (n_samples, n_features) or list-like
-        of shape (n_samples,). The target for the data.
+    _y : Optional[YContainer] of shape (n_samples, n_features) or (n_samples,)
+        The target for the data.
 
-
-    Return
-    ------
-    -
-        None
+    Returns
+    -------
+    None
 
     """
 
