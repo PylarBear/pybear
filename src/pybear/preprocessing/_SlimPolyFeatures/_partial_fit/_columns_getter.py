@@ -28,34 +28,29 @@ def _columns_getter(
     _X: InternalXContainer,
     _col_idxs: Union[tuple[int, ...], CombinationsType]
 ) -> npt.NDArray[np.float64]:
+    """Handles the mechanics of extracting and multiplying polynomial
+    columns from the various allowed data container types.
 
-    """
-    Handles the mechanics of extracting and multiplying polynomial
-    columns from the various allowed data container types. The container
-    must be numpy ndarray, pandas dataframe, polars dataframe, or scipy
-    csc only. Return extracted column(s) as a numpy array in row-major
-    order. In the case of scipy sparse, the columns are converted to
-    dense.
-
+    The container must be numpy ndarray, pandas dataframe, polars
+    dataframe, or scipy csc only. Return extracted column(s) as a numpy
+    array in row-major order. In the case of scipy sparse, the columns
+    are converted to dense.
 
     Parameters
     ----------
-    _X:
-        InternalXContainer - The data to extract columns from. The
-        container must be numpy ndarray, pandas dataframe, polars
-        dataframe, or scipy csc only. This module expects _X to be in
-        a valid state when passed, and will not condition it.
-    _col_idxs:
-        Union[tuple[int, ...], CombinationsType] - the column
-        index / indices to extract from _X.
+    _X : InternalXContainer
+        The data to extract columns from. The container must be numpy
+        ndarray, pandas dataframe, polars dataframe, or scipy csc only.
+        This module expects `_X` to be in a valid state when passed, and
+        will not condition it.
+    _col_idxs : Union[tuple[int, ...], CombinationsType]
+        The column index / indices to extract from `_X`.
 
-
-    Return
-    ------
-    -
-        _columns: NDArray[np.float64] - The columns and/or polynomial
-        columns from _X corresponding to the given indices in row-major
-        order.
+    Returns
+    -------
+    _columns : NDArray[np.float64]
+        The columns and/or polynomial columns from `_X` corresponding to
+        the given indices in row-major order.
 
     """
 

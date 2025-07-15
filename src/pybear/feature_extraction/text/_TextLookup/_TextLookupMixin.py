@@ -134,7 +134,7 @@ class _TextLookupMixin(
 
         Returns
         -------
-        DELETE_ALWAYS_: list[str]
+        DELETE_ALWAYS_ : list[str]
             A list of words that will always be deleted from the
             text body by TL, even if they are in the Lexicon.
 
@@ -389,7 +389,7 @@ class _TextLookupMixin(
 
         Returns
         -------
-        _line: list[str]
+        _line : list[str]
             The full line in `X` that held the current word with that
             word removed and the new word(s) inserted in the that word's
             place.

@@ -23,7 +23,7 @@ def _partial_fit(
 
     Returns
     -------
-    numbers.Integral:
+    n_features : numbers.Integral
         The number of features in `X`.
 
     """

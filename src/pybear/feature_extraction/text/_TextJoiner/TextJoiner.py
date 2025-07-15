@@ -119,7 +119,7 @@ class TextJoiner(
     SepType:
         Optional[Union[str, Sequence[str]]]
 
-
+\
     Examples
     --------
     >>> from pybear.feature_extraction.text import TextJoiner as TJ

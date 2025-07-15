@@ -140,7 +140,7 @@ class Lexicon(TextStatistics):
 
         Returns
         -------
-        uniques: list[str]
+        uniques : list[str]
             A list of all the words in the pybear Lexicon.
 
         """
@@ -205,14 +205,14 @@ class Lexicon(TextStatistics):
         pattern: Union[str, re.Pattern[str]]
     ) -> list[str]:
         """Use string literals or regular expressions to look for substring
-        matches in the Lexicon.
+        matches in the `Lexicon`.
 
         `pattern` can be a literal string or a regular expression in a
         re.compile object. Return a list of all words in the Lexicon
         that contain the given substring pattern. Returns an empty list
         if there are no matches.
 
-        pybear Lexicon forces this search to be case-sensitive. If you
+        pybear `Lexicon` forces this search to be case-sensitive. If you
         pass a re.compile object with an IGNORECASE flag, this method
         strips that flag and leaves the other flags intact.
 
@@ -220,12 +220,12 @@ class Lexicon(TextStatistics):
         ----------
         pattern : Union[str, re.Pattern[str]]
             Character sequence or regular expression in a re.compile
-            object to be looked up against the pybear Lexicon.
+            object to be looked up against the pybear `Lexicon`.
 
         Returns
         -------
-        list[str]
-            List of all words in the pybear Lexicon that contain the
+        matches : list[str]
+            List of all words in the pybear `Lexicon` that contain the
             given character substring. Returns an empty list if there
             are no matches.
 
@@ -246,14 +246,14 @@ class Lexicon(TextStatistics):
         pattern: Union[str, re.Pattern[str]]
     ) -> list[str]:
         """Use string literals or regular expressions to look for full
-        word matches in the Lexicon.
+        word matches in the `Lexicon`.
 
         `pattern` can be a literal string or a regular expression in a
-        re.compile object. Return a list of all words in the Lexicon
+        re.compile object. Return a list of all words in the `Lexicon`
         that completely match the given pattern. Returns an empty list
         if there are no matches.
 
-        pybear Lexicon forces this search to be case-sensitive. If you
+        pybear `Lexicon` forces this search to be case-sensitive. If you
         pass a re.compile object with an IGNORECASE flag, this method
         strips that flag and leaves the other flags intact.
 
@@ -261,13 +261,13 @@ class Lexicon(TextStatistics):
         ----------
         pattern : Union[str, re.Pattern[str]]
             Character sequence or regular expression in a re.compile
-            object to be looked up against the pybear Lexicon.
+            object to be looked up against the pybear `Lexicon`.
 
         Returns
         -------
-        list[str]:
-            List of all full words in the pybear Lexicon that match the
-            pattern. Returns an empty list if there are no matches.
+        matches : list[str]
+            List of all full words in the pybear `Lexicon` that match
+            the pattern. Returns an empty list if there are no matches.
 
         """
 
@@ -289,7 +289,7 @@ class Lexicon(TextStatistics):
         Returns
         -------
         dict[str, numbers.Integral]:
-            Any duplicates in the pybear lexicon and their frequencies.
+            Any duplicates in the pybear `Lexicon` and their frequencies.
 
         """
 
@@ -300,13 +300,13 @@ class Lexicon(TextStatistics):
         """Determine if the lexicon files are out of alphabetical order.
 
         Compare the words as stored against a sorted vector of the words.
-        Displays any out-of-order words to screen and return a python list
+        Displays any out-of-order words to screen and return a Python list
         of the words.
 
         Returns
         -------
         list[str]:
-            Vector of any out-of-sequence words in the Lexicon.
+            Vector of any out-of-sequence words in the `Lexicon`.
 
         """
 

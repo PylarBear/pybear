@@ -36,42 +36,39 @@ def _refit_can_be_skipped(
     _scoring: Union[None, str, list, Callable, dict, Literal[False]],
     _total_passes: int
 ) -> bool:
-
-    """
-    Determine if the parent GridSearch, the scoring strategy, and the
+    """Determine if the parent GridSearch, the scoring strategy, and the
     total number of passes allow for refits to be skipped until the
-    final pass. `best_params_` needs to be exposed on every pass.
-    Some GridSearch parents require that `refit` be True to expose
-    `best_params_`. All require that `refit` be specified if `scoring`
-    is multiple scorers to expose `best_params_`. Refit cannot be
-    skipped if agscv is only running one pass.
+    final pass.
+
+    `best_params_` needs to be exposed on every pass. Some GridSearch
+    parents require that `refit` be True to expose `best_params_`. All
+    require that `refit` be specified if `scoring` is multiple scorers
+    to expose `best_params_`. Refit cannot be skipped if agscv is only
+    running one pass.
 
     This ignores whether `refit` was originally passed as False. If it
     was, then this module will still allow agscv to overwrite pre-final
     pass `refit` with False, which is just overwriting the same value.
 
-
     Parameters
     ----------
-    _GridSearchParent:
-        GridSearchCV instance - the parent GridSearchCV class passed to
-        the agscv wrapper.
-    _scoring:
-        Union[None, str, list, Callable, dict, Literal[False]] -
-        the value passed to the `scoring` parameter of the parent
-        GridSearchCV. On the off chance that the parent GridSearch does
-        not have a `scoring` parameter, Literal[False] is passed to here.
-    _total_passes:
-        int - the number of grid searches to perform. This number is
-        dynamic and can be incremented by agscv during a run, based on
-        the need to shift grids and the setting of `total_passes_is_hard`.
-
+    _GridSearchParent : object
+        The parent `GridSearchCV` class passed to the agscv wrapper.
+    _scoring : Union[None, str, list, Callable, dict, Literal[False]]
+        The value passed to the `scoring` parameter of the parent
+        `GridSearchCV`. On the off chance that the parent GridSearch
+        does not have a `scoring` parameter, Literal[False] is passed to
+        here.
+    _total_passes : int
+        The number of grid searches to perform. This number is dynamic
+        and can be incremented by agscv during a run, based on the need
+        to shift grids and the setting of `total_passes_is_hard`.
 
     Returns
     -------
-    -
-        _refit_can_be_skipped: bool - whether or not to allow refits to
-        be skipped until the last pass of agscv.
+    _refit_can_be_skipped : bool
+        Whether or not to allow refits to be skipped until the last pass
+        of agscv.
 
     """
 

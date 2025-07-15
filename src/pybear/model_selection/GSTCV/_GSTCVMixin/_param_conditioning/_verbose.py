@@ -15,9 +15,7 @@ import numpy as np
 def _cond_verbose(
     _verbose: numbers.Real
 ) -> int:
-
-    """
-    Condition `verbose`, the amount of verbosity to display to screen
+    """Condition `verbose`, the amount of verbosity to display to screen
     during the grid search.
 
     Take in a number-like and return an integer in the range of 0 to 10,
@@ -25,18 +23,16 @@ def _cond_verbose(
     Floats are rounded to integers. Numbers greater than 10 are set to
     10.
 
-
     Parameters
     ---------
-    _verbose:
-        numbers.Real - the amount of verbosity to display to screen
-        during the grid search.
-
+    _verbose : numbers.Real
+        The amount of verbosity to display to screen during the grid
+        search.
 
     Returns
     -------
-    -
-        _verbose: int - `verbose` scaled from 0 to 10
+    _verbose : int
+        `verbose` scaled from 0 to 10.
 
     """
 

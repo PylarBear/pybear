@@ -28,40 +28,35 @@ def _parallel_chunk_comparer(
     _atol: numbers.Real,
     _equal_nan: bool
 ) -> list[tuple[tuple[int, ...], tuple[int, ...]]]:
-
-    """
-    Compare the columns in chunk1 against the columns in chunk2 for
-    equality, subject to rtol, atol, and equal_nan. chunk1 and chunk2
-    must be ndarray.
-
+    """Compare the columns in `_chunk1` against the columns in `_chunk2`
+    for equality, subject to `_rtol`, `_atol`, and `_equal_nan`.
+    `_chunk1` and `_chunk2` must be ndarray.
 
     Parameters
     ----------
-    _chunk1:
-        npt.NDArray[numbers.Number] - a chunk of polynomial columns made
-        from X to be compared column-by-column against another chunk of
-        polynomial columns made from X for equality.
-    _chunk1_X_indices:
-        CombinationsType - the column indices in X that made each
-        respective column in chunk1.
-    _chunk2:
-        npt.NDArray[numbers.Number] - the other chunk of polynomial
-        columns made from X.
-    _chunk2_X_indices:
-        CombinationsType - the column indices in X that made each
-        respective column in chunk2.
-    _rtol:
-        numbers.Real - The relative difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number.
-        See numpy.allclose.
-    _atol:
-        numbers.Real - The absolute difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number.
-        See numpy.allclose.
-    _equal_nan:
-        bool - When comparing pairs of columns row by row:
-        If equal_nan is True, exclude from comparison any rows where one
-        or both of the values is/are nan. If one value is nan, this
+    _chunk1 : npt.NDArray[numbers.Number]
+        A chunk of polynomial columns made from X to be compared
+        column-by-column against another chunk of polynomial columns
+        made from X for equality.
+    _chunk1_X_indices : CombinationsType
+        The column indices in X that made each respective column in
+        `_chunk1`.
+    _chunk2 : npt.NDArray[numbers.Number]
+        The other chunk of polynomial columns made from X.
+    _chunk2_X_indices : CombinationsType
+        The column indices in X that made each respective column in
+        `_chunk2`.
+    _rtol : numbers.Real
+        The relative difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
+    _atol : numbers.Real
+        The absolute difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
+    _equal_nan : bool
+        When comparing pairs of columns row by row:
+
+        If `_equal_nan` is True, exclude from comparison any rows where
+        one or both of the values is/are nan. If one value is nan, this
         essentially assumes that the nan value would otherwise be the
         same as its non-nan counterpart. When both are nan, this
         considers the nans as equal (contrary to the default numpy
@@ -72,13 +67,11 @@ def _parallel_chunk_comparer(
         not equivalent, thus making the column pair not equal. This is
         in line with the normal numpy handling of nan values.
 
-
     Return
     ------
-    _pairs:
-        list[tuple[tuple[int, ...], tuple[int, ...]]] - The polynomial
-        column indices for the pairs of columns that are equal between
-        chunk1 and chunk2.
+    _pairs : list[tuple[tuple[int, ...], tuple[int, ...]]]
+        The polynomial column indices for the pairs of columns that are
+        equal between `_chunk1` and `_chunk2`.
 
     """
 

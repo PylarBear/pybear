@@ -47,51 +47,43 @@ def _int_logspace_core(
     _hard_max: IntDataType,
     _points: int
 ) -> IntGridType:
-
-
-    """
-    Logspaces convert to linspace.
-
-    Build a new grid in linspace for a single integer parameter based on
-    the previous search round's logspace grid and the best value
+    """Build a new grid in linspace for a single integer parameter based
+    on the previous search round's logspace grid and the best value
     discovered by GridSearch, subject to constraints imposed by 'hard',
     universal lower bound on integers, etc.
 
+    Logspaces convert to linspace.
 
     Parameters
     ----------
-    _SINGLE_GRID:
-        IntGridType - The last round's logspace search grid for a single
-        parameter. _SINGLE_GRID must be sorted ascending, and is presumed
-        to be by _param_conditioning._params (at least initially).
-    _posn:
-        int - the index position in the previous round's grid where
-        the best value fell
-    _is_hard:
-        bool - whether the parameter has hard left and right boundaries.
-        This field is read from the dtype/search field in _params. If
-        hard, the left and right bounds are set from the lowest and
-        highest values in the first round's search grid (the grid that
-        is was passed to `params` at init.)
-    _hard_min:
-        IntDataType - The minimum value in the first round's search grid.
-        Ignored if not hard.
-    _hard_max:
-        IntDataType - The maximum value in the first round's search grid.
-        Ignored if not hard.
-    _points:
-        int - The target number of points for the next search grid. This
+    _SINGLE_GRID : IntGridType
+        The last round's logspace search grid for a single parameter.
+        `_SINGLE_GRID` must be sorted ascending, and is presumed to be
+        by :func:`_param_conditioning._params` (at least initially).
+    _posn : int
+        The index position in the previous round's grid where the best
+        value fell.
+    _is_hard : bool
+        Whether the parameter has hard left and right boundaries. This
+        field is read from the dtype/search field in _params. If hard,
+        the left and right bounds are set from the lowest and highest
+        values in the first round's search grid (the grid that is was
+        passed to `params` at init.)
+    _hard_min : IntDataType
+        The minimum value in the first round's search grid. Ignored if
+        not hard.
+    _hard_max : IntDataType
+        The maximum value in the first round's search grid. Ignored if
+        not hard.
+    _points : int
+        The target number of points for the next search grid. This
         number may not be achieved exactly on ranges that are not evenly
         divisible.
 
-
     Returns
     -------
-    -
-        _OUT_GRID:
-            IntGridType - new linspace search grid for the current pass'
-            upcoming search.
-
+    _OUT_GRID : IntGridType
+        New linspace search grid for the current pass' upcoming search.
 
     """
 

@@ -6,7 +6,10 @@
 
 
 
-from typing import Literal, Sequence
+from typing import (
+    Literal,
+    Sequence
+)
 from typing_extensions import (
     TypeAlias,
     Union

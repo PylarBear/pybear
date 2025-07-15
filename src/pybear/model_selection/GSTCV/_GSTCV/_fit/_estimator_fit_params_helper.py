@@ -20,36 +20,32 @@ def _estimator_fit_params_helper(
     _fit_params: dict[str, Any],
     _KFOLD: SKKFoldType
 ) -> dict[int, dict[str, Any]]:
+    """This module customizes the estimator's fit params for each pass of
+    cv, to be passed at fit time for the respective fold.
 
-    """
-    This module customizes the estimator's fit params for each pass of
-    cv, to be passed at fit time for the respective fold. This is being
-    done via a dictionary keyed by fold index, whose values are
-    dictionaries holding the respective fit params for that fold. In
-    particular, this is designed to perform splitting on any fit param
-    whose length matches the number of examples in the data, so that the
-    contents of that fit param are matched correctly to the train fold
-    of data concurrently being passed to fit. Other params that are not
-    split are simply replicated into each dictionary inside the helper.
-
+    This is being done via a dictionary keyed by fold index, whose
+    values are dictionaries holding the respective fit params for that
+    fold. In particular, this is designed to perform splitting on any
+    fit param whose length matches the number of examples in the data,
+    so that the contents of that fit param are matched correctly to the
+    train fold of data concurrently being passed to fit. Other params
+    that are not split are simply replicated into each dictionary inside
+    the helper.
 
     Parameters
     ----------
-    _data_len:
-        int - the number of examples in the full data set.
-    _fit_params:
-        dict[str, Any] - all the fit params passed to GSTCV fit for
-        the estimator.
-    _KFOLD:
-        SKKFoldType - The KFold indices that were used to create the
-        train / test splits of data.
-
+    _data_len : int
+        The number of examples in the full data set.
+    _fit_params : dict[str, Any]
+        All the fit params passed to `GSTCV` fit for the estimator.
+    _KFOLD : SKKFoldType
+        The KFold indices that were used to create the train / test
+        splits of data.
 
     Returns
     -------
-    -
-        _fit_params_helper: dict[int, dict[str, Any]] - a dictionary of
-        customized fit params for each pass of cv.
+    _fit_params_helper : dict[int, dict[str, Any]]
+        A dictionary of customized fit params for each pass of cv.
 
     """
 

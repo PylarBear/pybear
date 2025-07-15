@@ -11,7 +11,10 @@ from typing import (
     Optional,
     Sequence
 )
-from typing_extensions import Union
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 from .._type_aliases import (
     IgnoreColumnsType,
     HandleAsBoolType,
@@ -30,54 +33,59 @@ from ....utilities._nan_masking import nan_mask_numerical
 
 
 
+AllowedType: TypeAlias = Sequence[Union[Literal[
+    'callable', 'Sequence[str]', 'Sequence[int]', 'None'
+]]]
+
+
+
 def _val_ignore_columns_handle_as_bool(
     _value: Union[IgnoreColumnsType, HandleAsBoolType],
     _name: Literal['ignore_columns', 'handle_as_bool'],
-    _allowed: Sequence[Union[Literal[
-        'callable', 'Sequence[str]', 'Sequence[int]', 'None'
-    ]]],
+    _allowed: AllowedType,
     _n_features_in: int,
     _feature_names_in: Optional[Union[FeatureNamesInType, None]]=None
 ) -> None:
+    """Validate `ignore_columns` or `handle_as_bool`.
 
-    """
-    Validate ignore_columns or handle_as_bool. Subject to the allowed
-    states indicated in :param: '_allowed'.
+    Subject to the allowed states indicated in `_allowed`.
 
     Validate:
 
     - passed value is Sequence[str], Sequence[int], Callable, or None,
-        subject to those allowed by :param: '_allowed'.
+        subject to those allowed by `_allowed`.
 
     - if sequence, contains valid integers or strings
 
-
     Parameters
     ----------
-    _value:
-        Union[Sequence[str], Sequence[int], callable, None] - the value
-        passed for the 'ignore_columns' or 'handle_as_bool' parameter to
-        the MinCountTransformer instance.
-    _name:
-        Literal['ignore_columns', 'handle_as_bool'] - the name of the
-        parameter being validated.
-    _allowed:
-        Sequence[Union[Literal[
-            'callable', 'Sequence[str]', 'Sequence[int]', 'None'
-        ]]] - the datatype which _value is allowed to be.
-    _n_features_in:
-        int - the number of features in the data.
-    _feature_names_in:
-        Optional[Union[FeatureNamesInType, None]], default=None - if the
-        MCT instance was fitted on a data-bearing object that had a
-        header (like a pandas or polars dataframe) then this is a 1D
+    _value : Union[Sequence[str], Sequence[int], callable, None]
+        The value passed for the `ignore_columns` or `handle_as_bool`
+        parameter to the `MinCountTransformer` instance.
+    _name : Literal['ignore_columns', 'handle_as_bool']
+        The name of the parameter being validated.
+    _allowed : AllowedType
+        The datatype which `_value` is allowed to be.
+    _n_features_in : int
+        The number of features in the data.
+    _feature_names_in : Optional[Union[FeatureNamesInType, None]], default=None
+        If the MCT instance was fitted on a data-bearing object that had
+        a header (like a pandas or polars dataframe) then this is a 1D
         list-like of strings. Otherwise, is None.
 
+    Returns
+    -------
+    None
 
-    Return
-    ------
-    -
-        None
+    Notes
+    -----
+
+    **Type Aliases**
+
+    AllowedType:
+        Sequence[Union[Literal[
+            'callable', 'Sequence[str]', 'Sequence[int]', 'None'
+        ]]]
 
     """
 

@@ -111,3 +111,8 @@ NDArrayHolderType: TypeAlias = npt.NDArray[numbers.Real]
 FeatureNamesInType: TypeAlias = npt.NDArray[str]
 
 
+ErrorScoreType: TypeAlias = Union[numbers.Real, Literal['raise']]
+
+
+
+

@@ -15,26 +15,19 @@ import numbers
 def _val_n_jobs(
     _n_jobs: Union[numbers.Integral, None]
 ) -> None:
-
-    """
-    Validate that `n_jobs` is None or an integer in [-1, 1, 2, 3,...].
-
+    """Validate that `n_jobs` is None or an integer >= -1 and not 0.
 
     Parameters
     ----------
-    _n_jobs:
-        Union[numbers.Integral, None] - The number of joblib Parallel
-        jobs to use. The default is to use processes, but can be
-        overridden externally using a joblib parallel_config context
-        manager. The default setting is None, which uses the joblib
-        default.
-
+    _n_jobs : Union[numbers.Integral, None]
+        The number of joblib Parallel jobs to use. The default is to use
+        processes, but can be overridden externally using a joblib
+        parallel_config context manager. The default setting is None,
+        which uses the joblib default.
 
     Returns
     -------
-    -
-        None
-
+    None
 
     """
 

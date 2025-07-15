@@ -44,51 +44,59 @@ def _validation(
     _n_jobs: Union[numbers.Integral, None],
     _job_size: numbers.Integral
 ) -> None:
+    """Centralized hub for performing parameter validation.
 
-    """
-    Centralized hub for performing parameter validation.
     See the individual modules for more information.
-
 
     Parameters
     ----------
-    _X:
-        array-like of shape (n_samples, n_features)
-    _degree:
-        numbers.Integral
-    _min_degree:
-        numbers.Integral
-    _scan_X:
-        bool
-    _keep:
-        Literal['first', 'last', 'random']
-    _interaction_only:
-        bool
-    _sparse_output:
-        bool
-    _feature_name_combiner:
+    _X : XContainer of shape (n_samples, n_features)
+        The data.
+    _degree : numbers.Integral
+        The maximum degree of the polynomial expansion.
+    _min_degree : numbers.Integral
+        The minimum degree of the polynomial expansion.
+    _scan_X : bool
+        Whether to scan X for constants with `InterceptManager` and
+        duplicates with `ColumnDeduplicateTransformer`.
+    _keep : Literal['first', 'last', 'random']
+        The instruction for choosing a column to keep out of a set of
+        duplicates.
+    _interaction_only : bool
+        Whether to only include first-order interaction terms in the
+        expansion.
+    _sparse_output : bool
+        Whether to return the output as a scipy sparse array.
+    _feature_name_combiner : FeatureNameCombinerType
+        The instruction for how to build the polynomial expansion feature
+        name.
+    _rtol : numbers.Real
+        The relative difference tolerance for equality.
+    _atol : numbers.Real
+        The absolute difference tolerance for equality.
+    _equal_nan : bool
+        How to handle nans in equality comparisons.
+    _n_jobs : Union[numbers.Integral, None]
+        The number of joblib Parallel jobs to use when scanning for
+        duplicate columns.
+    _job_size : numbers.Integral
+        The number of columns to send to a joblib job. Must be an
+        integer greater than or equal to 2.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+
+    **Type Aliases**
+
+    FeatureNameCombinerType:
         Union[
             Callable[[Sequence[str], tuple[int, ...]], str],
-            Literal['as_feature_names', 'as_indices']]
+            Literal['as_feature_names', 'as_indices']
         ]
-    _rtol:
-        numbers.Real
-    _atol:
-        numbers.Real
-    _equal_nan:
-        bool
-    _n_jobs:
-        Union[numbers.Integral, None] - The number of joblib Parallel
-        jobs to use when scanning for duplicate columns.
-    _job_size:
-        numbers.Integral - The number of columns to send to a joblib job.
-        Must be an integer greater than or equal to 2.
-
-
-    Return
-    ------
-    -
-        None
 
     """
 

@@ -40,67 +40,64 @@ def _parallelized_scorer(
 
     # dont adjust the spacing, is congruent with train scorer
 
-    """
-    Using the estimators fit on each train fold, use predict_proba and
-    _X_tests to generate _y_preds and score against the corresponding
+    """Using the estimators fit on each train fold, use `predict_proba`
+    and _X_test to generate _y_preds and score against the corresponding
     _y_tests using all of the scorers and thresholds.
+
     Builds one fold layer of the TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE
     and TEST_FOLD_x_THRESHOLD_x_SCORER__SCORE_TIME cubes.
 
-
     Parameters
     ----------
-    _X_test:
-        SKXType - A test partition of the data, matched up with the
-        estimator that was trained on the complementary train set.
-    _y_test:
-        SKYType - The corresponding test partition of the target for
-        the X test partition.
-    _FIT_OUTPUT_TUPLE:
-        tuple[ClassifierProtocol, float, bool] - A tuple holding the
-        fitted estimator, the fit time (not needed here), and the
-        fit_excepted boolean (needed here.)
-    _f_idx:
-        int - the zero-based split index of the test partition used here;
+    _X_test : SKXType
+        A test partition of the data, matched up with the estimator that
+        was trained on the complementary train set.
+    _y_test : SKYType
+        The corresponding test partition of the target for the X test
+        partition.
+    _FIT_OUTPUT_TUPLE : tuple[ClassifierProtocol, float, bool]
+        A tuple holding the fitted estimator, the fit time (not needed
+        here), and the fit_excepted boolean (needed here.)
+    _f_idx : int
+        The zero-based split index of the test partition used here;
         parallelism occurs over the different splits.
-    _SCORER_DICT:
-        ScorerWIPType - a dictionary with scorer name as keys and the
-        scorer callables as values. The scorer callables are scoring
-        metrics (or similar), not make_scorer.
-    _THRESHOLDS:
-        ThresholdsWIPType - for the current search permutation, there
-        was a mother param grid that contained a 'thresholds' parameter,
-        that was separated from the mother before building cv_results.
-        This is the vector of thresholds from the mother that also
-        mothered this search permutation.
-    _error_score:
-        Union[numbers.Real, Literal['raise']] - if the training fold
-        complementing this test fold excepted during fitting and
-        error_score was set to the 'raise' literal, this module cannot
-        be reached. Otherwise, a number or number-like was passed to
-        'error_score'. If 'fit_excepted' is True, this module puts the
-        'error_score' value in every position of the
-        TEST_THRESHOLD_x_SCORER__SCORE_LAYER array. If 'error_score' is
+    _SCORER_DICT : ScorerWIPType
+        A dictionary with scorer name as keys and the scorer callables
+        as values. The scorer callables are scoring metrics (or similar),
+        not 'make_scorer'.
+    _THRESHOLDS : ThresholdsWIPType
+        For the current search permutation, there was a mother param
+        grid that contained a 'thresholds' parameter, that was separated
+        from the mother before building `cv_results_`. This is the vector
+        of thresholds from the mother that also mothered this search
+        permutation.
+    _error_score : Union[numbers.Real, Literal['raise']]
+        If the training fold complementing this test fold excepted during
+        fitting and `error_score` was set to the 'raise' literal, this
+        module cannot be reached. Otherwise, a number or number-like was
+        passed to `error_score`. If 'fit_excepted' is True, this module
+        puts the `error_score` value in every position of the
+        TEST_THRESHOLD_x_SCORER__SCORE_LAYER array. If `error_score` is
         set to np.nan, that layer is also masked. Every value in
         TEST_THRESHOLD_x_SCORER__SCORE_TIME_LAYER is set to np.nan and
         masked.
-    _verbose:
-        int - a number from 0 to 10 that indicates the amount of
-        information to display to the screen during the grid search
-        process. 0 means no output, 10 means maximum output.
-
+    _verbose : int
+        A number from 0 to 10 that indicates the amount of information
+        to display to the screen during the grid search process. 0 means
+        no output, 10 means maximum output.
 
     Returns
     -------
-    -
-        TEST_THRESHOLD_x_SCORER__SCORE_LAYER: MaskedHolderType - masked
-        array of shape (n_thresholds, n_scorers) holding the scores for
-        each scorer on each threshold for one fold of test data.
+    __ : tuple[MaskedHolderType, MaskedHolderType]
+        TEST_THRESHOLD_x_SCORER__SCORE_LAYER : MaskedHolderType
+            Masked array of shape (n_thresholds, n_scorers) holding the
+            scores for each scorer on each threshold for one fold of test
+            data.
 
-        TEST_THRESHOLD_x_SCORER__SCORE_TIME_LAYER: MaskedHolderType -
-        masked array of shape (n_thresholds, n_scorers) holding the
-        times to score each scorer on each threshold for one fold of
-        test data.
+        TEST_THRESHOLD_x_SCORER__SCORE_TIME_LAYER: MaskedHolderType
+            Masked array of shape (n_thresholds, n_scorers) holding the
+            times to score each scorer on each threshold for one fold of
+            test data.
 
     """
 

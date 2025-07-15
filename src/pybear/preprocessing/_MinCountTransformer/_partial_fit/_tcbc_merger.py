@@ -16,43 +16,40 @@ def _tcbc_merger(
     _DTYPE_UNQS_CTS_TUPLES: list[tuple[str, dict[DataType, int]]],
     _tcbc: dict[int, dict[DataType, int]]
 ):
+    """Merge the `_DTYPE_UNQS_CTS_TUPLES` list from the current
+    partial_fit with the `total_counts_by_column` dictionary from any
+    previous partial fits.
 
-    """
     If doing fit, or on the first partial_fit, there are no previous
     fits, so the uniques and counts in the unq_cts dictionary of
-    _DTYPE_UNQS_CTS_TUPLES for the first fit are merged into an empty
-    total_counts_by_column (tcbc) dictionary.
+    `_DTYPE_UNQS_CTS_TUPLES` for the first fit are merged into an empty
+    `total_counts_by_column` (tcbc) dictionary.
 
     When doing multiple partial_fits, combine the results in the unqs/cts
-    dictionary of _DTYPE_UNQS_CTS_TUPLES from the current partial_fit
+    dictionary of `_DTYPE_UNQS_CTS_TUPLES` from the current partial_fit
     with the unqs/cts results from previous partial_fits that are already
-    in the total_counts_by_column dictionary. If the column does not
-    exist in total_counts_by_column, add the entire unq_cts dict in that
-    slot. For columns that already exist, if a unique is not in that
-    column of total_counts_by_column, add the unique and its count. If
-    the unique already exists in that column, add the current count to
-    the old count.
-
+    in the `total_counts_by_column` dictionary. If the column does not
+    exist in `total_counts_by_column`, add the entire unq_cts dict in
+    that slot. For columns that already exist, if a unique is not in
+    that column of `total_counts_by_column`, add the unique and its
+    count. If the unique already exists in that column, add the current
+    count to the old count.
 
     Parameters
     ----------
-    _DTYPE_UNQS_CTS_TUPLES:
-        list[tuple[str, dict[DataType, int]]] - a list of tuples, where
-        each tuple holds (dtype, unq_ct_dict) for each column in the
-        current {partial_}fit.
-    _tcbc:
-        dict[int, dict[DataType, int]] - total_counts_by_column dictionary,
-        outer keys are the column index of the data, values are dicts
-        with keys that are the uniques in that column, and the values
-        are the frequency.
+    _DTYPE_UNQS_CTS_TUPLES : list[tuple[str, dict[DataType, int]]]
+        A list of tuples, where each tuple holds (dtype, unq_ct_dict)
+        for each column in the current {partial_}fit.
+    _tcbc : dict[int, dict[DataType, int]]
+        The `total_counts_by_column` dictionary, outer keys are the
+        column index of the data, values are dicts with keys that are
+        the uniques in that column, and the values are the frequency.
 
-
-    Return
-    ------
-    -
-        _tcbc: dict[int, dict[DataType, int]] - total_counts_by_column
-        dictionary updated with the uniques and counts in
-        _DTYPE_UNQS_CTS_TUPLES.
+    Returns
+    -------
+    _tcbc : dict[int, dict[DataType, int]]
+        The `total_counts_by_column` dictionary updated with the uniques
+        and counts in `_DTYPE_UNQS_CTS_TUPLES`.
 
     """
 

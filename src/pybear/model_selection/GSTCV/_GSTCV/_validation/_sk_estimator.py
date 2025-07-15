@@ -17,31 +17,27 @@ from sklearn.pipeline import Pipeline
 def _val_sk_estimator(
     _estimator: ClassifierProtocol
 ) -> None:
-
-    """
-    The GSTCV module is expected to most likely encounter sklearn,
+    """The GSTCV module is expected to most likely encounter sklearn,
     xgboost, and lightgbm estimators, and maybe some other pybear modules.
+
     The estimator must be passed as an instance, not the class itself.
 
     Validate that the estimator is not a dask estimator, either from
     dask itself, or from XGBoost or LightGBM.
 
-
     Parameters
     ----------
-    _estimator:
-        ClassifierProtocol - the estimator to be validated
-
+    _estimator : ClassifierProtocol
+        The estimator to be validated.
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 
 
-    # validate estimator ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validate estimator ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     def get_inner_most_estimator(__estimator):
 
@@ -68,7 +64,7 @@ def _val_sk_estimator(
 
     del get_inner_most_estimator, __estimator, _module
 
-    # END validate estimator ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END validate estimator ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
 

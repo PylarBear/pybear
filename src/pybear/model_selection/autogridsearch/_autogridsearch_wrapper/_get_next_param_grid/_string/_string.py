@@ -20,30 +20,25 @@ def _string(
     _pass: int,
     _best_param_from_previous_pass: StrDataType
 ) -> StrGridType:
-
-    """
-    Create the current round's search grid for a string parameter based
-    on results from _best_params.
-
+    """Create the current round's search grid for a string parameter
+    based on results from `best_params_`.
 
     Parameters
     ----------
-    _param_value:
-        StrParamType - string parameter grid instructions
-    _grid:
-        StrGridType - previous round's gridsearch values for string
-        parameter
-    _pass:
-        int - zero-indexed count of passes to this point, inclusive; the
-        current pass
-    _best_param_from_previous_pass:
-        str - best value returned from parent GridSearch's best_params_
-
+    _param_value : StrParamType
+        String parameter grid instructions.
+    _grid : StrGridType
+        Previous round's gridsearch values for string parameter.
+    _pass : int
+        Zero-indexed count of passes to this point, inclusive; the
+        current pass.
+    _best_param_from_previous_pass : str
+        Best value returned from parent GridSearch's `best_params_`.
 
     Returns
     -------
-    -
-        _grid: StrGridType - new search grid for the current pass
+    _grid : StrGridType
+        New search grid for the current pass.
 
     """
 

@@ -22,34 +22,31 @@ def _cond_param_grid(
     _param_grid: Union[ParamGridInputType, ParamGridsInputType],
     _thresholds: ThresholdsInputType    # this is init self.thresholds
 ) -> ParamGridsWIPType:
+    """Condition `param_grid` and any thresholds that may be passed inside.
 
-    """
-    Condition `param_grid` and any thresholds that may be passed inside.
     Get it/them into list(dict[str, list[Any]]) format. If any grid does
     not have thresholds in it, put the init `thresholds` in it. Condition
-    any thresholds that were passed in a param_grid into a py list of
+    any thresholds that were passed in a `param_grid` into a py list of
     floats.
-
 
     Parameters
     ----------
-    _param_grid:
-        Union[ParamGridInputType, ParamGridsInputType] - A param_grid
-        is a dictionary with hyperparameter names (str) as keys and
-        list-likes of hyperparameter settings to test as values.
-        `_param_grid` can be one of the described param_grids, or a
-        list-like of such param_grids.
-    _thresholds:
-        ThresholdsInputType - The global decision threshold strategy to
-        use when performing hyperparameter search, for those param_grids
-        that did not have thresholds passed inside.
-
+    _param_grid : Union[ParamGridInputType, ParamGridsInputType]
+        A 'param_grid' is a dictionary with hyperparameter names (str)
+        as keys and list-likes of hyperparameter settings to test as
+        values. `_param_grid` can be one of the described param_grids,
+        or a list-like of such param_grids.
+    _thresholds : ThresholdsInputType
+        The global decision threshold strategy to use when performing
+        hyperparameter search, for those param_grids that did not have
+        thresholds passed inside.
 
     Returns
     -------
-        ParamGridsWIPType - returns param grid(s) inside a list with
-        thresholds inside every param_grid, no matter how (or if)
-        thresholds was passed in the param_grid.
+    _out_param_grid : ParamGridsWIPType
+        Returns param grid(s) inside a list with thresholds inside every
+        param_grid, no matter how (or if) thresholds was passed in the
+        param_grid.
 
     """
 

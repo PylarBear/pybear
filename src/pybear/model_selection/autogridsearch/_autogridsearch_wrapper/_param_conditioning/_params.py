@@ -21,54 +21,47 @@ def _cond_params(
     _params: InParamsType,
     _total_passes: numbers.Integral
 ) -> ParamsType:
-
-    """
-    Standardize the format of `params`, vis-à-vis total_passes.
-
+    """Standardize the format of `params`, vis-à-vis `total_passes`.
 
     Parameters
     ----------
-    _params:
-        InParamsType - A single dictionary that contains parameter names
-        as keys and list-likes that follow the format rules for string,
-        bool, and numerical parameters as values. AutoGridSearch does
-        not accept lists of multiple params dictionaries in the same way
-        that scikit-Learn accepts multiple param_grids.
-    _total_passes:
-        numbers.Integral - the number of grid searches to perform.
-        The actual number of passes run can be different from this
-        number based on the setting for :param: `total_passes_is_hard`.
-        If `total_passes_is_hard` is True, then the maximum number of
-        total passes will always be the value assigned to `total_passes`.
-        If `total_passes_is_hard` is False, a round that performs a
-        'shift' operation will increment the allowed total number of
-        passes, essentially causing shift passes to not count toward the
-        original-entered total number of passes. Read elsewhere in the
-        docs for more information about 'shifting' and 'drilling'.
-
+    _params : InParamsType
+        A single dictionary that contains parameter names as keys and
+        list-likes that follow the format rules for string, bool, and
+        numerical parameters as values. `AutoGridSearch` does not accept
+        lists of multiple params dictionaries in the same way that
+        scikit-Learn accepts multiple param_grids.
+    _total_passes : numbers.Integral
+        The number of grid searches to perform. The actual number of
+        passes run can be different from this number based on the setting
+        for `total_passes_is_hard`. If `total_passes_is_hard` is True,
+        then the maximum number of total passes will always be the value
+        assigned to `total_passes`. If `total_passes_is_hard` is False,
+        a round that performs a 'shift' operation will increment the
+        allowed total number of passes, essentially causing shift passes
+        to not count toward the original-entered total number of passes.
+        Read elsewhere in the docs for more information about 'shifting'
+        and 'drilling'.
 
     Returns
     -------
-    -
-        _params: ParamsType - dictionary of grid-building instructions
-        for all parameters.
-
+    _params : ParamsType
+        Dictionary of grid-building instructions for all parameters.
 
     Examples
     --------
     string parameter:
-        {'solver': [['saga', 'lbfgs'], 2, 'fixed_string']
+        {'solver': [['saga', 'lbfgs'], [2, 2, 2], 'fixed_string']
     bool parameter:
-        {'remove_empty_rows': [[True, False], 2, 'fixed_bool']
+        {'remove_empty_rows': [[True, False], [2, 2, 2], 'fixed_bool']
     numerical parameter:
-        {'C': [[10, 20, 30], [3,3,3], 'soft_float']}
+        {'C': [[10, 20, 30], [3, 3, 3], 'soft_float']}
     a full parameter dictionary:
         {
             'C': [np.logspace(-5, 5, 11), [11, 11, 11], 'soft_float'],
             'l1_ratio': [np.linspace(0, 1, 21), [21, 6, 6], 'hard_float'],
-            'solver': [['saga', 'lbfgs'], 2, 'fixed_string']
+            'solver': [['saga', 'lbfgs'], [2, 2, 2], 'fixed_string']
         }
-
 
     """
 

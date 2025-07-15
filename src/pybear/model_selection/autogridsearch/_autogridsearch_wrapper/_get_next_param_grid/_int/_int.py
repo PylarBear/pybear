@@ -39,61 +39,55 @@ def _int(
     _hard_max: IntDataType,
     _points: int
 ) -> tuple[IntGridType, LogspaceType]:
-
-
-    """
-    Take in a integer's grid from the last round of GridSearch along
+    """Take in an integer's grid from the last round of GridSearch along
     with the index position of the best value within that grid and
     return a new grid for the upcoming (current pass') GridSearch.
-    Important factors in building the next grid: hard/soft, number of
-    points, linspace/logspace.
 
+    Important factors in building the next grid:
+        hard/soft, number of points, linspace/logspace.
 
     Parameters
     ----------
-    _SINGLE_GRID:
-        IntGridType - The last round's search grid for a single param.
-        May be linspace or logspace.
-        _SINGLE_GRID must be sorted ascending, and is presumed to be by
-        _param_conditioning._params (at least initially).
-    _is_logspace:
-        LogspaceType - For numerical params, if the space is linear, or
-        some other non-standard interval, it is False. If it is logspace,
-        the 'truth' of being a logspace is represented by a number
-        indicating the interval of the logspace. E.g.,
-        np.logspace(-5, 5, 11) would be represented by 1.0, and
-        np.logspace(-20, 20, 9) would be represented by 5.0.
-    _posn:
-        int - the index position in the previous round's grid where
-        the best value fell
-    _is_hard:
-        bool - whether the parameter has hard left and right boundaries.
-        This field is read from the dtype/search field in _params. If
-        hard, the left and right bounds are set from the lowest and
-        highest values in the first round's search grid (the grid that
-        was passed to `params` at init.)
-    _hard_min:
-        IntDataType - the minimum value in the first round's search grid.
-        Ignored if hard.
-    _hard_max:
-        IntDataType - the maximum value in the first round's search grid.
-        Ignored if hard.
-    _points:
-        int - the number of points for this parameter's grid in the next
-        pass of GridSearchCV, as read from _params.
-
+    _SINGLE_GRID : IntGridType
+        The last round's search grid for a single param. May be linspace
+        or logspace. `_SINGLE_GRID` must be sorted ascending, and is
+        presumed to be by :func:`_param_conditioning._params` (at least
+        initially).
+    _is_logspace : LogspaceType
+        For numerical params, if the space is linear, or some other
+        non-standard interval, it is False. If it is logspace, the 'truth'
+        of being a logspace is represented by a number indicating the
+        interval of the logspace. E.g., np.logspace(-5, 5, 11) would
+        be represented by 1.0, and np.logspace(-20, 20, 9) would be
+        represented by 5.0.
+    _posn : int
+        The index position in the previous round's grid where the best
+        value fell.
+    _is_hard : bool
+        Whether the parameter has hard left and right boundaries. This
+        field is read from the dtype/search field in `_params`. If hard,
+        the left and right bounds are set from the lowest and highest
+        values in the first round's search grid (the grid that was
+        passed to `params` at init.)
+    _hard_min : IntDataType
+        The minimum value in the first round's search grid. Ignored if
+        hard.
+    _hard_max : IntDataType
+        The maximum value in the first round's search grid. Ignored if
+        hard.
+    _points : int
+        The number of points for this parameter's grid in the next pass
+        of `GridSearchCV`, as read from `_params`.
 
     Returns
     -------
-    -
-        _NEW_GRID:
-        IntGridType - new search grid for the current pass' upcoming
-        search.
-
-        _is_logspace:
-        Logspace - current float parameter grid space is/is not logspace.
-        All params leaving this module should be in linspace and the
-        return value should always be False.
+    __ : tuple[IntGridType, LogspaceType]
+        _NEW_GRID : IntGridType
+            New search grid for the current pass' upcoming search.
+        _is_logspace : LogspaceType
+            Current float parameter grid space is/is not logspace. All
+            params leaving this module should be in linspace and the
+            return value should always be False.
 
     """
 
@@ -166,8 +160,6 @@ def _int(
 
 
     return _OUT_GRID, _is_logspace
-
-
 
 
 

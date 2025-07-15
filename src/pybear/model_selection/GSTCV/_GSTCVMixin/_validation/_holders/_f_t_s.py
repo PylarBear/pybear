@@ -21,30 +21,25 @@ def _val_f_t_s(
     _n_thresh: int,
     _n_scorers: int
 ) -> None:
-
-    """
-    Validate the dimensions of _TEST_FOLD_x_THRESH_x_SCORER, either the
-    score holder or the time holder.
-
+    """Validate the dimensions of _TEST_FOLD_x_THRESH_x_SCORER, either
+    the score holder or the time holder.
 
     Parameters
     ----------
-    _TEST_FOLD_x_THRESH_x_SCORER:
-        MaskedHolderType - the raw scores from _parallelized_scorer.
-    _name:
-        str - which object is being validated.
-    _n_splits:
-        int - the number of folds.
-    _n_thresh:
-        int - the number of thresholds.
-    _n_scorers:
-        int - the number of scorers.
-
+    _TEST_FOLD_x_THRESH_x_SCORER : MaskedHolderType
+        The raw scores from _parallelized_scorer.
+    _name : str
+        Which object is being validated.
+    _n_splits : int
+        The number of folds.
+    _n_thresh : int
+        The number of thresholds.
+    _n_scorers : int
+        The number of scorers.
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 

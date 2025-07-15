@@ -67,7 +67,7 @@ def _transform(
 
     Returns
     -------
-    tuple[list[list[str]], NDArray[bool]]
+    X_tr : tuple[list[list[str]], NDArray[bool]]
         list[list[str]] - the data with all matching n-gram patterns
         replaced with contiguous strings.
 

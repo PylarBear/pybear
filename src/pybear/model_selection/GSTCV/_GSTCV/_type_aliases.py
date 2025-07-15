@@ -9,6 +9,8 @@
 from typing import (
     ContextManager,
     Iterable,
+    Literal,
+    Optional,
     Sequence
 )
 from typing_extensions import (
@@ -19,6 +21,7 @@ from typing_extensions import (
 import numbers
 
 
+PreDispatchType: TypeAlias = Optional[Union[Literal['all'], str, numbers.Integral]]
 
 SKXType: TypeAlias = Iterable
 SKYType: TypeAlias = Union[Sequence[numbers.Integral], None]

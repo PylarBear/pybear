@@ -18,42 +18,36 @@ def _one_unique(
     _nan_ct: Union[int, Literal[False]],
     _COLUMN_UNQ_CT_DICT: dict[DataType, int],
 ) -> list[Union[Literal['DELETE COLUMN'], DataType]]:
-
-    """
-    Make delete instructions for a column with one unique non-nan value.
+    """Make delete instructions for a column with one unique non-nan
+    value.
 
     *** CONSTANT COLUMNS ARE HANDLED DIFFERENTLY THAN OTHER DTYPES ***
-    No matter how many nans are in the column, or whether ignore_nan is
-    True or False, and no matter how many non-nan values are in the
+    No matter how many nans are in the column, or whether `ignore_nan`
+    is True or False, and no matter how many non-nan values are in the
     column, or if either fall below the threshold, delete the column
     without deleting any rows. After all, it is just a column of
     constants with or without some nans mixed in.
 
-
     Parameters
     ----------
-    _threshold:
-        int - the threshold value for the selected column
-    _nan_key:
-        Union[float, str, Literal[False]] - the nan value found in the
-        data. all nan-likes are converted to numpy.nan by _columns_getter.
-    _nan_ct:
-        Union[int, Literal[False]] - the number of nans found in this
-        column.
-    _COLUMN_UNQ_CT_DICT:
-        dict[DataType, int] - the value from _total_cts_by_column for
-        this column which is a dictionary that holds the uniques and
-        their frequencies. must have 1 non-nan key:value pair in it (any
-        nan key:value pair that may have been it must have already been
-        removed.)
+    _threshold : int
+        The threshold value for the selected column.
+    _nan_key : Union[float, str, Literal[False]]
+        The nan value found in the data. all nan-likes are converted to
+        numpy.nan by :func:`_columns_getter`.
+    _nan_ct : Union[int, Literal[False]]
+        The number of nans found in this column.
+    _COLUMN_UNQ_CT_DICT : dict[DataType, int]
+        The value from `_total_cts_by_column` for this column which is a
+        dictionary that holds the uniques and their frequencies. must
+        have 1 non-nan key:value pair in it (any nan key:value pair that
+        may have been it must have already been removed.)
 
-
-    Return
-    ------
-    -
-        _instr_list: list[Literal['DELETE COLUMN']] - the row and column
-        operation instructions for this column. Can only be to delete
-        the entire column without deleting rows.
+    Returns
+    -------
+    _instr_list : list[Literal['DELETE COLUMN']]
+        The row and column operation instructions for this column. Can
+        only be to delete the entire column without deleting rows.
 
     """
 

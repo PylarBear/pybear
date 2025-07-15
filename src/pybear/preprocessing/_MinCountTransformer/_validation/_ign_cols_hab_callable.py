@@ -32,54 +32,48 @@ def _val_ign_cols_hab_callable(
     _n_features_in: int,
     _feature_names_in: Union[FeatureNamesInType, None]
 ) -> None:
+    """Validate an `ignore_columns` or `handle_as_bool` callable.
 
-    """
-    Validate a callable used for ignore_columns or handle_as_bool returns
-    either:
+    Validate a callable used for `ignore_columns` or `handle_as_bool`
+    returns either:
 
     - a 1D list-like full of integers
     - a 1D list-like full of strings
     - an empty 1D list-like
 
-    If the callable returned a vector of strings and feature_names_in is
-    provided, validate the strings are in feature_names_in. If
-    feature_names_in is not provided, raise exception, feature names
+    If the callable returned a vector of strings and `_feature_names_in`
+    is provided, validate the strings are in `_feature_names_in`. If
+    `_feature_names_in` is not provided, raise exception, feature names
     cannot be mapped to column indices if there are no feature names.
 
     If the callable returned a vector of integers, validate the minimum
     and maximum values of the callable's returned indices are within the
-    bounds of n_features_in.
+    bounds of `_n_features_in`.
 
     Validate the current output of the callable exactly matches the
     output from the first call to it, if applicable, as held in the
-    '_first_function_output' parameter. If this is the first pass,
-    '_first_function_output' must be None. If unequal, raise exception.
-
+    `_first_function_output` parameter. If this is the first pass,
+    `_first_function_output` must be None. If unequal, raise exception.
 
     Parameters
     ----------
-    _fxn_output:
-        Union[Sequence[str], Sequence[numbers.Integral]] - the output of
-        the callable used for ignore_columns or handle_as_bool
-    _first_fxn_output:
-        Union[Sequence[str], Sequence[numbers.Integral], None] - the
-        output of the callable on the first call to :meth: `partial_fit`
-        or :meth: `transform`. used to validate that all subsequent
-        outputs of the callable equal the first.
-    _name:
-        Literal['ignore_columns', 'handle_as_bool'] - the name of the
-        parameter for which a callable was passed.
-    _n_features_in:
-        int - the number of features in the data.
-    _feature_names_in:
-        Union[FeatureNamesInType, None] - the feature names of a
-        data-bearing object.
+    _fxn_output : Union[Sequence[str], Sequence[numbers.Integral]]
+        The output of the callable used for `ignore_columns` or
+        `handle_as_bool`.
+    _first_fxn_output : Union[Sequence[str], Sequence[numbers.Integral], None]
+        The output of the callable on the first call to `partial_fit` or
+        `transform`. used to validate that all subsequent outputs of the
+        callable equal the first.
+    _name : Literal['ignore_columns', 'handle_as_bool']
+        The name of the parameter for which a callable was passed.
+    _n_features_in : int
+        The number of features in the data.
+    _feature_names_in : Union[FeatureNamesInType, None]
+        The feature names of a data-bearing object.
 
-
-    Return
-    ------
-    -
-        None
+    Returns
+    -------
+    None
 
     """
 

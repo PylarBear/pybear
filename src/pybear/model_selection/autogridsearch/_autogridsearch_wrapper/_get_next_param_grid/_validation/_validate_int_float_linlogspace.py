@@ -29,53 +29,52 @@ def _validate_int_float_linlogspace(
     _points: int,
     _module_name: str
 ) -> None:
-
     """
     Validate params for:
-    _float_linspace,
-    _float_logspace,
-    _int_linspace_unit_gap,
-    _int_linspace_gap_gt1,
-    _int_logspace_unit_gap,
-    _int_logspace_gap_gt1
 
+        :func:`_float_linspace`
+
+        :func:`_float_logspace`
+
+        :func:`_int_linspace_unit_gap`
+
+        :func:`_int_linspace_gap_gt1`
+
+        :func:`_int_logspace_unit_gap`
+
+        :func:`_int_logspace_gap_gt1`
 
     Parameters
     ----------
-    _SINGLE_GRID:
-        NumGridType - numerical parameter search grid from the previous
-        round
-    _posn:
-        int - index in _SINGLE_GRID where best value found by GridSearch
-        fell
-    _is_logspace:
-        LogspaceType - whether _SINGLE_GRID is in lin or logspace, and
-        if in logspace, what the log interval is
-    _is_hard:
-        bool - whether the parameter has hard left and right boundaries.
-        This field is read from the dtype/search field in _params. If
-        hard, the left and right bounds are set from the lowest and
-        highest values in the first round's search grid (the grid that
-        was passed to `params` at init.)
-    _hard_min:
-        NumDataType - if hard, the minimum value in the first round's
-        search grid.
-    _hard_max:
-        NumDataType - if hard, the maximum value in the first round's
-        search grid.
-    _points:
-        int - number of points to use in the next search grid, subject
-        to constraints of hard_min, hard_max, universal lower bound, etc.
-    _module_name:
-        str - the name of the module calling this module
-
+    _SINGLE_GRID : NumGridType
+        Numerical parameter search grid from the previous round.
+    _posn : int
+        Index in `_SINGLE_GRID` where best value found by GridSearch
+        fell.
+    _is_logspace : LogspaceType
+        Whether `_SINGLE_GRID` is in lin or logspace, and if in logspace,
+        what the log interval is.
+    _is_hard : bool
+        Whether the parameter has hard left and right boundaries. This
+        field is read from the dtype/search field in `_params`. If hard,
+        the left and right bounds are set from the lowest and highest
+        values in the first round's search grid (the grid that was
+        passed to `params` at init.)
+    _hard_min : NumDataType
+        If hard, the minimum value in the first round's search grid.
+    _hard_max : NumDataType
+        If hard, the maximum value in the first round's search grid.
+    _points : int
+        Number of points to use in the next search grid, subject to
+        constraints of `_hard_min`, `_hard_max`, universal lower bound,
+        etc.
+    _module_name : str
+        The name of the module calling this module.
 
     Returns
     -------
-    -
-        _SINGLE_GRID:
-        NumGridType - search grid converted to a list
-
+    _SINGLE_GRID : NumGridType
+        Search grid converted to a list.
 
     """
 
@@ -124,7 +123,7 @@ def _validate_int_float_linlogspace(
 
     # END universal lower bound ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # search grid ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *s
+    # search grid ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     try:
         iter(_SINGLE_GRID)
@@ -223,15 +222,15 @@ def _validate_int_float_linlogspace(
 
     del _log_gaps
 
-    # END _is_logspace ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END _is_logspace ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-    # _is_hard ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # _is_hard ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     if not isinstance(_is_hard, bool):
         raise TypeError(f"_is_hard must be a bool")
-    # END _is_hard ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END _is_hard ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-    # _hard_min, _hard_max ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # _hard_min, _hard_max ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     __ = [_hard_min, _hard_max]
 
@@ -261,10 +260,10 @@ def _validate_int_float_linlogspace(
     if _is_hard and _hard_max < max(_SINGLE_GRID):
         raise ValueError(f"hard_max < max(GRID)")
 
-    # END _hard_min, _hard_max ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+    # END _hard_min, _hard_max ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    # _points ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # _points ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     try:
         if int(_points) != _points:
@@ -279,7 +278,7 @@ def _validate_int_float_linlogspace(
             f"caught in initial validation and blocked thereafter)"
         )
 
-    # _points ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # _points ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
 

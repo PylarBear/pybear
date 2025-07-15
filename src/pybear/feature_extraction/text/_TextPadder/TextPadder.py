@@ -405,8 +405,7 @@ class TextPadder(
 
         Returns
         -------
-        -
-            None
+        None
 
 
         """

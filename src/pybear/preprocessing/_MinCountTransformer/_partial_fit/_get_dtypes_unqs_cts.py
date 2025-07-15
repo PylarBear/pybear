@@ -26,26 +26,22 @@ from .._partial_fit._parallel_dtypes_unqs_cts import _parallel_dtypes_unqs_cts
 def _get_dtypes_unqs_cts(
     _X: InternalXContainer
 ) -> tuple[str, dict[DataType, int]]:
-
-    """
-    Parallelized collection of dtypes, uniques, and counts for every
-    column in X.
-
+    """Parallelized collection of dtypes, uniques, and counts for every
+    column in `X`.
 
     Parameters
     ----------
-    _X:
-        InternalXContainer - The data. must be numpy array, pandas
-        dataframe, polars dataframe, or scipy csc matrix/array.
-
+    _X : InternalXContainer
+        The data. must be numpy array, pandas dataframe, polars dataframe,
+        or scipy csc matrix/array.
 
     Returns
     -------
-    -
-        list[tuple[str, dict[DataType, int]]] - a list of tuples, one
-        tuple for each column in X. Each tuple holds the MCT-assigned
-        dtype for the column and a dictionary with the uniques in the
-        column as keys and their respective frequencies as values.
+    DTYPE_UNQS_CTS_TUPLES : list[tuple[str, dict[DataType, int]]]
+        A list of tuples, one tuple for each column in `X`. Each tuple
+        holds the MCT-assigned dtype for the column and a dictionary
+        with the uniques in the column as keys and their respective
+        frequencies as values.
 
     """
 

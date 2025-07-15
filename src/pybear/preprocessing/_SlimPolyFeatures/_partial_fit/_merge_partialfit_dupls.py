@@ -20,49 +20,45 @@ def _merge_partialfit_dupls(
     _old_duplicates: Union[PolyDuplicatesType, None],
     _new_duplicates: PolyDuplicatesType,
 ) -> PolyDuplicatesType:
+    """Compare the newest duplicates found in the current partial fit
+    with duplicates found on earlier partial fits and meld together to
+    produce overall duplicates.
 
-    """
     The lead-up to this module:
-    Within a partial fit, for all combos get the duplicates with
-    _get_dupls_for_combo_in_X_and_poly. Convert the output format with
-    pybear.utilities.union_find. The output of union_find is the final
-    list of duplicates for the current partial fit. Merge the current
-    partial fit's dupls with dupls from previous partial fits with
-    this module.
 
-    Compare the newest duplicates found in the current partial fit with
-    duplicates found on earlier partial fits and meld together to produce
-    overall duplicates. Any combos previously not identified as equal
-    but currently are equal, are coincidentally equal and are not added
-    to the final list. Combos previously found to be equal but are not
-    currently equal are removed from the final lists of duplicates. The
-    only duplicates retained are those combos found to be identical for
-    all partial fits.
+    Within a partial fit, for all combos get the duplicates
+    with :func:`_get_dupls_for_combo_in_X_and_poly`. Convert the output
+    format with :func:`pybear.utilities.union_find`. The output of
+    `union_find` is the final list of duplicates for the current
+    partial fit. Merge the current partial fit's dupls with dupls from
+    previous partial fits with this module.
 
-    The merged duplicates must be sorted in this way. All combos should
-    already be sorted asc on indices. Within each group of duplicates,
-    sort first on tuple len (degree), then sort asc on idx values. Across
-    groups of duplicates sort in the same way on the first value in each
-    group, so that the groups are asc on degree, then on indices.
+    Any combos previously not identified as equal but currently are
+    equal, are coincidentally equal and are not added to the final list.
+    Combos previously found to be equal but are not currently equal are
+    removed from the final lists of duplicates. The only duplicates
+    retained are those combos found to be identical for all partial fits.
 
+    The merged duplicates must be sorted in this way:
+
+    All combos should already be sorted asc on indices. Within each
+    group of duplicates, sort first on tuple len (degree), then sort asc
+    on idx values. Across groups of duplicates sort in the same way on
+    the first value in each group, so that the groups are asc on degree,
+    then on indices.
 
     Parameters
     ----------
-    _old_duplicates:
-        Union[PolyDuplicatesType, None] - the duplicate combos carried
-        over from the previous partial fits. Is None if on the first
-        partial fit.
-    _new_duplicates:
-        PolyDuplicatesType - the duplicate combos found during the
-        current partial fit.
+    _old_duplicates : Union[PolyDuplicatesType, None]
+        The duplicate combos carried over from the previous partial fits.
+        Is None if on the first partial fit.
+    _new_duplicates : PolyDuplicatesType
+        The duplicate combos found during the current partial fit.
 
-
-    Return
-    ------
-    -
-        duplicates_: PolyDuplicatesType - the groups of identical combos
-        across all partial fits.
-
+    Returns
+    -------
+    duplicates_ : PolyDuplicatesType
+        The groups of identical combos across all partial fits.
 
     """
 

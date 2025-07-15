@@ -75,7 +75,7 @@ def _param_conditioner(
 
     Returns
     -------
-    _compile_holder: WipPatternHolderType
+    _compile_holder : WipPatternHolderType
         The search criteria for the data. Could be a single None, as
         single re.Pattern, a single tuple of re.Patterns, or a list
         comprised of any of those things.

@@ -34,50 +34,42 @@ def _get_dupls_for_combo_in_X_and_poly(
     _n_jobs: Union[numbers.Integral, None],
     _job_size: numbers.Integral
 ) -> list[tuple[tuple[int,...], tuple[int, ...]]]:
-
-    """
-    Scan the polynomial columns generated as products of combinations of
-    columns from X across X itself and themselves, looking for duplicates.
-
+    """Scan the polynomial columns generated as products of combinations
+    of columns from X across X itself and themselves, looking for
+    duplicates.
 
     Parameters
     ----------
-    _X:
-        InternalXContainer of shape (n_samples, n_features) - the
-        data to undergo polynomial expansion. _X will be passed to
-        _columns_getter which allows ndarray, pd.DataFrame, pl.DataFrame,
-        scipy sparse csr matrix/array. _X should already be conditioned
-        for this when passed here.
-    _poly_combos:
-        list[tuple[int, ...]] - the combinations of columns from _X to
-        use to build the polynomial columns.
-    _min_degree:
-        numbers.Integral - the minimum degree of polynomial terms to
-        return in the output.
-    _equal_nan:
-        bool - how to handle nan-like values when checking for equality.
-        See the detailed explanation in the SPF main module.
-    _rtol:
-        numbers.Real - The relative difference tolerance for equality.
-        See numpy.allclose.
-    _atol:
-        numbers.Real - The absolute tolerance parameter for equality.
-        See numpy.allclose.
-    _n_jobs:
-        Union[numbers.Integral, None] - The number of joblib Parallel
-        jobs to use when looking for duplicate columns.
-    _job_size:
-        numbers.Integral - The number of columns to send to a joblib job.
-        Must be an integer greater than or equal to 2.
+    _X : InternalXContainer of shape (n_samples, n_features)
+        The data to undergo polynomial expansion. `_X` will be passed
+        to :func:`_columns_getter` which allows ndarray, pd.DataFrame,
+        pl.DataFrame, scipy sparse csr matrix/array. `_X` should already
+        be conditioned for this when passed here.
+    _poly_combos : list[tuple[int, ...]]
+        The combinations of columns from `_X` to use to build the
+        polynomial columns.
+    _min_degree : numbers.Integral
+        The minimum degree of polynomial terms to return in the output.
+    _equal_nan : bool
+        How to handle nan-like values when checking for equality. See
+        the detailed explanation in the SPF main module.
+    _rtol : numbers.Real
+        The relative difference tolerance for equality. See numpy.allclose.
+    _atol : numbers.Real
+        The absolute tolerance parameter for equality. See numpy.allclose.
+    _n_jobs : Union[numbers.Integral, None]
+        The number of joblib Parallel jobs to use when looking for
+        duplicate columns.
+    _job_size : numbers.Integral
+        The number of columns to send to a joblib job. Must be an integer
+        greater than or equal to 2.
 
-
-    Return
-    ------
-    -
-        _all_dupls: list[tuple[tuple[int,...], tuple[int, ...]]] - 1D
-        list of tuples, each tuple holding two groups of indices. Each
-        group of indices indicate column indices from _X that produce a
-        duplicate column.
+    Returns
+    -------
+    _all_dupls : list[tuple[tuple[int,...], tuple[int, ...]]]
+        1D list of tuples, each tuple holding two groups of indices.
+        Each group of indices indicate column indices from `_X` that
+        produce a duplicate column.
 
     """
 

@@ -18,35 +18,31 @@ from ....utilities._nan_masking import nan_mask
 def _parallel_dtypes_unqs_cts(
     _chunk_of_X: npt.NDArray,
 ) -> list[tuple[str, dict[Any, int]]]:
-
-    """
-    Parallelized collection of dtype, uniques, and frequencies from a
-    chunk of X.
+    """Parallelized collection of dtype, uniques, and frequencies from a
+    chunk of `X`.
 
     Sometimes np.nan is showing up multiple times in uniques.
     Troubleshooting has shown that the condition that causes this is
-    when dtype(_chunk_of_X) is object. The problem of multiple nans
+    when dtype(`_chunk_of_X`) is object. The problem of multiple nans
     could be fixed by casting object dtype to str, but when the chunk
     dtype is object, we need to get the uniques in their given dtype,
     not as str. There are much gymnastics done to handle this issue.
 
-    All nan-likes are cast to np.nan in _columns_getter().
-
+    All nan-likes are cast to np.nan in :func:`_columns_getter`.
 
     Parameters
     ----------
-    _chunk_of_X:
-        NDArray - a chunk of columns from X.
+    _chunk_of_X : NDArray
+        A chunk of columns from `X`.
 
-
-    Return
-    ------
-    -
-        list[tuple[str, dict[Any, int]]] - list of tuples, each tuple
-        representing one column and holding the MCT-assigned dtype and
-        a dictionary. dtype can be in ['bin_int', 'int', 'float', 'obj'].
-        The dictionary holds the uniques in the column as keys and the
-        respective frequencies as values.
+    Returns
+    -------
+    _dtypes_unqs_cts : list[tuple[str, dict[Any, int]]]
+        List of tuples, each tuple representing one column and holding
+        the MCT-assigned dtype and a dictionary. dtype can be in
+        ['bin_int', 'int', 'float', 'obj']. The dictionary holds the
+        uniques in the column as keys and the respective frequencies as
+        values.
 
     """
 

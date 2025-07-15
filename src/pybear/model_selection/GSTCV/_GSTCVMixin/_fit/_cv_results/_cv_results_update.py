@@ -34,63 +34,59 @@ def _cv_results_update(
     _cv_results: CVResultsType,
     _return_train_score: bool
 ) -> CVResultsType:
+    """Fills a row of `cv_results_` with thresholds, scores, and times,
+    but not ranks.
 
-    """
-    Fills a row of cv_results with thresholds, scores, and times, but
-    not ranks. (Ranks must be done after cv_results is full.)
-
+    (Ranks must be done after cv_results is full.)
 
     Parameters
     ----------
-    _trial_idx:
-        int - the row index of cv_results to update
-    _THRESHOLDS:
-        ThresholdsWIPType - vector of thresholds for the 'param grid'
-        associated with this permutation of search. 'param grid' being
-        a single dict from the param_grid list of param grids.
-    _FOLD_FIT_TIMES_VECTOR:
-        MaskedHolderType - the times to fit each of the folds for this
-        permutation. If a fit excepted, the corresponding position is
-        masked and excluded from aggregate calculations.
-    _TEST_FOLD_x_THRESH_x_SCORER__SCORE_TIME:
-        MaskedHolderType - A 3D object of shape (n_splits, n_thresholds,
-        n_scorers). If a fit excepted, the corresponding plane in axis 0
-        is masked, and is excluded from aggregate calculations. Otherwise
-        holds score times for every fold / threshold / scorer permutation.
-    _TEST_BEST_THRESH_IDXS_BY_SCORER:
-        MaskedHolderType - vector of shape (n_scorers,) that matches
-        position-for-position against the scorers in scorer_. It holds
-        the index location in the original threshold vector of the best
-        threshold for each scorer.
-    _TEST_FOLD_x_SCORER__SCORE:
-        MaskedHolderType - masked array of shape (n_splits, n_scorers)
-        that holds the test scores corresponding to the best threshold
-        for that fold and scorer. If a fit excepted, the corresponding
-        row in axis 0 holds the 'error_score' value in every position.
-    _TRAIN_FOLD_x_SCORER__SCORE:
-        MaskedHolderType - masked array of shape (n_splits, n_scorers)
-        that holds the train scores corresponding to the best threshold
-        for that fold and scorer. If a fit excepted, the corresponding
-        row in axis 0 holds the 'error_score' value in every position.
-    _scorer:
-        ScorerWIPType - dictionary of scorer names and scorer functions.
-        Note that the scorer functions are sklearn metrics (or similar),
-        not make_scorer. Used to know what column names to look for in
-        cv_results and nothing more.
-    _cv_results:
-        CVResultsType - empty cv_results dictionary other than the
-        'param_{}' columns and the 'params' column.
-    _return_train_score:
-        bool - when True, calculate the scores for the train folds in
-        addition to the test folds.
-
+    _trial_idx : int
+        The row index of `cv_results_` to update.
+    _THRESHOLDS : ThresholdsWIPType
+        Vector of thresholds for the 'param grid' associated with this
+        permutation of search. 'param grid' being a single dict from the
+        `param_grid` list of param grids.
+    _FOLD_FIT_TIMES_VECTOR : MaskedHolderType
+        The times to fit each of the folds for this permutation. If a
+        fit excepted, the corresponding position is masked and excluded
+        from aggregate calculations.
+    _TEST_FOLD_x_THRESH_x_SCORER__SCORE_TIME : MaskedHolderType
+        A 3D object of shape (n_splits, n_thresholds, n_scorers). If a
+        fit excepted, the corresponding plane in axis 0 is masked, and
+        is excluded from aggregate calculations. Otherwise, holds score
+        times for every fold / threshold / scorer permutation.
+    _TEST_BEST_THRESH_IDXS_BY_SCORER : MaskedHolderType
+        Vector of shape (n_scorers,) that matches position-for-position
+        against the scorers in `scorer_`. It holds the index location in
+        the original threshold vector of the best threshold for each
+        scorer.
+    _TEST_FOLD_x_SCORER__SCORE : MaskedHolderType
+        Masked array of shape (n_splits, n_scorers) that holds the test
+        scores corresponding to the best threshold for that fold and
+        scorer. If a fit excepted, the corresponding row in axis 0 holds
+        the `error_score` value in every position.
+    _TRAIN_FOLD_x_SCORER__SCORE : MaskedHolderType
+        Masked array of shape (n_splits, n_scorers) that holds the train
+        scores corresponding to the best threshold for that fold and
+        scorer. If a fit excepted, the corresponding row in axis 0 holds
+        the `error_score` value in every position.
+    _scorer : ScorerWIPType
+        Dictionary of scorer names and scorer functions. Note that the
+        scorer functions are sklearn metrics (or similar), not
+        'make_scorer'. Used to know what column names to look for in
+        `cv_results_` and nothing more.
+    _cv_results : CVResultsType
+        Empty `cv_results_` dictionary other than the 'param_{}' columns
+        and the 'params' column.
+    _return_train_score : bool
+        When True, calculate the scores for the train folds in addition
+        to the test folds.
 
     Returns
     -------
-    -
-        _cv_results: CVResultsType - cv_results updated with scores,
-        thresholds, and times.
-
+    _cv_results : CVResultsType
+        `cv_results_` updated with scores, thresholds, and times.
 
     """
 

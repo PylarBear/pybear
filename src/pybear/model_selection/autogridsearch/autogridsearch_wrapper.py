@@ -45,38 +45,32 @@ from ...base._check_is_fitted import check_is_fitted
 
 
 def autogridsearch_wrapper(GridSearchParent):
+    """Wrap a scikit-learn, pybear, or dask_ml `GridSearchCV` class with
+    a class that overwrites the `fit` method of that `GridSearchCV`.
 
-    """
-    Wrap a sci-kit learn, pybear, or dask_ml GridSearchCV class with
-    a class that overwrites the `fit` method of that GridSearchCV.
     The superseding fit method automates multiple calls to the super
-    fit() method with progressively more precise search grids based on
-    previous search results. See the sci-kit, pybear, and dask_ml
-    documentation for more information about the available GridSearchCV
+    `fit` method with progressively more precise search grids based on
+    previous search results. See the scikit, pybear, and dask_ml
+    documentation for more information about the available `GridSearchCV`
     modules.
-
 
     Parameters
     ----------
-    GridSearchParent:
-        Sci-kit, pybear, or dask_ml GridSearchCV CLASS, not instance.
-
+    GridSearchParent : object
+        Sci-kit, pybear, or dask_ml `GridSearchCV` CLASS, not instance.
 
     Returns
     -------
-    -
-        AutoGridSearch: Wrapped GridSearchCV class. The original fit
-        method is replaced with a new fit method that can make multiple
-        calls to the original fit method with increasingly precise
-        search grids.
-
+    AutoGridSearch : object
+        Wrapped `GridSearchCV` class. The original `fit` method is
+        replaced with a new `fit` method that can make multiple calls to
+        the original `fit` method with increasingly precise search grids.
 
     See Also
     --------
     sklearn.model_selection.GridSearchCV
     pybear.model_selection.GSTCV
     pybear-dask.model_selection.GSTCVDask
-
 
     Examples
     --------
@@ -123,8 +117,7 @@ def autogridsearch_wrapper(GridSearchParent):
             agscv_verbose: Optional[bool]=False,
             **parent_gscv_kwargs
         ) -> None:
-
-            """Initialize the autogridsearch instance."""
+            """Initialize the `AutoGridSearch` instance."""
 
             self.estimator = estimator
             self.params = params
@@ -141,12 +134,19 @@ def autogridsearch_wrapper(GridSearchParent):
 
         @property
         def GRIDS_(self) -> GridsType:
-            """
-            Access the `GRIDS_` attribute. Dictionary of search grids
-            used on each pass of agscv. As AutoGridSearch builds search
-            grids for each pass, they are stored in this attribute. The
-            keys of the dictionary are the zero-indexed pass number,
-            i.e., external pass number 2 is key 1 in this dictionary.
+            """Get the `GRIDS_` attribute.
+
+            Dictionary of search grids used on each pass of agscv. As
+            `AutoGridSearch` builds search grids for each pass, they are
+            stored in this attribute. The keys of the dictionary are the
+            zero-indexed pass number, i.e., external pass number 2 is
+            key 1 in this dictionary.
+
+            Returns
+            -------
+            GRIDS_ : GridsType
+                Dictionary of param_grids run on each pass.
+
             """
             check_is_fitted(self)
             return self._GRIDS
@@ -154,30 +154,45 @@ def autogridsearch_wrapper(GridSearchParent):
 
         @property
         def RESULTS_(self) -> ResultsType:
+            """Get the `RESULTS_` attribute.
+
+            Dictionary of `best_params_` for each agscv pass. The keys
+            of the dictionary are the zero-indexed pass number, i.e.,
+            external pass number 2 is key 1 in this dictionary. The
+            final key holds the most precise estimates of the best
+            hyperparameter values for the given estimator and data.
+
+            Returns
+            -------
+            RESULTS_ : dict[int, dict[str, Any]]
+                Dictionary of `best_params_` for each pass.
+
             """
-            Access the `RESULTS_` attribute. Dictionary of `best_params_`
-            for each agscv pass. The keys of the dictionary are the
-            zero-indexed pass number, i.e., external pass number 2 is
-            key 1 in this dictionary. The final key holds the most
-            precise estimates of the best hyperparameter values for
-            the given estimator and data.
-            """
+
             check_is_fitted(self)
             return self._RESULTS
 
 
         @property
         def params_(self) -> ParamsType:
+            """Get the `params_` attribute.
+
+            If the `params` parameter is modified during the
+            `AutoGridSearch` session, the changes are captured in this
+            work-in-process object. This is the version of `params` that
+            was actually used during the `AutoGridSearch` session. Events
+            that alter the originally-passed `params` include the initial
+            conversion of integer 'points' to a list of points, and shift
+            passes, which always extend the list of points.
+
+            Returns
+            -------
+            params_ : ParamsType
+                The version of `params` that was actually used during the
+                `AutoGridSearch` session.
+
             """
-            Access the `params_` attribute. If the :attr: `params`
-            attribute is modified during the AutoGridSearch session,
-            the changes are captured in this work-in-process object.
-            This is the version of `params` that was actually used
-            during the AutoGridSearch session. Events that alter the
-            originally-passed `params` include the initial conversion
-            of integer 'points' to a list of points, and shift passes,
-            which always extend the list of points.
-            """
+
             check_is_fitted(self)
             return self._params
 
@@ -192,42 +207,36 @@ def autogridsearch_wrapper(GridSearchParent):
             true_best_params: Optional[Union[None, BestParamsType]]=None,
             mock_gscv_pause_time: Optional[numbers.Real]=5
         ):
-
-            """
-            Simulated trials of this AutoGridSearch instance.
+            """Simulated trials of this `AutoGridSearch` instance.
 
             Assess AutoGridSearch's ability to generate appropriate
             grids with the given parameters (`params`) against mocked
             true best values. Visually inspect the generated grids and
-            performance of the AutoGridSearch instance in converging to
-            the mock targets provided in `true_best_params`. If no true
-            best values are provided via `true_best_params`, random true
-            best values are generated from the set of first search grids
-            provided in `params`.
-
+            performance of the `AutoGridSearch` instance in converging
+            to the mock targets provided in `true_best_params`. If no
+            true best values are provided via `true_best_params`, random
+            true best values are generated from the set of first search
+            grids provided in `params`.
 
             Parameters
             ----------
-            true_best_params:
-                Optional[Union[None, BestParamsType]], default=None -
-                python dictionary of mocked true best values for an
+            true_best_params : Optional[Union[None, BestParamsType]], default=None
+                Python dictionary of mocked true best values for an
                 estimator's hyperparameters, as provided by the user.
                 If not passed, random true best values are generated
                 based on the first round grids made from the instructions
                 in `params`.
-            mock_gscv_pause_time:
-                Optional[numbers.Real], default=5 - time in seconds to
-                pause, simulating work being done by the parent
-                GridSearch.
-
+            mock_gscv_pause_time : Optional[numbers.Real], default=5
+                Time in seconds to pause, simulating work being done by
+                the parent GridSearch.
 
             Returns
             -------
-            -
-                _DemoCls: AutoGridSearchCV instance - The AutoGridSearch
-                instance created to run simulations, not the instance
-                created by the user. This return is integral for tests
-                of the demo functionality, but has no other internal use.
+            _DemoCls : object
+                The AutoGridSearch instance created to run simulations,
+                not the instance created by the user. This return is
+                integral for tests of the demo functionality, but has no
+                other internal use.
 
             """
 
@@ -266,19 +275,14 @@ def autogridsearch_wrapper(GridSearchParent):
 
 
         def print_results(self) -> None:
-
-            """
-            Print search grids and best values to the screen for all
+            """Print search grids and best values to the screen for all
             parameters in all passes.
-
 
             Returns
             -------
-            -
-                None
+            None
 
             """
-
 
             check_is_fitted(self)
 
@@ -286,31 +290,26 @@ def autogridsearch_wrapper(GridSearchParent):
 
 
         def get_params(self, deep:Optional[bool]=True) -> dict[str, Any]:
-
-            """
-            Get parameters for this AutoGridSearch instance.
-
+            """Get parameters for this `AutoGridSearch` instance.
 
             Parameters
             ----------
-            deep:
-                Optional[bool], default=True - deep=False will only
-                return the parameters for the wrapping AutoGridSearch
-                class not the nested estimator. When deep=True, this
-                method returns the parameters of the AutoGridSearch
-                instance as well as the parameters of the nested
-                estimator. If the nested estimator is a pipeline, the
-                parameters of the pipeline and the parameters of each of
-                the steps in the pipeline are returned in addition to
-                the parameters of the AutoGridSearch instance. The
-                estimator's parameters are prefixed with 'estimator__'.
-
+            deep : Optional[bool], default=True
+                deep=False will only return the parameters for the
+                wrapping `AutoGridSearch` class not the nested
+                estimator. When deep=True, this method returns the
+                parameters of the `AutoGridSearch` instance as well
+                as the parameters of the nested estimator. If the nested
+                estimator is a pipeline, the parameters of the pipeline
+                and the parameters of each of the steps in the pipeline
+                are returned in addition to the parameters of the
+                `AutoGridSearch` instance. The estimator's parameters
+                are prefixed with 'estimator__'.
 
             Returns
             -------
-            -
-                params: dict[str, Any] - Parameter names mapped to their
-                values.
+            params : dict[str, Any]
+                Parameter names mapped to their values.
 
             """
 
@@ -326,18 +325,16 @@ def autogridsearch_wrapper(GridSearchParent):
 
 
         def set_params(self, **params):
-
-            """
-            Set the parameters of the AutoGridSearch instance or the
-            nested estimator.
+            """Set the parameters of the `AutoGridSearch` instance or
+            the nested estimator.
 
             Setting the parameters of the GridSearch instance (but not
             the nested estimator) is straightforward. Pass the exact
             parameter name and its value as a keyword argument to the
-            set_params method call. Or use ** dictionary unpacking on a
-            dictionary keyed with exact parameter names and the new
+            `set_params` method call. Or use ** dictionary unpacking on
+            a dictionary keyed with exact parameter names and the new
             parameter values as the dictionary values. Valid parameter
-            keys can be listed with get_params().
+            keys can be listed with :meth:`get_params`.
 
             The parameters of nested estimators can be updated using
             prefixes on the parameter names. Simple estimators can be
@@ -345,29 +342,25 @@ def autogridsearch_wrapper(GridSearchParent):
             'estimator__'. For example, if some estimator has a 'depth'
             parameter, then setting the value of that parameter to 3
             would be accomplished by passing estimator__depth=3 as a
-            keyword argument to the set_params method call.
+            keyword argument to the `set_params` method call.
 
             The parameters of a nested pipeline can be updated using
             the form estimator__<pipe_parameter>. The parameters of
             the steps of a pipeline have the form <step>__<parameter>
             so that it’s also possible to update a step's parameters
-            through the set_params method interface. The parameters
+            through the `set_params` method interface. The parameters
             of steps in the pipeline can be updated using
             'estimator__<step>__<parameter>'.
 
-
             Parameters
             ----------
-            **params:
-                dict[str: Any] - the parameters to be updated and their
-                new values.
-
+            **params : dict[str: Any]
+                The parameters to be updated and their new values.
 
             Returns
             -------
-            -
-                self - the AutoGridSearch instance with new parameter
-                values.
+            self : object
+                The `AutoGridSearch` instance with new parameter values.
 
             """
 
@@ -388,40 +381,33 @@ def autogridsearch_wrapper(GridSearchParent):
             self,
             X,
             y:Optional[Union[None, Any]] = None,
-            groups:Optional[Union[None, Any]] = None,
+            groups:Optional[Any] = None,
             **fit_params
         ) -> Self:
+            """Run the parent's `fit` method at least `total_passes`
+            number of times with increasingly precise search grids.
 
-            """
-            Supersedes the parent GridSearchCV fit method. Run the
-            parent's fit method at least :param: `total_passes` number
-            of times with increasingly precise search grids.
-
+            Supersedes the parent `GridSearchCV` fit method.
 
             Parameters
             ----------
-            X:
-                array-like - the training data
-            y:
-                Optional[Union[None, Any]], default=None - target for
-                the training data
-            groups:
-                Optional[Union[None, Any]], default=None - Group labels
-                for the samples used while splitting the dataset into
-                train/tests sets. agscv exposes this for parent
-                GridSearch classes that have this keyword argument in
-                their fit method. See the docs of GridSearch classes
+            X : array_like
+                The training data.
+            y: Optional[Any], default=None
+                Target for the training data.
+            groups : Optional[Union[None, Any]], default=None
+                Group labels for the samples used while splitting the
+                dataset into train/tests sets. agscv exposes this for
+                parent GridSearch classes that have this keyword argument
+                in their fit method. See the docs of GridSearch classes
                 that expose this keyword argument for more information.
-
 
             Returns
             -------
-            -
-                self: AutoGridSearch instance.
-
+            self : object
+                The `AutoGridSearch` instance.
 
             """
-
 
             _validation(
                 self.params,

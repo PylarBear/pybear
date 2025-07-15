@@ -19,27 +19,25 @@ from ....GSTCV._GSTCVMixin._validation._scoring import master_scorer_dict
 def _cond_scoring(
     _scoring: ScorerInputType
 ) -> ScorerWIPType:
+    """Condition `scoring`, the scoring metric(s) used to evaluate the
+    predictions on the test (and possibly train) sets.
 
-    """
-    Condition `scoring`, the scoring metric(s) used to evaluate the
-    predictions on the test (and possibly train) sets. Convert any of
-    the valid input formats to an output format of dict[str, Callable].
-    Can come in here as str, Sequence[str], Callable, dict[str, Callable].
-
+    Convert any of the valid input formats to an output format of
+    dict[str, Callable]. Can come in here as str, Sequence[str],
+    Callable, dict[str, Callable].
 
     Parameters
     ----------
-    _scoring:
-        ScorerInputType - The scoring metric(s) used to evaluate the
-        predictions on the test (and possibly train) sets.
+    _scoring : ScorerInputType
+        The scoring metric(s) used to evaluate the predictions on the
+        test (and possibly train) sets.
 
-
-    Return
-    ------
-    -
-        _scoring: ScorerWIPType - dictionary of format {scorer_name:
-        scorer callable} no matter how many metrics are used. When one
-        metric is used, change the actual scorer name to 'score'.
+    Returns
+    -------
+    _scoring : ScorerWIPType
+        Dictionary of format {scorer_name: scorer callable} no matter
+        how many metrics are used. When one metric is used, change the
+        actual scorer name to 'score'.
 
     """
 

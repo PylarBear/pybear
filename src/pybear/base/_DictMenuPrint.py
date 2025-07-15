@@ -153,7 +153,10 @@ class DictMenuPrint:
         Parameters
         ----------
         _allowed : Optional[Union[str, None]] = None
+            Options in the full menu that the user is allowed to choose.
         _disallowed : Optional[Union[str, None]] = None
+            Options in the full menu that the user is not allowed to
+            choose.
 
         """
 

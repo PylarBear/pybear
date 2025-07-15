@@ -14,30 +14,27 @@ def _val_degree__min_degree(
     _degree: numbers.Integral,
     _min_degree: numbers.Integral
 ) -> None:
+    """Validate `_degree` and `_min_degree`.
 
-    """
-    'min_degree' must be integer >= 1, 'degree' must be integer >= 2,
-    and both must fulfill 'min_degree' <= 'max_degree'.
-
+    `_min_degree` must be integer >= 1, `degree` must be integer >= 2,
+    and both must fulfill `_min_degree` <= `_max_degree`.
 
     Parameters
     ----------
-    _degree:
-        numbers.Integral - The maximum polynomial degree of the generated
-        features. The minimum value accepted by SPF is 2; the no-op case
-        of simply returning the original degree-one data is not allowed.
-    _min_degree:
-        numbers.Integral - The minimum polynomial degree of the generated
-        features. Polynomial terms with degree below 'min_degree' are
-        not included in the final output array. The minimum value
-        accepted by SPF is 1; SPF cannot be used to generate a
-        zero-degree column (a column of all ones).
+    _degree : numbers.Integral
+        The maximum polynomial degree of the generated features. The
+        minimum value accepted by SPF is 2; the no-op case of simply
+        returning the original degree-one data is not allowed.
+    _min_degree : numbers.Integral
+        The minimum polynomial degree of the generated features.
+        Polynomial terms with degree below `_min_degree` are not
+        included in the final output array. The minimum value accepted
+        by SPF is 1; SPF cannot be used to generate a zero-degree column
+        (a column of all ones).
 
-
-    Return
-    ------
-    -
-        None
+    Returns
+    -------
+    None
 
     """
 

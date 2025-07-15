@@ -16,31 +16,26 @@ def _val_delete_instr(
     _delete_instr: InstructionsType,
     _n_features_in: int
 ) -> None:
+    """Validate that `_delete_instr` is a dictionary with an entry for
+    each feature in the data.
 
-    """
-    Validate that _delete_instr is a dictionary with an entry for each
-    feature in the data. The keys must be the integer column indices of
-    the features and the values must be lists that hold the values to be
-    removed from that column. the lists may also contain any of
-    'DELETE ALL', 'DELETE COLUMN' or 'INACTIVE'. The individual lists
-    may be empty.
-
+    The keys must be the integer column indices of the features and
+    the values must be lists that hold the values to be removed from
+    that column. the lists may also contain any of 'DELETE ALL',
+    'DELETE COLUMN' or 'INACTIVE'. The individual lists may be empty.
 
     Parameters
     ----------
-    _delete_instr:
-        InstructionsType - the recipe for deleting values and columns
-        derived from the unqs_ct_dict, which holds the unique values and
-        their frequencies in data passed to the MCT instance.
-    _n_features_in:
-        int - the number of features in the data.
-
+    _delete_instr : InstructionsType
+        The recipe for deleting values and columns derived from the
+        `unqs_ct_dict`, which holds the unique values and their
+        frequencies in data passed to the MCT instance.
+    _n_features_in : int
+        The number of features in the data.
 
     Return
     ------
-    -
-        None
-
+    None
 
     """
 

@@ -6,7 +6,10 @@
 
 
 
-from typing import Iterable, Optional
+from typing import (
+    Iterable,
+    Optional
+)
 from typing_extensions import Union
 from ..._type_aliases import GenericKFoldType
 
@@ -18,27 +21,25 @@ def _cond_cv(
     _cv:Union[None, numbers.Integral, Iterable[GenericKFoldType]],
     _cv_default:Optional[numbers.Integral] = 5
 ) -> Union[int, list[GenericKFoldType]]:
+    """Condition `cv`.
 
-    """
-    Condition `cv`. There was some validation that was forgone in the
-    validation section. `cv` might be a generator, and it was not
-    iterated (and spent) in the validation section. Do that now.
+    There was some validation that was forgone in the validation section.
+    `cv` might be a generator, and it was not iterated (and spent) in
+    the validation section. Do that now.
 
-    1) if is None, return int(_cv_default)
+    1) if `cv` is None, return int(_cv_default)
 
-    2) if is an integer, return int(_cv)
+    2) if `cv` is an integer, return int(_cv)
 
     3) otherwise, must be an iterable of pairs of iterables. validate
-    that the outer container is iterable, with at least 2 iterables
-    inside, and each inner iterable is len==2 with iterables inside.
-    the outer iterable cannot be empty. return as a list of tuples of
-    iterables (which hopefully are 1D vectors).
-
+        that the outer container is iterable, with at least 2 iterables
+        inside, and each inner iterable is len==2 with iterables inside.
+        the outer iterable cannot be empty. return as a list of tuples
+        of iterables (which hopefully are 1D vectors).
 
     Parameters
     ----------
-    _cv:
-        Union[None, numbers.Integral, Iterable[GenericKFoldType]] -
+    _cv : Union[None, numbers.Integral, Iterable[GenericKFoldType]]
 
         Possible inputs for cv are:
 
@@ -52,20 +53,17 @@ def _cond_cv(
         For passed iterables:
         This module will convert generators to lists. No validation is
         done beyond verifying that it is an iterable that contains pairs
-        of iterables. GSTCV will catch out of range indices and raise
+        of iterables. `GSTCV` will catch out of range indices and raise
         but any validation beyond that is up to the user outside of
-        GSTCV.
+        `GSTCV`.
 
-    _cv_default:
-        Optional[numbers.Integral], default=5 - the number of cv folds
-        to be applied when `cv` is None.
-
+    _cv_default : Optional[numbers.Integral], default=5
+        The number of cv folds to be applied when `cv` is None.
 
     Returns
     -------
-    -
-        _cv: Union[int, list[GenericKFoldType]] - conditioned `cv` input
-
+    _cv : Union[int, list[GenericKFoldType]]
+        Conditioned `cv` input
 
     """
 

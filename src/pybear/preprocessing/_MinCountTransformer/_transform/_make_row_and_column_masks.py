@@ -26,28 +26,25 @@ def _make_row_and_column_masks(
     _delete_instr: InstructionsType,
     _reject_unseen_values: bool
 ) -> tuple[npt.NDArray[bool], npt.NDArray[bool]]:
+    """Make a mask that indicates which columns to keep and another mask
+    that indicates which rows to keep from `X`.
 
-    """
-    Make a mask that indicates which columns to keep and another mask
-    that indicates which rows to keep from X. Columns that are to be
-    deleted are already flagged in _delete_instr with 'DELETE COLUMN'.
-    For rows, iterate over all columns, and within each column iterate
-    over its respective uniques in _delete_instr, to identify which rows
-    are to be deleted.
-
+    Columns that are to be deleted are already flagged in `_delete_instr`
+    with 'DELETE COLUMN'. For rows, iterate over all columns, and within
+    each column iterate over its respective uniques in `_delete_instr`,
+    to identify which rows are to be deleted.
 
     Parameters
     ----------
-    _X:
-        InternalXContainer - the data to be transformed.
-    _total_counts_by_column:
-        TotalCountsByColumnTime - dictionary holding the uniques and
-        their counts for each column.
-    _delete_instr:
-        InstructionsType - a dictionary that is keyed by column index
-        and the values are lists. Within the lists is information about
-        operations to perform with respect to values in the column. The
-        following items may be in the list:
+    _X : InternalXContainer
+        The data to be transformed.
+    _total_counts_by_column : TotalCountsByColumnTime
+        Dictionary holding the uniques and their counts for each column.
+    _delete_instr : InstructionsType
+        A dictionary that is keyed by column index and the values are
+        lists. Within the lists is information about operations to
+        perform with respect to values in the column. The following
+        items may be in the list:
 
         -'INACTIVE' - ignore the column and carry it through for all
             other operations
@@ -61,18 +58,17 @@ def _make_row_and_column_masks(
         -'DELETE COLUMN' - perform any individual row deletions that
             need to take place while the column is still in the data,
             then delete the column from the data.
-    _reject_unseen_values: bool - If False, do not even look to see if
-        there are unknown uniques in the column. If True, compare uniques
-        in the column against uniques in _COLUMN_UNQ_CT_DICT and raise
-        exception if there is a value not previously seen.
+    _reject_unseen_values: bool
+        If False, do not even look to see if there are unknown uniques
+        in the column. If True, compare uniques in the column against
+        uniques in `_COLUMN_UNQ_CT_DICT` and raise exception if there is
+        a value not previously seen.
 
-
-    Return
-    ------
-    -
-        tuple[ROW_KEEP_MASK, COLUMN_KEEP_MASK]: tuple[np.ndarray[bool],
-        np.ndarray[bool] - the masks for the rows and columns to keep in
-        binary integer format.
+    Returns
+    -------
+    masks : tuple[np.ndarray[bool], np.ndarray[bool]
+        The masks for the rows and columns to keep in binary integer
+        format.
 
     """
 

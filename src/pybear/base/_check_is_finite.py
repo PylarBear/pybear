@@ -82,7 +82,8 @@ def check_is_finite(
 
     Returns
     -------
-    X : the originally passed data with all checks performed and any
+    X : Union[npt.NDArray, pd.DataFrame, SparseTypes]
+        The originally passed data with all checks performed and any
         replacements made.
 
     """

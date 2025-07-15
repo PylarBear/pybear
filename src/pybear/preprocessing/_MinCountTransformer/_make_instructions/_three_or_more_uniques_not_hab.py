@@ -20,12 +20,11 @@ def _three_or_more_uniques_not_hab(
     _nan_ct: Union[int,  Literal[False]],
     _COLUMN_UNQ_CT_DICT: dict[DataType, int],
 ) -> list[Union[Literal['DELETE ALL', 'DELETE COLUMN'], DataType]]:
-
-    """
-    Make delete instructions for a column with three or more unique
+    """Make delete instructions for a column with three or more unique
     non-nan values that is not handled as bool.
 
-    if not _handle_as_bool, _delete_axis_0 doesnt matter, always delete.
+    if not `_handle_as_bool`, `_delete_axis_0` doesnt matter, always
+    delete.
 
     WHEN 3 items (NOT INCLUDING nan):
     if no nans or ignoring nans
@@ -38,30 +37,25 @@ def _three_or_more_uniques_not_hab(
         if nan ct below threshold, mark to delete rows
         if only 1 or 0 non-nans left in column, DELETE COLUMN
 
-
     Parameters
     ----------
-    _threshold:
-        int - the minimum frequency threshold for this column
-    _nan_key:
-        Union[float, str, Literal[False]] - the nan value found in the
-        column. _columns_getter converts all nan-like values to numpy.nan.
-    _nan_ct:
-        Union[int,  Literal[False]] - the number of nan-like value found
-        in the column.
-    _COLUMN_UNQ_CT_DICT:
-        dict[DataType, int] - the value from _total_cts_by_column for
-        this column which is a dictionary that holds the uniques and
-        their frequencies. Must have had nan values removed, and must
-        have at least 3 non-nan unique values.
+    _threshold : int
+        The minimum frequency threshold for this column.
+    _nan_key : Union[float, str, Literal[False]]
+        The nan value found in the column. `_columns_getter` converts
+        all nan-like values to numpy.nan.
+    _nan_ct : Union[int,  Literal[False]]
+        The number of nan-like value found in the column.
+    _COLUMN_UNQ_CT_DICT : dict[DataType, int]
+        The value from `_total_cts_by_column` for this column which is a
+        dictionary that holds the uniques and their frequencies. Must
+        have had nan values removed, and must have at least 3 non-nan
+        unique values.
 
-
-    Return
-    ------
-    -
-        _instr_list: list[Union[Literal['DELETE ALL', 'DELETE COLUMN',
-        DataType]] - the row and columns operations to be performed for
-        this column.
+    Returns
+    -------
+    _instr_list: list[Union[Literal['DELETE ALL', 'DELETE COLUMN', DataType]]
+        The row and columns operations to be performed for this column.
 
     """
 

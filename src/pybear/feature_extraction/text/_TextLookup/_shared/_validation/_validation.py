@@ -63,8 +63,7 @@ def _validation(
 
     Returns
     -------
-    -
-        None
+    None
 
 
     """

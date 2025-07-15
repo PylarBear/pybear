@@ -18,28 +18,23 @@ def _val_feature_names_in(
     _feature_names_in: Union[FeatureNamesInType, None],
     _n_features_in: Optional[Union[int, None]]=None
 ) -> None:
+    """Validate `feature_names_in` is None or 1D list-like of strings.
 
-    """
-    Validate 'feature_names_in' is None or 1D list-like of strings. If
-    'n_features_in' is provided and 'feature_names_in' is not None, the
-    length of 'feature_names_in' must equal 'n_features_in'.
-
+    If `_n_features_in` is provided and `_feature_names_in` is not None,
+    the length of `_feature_names_in` must equal `_n_features_in`.
 
     Parameters
     ----------
-    _feature_names_in:
-        FeatureNamesInType - if MCT was fit on a data container that
-        had a header (e.g. pandas or polars dataframe) then this is a
-        list-like of those feature names. Otherwise, is None.
-    _n_features_in:
-        Optional[Union[int, None]], default=None - the number of features
-        in the data that was fit.
+    _feature_names_in : FeatureNamesInType
+        If MCT was fit on a data container that had a header (e.g.
+        pandas or polars dataframe) then this is a list-like of those
+        feature names. Otherwise, is None.
+    _n_features_in : Optional[Union[int, None]], default=None
+        The number of features in the data that was fit.
 
-
-    Return
-    ------
-    -
-        None
+    Returns
+    -------
+    None
 
     """
 

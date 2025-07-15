@@ -383,7 +383,7 @@ class StopRemover(
 
         Returns
         -------
-        bool:
+        match : bool
             Whether the pair of words are equal.
 
         """

@@ -20,39 +20,34 @@ def _merge_constants(
     _rtol: numbers.Real,
     _atol: numbers.Real
 ) -> PolyConstantsType:
+    """Merge the constants found in the current partial fit with those
+    found in previous partial fits.
 
-    """
-    Merge the constants found in the current partial fit with those
-    found in previous partial fits. The number of constant columns can
-    only stay the same or decrease on later partial fits, never increase.
+    The number of constant columns can only stay the same or decrease on
+    later partial fits, never increase.
 
-    This works for both X_constants_ and poly_constants_.
-
+    This works for both `X_constants_` and `poly_constants_`.
 
     Parameters
     ----------
-    _old_constants:
-        Union[PolyConstantsType, None] - the column indices of constant
-        columns found in previous partial fits and the values in the
-        columns.
-    _new_constants:
-        PolyConstantsType - the column indices of constant columns found
-        in the current partial fit and the values in the columns.
-    _rtol:
-        numbers.Real - The relative difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number. See
-        numpy.allclose.
-    _atol:
-        numbers.Real - The absolute difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number. See
-        numpy.allclose.
+    _old_constants : Union[PolyConstantsType, None]
+        The column indices of constant columns found in previous partial
+        fits and the values in the columns.
+    _new_constants : PolyConstantsType
+        The column indices of constant columns found in the current
+        partial fit and the values in the columns.
+    _rtol : numbers.Real
+        The relative difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
+    _atol : numbers.Real
+        The absolute difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
 
-
-    Return
-    ------
-    -
-        _final_constants: PolyConstantsType - the compiled column indices
-        and values of constant columns found over all partial fits.
+    Returns
+    -------
+    _final_constants : PolyConstantsType
+        The compiled column indices and values of constant columns found
+        over all partial fits.
 
     """
 

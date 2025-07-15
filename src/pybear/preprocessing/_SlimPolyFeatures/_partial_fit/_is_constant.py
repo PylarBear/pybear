@@ -27,55 +27,49 @@ def _is_constant(
     _rtol: numbers.Real,
     _atol: numbers.Real
 ) -> Union[uuid.UUID, Any]:
+    """Determine if a column holds a single value, subject to `_rtol`,
+    `_atol`, and `_equal_nan`.
 
-    """
-    Determine if a column holds a single value, subject to _equal_nan,
-    _rtol, and _atol. If there is a single value, return the value.
-    Otherwise, return a uuid4.
+    If there is a single value, return the value. Otherwise, return a
+    uuid4.
 
     Get the mean of all the values and compare against each of the
-    values; if all of the values are within rtol / atol of the mean,
-    then the column is constant.
+    values; if all the values are within rtol / atol of the mean, then
+    the column is constant.
 
     If no nan-like values are present then the operation is
     straightforward as above. When nan-like values are present and
-    _equal_nan is False, then the column is not constant. If _equal_nan
-    is True, then perform the above operations on the non-nan-like
-    values; if the column contains all nan-likes then return the nan
-    value.
-
+    `_equal_nan` is False, then the column is not constant. If
+    `_equal_nan` is True, then perform the above operations on the
+    non-nan-like values; if the column contains all nan-likes then
+    return the nan value.
 
     Parameters
     ----------
-    _column:
-        NDArray[numbers.Number] - A single column, drawn from X or
-        produced by a product of multiple columns from X, as a numpy
-        array.
-    _equal_nan:
-        bool - If equal_nan is True, exclude nan-likes from computations
+    _column : NDArray[numbers.Number]
+        A single column, drawn from `X` or produced by a product of
+        multiple columns from `X`, as a numpy array.
+    _equal_nan : bool
+        If `_equal_nan` is True, exclude nan-likes from computations
         that discover constant columns. This essentially assumes that
         the nan value would otherwise be equal to the mean of the non-nan
-        values in the same column. If equal_nan is False and any value
-        in a column is nan, do not assume that the nan value is equal to
-        the mean of the non-nan values in the same column, thus making
-        the column non-constant. This is in line with the normal numpy
-        handling of nan values.
-    _rtol:
-        numbers.Real - The relative difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number. See
-        numpy.allclose.
-    _atol:
-        numbers.Real - The absolute difference tolerance for equality.
-        Must be a non-boolean, non-negative, real number. See
-        numpy.allclose.
+        values in the same column. If `_equal_nan` is False and any
+        value in a column is nan, do not assume that the nan value is
+        equal to the mean of the non-nan values in the same column, thus
+        making the column non-constant. This is in line with the normal
+        numpy handling of nan values.
+    _rtol : numbers.Real
+        The relative difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
+    _atol : numbers.Real
+        The absolute difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See numpy.allclose.
 
-
-    Return
-    ------
-    -
-        out: Union[uuid.uuid4, Any] - if the column is not constant,
-        returns a uuid4 identifier; if it is constant, returns the
-        constant value.
+    Returns
+    -------
+    out : Union[uuid.uuid4, Any]
+        If the column is not constant, returns a uuid4 identifier; if it
+        is constant, returns the constant value.
 
     """
 

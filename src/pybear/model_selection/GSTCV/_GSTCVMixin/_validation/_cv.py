@@ -22,19 +22,20 @@ def _val_cv(
     _can_be_None:Optional[bool] = False,
     _can_be_int:Optional[bool] = False
 ) -> None:
+    """Validate `cv`.
 
-    """
-    Validate that _cv is:
+    Validate that `_cv` is:
+
     1) None,
+
     2) an integer >= 2, or
+
     3) an iterable; the contents of the iterable are not validated, to
         not spend the iterable here.
 
-
     Parameters
     ----------
-    _cv:
-        Union[None, numbers.Integral, Iterable[GenericKFoldType]]] -
+    _cv : Union[None, numbers.Integral, Iterable[GenericKFoldType]]]
 
         Possible inputs for cv are:
 
@@ -45,12 +46,9 @@ def _val_cv(
 
         3) An iterable yielding (train, test) split indices as arrays.
 
-
     Returns
     -------
-    -
-        None
-
+    None
 
     """
 
@@ -107,10 +105,6 @@ def _val_cv(
             raise ValueError(err_msg + _addon)
         except Exception as e:
             raise TypeError(err_msg + _addon)
-
-
-
-
 
 
 

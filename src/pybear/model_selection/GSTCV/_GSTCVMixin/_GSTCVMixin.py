@@ -60,7 +60,6 @@ class _GSTCVMixin(
     ReprMixin,
     SetParamsMixin
 ):
-
     """Mixin for GSTCV and GSTCVDask."""
 
 
@@ -68,11 +67,15 @@ class _GSTCVMixin(
 
     @property
     def classes_(self) ->  npt.NDArray[np.int64]:
-
-        """
-        Class labels.
+        """Class labels.
 
         Only available when `refit=True`.
+
+        Returns
+        -------
+        classes_ : numpy.ndarray[np.int64]
+            The class labels for the target.
+
         """
 
         return self._best_estimator_getattr('classes_')
@@ -80,12 +83,17 @@ class _GSTCVMixin(
 
     @property
     def feature_names_in_(self) -> FeatureNamesInType:
+        """Feature names seen during fit.
 
-        """
-        Feature names seen during :term: `fit`.
+        Only available when `refit=True` and `GSTCV` was fit on data
+        that exposes feature names.
 
-        Only available when `refit=True` and GSTCV was fit on data that
-        exposes feature names.
+        Returns
+        -------
+        feature_names_in_ : FeatureNamesInType
+            The feature names seen at first fit if the data was passed
+            in a container that has a header with valid feature names.
+
         """
 
         return self._best_estimator_getattr('feature_names_in_')
@@ -93,34 +101,40 @@ class _GSTCVMixin(
 
     @property
     def n_features_in_(self) -> int:
-
-        """
-        Number of features seen during :term:`fit`.
+        """Number of features seen during :term:`fit`.
 
         Only available when `refit=True`.
+
+        Returns
+        -------
+        n_features_in_ : int
+            The number of features seen in the data at first fit.
+
         """
 
         return self._best_estimator_getattr('n_features_in_')
 
 
     def _best_estimator_getattr(self, _attr: str) -> Any:
+        """Get an attribute from `best_estimator_`.
 
-        """
-        Get an attribute from best_estimator_. Check if GSTCV is fitted.
-        Check if 'refit' is not False. Check if the best estimator has
-        the attribute. If all checks pass, return the attribute.
+        Check if `GSTCV` is fitted.
 
+        Check if `refit` is not False.
+
+        Check  if the best estimator has the attribute.
+
+        If all checks pass, return the attribute.
 
         Parameters
         ----------
-        _attr:
-            str - the attribute to look for in the best estimator.
-
+        _attr : str
+            The attribute to look for in the best estimator.
 
         Returns
         -------
-        -
-            Any: the attribute from the best estimator.
+        attr_value : Any
+            The attribute from the best estimator.
 
         """
 
@@ -152,28 +166,25 @@ class _GSTCVMixin(
         method_to_call: str,
         X
     ) -> Any:
+        """Check whether the estimator has the method, check that `refit`
+        is not False, and check that `GSTCV` is fitted.
 
-        """
-        Check whether the estimator has the method, check that 'refit'
-        is not False, and check that GSTCV is fitted. Then call the
-        method on 'best_estimator_', pass X to it, and return the output.
-
+        Then call the method on `best_estimator_`, pass X to it, and
+        return the output.
 
         Parameters
         ----------
-        method_name:
-            str - the GSTCV method being called
-        method_to_call:
-            str - the actual method to call on the best estimator
-        X:
-            array-like of shape (n_samples, n_features) - the data passed
-            to the method
-
+        method_name : str
+            The `GSTCV` method being called.
+        method_to_call : str
+            The actual method to call on the best estimator.
+        X : array_like of shape (n_samples, n_features)
+            The data passed to the method.
 
         Returns
         -------
-        -
-            Any: the best estimator method result for X.
+        out : Any
+            The best estimator method result for X.
 
         """
 
@@ -197,8 +208,7 @@ class _GSTCVMixin(
     # GSTCV Methods ####################################################
 
     def get_metadata_routing(self):
-
-        """get_metadata_routing is not implemented in GSTCV."""
+        """get_metadata_routing is not implemented in `GSTCV`."""
 
         # sklearn only --- always available, before and after fit()
 
@@ -209,44 +219,37 @@ class _GSTCVMixin(
 
     def fit(self, X, y, **fit_params
     ) -> Self:
-
-        """
-        Perform the grid search with the hyperparameter settings in
-        :param: `param_grid` to find the unique hyperparameter values
-        that maximize score (minimize loss) for the estimator and data
-        being used.
-
+        """Perform the grid search with the hyperparameter settings in
+        `param_grid` to find the unique hyperparameter values that
+        maximize score (minimize loss) for the estimator and data being
+        used.
 
         Parameters
         ----------
-        X:
-            array-like, shape (n_samples, n_features) - The data on
-            which to perform the grid search. Must fulfill the input
-            assumptions of the underlying estimator.
-        y:
-            vector-like, shape (n_samples,) or (n_samples, 1) - The
-            target relative to X. Must be binary in [0, 1]. Must fulfill
+        X : array_like, shape (n_samples, n_features)
+            The data on which to perform the grid search. Must fulfill
             the input assumptions of the underlying estimator.
-        **fit_params:
-            dict[str, Any] - Parameters passed to the fit method of the
-            estimator. If a fit parameter is an array-like whose length
-            is equal to n_samples, then it will be split across CV
-            groups along with X and y. For example, the sample_weight
-            parameter is split because len(sample_weights) = len(X).
-            For array-likes intended to be subject to CV splits, care
-            must be taken to ensure that any such vector is shaped
-            (n_samples, ) or (n_samples, 1), otherwise it will not be
-            split.
+        y : vector-like, shape (n_samples,) or (n_samples, 1)
+            The target relative to X. Must be binary in [0, 1]. Must
+            fulfill the input assumptions of the underlying estimator.
+        **fit_params : dict[str, Any]
+            Parameters passed to the fit method of the estimator. If a
+            fit parameter is an array-like whose length is equal to
+            n_samples, then it will be split across CV groups along with
+            X and y. For example, the sample_weight parameter is split
+            because len(sample_weights) = len(X). For array-likes
+            intended to be subject to CV splits, care must be taken to
+            ensure that any such vector is shaped (n_samples, ) or
+            (n_samples, 1), otherwise it will not be split.
 
             For pipelines, fit parameters can be passed to the fit method
             of any of the steps. Prefix the parameter name with the name
             of the step, such that parameter p for step s has key s__p.
 
-
         Returns
         -------
-        -
-            self: the fitted GSTCV instance.
+        self : object
+            The fitted `GSTCV` instance.
 
         """
 
@@ -720,79 +723,74 @@ class _GSTCVMixin(
         return self
 
 
-    def decision_function(self, X):
+    def decision_function(self, X) -> Any:
+        """Call `decision_function` on the estimator with the best
+        parameters.
 
-        """
-        Call decision_function on the estimator with the best parameters.
-        Only available if :param: `refit` is not False and the underlying
-        estimator supports decision_function.
-
+        Only available if `refit` is not False and the underlying
+        estimator supports `decision_function`.
 
         Parameters
         ----------
-        X:
-            array-like, shape (n_samples, n_features) - Must fulfill the
-            input assumptions of the underlying estimator.
+        X : array_like, shape (n_samples, n_features)
+            Must fulfill the input assumptions of the underlying
+            estimator.
 
-
-        Return
-        ------
-        -
-            The best_estimator_ decision_function method result for X.
+        Returns
+        -------
+        out : Any
+            The `best_estimator_` `decision_function` method result for
+            X.
 
         """
 
         return self._method_caller('decision_function', 'decision_function', X)
 
 
-    def inverse_transform(self, X):
+    def inverse_transform(self, X) -> Any:
+        """Call `inverse_transform` on the estimator with the best
+        parameters.
 
-        """
-        Call inverse_transform on the estimator with the best parameters.
-        Only available if :param: `refit` is not False and the underlying
-        estimator supports inverse_transform.
-
+        Only available if `refit` is not False and the underlying
+        estimator supports `inverse_transform`.
 
         Parameters
         ----------
-        X:
-            array-like - Must fulfill the input assumptions of the
-            underlying estimator.
+        X : array_like
+            Must fulfill the input assumptions of the underlying
+            estimator.
 
-
-        Return
-        ------
-        -
-            The best_estimator_ inverse_transform method result for X.
-
+        Returns
+        -------
+        out : Any
+            The `best_estimator_` `inverse_transform` method result for
+            X.
 
         """
 
         return self._method_caller('inverse_transform', 'inverse_transform', X)
 
 
-    def predict(self, X):
+    def predict(self, X) -> Any:
+        """Pass X to `predict_proba` on the estimator with the best
+        parameters and apply the best threshold to predict the classes
+        for X.
 
-        """
-        Pass X to predict_proba on the estimator with the best parameters
-        and apply the best threshold to predict the classes for X. When
-        only one scorer is used, predict is available if :param: `refit`
-        is not False. When more than one scorer is used, predict is only
+        When only one scorer is used, predict is available if `refit` is
+        not False. When more than one scorer is used, predict is only
         available if `refit` is set to a string.
-
 
         Parameters
         ----------
-        X:
-            array-like, shape (n_samples, n_features) - Must fulfill the
-            input assumptions of the underlying estimator.
+        X : array_like, shape (n_samples, n_features)
+            Must fulfill the input assumptions of the underlying
+            estimator.
 
-
-        Return
-        ------
-        -
-            A vector in [0,1] indicating the class label for the examples
-            in X.
+        Returns
+        -------
+        out : Any
+            A vector in [0,1] indicating the class label for the
+            examples in X.
 
         """
 
@@ -810,51 +808,48 @@ class _GSTCVMixin(
         return (y_pred[:, -1] >= self.best_threshold_).astype(np.uint8)
 
 
-    def predict_log_proba(self, X):
+    def predict_log_proba(self, X) -> Any:
+        """Call `predict_log_proba` on the estimator with the best
+        parameters.
 
-        """
-        Call predict_log_proba on the estimator with the best parameters.
-        Only available if :param: `refit` is not False and the underlying
-        estimator supports predict_log_proba.
-
+        Only available if `refit` is not False and the underlying
+        estimator supports `predict_log_proba`.
 
         Parameters
         ----------
-        X:
-            array-like, shape (n_samples, n_features) - Must fulfill the
-            input assumptions of the underlying estimator.
+        X : array_like, shape (n_samples, n_features)
+            Must fulfill the input assumptions of the underlying
+            estimator.
 
-
-        Return
-        ------
-        -
-            The best_estimator_ predict_log_proba method result for X.
+        Returns
+        -------
+        out : Any
+            The `best_estimator_` `predict_log_proba` method result for
+            X.
 
         """
 
         return self._method_caller('predict_log_proba', 'predict_log_proba', X)
 
 
-    def predict_proba(self, X):
+    def predict_proba(self, X) -> Any:
+        """Call `predict_proba` on the estimator with the best
+        parameters.
 
-        """
-        Call predict_proba on the estimator with the best parameters.
         Only available if `refit` is not False. The underlying estimator
         must support this method, as it is a characteristic that is
         validated.
 
-
         Parameters
         ----------
-        X:
-            array-like, shape (n_samples, n_features) - Must fulfill the
-            input assumptions of the underlying estimator.
+        X : array_like, shape (n_samples, n_features)
+            Must fulfill the input assumptions of the underlying
+            estimator.
 
-
-        Return
-        ------
-        -
-            The best_estimator_ predict_proba_ method result for X.
+        Returns
+        -------
+        out : Any
+            The `best_estimator_` `predict_proba_` method result for X.
 
         """
 
@@ -862,34 +857,31 @@ class _GSTCVMixin(
 
 
     def score(self, X, y) -> numbers.Real:
+        """Score the given X and y using the best estimator, best
+        threshold, and the defined scorer.
 
-        """
-        Score the given X and y using the best estimator, best threshold,
-        and the defined scorer. When there is only one scorer, that is
-        the defined scorer, and if :param: `refit` is not False, then
-        the score method is available. When there are multiple scorers,
-        the defined scorer is the scorer specified by :param: `refit`
-        only if `refit` is set to a string value.
+        When there is only one scorer, that is the defined scorer, and
+        if `refit` is not False, then the score method is available.
+        When there are multiple scorers, the defined scorer is the
+        scorer specified by `refit` only if `refit` is set to a string
+        value.
 
-        See the documentation for the :param: `scoring` parameter for
-        information about passing kwargs to the scorer.
-
+        See the documentation for the `scoring` parameter for information
+        about passing kwargs to the scorer.
 
         Parameters
         ----------
-        X:
-            array-like, shape (n_samples, n_features) - Must fulfill the
-            input assumptions of the underlying estimator.
-        y:
-            vector-like, shape (n_samples, ) or (n_samples, 1) - The
-            target relative to X. Must be binary in [0, 1].
+        X : array_like, shape (n_samples, n_features)
+            Must fulfill the input assumptions of the underlying
+            estimator.
+        y : vector-like, shape (n_samples, ) or (n_samples, 1)
+            The target relative to X. Must be binary in [0, 1].
 
-
-        Return
-        ------
-        -
-            score: float - The score for X and y on the best estimator
-            and best threshold using the defined scorer.
+        Returns
+        -------
+        score : float
+            The score for X and y on the best estimator and best
+            threshold using the defined scorer.
 
         """
 
@@ -908,78 +900,69 @@ class _GSTCVMixin(
             return self.scorer_[self._refit](y, y_pred)
 
 
-    def score_samples(self, X):
+    def score_samples(self, X) -> Any:
+        """Call `score_samples` on the estimator with the best
+        parameters.
 
-        """
-        Call score_samples on the estimator with the best parameters.
-        Only available if :param: `refit` is not False and the underlying
-        estimator supports score_samples.
-
+        Only available if `refit` is not False and the underlying
+        estimator supports `score_samples`.
 
         Parameters
         ----------
-        X:
-            array-like, shape (n_samples, n_features) - Must fulfill the
-            input assumptions of the underlying estimator.
+        X : array_like, shape (n_samples, n_features)
+            Must fulfill the input assumptions of the underlying
+            estimator.
 
-
-        Return
-        ------
-        -
-            The best_estimator_ score_samples method result for X.
+        Returns
+        -------
+        out : Any
+            The `best_estimator_` `score_samples` method result for X.
 
         """
 
         return self._method_caller('score_samples', 'score_samples', X)
 
 
-    def transform(self, X) :
+    def transform(self, X) -> Any:
+        """Call transform on the estimator with the best parameters.
 
-        """
-        Call transform on the estimator with the best parameters. Only
-        available if :param: `refit` is not False and the underlying
+        Only available if `refit` is not False and the underlying
         estimator supports transform.
-
 
         Parameters
         ----------
-        X:
-            array-like, shape (n_samples, n_features) - Must fulfill the
-            input assumptions of the underlying estimator.
+        X : array_like, shape (n_samples, n_features)
+            Must fulfill the input assumptions of the underlying
+            estimator.
 
-
-        Return
-        ------
-        -
-            The best_estimator_ transform method result for X.
+        Returns
+        -------
+        X_tr : Any
+            The `best_estimator_` `transform` method result for X.
 
         """
 
         return self._method_caller('transform', 'transform', X)
 
 
-    def visualize(self, *args, **kwargs):
+    def visualize(self, *args, **kwargs) -> Any:
+        """Call `visualize` on the estimator with the best parameters.
 
-        """
-        Call visualize on the estimator with the best parameters. Only
-        available if :param: `refit` is not False and the underlying
+        Only available if `refit` is not False and the underlying
         estimator supports visualize.
-
 
         Parameters
         ----------
-        *args:
-            list[Any] - positional arguments for the best estimator's
-            visualize method.
-        **kwargs:
-            dict[str: Any] - keyword arguments for the best estimator's
-            visualize method.
+        *args : list[Any]
+            Positional arguments for the best estimator's visualize
+            method.
+        **kwargs : dict[str: Any]
+            Keyword arguments for the best estimator's visualize method.
 
-
-        Return
-        ------
-        -
-            The best_estimator_ visualize output.
+        Returns
+        -------
+        out : Any
+            The `best_estimator_` `visualize` output.
 
         """
 

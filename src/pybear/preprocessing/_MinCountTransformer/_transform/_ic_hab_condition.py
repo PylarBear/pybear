@@ -48,18 +48,18 @@ def _ic_hab_condition(
     _feature_names_in: Union[FeatureNamesInType, None],
     _raise: bool = False
 ) -> tuple[InternalIgnoreColumnsType, InternalHandleAsBoolType]:
-
-    """
-    Receive 'ignore_columns' and 'handle_as_bool' as callable(X),
+    """Receive `ignore_columns` and `handle_as_bool` as callable(X),
     Sequence[str], Sequence[int], or None, and convert to Sequence[int]
-    with all non-negative indices. Perform any validation that can be
-    done against n_features_in and feature_names_in, if passed.
-    This module is essentially a hub that centralizes calling any
-    callables and validating, converting any None values to an empty
-    ndarray, and converting any string values to indices.
+    with all non-negative indices.
 
-    if ignore_columns and handle_as_bool were originally passed to MCT
-    as Sequence[int] or Sequence[str], the dimensions of them or the
+    Perform any validation that can be done against `n_features_in_` and
+    `feature_names_in_`, if passed. This module is essentially a hub
+    that centralizes calling any callables and validating, converting
+    any None values to an empty ndarray, and converting any string
+    values to indices.
+
+    if `ignore_columns` and `handle_as_bool` were originally passed to
+    MCT as Sequence[int] or Sequence[str], the dimensions of them or the
     feature names in them would have been validated in _validation >
     _val_ignore_columns_handle_as_bool. Here is where values passed as
     feature names are finally mapped to indices.
@@ -67,61 +67,54 @@ def _ic_hab_condition(
     Determine if there is any intersection between columns to be handled
     as bool and any of the ignored columns. There is a hierarchy of
     what takes precedence, ignored columns always supersede handling as
-    boolean. If handle_as_bool is None or an empty list, bypass all of
+    boolean. If `handle_as_bool` is None or an empty list, bypass all of
     this.
 
     Validate that the columns to be handled as boolean are numeric
     columns (MCT internal dtypes 'bin_int', 'int', 'float'). MCT internal
     dtype 'obj' columns cannot be handled as boolean, and this module
-    will raise if it finds this condition and :param: '_raise' is True.
-    If '_raise' is False, it will warn. If an 'obj' column that is in
-    '_handle_as_bool' is also in '_ignore_columns', '_ignore_columns'
-    trumps '_handle_as_bool' and the column is ignored.
-
+    will raise if it finds this condition and `_raise` is True.
+    If `_raise` is False, it will warn. If an 'obj' column that is in
+    `_handle_as_bool` is also in `_ignore_columns`, `_ignore_columns`
+    supercedes `_handle_as_bool` and the column is ignored.
 
     Parameters
     ----------
-    X:
-        array-like of shape (n_samples, n_features) - the data to
-        undergo minimum frequency thresholding.
-    _ignore_columns:
-        IgnoreColumnsType - the columns to be ignored during the
-        transform process.
-    _handle_as_bool:
-        HandleAsBoolType - the columns to be handled as boolean during
-        the transform process. i.e., all zero values are handled as
-        False and all non-zero values are handled as True. MCT internal
-        datatype 'obj' columns cannot be handled as boolean.
-    _ignore_float_columns:
-        bool - whether to exclude float columns from the thresholding
-        rules during the transform operation.
-    _ignore_non_binary_integer_columns:
-        bool - whether to exclude non-binary integer columns from the
+    X : Union[XContainer, None], array-like of shape (n_samples, n_features)
+        The data to undergo minimum frequency thresholding.
+    _ignore_columns : IgnoreColumnsType
+        The columns to be ignored during the transform process.
+    _handle_as_bool : HandleAsBoolType
+        The columns to be handled as boolean during the transform
+        process. i.e., all zero values are handled as False and all
+        non-zero values are handled as True. MCT internal datatype 'obj'
+        columns cannot be handled as boolean.
+    _ignore_float_columns : bool
+        Whether to exclude float columns from the thresholding rules
+        during the transform operation.
+    _ignore_non_binary_integer_columns : bool
+        Whether to exclude non-binary integer columns from the
         thresholding rules during the transform operation.
-    _original_dtypes:
-        OriginalDtypesType - The datatypes for each column in the
-        dataset as determined by MCT. Values can be 'bin_int', 'int',
-        'float', or 'obj'.
-    _threshold:
-        CountThresholdType - the minimum frequency threshold(s) to be
-        applied to the columns of the data. Setting a threshold to 1 is
-        the same as ignoring a column.
-    _n_features_in:
-        int - the number of features in the data.
-    _feature_names_in:
-        Union[FeatureNamesInType, None] - if the data was passed in a
-        container that had a valid header, then a list-like of the
-        feature names. otherwise, None.
-    _raise:
-        bool - If True, raise a ValueError if any handle-as-bool columns
+    _original_dtypes : OriginalDtypesType
+        The datatypes for each column in the dataset as determined by
+        MCT. Values can be 'bin_int', 'int', 'float', or 'obj'.
+    _threshold : CountThresholdType
+        The minimum frequency threshold(s) to be applied to the columns
+        of the data. Setting a threshold to 1 is the same as ignoring a
+        column.
+    _n_features_in : int
+        The number of features in the data.
+    _feature_names_in : Union[FeatureNamesInType, None]
+        If the data was passed in a container that had a valid header,
+        then a list-like of the feature names. otherwise, None.
+    _raise : bool
+        If True, raise a ValueError if any handle-as-bool columns
         are 'obj' dtype; if False, emit a warning.
 
-
-    Return
-    ------
-    -
-        tuple[InternalIgnoreColumnsType, InternalHandleAsBoolType]:
-        ignore_columns and handle_as_bool in Sequence[int] form. All
+    Returns
+    -------
+    __ : tuple[InternalIgnoreColumnsType, InternalHandleAsBoolType]
+        `ignore_columns` and `handle_as_bool` in Sequence[int] form. All
         indices are >= 0.
 
     """

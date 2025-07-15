@@ -18,22 +18,17 @@ import numpy as np
 def _cond_thresholds(
     _thresholds: ThresholdsInputType,
 ) -> ThresholdsWIPType:
-
-    """
-    Condition _thresholds into a sorted 1D list of 1 or more floats.
-
+    """Condition `_thresholds` into a sorted 1D list of 1 or more floats.
 
     Parameters
     ----------
-    _thresholds:
-        ThresholdsInputType - user-defined threshold(s)
-
+    _thresholds : ThresholdsInputType
+        User-defined threshold(s).
 
     Returns
     -------
-    -
-        __thresholds: ThresholdsWIPType - user-defined or default floats
-        sorted ascending
+    __thresholds: ThresholdsWIPType
+        User-defined or default floats sorted ascending.
 
     """
 

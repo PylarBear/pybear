@@ -15,28 +15,25 @@ def _shift_points_and_passes(
     _pass: int,
     _total_passes_is_hard: bool
 ) -> ParamsType:
+    """Replicate the points from the last pass into the next pass.
 
-    """
-    Replicate the points from the last pass into the next pass. Truncate
-    points (the list in the 2nd slot of a param's dict value) if
-    total_passes is hard.
-
+    Truncate points (the list in the 2nd slot of a param's dict value)
+    if `total_passes` is hard.
 
     Parameters
     ----------
-    _params:
-        ParamsType - grid-building instructions for all parameters
-    _pass:
-        int - the zero-indexed number of the current GridSearch pass
-    _total_passes_is_hard:
-        bool - if True, do not increment total_passes for a shift pass;
-        if False, increment total_passes each time a shift pass is made.
-
+    _params : ParamsType
+        Grid-building instructions for all parameters.
+    _pass : int
+        The zero-indexed number of the current GridSearch pass.
+    _total_passes_is_hard : bool
+        If True, do not increment `total_passes` for a shift pass; if
+        False, increment `total_passes` each time a shift pass is made.
 
     Returns
     -------
-    -
-        _params: ParamsType - updated grid-building instructions
+    _params : ParamsType
+        Updated grid-building instructions.
 
     """
 

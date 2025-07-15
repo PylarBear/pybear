@@ -19,8 +19,9 @@ def _cv_results_rank_update(
     _scorer: ScorerWIPType,
     _cv_results: CVResultsType
 ) -> CVResultsType:
+    """Calculate rank for each 'mean_score...' column and update the
+    `cv_results_` attribute.
 
-    """
     Within each parameter search trial, every cv split has a test set
     that is scored using all the given scorers. The scores populate
     columns created for each split/scorer combination, in the row
@@ -31,23 +32,19 @@ def _cv_results_rank_update(
     scores in each mean score column are ranked descending, with the
     value '1' indicating the best score.
 
-
     Parameters
     ----------
-    _scorer:
-        ScorerWIPType - the dictionary of scorers keyed by the names of
-        the scorers, used for locating columns in cv_results. The
-        callables are not used here.
-    _cv_results:
-        CVResultsType - summary of results
-
+    _scorer : ScorerWIPType
+        The dictionary of scorers keyed by the names of the scorers,
+        used for locating columns in `cv_results_`. The callables are
+        not used here.
+    _cv_results : CVResultsType
+        Summary of results.
 
     Returns
     -------
-    -
-        _cv_results: CVResultsType - cv_results dictionary with updated
-        rank columns.
-
+    _cv_results : CVResultsType
+        `cv_results_` dictionary with updated rank columns.
 
     """
 

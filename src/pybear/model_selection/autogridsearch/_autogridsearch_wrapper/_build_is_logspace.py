@@ -18,30 +18,24 @@ from ._type_aliases import (
 def _build_is_logspace(
     _params: ParamsType
 ) -> IsLogspaceType:
-
-    """
-    _IS_LOGSPACE is a dictionary keyed by all param names, including
-    fixed params. Fixed params are always False. For numerical params,
-    if the space is linear, or some other non-standard interval, it is
-    False. If it is logspace, the 'truth' of being a logspace is
-    represented by a number indicating the interval of the logspace.
-    E.g., np.logspace(-5, 5, 11) would be represented by 1.0, and
-    np.logspace(-20, 20, 9) would be represented by 5.0.
-
+    """`_IS_LOGSPACE` is a dictionary keyed by all param names,
+    including fixed params. Fixed params are always False. For numerical
+    params, if the space is linear, or some other non-standard interval,
+    the value is False. If it is logspace, the 'truth' of being a
+    logspace is represented by a number indicating the interval of the
+    logspace. E.g., np.logspace(-5, 5, 11) would be represented by 1.0,
+    and np.logspace(-20, 20, 9) would be represented by 5.0.
 
     Parameters
     ----------
-    _params:
-        ParamsType - autogridsearch's instructions for performing grid
-        searches for each parameter.
-
+    _params : ParamsType
+        The instructions for performing grid searches for each parameter.
 
     Returns
     -------
-    -
-        _IS_LOGSPACE: IsLogspaceType - a dictionary indicating whether
-        a parameter's search space is logarithmic. If so, the logspace
-        interval of the space.
+    _IS_LOGSPACE : IsLogspaceType
+        A dictionary indicating whether a parameter's search space is
+        logarithmic. If so, the logspace interval of the space.
 
     """
 

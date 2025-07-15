@@ -18,50 +18,46 @@ def _get_active_combos(
     poly_constants_: PolyConstantsType,
     dropped_poly_duplicates_: DroppedPolyDuplicatesType
 ) -> CombinationsType:
+    """Find the tuples of column index combinations that will be in the
+    outputted polynomial expansion.
 
-    """
-    Find the tuples of column index combinations that will be in the
-    outputted polynomial expansion. This supports both SPF.partial_fit()
-    and SPF.transform().
+    This supports both `partial_fit` and `transform`.
 
-    Index tuples that are in :param: `poly_constants_` or in :param:
-    `dropped_poly_duplicates_` are omitted from `_active_combos` and \
-    the final polynomial expansion. `_active_combos` is filled with the
-    remaining index tuples from :param: `_combos`.
+    Index tuples that are in `dropped_poly_duplicates_` or in
+    `poly_constants_` are omitted from `_active_combos` and the final
+    polynomial expansion. `_active_combos` is filled with the remaining
+    index tuples from `_combos`.
 
     The output must be sorted asc on degree (shortest tuple to longest
     tuple), then asc on the indices.
 
     `_combos` must come in sorted for this to go out sorted.
 
-    `_combos` is built directly from itertools.combinations or
-    itertools.combinations_with_replacement, and is sorted coming out of
-    _combination_builder to ensure the correct sort, in case itertools
-    built-ins ever change.
-
+    `_combos` is built directly from `itertools.combinations` or
+    `itertools.combinations_with_replacement`, and is sorted coming out
+    of :func:`_combination_builder` to ensure the correct sort, in case
+    itertools built-ins ever change.
 
     Parameters
     ----------
-    _combos:
-        list[tuple[int, ...]] - all combinations of column indices that
-        are to be multiplied together for the polynomial expansion.
-    poly_constants_:
-        PolyConstantsType - A dictionary whose keys are tuples of indices
-        in the original data that produced a column of constants. The
-        dictionary values are the constant values in those columns.
-    dropped_poly_duplicates_:
-        DroppedPolyDuplicatesType - A dictionary whose keys are the
-        tuples that are removed from the polynomial expansion because
-        they produced a duplicate of another column. The values of the
-        dictionary are the tuples of indices of the respective duplicate
-        that was kept.
-
+    _combos : list[tuple[int, ...]]
+        All combinations of column indices that are to be multiplied
+        together for the polynomial expansion.
+    poly_constants_ : PolyConstantsType
+        A dictionary whose keys are tuples of indices in the original
+        data that produced a column of constants. The dictionary values
+        are the constant values in those columns.
+    dropped_poly_duplicates_ : DroppedPolyDuplicatesType
+        A dictionary whose keys are the tuples that are removed from the
+        polynomial expansion because they produced a duplicate of another
+        column. The values of the dictionary are the tuples of indices
+        of the respective duplicate that was kept.
 
     Returns
     -------
-    -
-        _active_combos: CombinationsType - the tuples of column index
-        combinations to be kept in the outputted polynomial expansion.
+    _active_combos : CombinationsType
+        The tuples of column index combinations to be kept in the
+        outputted polynomial expansion.
 
     """
 

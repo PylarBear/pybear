@@ -54,7 +54,7 @@ def _replacer(
 
     Returns
     -------
-    list[str]
+    _line : list[str]
         The sequence of strings with all matching n-gram patterns
         replaced with contiguous strings.
 

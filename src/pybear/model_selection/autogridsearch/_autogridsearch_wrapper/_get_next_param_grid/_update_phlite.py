@@ -22,16 +22,15 @@ def _update_phlite(
     _params: ParamsType,
     _best_params_from_previous_pass: BestParamsType
 ) -> PhliteType:
-
-    """
-    Update PHLITE (PARAM_HAS_LANDED_INSIDE_THE_EDGES) based on most
-    recent results in _best_params_from_previous_pass subject to the
+    """Update `PHLITE` (param has landed inside the edges) based on most
+    recent results in `_best_params_from_previous_pass` subject to the
     rules for "landing inside the edges".
 
-    The only params that populate PHLITE are soft linspace & soft
+    The only params that populate `PHLITE` are soft linspace & soft
     logspace.
 
     ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
+
     Rules for landing inside the edges
 
     1) if soft landed inside the edges, then truly landed "inside the
@@ -41,34 +40,29 @@ def _update_phlite(
         (0 FOR float, 1 FOR int) then won't be shifted (True)
     4) if landed on an edge, but that edge is not a universal hard bound,
         user hard bound, or fixed, then shift (stays or re-becomes False)
-        (user hard or user fixed cannot get in here because PHLITE is
+        (user hard or user fixed cannot get in here because `PHLITE` is
         only populated with soft.)
-
 
     Parameters
     ----------
-    _PHLITE:
-        PhliteType - dictionary for soft estimator parameters indicating
-        if the parameter's best result was off the edges of it's last
-        search grid (True) or was on one of the edges (False).
-    _last_param_grid:
-        ParamGridType - The param_grid from the last search round, i.e.,
-        the dict of param names and grids passed to the 'param_grid' (or
-        something similar) parameter of the parent GridSearch.
-    _params:
-        ParamsType - the full set of parameters and their instructions
-        for agscv.
-    _best_params_from_previous_pass:
-        BestParamsType - the full set of parameters and their best values
-        from the last round of grid search.
-
+    _PHLITE : PhliteType
+        Dictionary for soft estimator parameters indicating if the
+        parameter's best result was off the edges of it's last search
+        grid (True) or was on one of the edges (False).
+    _last_param_grid : ParamGridType
+        The param grid from the last search round, i.e., the dict of
+        param names and grids passed to the `param_grid` (or something
+        similar) parameter of the parent GridSearch.
+    _params : ParamsType
+        The full set of parameters and their instructions for agscv.
+    _best_params_from_previous_pass : BestParamsType
+        The full set of parameters and their best values from the last
+        round of grid search.
 
     Returns
     -------
-    -
-        PhliteType - Updated PHLITE dict for the landing spots in the
-        last pass.
-
+    _PHLITE : PhliteType
+        Updated PHLITE dict for the landing spots in the last pass.
 
     """
 

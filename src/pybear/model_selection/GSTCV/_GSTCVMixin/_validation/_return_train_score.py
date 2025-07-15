@@ -9,24 +9,20 @@
 def _val_return_train_score(
     _return_train_score: bool
 ) -> None:
+    """Validate `return_train_score`, which indicates whether to score
+    the train data during the grid search; only booleans allowed.
 
-    """
-    Validate `return_train_score`, which indicates whether to score the
-    train data during the grid search; only booleans allowed. The test
-    data is always scored. Train scores for the different folds can be
-    compared against the test scores for anomalies.
-
+    The test data is always scored. Train scores for the different folds
+    can be compared against the test scores for anomalies.
 
     Parameters
     ----------
-    _return_train_score:
-        bool - whether to score the training data.
-
+    _return_train_score : bool
+        Whether to score the training data.
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 

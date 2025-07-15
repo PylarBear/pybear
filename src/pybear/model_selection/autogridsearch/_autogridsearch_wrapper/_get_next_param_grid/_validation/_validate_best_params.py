@@ -15,31 +15,27 @@ def _validate_best_params(
     _pass: int,
     _best_params_from_previous_pass: BestParamsType,
 ) -> None:
-
     """
     Check that:
-    - _best_params_from_previous_pass is (still) dict (this is a parent
-        GridSearch output and is beyond the control of pybear.)
-    - params (keys) returned in _best_params_from_previous_pass match
-        those passed by GRIDS in quantity and values
-    - values returned in best_params were in the allowed search space
 
+    - `_best_params_from_previous_pass` is (still) dict (this is a parent
+        GridSearch output and is beyond the control of pybear.)
+    - params (keys) returned in `_best_params_from_previous_pass` match
+        those passed by GRIDS in quantity and values
+    - values returned in `best_params_` were in the allowed search space
 
     Parameters
     ----------
-    _GRIDS:
-        GridsType - param_grid for each round
-    _pass:
-        int - zero-indexed pass of GridSearchCV
-    _best_params_from_previous_pass:
-        BestParamsType - best_params_ as returned by parent GridSearchCV
-
+    _GRIDS : GridsType
+        `param_grid` for each round.
+    _pass : int
+        Zero-indexed pass of `GridSearchCV`.
+    _best_params_from_previous_pass : BestParamsType
+        `best_params_` as returned by parent `GridSearchCV`.
 
     Returns
     -------
-    -
-        None
-
+    None
 
     """
 

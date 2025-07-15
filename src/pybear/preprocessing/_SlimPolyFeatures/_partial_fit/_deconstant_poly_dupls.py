@@ -17,30 +17,25 @@ def _deconstant_poly_dupls(
     _poly_duplicates: PolyDuplicatesType,
     _poly_constants: PolyConstantsType
 ) -> PolyDuplicatesType:
-
-    """
-    Remove any constant combos from the in-process attr _poly_duplicates.
-
+    """Remove any constant combos from the in-process `_poly_duplicates`.
 
     Parameters
     ----------
-    _poly_duplicates:
-        PolyDuplicatesType - the in-process version of poly_duplicates_,
-        which holds the groups of column index tuples that create
-        identical columns in the expansion, constant columns included.
-    _poly_constants:
-        PolyConstantsType - A dictionary whose keys are tuples of indices
-        in the original data that produced a column of constants in the
-        polynomial expansion. The dictionary values are the constant
-        values in those columns.
+    _poly_duplicates : PolyDuplicatesType
+        The in-process version of poly_duplicates_, which holds the
+        groups of column index tuples that create identical columns in
+        the expansion, constant columns included.
+    _poly_constants : PolyConstantsType
+        A dictionary whose keys are tuples of indices in the original
+        data that produced a column of constants in the polynomial
+        expansion. The dictionary values are the constant values in
+        those columns.
 
-
-    Return
-    ------
-    -
-        _no_constant_poly_duplicates: PolyDuplicatesType - a copy of
-        _poly_duplicates that has constant combos removed, if there were
-        any.
+    Returns
+    -------
+    _no_constant_poly_duplicates : PolyDuplicatesType
+        A copy of `_poly_duplicates` that has constant combos removed,
+        if there were any.
 
     """
 

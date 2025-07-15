@@ -6,7 +6,10 @@
 
 
 
-from .._type_aliases import ParamsType, BestParamsType
+from .._type_aliases import (
+    ParamsType,
+    BestParamsType
+)
 
 import random
 
@@ -17,23 +20,19 @@ import numpy as np
 def _make_true_best(
     _params: ParamsType
 ) -> BestParamsType:
-
-    """
-    Build a mock best_params_ with realistic values based on the grid-
-    building instructions in _params.
-
+    """Build a mock `best_params_` with realistic values based on the
+    grid-building instructions in `_params`.
 
     Parameters
     ----------
-    _params:
-        ParamsType - grid-building instruction for all parameters
-
+    _params : ParamsType
+        Grid-building instruction for all parameters
 
     Return
     ------
-    -
-        _true_best_params: BestParamsType - mock best GridSearchCV
-        results in format identical to sklearn GridSearchCV.best_params_
+    _true_best_params : BestParamsType
+        Mock best GridSearchCV results in format identical to sklearn
+        GridSearchCV.best_params_
 
     """
 

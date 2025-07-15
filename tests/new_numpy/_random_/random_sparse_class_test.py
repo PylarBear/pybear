@@ -8,9 +8,14 @@
 
 import pytest
 
+# there have been problems in the past with name conflicts with the built-in
+# random. this verifies built-in random can be imported
+import random as py_rand
+
 import numpy as np
 
-from pybear.new_numpy._random_ import Sparse
+from pybear.new_numpy.random._random_ import Sparse
+
 from pybear.utilities._array_sparsity import array_sparsity as arsp
 
 
@@ -33,6 +38,26 @@ def valid_dtypes():
         np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16,
         np.uint32, np.uint64, np.float16, np.float32, np.float64, int, float
     ]
+
+
+
+class TestImports:
+
+    # test built-in random works
+    def test_builtin_random(self):
+
+        out = py_rand.choice(list('abcdefghijklmn'))
+
+        assert isinstance(out, str)
+        assert len(out) == 1
+
+    # test numpy random works
+    def test_numpy_random(self):
+
+        out = np.random.choice(list('abcdefghijklmn'))
+
+        assert isinstance(out, str)
+        assert len(out) == 1
 
 
 # START DATA VALIDATION TESTS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *

@@ -29,45 +29,38 @@ def _float_linspace(
     _hard_max: FloatDataType,
     _points: int
 ) -> FloatGridType:
-
-    """
-    Build a new grid for a single float parameter based on the previous
-    round's grid and the best value discovered by the parent GridSearch,
-    subject to constraints imposed by 'hard', edges, etc.
-
+    """Build a new grid for a single float parameter based on the
+    previous round's grid and the best value discovered by the parent
+    GridSearch, subject to constraints imposed by 'hard', edges, etc.
 
     Parameters
     ----------
-    _SINGLE_GRID:
-        FloatGridType - The last round's search grid for a single param.
-        _SINGLE_GRID must be sorted ascending, and is presumed to be by
-        _param_conditioning._params (at least initially).
-    _posn:
-        int - the index position in the previous round's grid where
-        the best value fell
-    _is_hard:
-        bool - whether the parameter has hard left and right boundaries.
-        This field is read from the dtype/search field in _params. If
-        hard, the left and right bounds are set from the lowest and
-        highest values in the first round's search grid (the grid that
-        was passed in `params` at init.)
-    _hard_min:
-        float - if hard, the minimum value in the first round's search
-        grid.
-    _hard_max:
-        float - if hard, the maximum value in the first round's search
-        grid.
-    _points:
-        int - number of points to use in the next search grid, subject
-        to constraints of hard_min, hard_max, universal lower bound, etc.
-
+    _SINGLE_GRID : FloatGridType
+        The last round's search grid for a single param. `_SINGLE_GRID`
+        must be sorted ascending, and is presumed to be by
+        :func:`_param_conditioning._params` (at least initially).
+    _posn : int
+        The index position in the previous round's grid where the best
+        value fell.
+    _is_hard : bool
+        Whether the parameter has hard left and right boundaries. This
+        field is read from the dtype/search field in _params. If hard,
+        the left and right bounds are set from the lowest and highest
+        values in the first round's search grid (the grid that was passed
+        in `params` at init.)
+    _hard_min : float
+        If hard, the minimum value in the first round's search grid.
+    _hard_max : float
+        If hard, the maximum value in the first round's search grid.
+    _points : int
+        Number of points to use in the next search grid, subject to
+        constraints of `_hard_min`, `_hard_max`, universal lower bound,
+        etc.
 
     Returns
     -------
-    -
-        _OUT_GRID:
-            FloatGridType - new search grid for the current pass'
-            upcoming search.
+    _OUT_GRID : FloatGridType
+        New search grid for the current pass' upcoming search.
 
     """
 

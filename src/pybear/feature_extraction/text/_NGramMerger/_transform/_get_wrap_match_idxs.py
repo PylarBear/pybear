@@ -47,7 +47,7 @@ def _get_wrap_match_idxs(
 
     Returns
     -------
-    tuple[list[int], list[int]]
+    indices : tuple[list[int], list[int]]
         The indices in the original first line and original second line
         where the pattern match overlays.
 

@@ -22,55 +22,63 @@ def _gfno_poly(
     _active_combos: CombinationsType,
     _feature_name_combiner: FeatureNameCombinerType
 ) -> FeatureNamesInType:
+    """Get feature names for the polynomial expansion component of the
+    final output.
 
-    """
-    Get feature names for the polynomial expansion component of the
-    final output. Construct the polynomial feature names based on
-    :param: feature_name_combiner. If :param: `min_degree` is 1, the
-    feature names of X are prepended to the polynomial feature names
-    (the output of this module) outside of this module.
+    Construct the polynomial feature names based on `feature_name_combiner`.
+    If `min_degree` is 1, the feature names of X are prepended to the
+    polynomial feature names (the output of this module) outside of this
+    module.
 
-    _poly_feature_names (the output of this) must match the order of
-    _active_combos.
+    `_poly_feature_names` (the output of this) must match the order of
+    `_active_combos`.
 
-    _active_combos must be sorted first on asc tuple len (degree), then
-    asc on the idxs in each tuple.
+    `_active_combos` must be sorted first on asc tuple len (degree),
+    then asc on the idxs in each tuple.
 
-    If _active_combos is sorted correctly, then this output is sorted
+    If `_active_combos` is sorted correctly, then this output is sorted
     correctly at construction.
 
-    _active_combos being sorted correctly depends on self._combos being
-    sorted correctly.
+    `_active_combos` being sorted correctly depends on self._combos
+    being sorted correctly.
 
     self._combos is built directly from itertools.combinations or
-    itertools.combinations_with_replacement, and is sorted coming out of
-    _combination_builder to ensure the correct sort, in case itertools
-    built-ins ever change.
-
+    `itertools.combinations_with_replacement`, and is sorted coming out
+    of :func:`_combination_builder` to ensure the correct sort, in case
+    itertools built-ins ever change.
 
     Parameters
     ----------
-    _X_feature_names_in:
-        FeatureNamesInType - the feature names of the original data.
-    _active_combos:
-        CombinationsType - The tuples of column index combinations that
-        will be in the outputted polynomial expansion.
-    _feature_name_combiner:
-        Union[
-            Callable[[Sequence[str], tuple[int, ...]], str],
-            Literal['as_feature_names', 'as_indices']]
-        ], default='as_indices' - Sets the naming convention for the
-        created polynomial features.
-
+    _X_feature_names_in : FeatureNamesInType
+        The feature names of the original data.
+    _active_combos : CombinationsType
+        The tuples of column index combinations that will be in the
+        outputted polynomial expansion.
+    _feature_name_combiner : FeatureNameCombinerType, default='as_indices'
+        Sets the naming convention for the created polynomial features.
         See the lengthy notes in the main SPF module.
 
+    Returns
+    -------
+    _poly_feature_names: FeatureNamesInType
+        The feature names for the polynomial expansion.
 
-    Return
-    ------
-    -
-        _poly_feature_names: FeatureNamesInType - The feature names for
-        the polynomial expansion.
+    Notes
+    -----
 
+    **Type Aliases**
+
+    FeatureNamesInType:
+        np.ndarray[object]
+
+    CombinationsType:
+        tuple[tuple[int, ...], ...]
+
+    FeatureNameCombinerType:
+        Union[
+            Callable[[Sequence[str], tuple[int, ...]], str],
+            Literal['as_feature_names', 'as_indices']
+        ]
 
     """
 
@@ -167,22 +175,6 @@ def _gfno_poly(
 
 
     return np.array(_poly_feature_names, dtype=object)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

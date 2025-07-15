@@ -19,30 +19,25 @@ def _validate_is_logspace(
     _IS_LOGSPACE: IsLogspaceType,
     _params: ParamsType
 ) -> None:
+    """Validate `_IS_LOGSPACE`.
 
-    """
-    Validate _IS_LOGSPACE is
-    dict[str, Union[Literal[False], numbers.Integer]]
-
+    Should be dict[str, Union[Literal[False], numbers.Integer]]
 
     Parameters
     ----------
-    _IS_LOGSPACE:
-        IsLogspaceType - for all numerical parameters, if the space is
-        linear, or some other non-standard interval, it is False. If it
-        is logspace, the 'truth' of being a logspace is represented by
-        a number indicating the interval of the logspace.
-        E.g., np.logspace(-5, 5, 11) would be represented by 1.0, and
-        np.logspace(-20, 20, 9) would be represented by 5.0.
-    _params:
-        ParamsType - the agscv instructions for all parameters
-
+    _IS_LOGSPACE : IsLogspaceType
+        For all numerical parameters, if the space is linear, or some
+        other non-standard interval, it is False. If it is logspace, the
+        'truth' of being a logspace is represented by a number indicating
+        the interval of the logspace. E.g., np.logspace(-5, 5, 11) would
+        be represented by 1.0, and np.logspace(-20, 20, 9) would be
+        represented by 5.0.
+    _params : ParamsType
+        The agscv instructions for all parameters.
 
     Returns
     -------
-    -
-        None
-
+    None
 
     """
 

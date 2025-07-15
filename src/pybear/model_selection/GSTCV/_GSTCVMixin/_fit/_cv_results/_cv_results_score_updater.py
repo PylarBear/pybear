@@ -26,41 +26,36 @@ def _cv_results_score_updater(
     _scorer: ScorerWIPType,
     _cv_results: CVResultsType
 ) -> CVResultsType:
-
-    """
-    This module supports _cv_results_update().
-
-    Update the correct permutation row (_trial_idx) and column
+    """Update the correct permutation row (`_trial_idx`) and column
     ({'mean'/'std'/'split'}{_split/''}_{_type}_{scorer/'score'}) of
-    cv_results with the scores from _FOLD_x_SCORER__SCORE. The
-    _FOLD_x_SCORER__SCORE grid can contain either test scores or
+    cv_results with the scores from _FOLD_x_SCORER__SCORE.
+
+    The _FOLD_x_SCORER__SCORE grid can contain either test scores or
     train scores (not at the same time!)
 
+    This module supports :func:`_cv_results_update`.
 
     Parameters
     ----------
-    _FOLD_x_SCORER__SCORE:
-        MaskedHolderType - grid of shape (n splits, n scorers) that
-        holds either train scores or test scores.
-    _type:
-        Literal['train', 'test'] - indicates whether the scores being
-        updated are for train or test.
-    _trial_idx:
-        int - row index of cv_results to update
-    _scorer:
-        ScorerWIPType - dictionary of scorer names and scorer functions.
-        Note that the scorer functions are sklearn metrics (or similar),
-        not make_scorer. Used to know what column names to look for in
-        cv_results and nothing more.
-    _cv_results:
-        CVResultsType - tabulated scores, times, etc., of grid search
-        trials
-
+    _FOLD_x_SCORER__SCORE : MaskedHolderType
+        Grid of shape (n splits, n scorers) that holds either train
+        scores or test scores.
+    _type : Literal['train', 'test']
+        Indicates whether the scores being updated are for train or test.
+    _trial_idx : int
+        Row index of `cv_results_` to update
+    _scorer : ScorerWIPType
+        Dictionary of scorer names and scorer functions. Note that
+        the scorer functions are sklearn metrics (or similar), not
+        'make_scorer'. Used to know what column names to look for in
+        `cv_results_` and nothing more.
+    _cv_results : CVResultsType
+        Tabulated scores, times, etc., of grid search trials.
 
     Returns
     -------
-    -
-        _cv_results: CVResultsType - cv_results updated with scores.
+    _cv_results : CVResultsType
+        `cv_results_` updated with scores.
 
     """
 

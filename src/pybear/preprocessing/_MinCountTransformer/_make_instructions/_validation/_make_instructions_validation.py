@@ -41,44 +41,42 @@ def _make_instructions_validation(
     _feature_names_in: Union[FeatureNamesInType, None],
     _total_counts_by_column: TotalCountsByColumnType
 ) -> None:
+    """Validate all parameters taken in by `_make_instructions`.
 
-    """
-    Validate all parameters taken in by _make_instructions. This is a
-    centralized hub for validation, see the individual modules for more
-    details.
-
+    This is a centralized hub for validation, see the individual modules
+    for more details.
 
     Parameters
     ----------
-    _count_threshold:
-        Union[int, Sequence[int]]
-    _ignore_float_columns:
-        bool
-    _ignore_non_binary_integer_columns:
-        bool
-    _ignore_columns:
-        npt.NDArray[np.int32]
-    _ignore_nan:
-        bool
-    _handle_as_bool:
-        npt.NDArray[np.int32]
-    _delete_axis_0:
-        bool
-    _original_dtypes:
-        OriginalDtypesType
-    _n_features_in:
-        int
-    _feature_names_in:
-        Union[FeatureNamesInType, None]
-    _total_counts_by_column:
-        TotalCountsByColumnType
-
+    _count_threshold : Union[int, Sequence[int]]
+        Minimum frequency threshold.
+    _ignore_float_columns : bool
+        Whether to ignore float columns.
+    _ignore_non_binary_integer_columns : bool
+        Whehter to ignore non-binary integer columns.
+    _ignore_columns : npt.NDArray[np.int32]
+        The indices of columns to ignore.
+    _ignore_nan : bool
+        Whether to ignore nans.
+    _handle_as_bool : npt.NDArray[np.int32]
+        The indices of columns to handle as boolean.
+    _delete_axis_0 : bool
+        Whether to delete rows along the example axis for columns that
+        are handled as boolean.
+    _original_dtypes : OriginalDtypesType
+        The internal dtypes to assigned to each feature by MCT.
+    _n_features_in : int
+        The numbers of features in the fitted data.
+    _feature_names_in : Union[FeatureNamesInType, None]
+        The feature names seen at first fit if the data was passed in a
+        container that has a headers, such as pandas or polars dataframes.
+    _total_counts_by_column : TotalCountsByColumnType
+        A dictionary holding the uniques and their frequences for every
+        column in the data.
 
     Return
     ------
-    -
-        None
-
+    None
 
     """
 

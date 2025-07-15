@@ -21,34 +21,29 @@ def _val_param_grid(
     _param_grid:Union[ParamGridInputType, ParamGridsInputType],
     _must_be_list_dict:Optional[bool] = True
 ) -> None:
+    """Validate `_param_grid` and any `thresholds` that may have been
+    passed inside.
 
-    """
-    Validate `param_grid` and any `thresholds` that may have been passed
-    inside. `param_grid` can be a single param_grid or a list-like of
+    `_param_grid` can be a single param_grid or a list-like of
     param_grids.
 
     Validate format(s) is/are dict[str, list-like]. Validate `thresholds`
     is a list-like of numbers, with numbers in [0, 1] interval.
 
-
     Parameters
     ----------
-    _param_grid:
-        Union[ParamGridInputType, ParamGridsInputType] - A param_grid
-        is a dictionary with hyperparameter names (str) as keys and
-        list-likes of hyperparameter settings to test as values.
-        `_param_grid` can be one of the described param_grids or a
-        list-like of such param_grids.
-    _must_be_list_dict:
-        Optional[bool], default=True - whether `_param_grid` must have
-        already been conditioned into a list of dictionaries.
-
+    _param_grid : Union[ParamGridInputType, ParamGridsInputType]
+        A `param_grid` is a dictionary with hyperparameter names (str)
+        as keys and list-likes of hyperparameter settings to test as
+        values. `_param_grid` can be one of the described param_grids or
+        a list-like of such param_grids.
+    _must_be_list_dict : Optional[bool], default=True
+        Whether `_param_grid` must have already been conditioned into a
+        list of dictionaries.
 
     Returns
     -------
-    -
-        None
-
+    None
 
     """
 

@@ -103,7 +103,6 @@ def nan_mask_numerical(
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
 
-
     Examples
     --------
     >>> from pybear.utilities import nan_mask_numerical
@@ -253,9 +252,10 @@ def nan_mask_string(
 
     Returns
     -------
-    mask : NDArray[bool] of shape (n_samples, n_features) or (n_samples)
-        indicating nan-like representations in 'obj' via the value
-        boolean True. Values that are not nan-like are False.
+    mask : NDArray[bool]
+        shape (n_samples, n_features) or (n_samples) indicating nan-like
+        representations in 'obj' via the value boolean True. Values that
+        are not nan-like are False.
 
     Notes
     -----

@@ -6,7 +6,10 @@
 
 
 
-from typing import Callable, Optional
+from typing import (
+    Callable,
+    Optional
+)
 from ..._type_aliases import ScorerInputType
 
 import numpy as np
@@ -39,9 +42,7 @@ def _val_scoring(
     _scoring: ScorerInputType,
     _must_be_dict:Optional[bool] = True
 ) -> None:
-
-    """
-    Validate `scoring`, the scoring metric(s) used to evaluate the
+    """Validate `scoring`, the scoring metric(s) used to evaluate the
     predictions on the test (and possibly train) sets.
 
     Can be dict[str, Callable] for any number of scorers, singular or
@@ -55,21 +56,18 @@ def _val_scoring(
     For evaluating multiple metrics, scoring can also be a vector-like
     of (unique) strings, containing a combination of the allowed strings.
 
-
     Parameters
     ----------
-    _scoring:
-        ScorerInputType - The scoring metric(s) used to evaluate the
-        predictions on the test (and possibly train) sets.
-    _must_be_dict:
-        Optional[bool], default=True - whether 'scoring' must have
-        already been conditioned into dict[str, Callable].
-
+    _scoring : ScorerInputType
+        The scoring metric(s) used to evaluate the predictions on the
+        test (and possibly train) sets.
+    _must_be_dict : Optional[bool], default=True
+        Whether 'scoring' must have already been conditioned into
+        dict[str, Callable].
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 

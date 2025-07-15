@@ -19,10 +19,8 @@ def _two_uniques_hab(
     _COLUMN_UNQ_CT_DICT: dict[DataType, int],
     _delete_axis_0: bool
 ) -> list[Union[Literal['DELETE COLUMN'], DataType]]:
-
-    """
-    Make delete instructions for a column with two unique non-nan values,
-    handling values as booleans.
+    """Make delete instructions for a column with two unique non-nan
+    values, handling values as booleans.
 
     WHEN 2 items (NOT INCLUDING nan):
     *** BINARY INT COLUMNS ARE HANDLED DIFFERENTLY THAN OTHER DTYPES ***
@@ -31,50 +29,44 @@ def _two_uniques_hab(
     any other dtype will delete the rows), essentially causing bin int
     columns with insufficient count to just be deleted.
 
-
     - classify uniques into two classes - 'zero' and 'non-zero'
 
     - if ignoring nan or no nans
         -- look at cts for the 2 classes, if any ct < thresh, mark all
-            associated values for deletion if delete_axis_0 is True
+            associated values for deletion if `delete_axis_0` is True
         -- if any class below thresh, DELETE COLUMN
-    - if not ign nan and has nans if delete_axis_0 is True
+    - if not ign nan and has nans if `delete_axis_0` is True
         -- treat nan like any other value
         -- look at cts for the 3 unqs (incl nan), if any ct < thresh,
             mark rows for deletion
         -- if any of the non-nan classes below thresh, DELETE COLUMN
-    - if not ign nan and has nans if not delete_axis_0
+    - if not ign nan and has nans if not `delete_axis_0`
         -- look at cts for the 2 non-nan classes, if any ct < thresh,
             DELETE COLUMN
         -- but if keeping the column (both above thresh) and nan ct
             less than thresh, delete the nans
 
-
     Parameters
     ----------
-    _threshold:
-        int - the minimum threshold frequency for this column
-    _nan_key:
-        Union[float, str, Literal[False]] - the nan value found in the
-        column. _columns_getter converts all nan-likes to numpy.nan.
-    _nan_ct:
-        Union[int, Literal[False]] - the number of nan-like values found
-        in the column.
-    _COLUMN_UNQ_CT_DICT:
-        dict[DataType, int] - the value from _total_cts_by_column for
-        this column, which is a dictionary containing the uniques and
-        their frequencies, less any nan that may have been in it, and
-        must have 2 non-nan uniques.
-    _delete_axis_0:
-        bool - whether to delete the rows associated with any of the
-        values that fall below the minimum frequency.
+    _threshold : int
+        The minimum threshold frequency for this column.
+    _nan_key : Union[float, str, Literal[False]]
+        The nan value found in the column. `_columns_getter` converts
+        all nan-likes to numpy.nan.
+    _nan_ct : Union[int, Literal[False]]
+        The number of nan-like values found in the column.
+    _COLUMN_UNQ_CT_DICT : dict[DataType, int]
+        The value from `_total_cts_by_column` for this column, which is
+        a dictionary containing the uniques and their frequencies, less
+        any nan that may have been in it, and must have 2 non-nan uniques.
+    _delete_axis_0 : bool
+        Whether to delete the rows associated with any of the values
+        that fall below the minimum frequency.
 
-
-    Return
-    ------
-    -
-        _instr_list: list[Union[Literal['DELETE COLUMN'], DataType]] -
-        the row and column operations for this column.
+    Returns
+    -------
+    _instr_list : list[Union[Literal['DELETE COLUMN'], DataType]]
+        The row and column operations for this column.
 
     """
 

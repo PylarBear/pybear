@@ -19,71 +19,66 @@ def _identify_combos_to_keep(
     _keep: Literal['first', 'last', 'random'],
     _rand_combos: CombinationsType
 ) -> CombinationsType:
+    """Determine which X idx / poly combo to keep from a set of
+    duplicates.
 
-    """
-    Determine which X idx / poly combo to keep from a set of duplicates.
-
-    When SPF :param: `keep` is set to 'random', we cant just choose
-    random combos here, this module is called in SPF :meth: `transform`
-    as well as :meth: 'partial_fit'. `transform` needs a static set of
-    random combos because all calls to`transform` must output the same
-    polynomial features. There must be a separate module in `partial_fit`
-    that locks in random combos for all `transform` calls. Then that
+    When SPF `keep` is set to 'random', we can't just choose random
+    combos here, this module is called in SPF `transform` as well as
+    'partial_fit'. `transform` needs a static set of random combos
+    because all calls to `transform` must output the same polynomial
+    features. There must be a separate module in `partial_fit` that
+    locks in random combos for all `transform` calls. Then that
     locked-in group of random combos must be passed to this module.
 
     Apply two rules to determine which X idx / poly combo to keep from a
     group of duplicates:
 
         1) if there is a column from X in the dupl group (there should
-        only be one, if any!) then override :param: `keep` and keep the
-        column in X (X cannot be mutated by SlimPoly!)
+        only be one, if any!) then override `keep` and keep the column
+        in X (X cannot be mutated by SlimPoly!)
 
-        2) if the only duplicates are in the polynomial expansion, then
-        apply :param: `keep` to the group of duplicate combos in
-        `poly_duplicates_` to find the combo to keep. If :param: `keep`
-        is 'random', then the random tuples are selected prior to this
-        module in _lock_in_random_combos() and are passed here via
-        :param: `_rand_combos`.
-
+        2) if the only duplicates are in the polynomial expansion,
+        then apply `keep` to the group of duplicate combos in
+        `poly_duplicates_` to find the combo to keep. If `keep` is
+        'random', then the random  tuples are selected prior to this
+        module in :func:`_lock_in_random_combos` and are passed here
+        via `_rand_combos`.
 
     Parameters
     ----------
-    poly_duplicates_:
-        PolyDuplicatesType - a list of the groups of identical columns,
-        containing lists of column combinations drawn from the originally
-        fit data. Columns from the original data itself can be in a group
-        of duplicates, along with the duplicates from the polynomial
-        expansion.
+    poly_duplicates_ : PolyDuplicatesType
+        A list of the groups of identical columns, containing lists of
+        column combinations drawn from the originally fit data. Columns
+        from the original data itself can be in a group of duplicates,
+        along with the duplicates from the polynomial expansion.
 
-        It is important that poly_duplicates_ is sorted correctly before
-        it gets here. Sorted correctly means each group of duplicates is
-        sorted asc on degree first (number of indices in the tuple) then
-        asc on the indices themselves. Then the groups of duplicates are
-        sorted between each other by applying the same rule across the
-        first term in each group.
-    _keep:
-        Literal['first', 'last', 'random'] - The strategy for keeping a
-        single representative from a set of identical columns in the
-        polynomial expansion. See the long explanation in the main SPF
-        module.
-    _rand_combos:
-        CombinationsType - An ordered tuple whose values are tuples
-        representing each group of duplicates in poly_duplicates_. One
-        combination is randomly selected from each group of duplicates.
+        It is important that `poly_duplicates_` is sorted correctly
+        before it gets here. Sorted correctly means each group of
+        duplicates is sorted asc on degree first (number of indices in
+        the tuple) then asc on the indices themselves. Then the groups
+        of duplicates are sorted between each other by applying the
+        same rule across the first term in each group.
+    _keep : Literal['first', 'last', 'random']
+        The strategy for keeping a single representative from a set of
+        identical columns in the polynomial expansion. See the long
+        explanation in the main SPF module.
+    _rand_combos : CombinationsType
+        An ordered tuple whose values are tuples representing each group
+        of duplicates in `poly_duplicates_`. One combination is randomly
+        selected from each group of duplicates.
 
-
-    Return
-    ------
-    -
-        _idxs_to_keep: CombinationsType - An ordered tuple whose values
-        are tuples of column indices from X, each tuple being selected
-        from a group of duplicates in `poly_duplicates_`. This output
-        differs from :param: `_rand_combos` in that `_rand_combos`
-        just  picks any random combo from each set of duplicates in
-        `poly_duplicates_` without regard to anything else simply to
-        make the random tuples available to this module. But this module
-        observes rules imposed as above, and may or may not use all or
-        even any of the random tuples made available by `_rand_combos`.
+    Returns
+    -------
+    _idxs_to_keep : CombinationsType
+        An ordered tuple whose values are tuples of column indices from
+        X, each tuple being selected from a group of duplicates in
+        `poly_duplicates_`. This output differs from `_rand_combos` in
+        that `_rand_combos` just picks any random combo from each set of
+        duplicates in `poly_duplicates_` without regard to anything else
+        simply to make the random tuples available to this module. But
+        this module observes rules imposed as above, and may or may not
+        use all or even any of the random tuples made available by
+        `_rand_combos`.
 
     """
 

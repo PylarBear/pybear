@@ -43,7 +43,7 @@ def _manage_wrap_idxs(
 
     Returns
     -------
-    tuple[int, int]
+    indices : tuple[int, int]
         The index in the first line that starts the wrap region and the
         index in second line that marks the end of the wrap region.
         Python range rules apply.

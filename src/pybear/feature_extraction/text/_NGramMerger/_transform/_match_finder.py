@@ -32,7 +32,7 @@ def _match_finder(
 
     Returns
     -------
-    list[int]
+    _hits : list[int]
         The starting indices of sequences that match the n-gram pattern.
 
     """

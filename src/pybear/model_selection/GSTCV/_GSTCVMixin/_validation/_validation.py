@@ -6,7 +6,10 @@
 
 
 
-from typing import Iterable, Literal
+from typing import (
+    Iterable,
+    Literal
+)
 from typing_extensions import Union
 from ..._type_aliases import (
     GenericKFoldType,
@@ -45,12 +48,10 @@ def _validation(
     _error_score: Union[Literal['raise'], numbers.Real],
     _return_train_score: bool
 ) -> None:
+    """Centralized hub for validation.
 
-    """
-    Centralized hub for validation. See the individual submodules for
-    more information.
-    
-    
+    See the individual submodules for more information.
+
     Parameters
     ----------
     _estimator:
@@ -74,14 +75,11 @@ def _validation(
     _return_train_score:
         bool
 
-
     Returns
     -------
-    -
-        None
+    None
 
     """
-
 
     _val_estimator(_estimator)
 

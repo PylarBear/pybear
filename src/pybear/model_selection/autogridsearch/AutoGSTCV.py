@@ -6,8 +6,15 @@
 
 
 
-from typing import Optional, Sequence, Tuple
-from typing_extensions import Any, Union
+from typing import (
+    Optional,
+    Sequence,
+    Tuple
+)
+from typing_extensions import (
+    Any,
+    Union
+)
 
 import numbers
 
@@ -19,14 +26,6 @@ from ..GSTCV._GSTCV.GSTCV import GSTCV
 
 
 class AutoGSTCV(autogridsearch_wrapper(GSTCV)):
-
-
-    #     AutoGridSearchCV = type(
-    #         'SklearnAutoGridSearch',
-    #         (autogridsearch_wrapper(GSTCV),),
-    #         {'__doc__': autogridsearch_docs,
-    #          '__init__.__doc__': autogridsearch_docs}
-    #     )
 
 
     __doc__ = autogridsearch_docs.__doc__
@@ -50,9 +49,7 @@ class AutoGSTCV(autogridsearch_wrapper(GSTCV)):
         agscv_verbose:Optional[bool] = False,
         **parent_gscv_kwargs
     ):
-
-        """Initialize the AutoGSTCV instance."""
-
+        """Initialize the `AutoGSTCV` instance."""
 
         super().__init__(
             estimator,

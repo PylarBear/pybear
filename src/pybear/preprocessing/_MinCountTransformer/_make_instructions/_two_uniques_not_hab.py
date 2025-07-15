@@ -18,10 +18,8 @@ def _two_uniques_not_hab(
     _nan_ct: Union[int, Literal[False]],
     _COLUMN_UNQ_CT_DICT: dict[DataType, int]
 ) -> list[Union[Literal['DELETE COLUMN'], DataType]]:
-
-    """
-    Make delete instructions for a column with two unique non-nan values
-    that is not handled as boolean (could be strings or floats.)
+    """Make delete instructions for a column with two unique non-nan
+    values that is not handled as boolean (could be strings or floats.)
 
     - if ignoring nan or no nans
         -- look at cts for the 2 unqs, if any ct < thresh, mark rows
@@ -33,30 +31,25 @@ def _two_uniques_not_hab(
             mark rows for deletion
         -- if any of the non-nan values below thresh, DELETE COLUMN
 
-
     Parameters
     ----------
-    _threshold:
-        int - the minimum threshold frequency for this column
-    _nan_key:
-        Union[float, str, Literal[False]] - the nan value found in the
-        column in its original dtype. _columns_getter converts all
-        nan-like values to numpy.nan.
-    _nan_ct:
-        Union[int, Literal[False]] - the number of nan-like values found
-        in the column.
-    _COLUMN_UNQ_CT_DICT:
-        dict[DataType, int] - the value from _total_cts_by_column for
-        this column which is a dictionary containing the uniques and
-        their frequencies, less any nan that may have been in it, and
-        must have 2 non-nan uniques.
+    _threshold : int
+        The minimum threshold frequency for this column.
+    _nan_key : Union[float, str, Literal[False]]
+        The nan value found in the column in its original dtype.
+        `_columns_getter` converts all nan-like values to numpy.nan.
+    _nan_ct : Union[int, Literal[False]]
+        The number of nan-like values found in the column.
+    _COLUMN_UNQ_CT_DICT : dict[DataType, int]
+        The value from `_total_cts_by_column` for this column which is a
+        dictionary containing the uniques and their frequencies, less
+        any nan that may have been in it, and must have 2 non-nan
+        uniques.
 
-
-    Return
-    ------
-    -
-        _instr_list: list[Union[Literal['DELETE COLUMN'], DataType]] -
-        the row and column operations for this column.
+    Returns
+    -------
+    _instr_list : list[Union[Literal['DELETE COLUMN'], DataType]]
+        The row and column operations for this column.
 
     """
 

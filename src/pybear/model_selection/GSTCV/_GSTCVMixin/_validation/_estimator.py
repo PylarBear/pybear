@@ -17,12 +17,12 @@ from .....utilities._check_pipeline import check_pipeline
 def _val_estimator(
     _estimator: ClassifierProtocol
 ) -> None:
+    """General validation for sklearn-like estimators.
 
-    """
-    General validation for sklearn-like estimators. The GSTCV modules
-    are expected to most likely encounter sklearn, dask_ml, xgboost,
-    and lightgbm estimators, and maybe some other pybear modules. The
-    estimator must be passed as an instance, not the class itself.
+    The `GSTCV` modules are expected to most likely encounter sklearn,
+    dask_ml, xgboost, and lightgbm estimators, and maybe some other
+    pybear modules. The estimator must be passed as an instance, not the
+    class itself.
 
     Validate that an estimator:
 
@@ -30,23 +30,21 @@ def _val_estimator(
 
     2) if in a pipe, the pipe is built correctly
 
-    3) is a classifier, as indicated by the presence of a 'predict_proba'
+    3) is a classifier, as indicated by the presence of a `predict_proba`
     method. (early in dev this was done by sklearn.base.is_classifier)
 
-    4) meets the other requirements of GridSearchCV in having 'fit',
-    'set_params', and 'get_params' methods.
-
+    4) meets the other requirements of `GridSearchCV` in having `fit`,
+    `set_params`, and `get_params` methods.
 
     Parameters
     ----------
-    _estimator:
-        ClassifierProtocol - the estimator to be validated
+    _estimator : ClassifierProtocol
+        The estimator to be validated.
 
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 
