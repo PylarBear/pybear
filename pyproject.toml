@@ -49,7 +49,7 @@ numpydoc = "*"
 
 
 [tool.poetry.group.test.dependencies]
-pytest = "6.10"
+pytest = "6.1.0"
 pytest-cov = "*"
 pytest-html = "*"
 
