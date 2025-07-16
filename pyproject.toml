@@ -44,7 +44,7 @@ docutils = "0.20"
 jupyter = "*"
 notebook = "*"
 pyarrow = "18.0.0"
-sphinx = "7.0.1"
+sphinx = "*"
 numpydoc = "*"
 
 
