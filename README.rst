@@ -7,7 +7,6 @@ pybear
 |Test Status 312|
 |Test Status 311|
 |Test Status 310|
-|Test Status 39|
 
 .. |Tests| image:: https://raw.githubusercontent.com/PylarBear/pybear/main/.github/badges/tests-badge.svg
    :target: https://github.com/PylarBear/pybear/actions
@@ -26,9 +25,6 @@ pybear
 
 .. |Test Status 310| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py310.yml/badge.svg
    :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py310.yml
-
-.. |Test Status 39| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py39.yml/badge.svg
-   :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py39.yml
 
 |Doc Status|
 
@@ -62,7 +58,7 @@ pybear
 
 .. _documentation: https://pybear.readthedocs.io/
 
-.. |PythonVersion| replace:: >=3.9, <3.14
+.. |PythonVersion| replace:: >=3.10, <3.14
 .. |JoblibVersion| replace:: >=1.3.0
 .. |NumpyVersion| replace:: >=1.26.0
 .. |PandasVersion| replace:: >=2.2.2
@@ -110,7 +106,7 @@ pybear requires:
 - typing_extensions (|TypingExtensionsVersion|)
 
 pybear 0.2 is tested via GitHub Actions to run on Linux, Windows, and MacOS,
-with Python versions 3.9, 3.10, 3.11, and 3.12. pybear is not tested on earlier
+with Python versions 3.10, 3.11, 3.12, and 3.13. pybear is not tested on earlier
 versions, but some features may work.
 
 If you want to test pybear yourself, you will need:
