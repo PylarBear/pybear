@@ -580,7 +580,7 @@ class TestIgnoreNonBinaryIntegerColumnsWorks:
         # ignore_non_binary_integer_columns = False deletes some rows
         _new_kwargs = deepcopy(_kwargs)
         _new_kwargs['ignore_non_binary_integer_columns'] = False
-        _new_kwargs['count_threshold'] += 3
+        _new_kwargs['count_threshold']
 
         assert not np.array_equiv(
             MCT(**_new_kwargs).fit_transform(NON_BIN_INT_ONLY_X),
