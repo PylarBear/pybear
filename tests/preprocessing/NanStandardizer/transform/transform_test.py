@@ -24,7 +24,7 @@ class TestTransform:
 
     @pytest.mark.parametrize('_format', (list, tuple))
     @pytest.mark.parametrize('_dtype', ('num', 'str'))
-    @pytest.mark.parametrize('_fill', (99, None, True, 'NaN'))
+    @pytest.mark.parametrize('_fill', (99, None, True, 'NaN', np.nan))
     def test_accuracy_py_builtin(self, _fill, _format, _dtype, _X_num, _X_str):
 
 
@@ -59,7 +59,7 @@ class TestTransform:
 
 
     @pytest.mark.parametrize('_dtype', ('num', 'str'))
-    @pytest.mark.parametrize('_fill', (99, None, True, 'NaN'))
+    @pytest.mark.parametrize('_fill', (99, None, True, 'NaN', np.nan))
     def test_accuracy_np(self, _fill, _dtype, _X_num, _X_str):
 
 
@@ -100,7 +100,7 @@ class TestTransform:
 
     @pytest.mark.parametrize('X_format', ('pd_series', 'pd_df'))
     @pytest.mark.parametrize('_dtype', ('num', 'str'))
-    @pytest.mark.parametrize('_fill', (99, None, True, 'NaN'))
+    @pytest.mark.parametrize('_fill', (99, None, True, 'NaN', np.nan))
     def test_accuracy_pd(self, X_format, _fill, _dtype, _X_num, _X_str):
 
 
@@ -187,7 +187,7 @@ class TestTransform:
 
     @pytest.mark.parametrize('X_format', ('pl_series', 'pl_df'))
     @pytest.mark.parametrize('_dtype', ('num', 'str'))
-    @pytest.mark.parametrize('_fill', (99, None, True, 'NaN'))
+    @pytest.mark.parametrize('_fill', (99, None, True, 'NaN', np.nan))
     def test_accuracy_pl(self, X_format, _fill, _dtype, _X_num, _X_str):
 
 

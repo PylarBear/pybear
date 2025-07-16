@@ -27,7 +27,7 @@ from sklearn.utils.estimator_checks import (
 
 from pybear.preprocessing import NanStandardizer as NS
 
-# pizza
+
 
 class TestSKLearnCheckTransformer:
 
@@ -70,7 +70,7 @@ class TestSKLearnCheckTransformer:
         )
 
 
-    def test_check_transformer_get_feature_names_out(self):
+    # def test_check_transformer_get_feature_names_out(self):
         # looks for certain verbiage in error if len(input_features) does not
         # match n_features_in_, and if output dtype is object
 
@@ -87,10 +87,9 @@ class TestSKLearnCheckTransformer:
         #     'NanStandardizer',
         #     NS()
         # )
-        pass
 
 
-    def test_check_transformer_get_feature_names_out_pandas(self):
+    # def test_check_transformer_get_feature_names_out_pandas(self):
         # looks for certain verbiage in error if 'input_features' does not
         # match feature_names_in_ if NS was fit on a dataframe
 
@@ -107,7 +106,7 @@ class TestSKLearnCheckTransformer:
         #     'NanStandardizer',
         #     NS()
         # )
-        pass
+
 
 
 
