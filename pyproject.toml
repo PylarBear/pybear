@@ -30,25 +30,20 @@ include = [
 # These packages are mandatory and form the core of this package’s distribution.
 python = "^3.10, <3.14"
 joblib = "1.5.0"
-numpy = "1.26.2"
+numpy = "2.1.0"
 pandas = "2.2.3"
 polars = "1.19.0"
 psutil = "5.7.0"
 scipy = "1.15.0"
-# [
-#    { version = "<1.14.0", markers = "python_version < '3.10'" },
-#    { version = ">=1.12.0", markers = "python_version >= '3.10'" }
-#]
-
-scikit-learn = "1.4.0"
-typing_extensions = "4.10.0"
+scikit-learn = "1.5.2"
+typing_extensions = "4.12.0"
 
 
 [tool.poetry.group.dev.dependencies]
-docutils = ">=0.20"
+docutils = "0.20"
 jupyter = "*"
 notebook = "*"
-pyarrow = ">=17.0.0"
+pyarrow = "17.0.0"
 sphinx = "7.0.1"
 numpydoc = "*"
 
