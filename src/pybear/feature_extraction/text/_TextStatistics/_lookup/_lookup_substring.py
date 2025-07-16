@@ -58,8 +58,8 @@ def _lookup_substring(
         search for the exact pattern in the fitted data. If False, ignore
         the case of words in uniques while performing the search.
 
-    Return
-    ------
+    Returns
+    -------
     list[str]:
         List of all strings in the fitted data that contain the given
         character substring. Returns an empty list if there are no

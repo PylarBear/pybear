@@ -64,8 +64,8 @@ def _parallel_chunk_comparer(
         not equivalent, thus making the column pair not equal. This is
         in line with the normal numpy handling of nan values.
 
-    Return
-    ------
+    Returns
+    -------
     _pairs : list[tuple[int, int]]
         The `X` column indices for the pairs of columns that are equal
         between `chunk1` and `chunk2`.

@@ -24,8 +24,8 @@ def _val_keep(
         keeps a single randomly-selected column from the set of
         duplicates.
 
-    Return
-    ------
+    Returns
+    -------
     None
 
     """

@@ -36,8 +36,8 @@ def _merge_overall_statistics(
         The number of unique strings seen by all partial fits, including
         the current partial fit.
 
-    Return
-    ------
+    Returns
+    -------
     _overall_statistics : dict[str, numbers.Real]
         The statistics for all strings seen.
 

@@ -41,8 +41,8 @@ def _print_string_frequency(
     n : Optional[numbers.Integral], default = 10
         The number of most frequent strings to print.
 
-    Return
-    ------
+    Returns
+    -------
     None
 
     """

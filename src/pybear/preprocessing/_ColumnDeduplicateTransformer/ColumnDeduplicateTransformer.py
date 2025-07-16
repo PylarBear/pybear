@@ -544,8 +544,8 @@ class ColumnDeduplicateTransformer(
             - if `feature_names_in_` is defined, then `input_features`
                 must exactly match the features in `feature_names_in_`.
 
-        Return
-        ------
+        Returns
+        -------
         feature_names_out : FeatureNamesInType
             The feature names of the transformed data.
 
@@ -594,8 +594,8 @@ class ColumnDeduplicateTransformer(
         y : Optional[Any], default=None
             Ignored. The target for the data.
 
-        Return
-        ------
+        Returns
+        -------
         self : object
             The fitted `ColumnDeduplicateTransformer` instance.
 
@@ -737,8 +737,8 @@ class ColumnDeduplicateTransformer(
         y : Optional[Any], default=None
             Ignored. The target for the data.
 
-        Return
-        ------
+        Returns
+        -------
         self : object
             The fitted `ColumnDeduplicateTransformer` instance.
 
@@ -906,8 +906,8 @@ class ColumnDeduplicateTransformer(
         copy : Optional[Union[bool, None]], default=None
             Whether to make a deepcopy of `X` before the transform.
 
-        Return
-        ------
+        Returns
+        -------
         X_tr : XContainer of shape (n_samples, n_features - n_removed_features)
             The deduplicated data.
 

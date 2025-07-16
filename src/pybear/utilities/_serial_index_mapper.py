@@ -40,8 +40,8 @@ def serial_index_mapper(
         The zero-based Cartesian coordinates for each given serialized
         index position.
 
-    Example
-    ------
+    Examples
+    --------
     >>> from pybear.utilities import serial_index_mapper
     >>> shape = (3,3,3)
     >>> positions = [4, 15, 25]

@@ -44,8 +44,8 @@ def _regexp_core(
         The pattern(s) by which to identify where strings will be split.
 
 
-    Return
-    ------
+    Returns
+    -------
     _X : list[list[str]]
         The split data.
 

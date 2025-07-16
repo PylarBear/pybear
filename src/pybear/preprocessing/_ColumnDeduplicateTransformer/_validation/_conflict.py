@@ -39,8 +39,8 @@ def _val_conflict(
         This also causes at least one member of the columns not to be
         dropped to be removed.
 
-    Return
-    ------
+    Returns
+    -------
     None
 
     """

@@ -298,8 +298,8 @@ class TextSplitter(
         y : Optional[Any], default=None
             The target for the data. Always ignored.
 
-        Return
-        ------
+        Returns
+        -------
         self : object
             The `TextSplitter` instance.
 
@@ -322,8 +322,8 @@ class TextSplitter(
         y : Optional[Any], default=None
             The target for the data. Always ignored.
 
-        Return
-        ------
+        Returns
+        -------
         self : object
             The `TextSplitter` instance.
 
@@ -347,8 +347,8 @@ class TextSplitter(
             Whether to perform the splits directly on `X` or on a
             deepcopy of `X`.
 
-        Return
-        ------
+        Returns
+        -------
         X_tr : XWipContainer
             The split strings.
 
@@ -398,8 +398,8 @@ class TextSplitter(
         y : Optional[Any], default=None
             The target for the data. Ignored.
 
-        Return
-        ------
+        Returns
+        -------
         None
 
         """

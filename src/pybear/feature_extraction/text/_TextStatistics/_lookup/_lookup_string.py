@@ -63,8 +63,8 @@ def _lookup_string(
         search for the exact pattern in the fitted data. If False, ignore
         the case of words in uniques while performing the search.
 
-    Return
-    ------
+    Returns
+    -------
     list[str]:
         If there are any matches, return the matching string(s) from the
         originally fitted data in a 1D list; if there are no matches,

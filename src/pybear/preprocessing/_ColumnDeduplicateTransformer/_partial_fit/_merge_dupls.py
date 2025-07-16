@@ -38,8 +38,8 @@ def _merge_dupls(
     _current_duplicates : DuplicatesType
         The duplicate columns found on the current partial fit.
 
-    Return
-    ------
+    Returns
+    -------
     duplicates_ : DuplicatesType
         The groups of identical columns, indicated by their zero-based
         column index positions.

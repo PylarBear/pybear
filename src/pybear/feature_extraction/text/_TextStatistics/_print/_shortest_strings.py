@@ -42,8 +42,8 @@ def _print_shortest_strings(
     n : Optional[numbers.Integral], default = 10
         The number of shortest strings to print to screen.
 
-    Return
-    ------
+    Returns
+    -------
     None
 
     """

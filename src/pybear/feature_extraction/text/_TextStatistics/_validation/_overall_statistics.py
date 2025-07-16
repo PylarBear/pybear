@@ -25,8 +25,8 @@ def _val_overall_statistics(
         fit on the `TextStatistics` instance, such as number of strings,
         average length of strings, etc.
 
-    Return
-    ------
+    Returns
+    -------
     None
 
     """

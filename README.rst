@@ -60,14 +60,14 @@ pybear
 
 .. |PythonVersion| replace:: >=3.10, <3.14
 .. |JoblibVersion| replace:: >=1.3.0
-.. |NumpyVersion| replace:: >=1.26.0
-.. |PandasVersion| replace:: >=2.2.2
+.. |NumpyVersion| replace:: >=2.1.0
+.. |PandasVersion| replace:: >=2.2.3
 .. |PolarsVersion| replace:: >=1.19.0
-.. |PsutilVersion| replace:: >=0.1.1
-.. |PytestVersion| replace:: >=X.X.X
-.. |ScipyVersion| replace:: >=X.X.X
-.. |ScikitLearnVersion| replace:: >=1.1.3
-.. |TypingExtensionsVersion| replace:: >=4.7.0
+.. |PsutilVersion| replace:: >=5.7.0
+.. |PytestVersion| replace:: >=7.0.0
+.. |ScipyVersion| replace:: >=1.15.0
+.. |ScikitLearnVersion| replace:: >=1.5.2
+.. |TypingExtensionsVersion| replace:: >=4.12.0
 
 
 

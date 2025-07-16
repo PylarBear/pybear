@@ -35,8 +35,8 @@ def _get_shortest_strings(
     n : Optional[numbers.Integral], default = 10
         The number of top shortest strings to retrieve.
 
-    Return
-    ------
+    Returns
+    -------
     shortest_strings : dict[str, numbers.Integral]
         The top 'n' shortest strings and their frequencies.
 

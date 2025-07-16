@@ -25,8 +25,8 @@ def _build_character_frequency(
         The dictionary holding the unique strings passed to the current
         partial fit and their respective frequencies.
 
-    Return
-    ------
+    Returns
+    -------
     _character_frequency: dict[str, numbers.Integral]
         A dictionary that holds the unique characters passed to this
         partial fit and their respective number of appearances as values.

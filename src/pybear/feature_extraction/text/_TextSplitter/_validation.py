@@ -54,8 +54,8 @@ def _validation(
     _flags : FlagsType
         The flag value(s) to be applied to the search for separators.
 
-    Return
-    ------
+    Returns
+    -------
     None
      
     """

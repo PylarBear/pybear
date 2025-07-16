@@ -29,8 +29,8 @@ def _merge_startswith_frequency(
         The unique first characters and their counts found in all
         previous partial fits on the `TextStatistics` instance.
 
-    Return
-    ------
+    Returns
+    -------
     _startswith_frequency : dict[str, int]
         The merged unique first characters and counts for all strings
         seen across all partial fits of the `TextStatistics` instance.

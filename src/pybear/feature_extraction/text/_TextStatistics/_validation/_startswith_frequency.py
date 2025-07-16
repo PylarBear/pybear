@@ -25,8 +25,8 @@ def _val_startswith_frequency(
     _startswith_frequency :dict[str, numbers.Integral]
         A dictionary of unique first characters and counts.
 
-    Return
-    ------
+    Returns
+    -------
     None
 
     """

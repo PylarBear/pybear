@@ -25,8 +25,8 @@ def _val_character_frequency(
     _character_frequency : dict[str, numbers.Integral]
         A dictionary of unique characters and counts.
 
-    Return
-    ------
+    Returns
+    -------
     None
 
     """

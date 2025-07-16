@@ -521,7 +521,7 @@ class TextJustifier(
             The target for the data. Ignored.
 
         Returns
-        ------
+        -------
         None
 
 

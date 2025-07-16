@@ -56,8 +56,8 @@ def _parallel_column_comparer(
         not equivalent, thus making the column pair not equal. This is
         in line with the normal numpy handling of nan values.
 
-    Return
-    ------
+    Returns
+    -------
     _match : bool
         Whether the pair of columns are equal.
 
