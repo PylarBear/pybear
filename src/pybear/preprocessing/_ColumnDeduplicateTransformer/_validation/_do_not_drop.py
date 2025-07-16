@@ -41,8 +41,8 @@ def _val_do_not_drop(
         If fitting is done on a container that has a header, this is a
         ndarray of strings, otherwise is None.
 
-    Return
-    ------
+    Returns
+    -------
     None
 
     """

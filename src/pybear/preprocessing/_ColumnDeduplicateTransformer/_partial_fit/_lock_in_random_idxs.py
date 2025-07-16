@@ -63,8 +63,8 @@ def _lock_in_random_idxs(
         If fitting is done on a container that has a header, this is a
         ndarray of strings, otherwise is None.
 
-    Return
-    ------
+    Returns
+    -------
     _rand_idxs : tuple[int]
         An ordered tuple whose values are a sequence of column indices,
         one index selected from each set of duplicates in `_duplicates`.

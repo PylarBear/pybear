@@ -42,8 +42,8 @@ def _print_longest_strings(
     n : Optional[numbers.Integral], default = 10
         The number of longest strings to print to screen.
 
-    Return
-    ------
+    Returns
+    -------
     None
 
     """

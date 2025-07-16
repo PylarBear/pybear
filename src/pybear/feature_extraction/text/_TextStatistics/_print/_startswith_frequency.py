@@ -32,8 +32,8 @@ def _print_startswith_frequency(
     rp : numbers.Integral
         The right padding for the display.
 
-    Return
-    ------
+    Returns
+    -------
     None
 
     """

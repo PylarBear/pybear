@@ -47,7 +47,7 @@ def array_sparsity(a: Container) -> float:
     sparse matrices / arrays except bsr.
 
     Parameters
-    -----------
+    ----------
     a : array_like of shape (n_samples, n_features) or (n_samples,)
         Object for which to calculate sparsity. Cannot be empty.
 

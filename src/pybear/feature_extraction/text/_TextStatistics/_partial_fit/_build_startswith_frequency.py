@@ -26,8 +26,8 @@ def _build_startswith_frequency(
         The dictionary holding the unique strings passed to the current
         partial fit and their respective frequencies.
 
-    Return
-    ------
+    Returns
+    -------
     _startswith_frequency: dict[str, numbers.Integral]
         A dictionary that holds the first characters of every string
         passed to this partial fit and their respective number of

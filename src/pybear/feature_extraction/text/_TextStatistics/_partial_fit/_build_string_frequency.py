@@ -32,8 +32,8 @@ def _build_string_frequency(
         Whether to preserve the case of the characters when getting the
         uniques. When False, normalize the case of all characters.
 
-    Return
-    ------
+    Returns
+    -------
     _string_frequency : dict[str, int]
         A dictionary with the unique strings in STRINGS as keys and
         their respective counts as values.

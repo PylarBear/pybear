@@ -74,8 +74,8 @@ def _validation(
         The number of columns to send to a joblib job. Must be an integer
         greater than or equal to 2.
 
-    Return
-    ------
+    Returns
+    -------
     None
 
     """

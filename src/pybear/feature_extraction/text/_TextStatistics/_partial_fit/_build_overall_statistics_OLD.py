@@ -47,8 +47,8 @@ def _build_overall_statistics(
         Whether to normalize all characters to the same case or preserve
         the original case.
 
-    Return
-    ------
+    Returns
+    -------
     overall_statistics : dict[str, numbers.Real]
         The statistics for the all the strings seen by the
         `TextStatistics` instance.

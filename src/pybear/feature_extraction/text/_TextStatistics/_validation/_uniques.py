@@ -23,8 +23,8 @@ def _val_uniques(_uniques: Sequence[str]) -> None:
         on one partial fit, or all uniques seen during fits on the
         `TextStatistics` instance.
 
-    Return
-    ------
+    Returns
+    -------
     None
 
     """

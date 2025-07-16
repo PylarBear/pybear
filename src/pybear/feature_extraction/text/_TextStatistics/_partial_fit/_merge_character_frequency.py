@@ -29,8 +29,8 @@ def _merge_character_frequency(
         The unique characters and their counts found in all previous
         partial fits on the `TextStatistics` instance.
 
-    Return
-    ------
+    Returns
+    -------
     _character_frequency : dict[str, int]
         The merged unique characters and counts for all strings seen
         across all partial fits of the `TextStatistics` instance.

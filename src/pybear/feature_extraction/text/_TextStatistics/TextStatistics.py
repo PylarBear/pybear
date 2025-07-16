@@ -438,8 +438,8 @@ class TextStatistics(
         y : Optional[Any], default = None
             A target for the data. Always ignored.
 
-        Return
-        ------
+        Returns
+        -------
         self : object
             The `TestStatistics` instance.
 
@@ -586,8 +586,8 @@ class TextStatistics(
         y : Optional[Any], default = None
             A target for the data. Always ignored.
 
-        Return
-        ------
+        Returns
+        -------
         self : object
             The `TextStatistics` instance.
 
@@ -609,8 +609,8 @@ class TextStatistics(
         X : XContainer
             The data. Ignored.
 
-        Return
-        ------
+        Returns
+        -------
         X : XContainer
             The original, unchanged, data.
 
@@ -685,8 +685,8 @@ class TextStatistics(
         n : Optional[numbers.Integral], default = 10
             The number of the most frequent strings to print to screen.
 
-        Return
-        ------
+        Returns
+        -------
         None
 
         """
@@ -713,8 +713,8 @@ class TextStatistics(
         n : Optional[numbers.Integral], default = 10
             The number of the top longest strings to return.
 
-        Return
-        ------
+        Returns
+        -------
         dict[str, int]:
             The top 'n' longest strings seen by the `TextStatistics`
             instance during fitting. This will always be empty if
@@ -747,8 +747,8 @@ class TextStatistics(
         n : Optional[numbers.Integral], default = 10
             The number of top longest strings to print to screen.
 
-        Return
-        ------
+        Returns
+        -------
         None
 
         """
@@ -775,8 +775,8 @@ class TextStatistics(
         n : Optional[numbers.Integral], default = 10
             The number of the top shortest strings to return.
 
-        Return
-        ------
+        Returns
+        -------
         dict[str, int]:
             The top 'n' shortest strings seen by the `TextStatistics`
             instance during fitting. This will always be empty if
@@ -809,8 +809,8 @@ class TextStatistics(
         n : Optional[numbers.Integral], default = 10
             The number of shortest strings to print to screen.
 
-        Return
-        ------
+        Returns
+        -------
         None
 
         """
@@ -859,8 +859,8 @@ class TextStatistics(
             False, ignore the case of words in uniques while performing
             the search.
 
-        Return
-        ------
+        Returns
+        -------
         list[str]:
             List of all strings in the fitted data that contain the given
             character substring. Returns an empty list if there are no
@@ -911,8 +911,8 @@ class TextStatistics(
             False, ignore the case of the words in :attr:`uniques_`
             while performing the search.
 
-        Return
-        ------
+        Returns
+        -------
         list[str]:
             If there are any matches, return the matching string(s) from
             the originally fitted data in a 1D list; if there are no

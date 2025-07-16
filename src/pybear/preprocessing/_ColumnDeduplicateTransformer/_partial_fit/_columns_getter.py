@@ -45,8 +45,8 @@ def _columns_getter(
     _col_idxs : Union[int, tuple[int, ...]]
         The column index / indices to extract from `_X`.
 
-    Return
-    ------
+    Returns
+    -------
     _columns : NDArray[Any]
         The column(s) from `_X` corresponding to the given index/indices.
 

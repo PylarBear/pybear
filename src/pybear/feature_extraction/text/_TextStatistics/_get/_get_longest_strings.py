@@ -36,8 +36,8 @@ def _get_longest_strings(
     n : Optional[numbers.Integral], default = 10
         The number of top longest strings to retrieve.
 
-    Return
-    ------
+    Returns
+    -------
     longest_strings: dict[str, int]
         The top 'n' longest strings and their frequencies.
 

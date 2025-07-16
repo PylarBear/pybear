@@ -29,8 +29,8 @@ def _print_overall_statistics(
     rp : numbers.Integral
         The right padding for the display.
 
-    Return
-    ------
+    Returns
+    -------
     None
 
     """

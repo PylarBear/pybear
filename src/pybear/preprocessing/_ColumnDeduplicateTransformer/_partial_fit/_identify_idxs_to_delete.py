@@ -84,8 +84,8 @@ def _identify_idxs_to_delete(
         For example, if `_duplicates` is [[0, 8], [1, 5, 9]], then a
         possible `_rand_idxs` might look like (8, 1).
 
-    Return
-    ------
+    Returns
+    -------
     removed_columns_ : RemovedColumnsType
         The keys are the indices of duplicate columns removed from the
         original data, indexed by their column location in the original

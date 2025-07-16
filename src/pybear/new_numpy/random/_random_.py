@@ -343,6 +343,7 @@ class Sparse:
         engine: EngineType = 'default',
         dtype: Optional[object] = float,
     ):
+        """Initialize the `Sparse` instance."""
 
         self._min = minimum
         self._max = maximum
@@ -912,7 +913,7 @@ def sparse(
     This function is a simplified :class:`Sparse` implementation.
 
     Parameters
-    --------
+    ----------
     minimum : numbers.Real
         Lowest (signed) value to be drawn from the distribution.
     maximum : numbers.Real
@@ -932,13 +933,13 @@ def sparse(
         appropriate distribution and with the specified sparsity.
 
     See Also
-    -------
+    --------
     numpy.random.randint
     numpy.random.uniform
     pybear.random.Sparse
 
     Examples
-    -------
+    --------
     >>> from pybear.new_numpy.random import sparse as pb_sparse
     >>> sparse_array = pb_sparse(11, 20, (4,4), 70, dtype=np.int8)
     >>> print(sparse_array)   #doctest:+SKIP

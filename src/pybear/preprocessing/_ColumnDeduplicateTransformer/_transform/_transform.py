@@ -34,8 +34,8 @@ def _transform(
         A boolean vector of shape (n_features,) that indicates which
         columns to keep (True) and which columns to delete (False).
 
-    Return
-    ------
+    Returns
+    -------
     _X :
         InternalXContainer of shape (n_samples, n_transformed_features) -
         The deduplicated data.

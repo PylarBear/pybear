@@ -29,8 +29,8 @@ def _merge_string_frequency(
         The unique strings and their counts found in all previous partial
         fits on the `TextStatistics` instance.
 
-    Return
-    ------
+    Returns
+    -------
     _string_frequency : dict[str, int]
         The merged uniques and counts for all strings seen across all
         partial fits of the `TextStatistics` instance.

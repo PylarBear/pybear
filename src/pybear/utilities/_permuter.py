@@ -41,8 +41,8 @@ def permuter(vector_of_vectors: Sequence[Sequence[Any]]) -> list[list[int]]:
     itertools.product
         for another implementation that returns values instead of indices.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from pybear.utilities import permuter
     >>> vector1 = ['a', 'b', 'c']
     >>> vector2 = ['w', 'x']

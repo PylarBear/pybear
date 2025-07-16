@@ -121,8 +121,6 @@ def time_memory_benchmark(
     ...     rest_time=1,
     ...     verbose=1
     ... ) #doctest:+SKIP
-
-
     ********************************************************************
     Running trial 1...
          function_a...
