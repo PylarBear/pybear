@@ -33,7 +33,7 @@ import numbers
 
 
 # see _type_aliases, general num subtypes of DataType, GridType, PointsType, ParamType
-NumDataType: TypeAlias = TypeVar('NumDataType', IntDataType, FloatDataType)
+NumDataType = TypeVar('NumDataType', IntDataType, FloatDataType)
 
 InNumGridType: TypeAlias = Union[InIntGridType, InFloatGridType]
 NumGridType: TypeAlias = Union[IntGridType, FloatGridType]
