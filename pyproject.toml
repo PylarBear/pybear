@@ -28,7 +28,7 @@ include = [
 
 [tool.poetry.dependencies]
 # These packages are mandatory and form the core of this package’s distribution.
-python = "^3.9, <3.14"
+python = "^3.10, <3.14"
 joblib = "1.5.0"
 numpy = "1.26.2"
 pandas = "2.0.0"
