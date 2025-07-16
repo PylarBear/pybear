@@ -47,14 +47,14 @@ class NanStandardizer(
     For details, see the docs for :func:`nan_mask_numerical`
     and :func:`nan_mask_string`.
 
-    This transformer accepts numpy arrays, pandas dataframes/series,
-    and polars dataframes/series of shape (n_samples, n_features) or
-    (n_samples, ) and returns the same container with the value specified
-    by the `new_value` parameter in the former positions of nan-like
-    values. Also, when passing numerical data, this transformer accepts
-    scipy sparse matrices / arrays of all formats except dok and lil. In
-    that case, the original container is returned with the replacements
-    made in the `data` attribute.
+    This transformer accepts python built-ins, numpy arrays, pandas
+    dataframes/series, and polars dataframes/series of shape (n_samples,
+    n_features) or (n_samples, ) and returns the same container with the
+    value specified by the `new_value` parameter in the former positions
+    of nan-like values. Also, when passing numerical data, this
+    transformer accepts scipy sparse matrices / arrays of all formats
+    except dok and lil. In that case, the original container is returned
+    with the replacements made in the `data` attribute.
 
     NanStandardizer (NS) is a full-fledged scikit-style transformer with
     `partial_fit`, `fit`, `transform`, `fit_transform`, `get_params`,
@@ -67,6 +67,12 @@ class NanStandardizer(
     fittedness of a NS instance will always return True. Because the
     instance is always fitted, the `fit` and `partial_fit` methods are
     no-ops.
+
+    NS does not track the number of features in the data or the feature
+    names. Attributes like 'n_features_in_', 'feature_names_in_' and
+    methdos like 'get_feature_names_out' are not available. You should
+    be able to pass any valid container at any time, regardless of what
+    containers NS has seen previously.
 
     Parameters
     ----------
@@ -199,7 +205,7 @@ class NanStandardizer(
         X : XContainer of shape (n_samples, n_features) or (n_samples,)
             The object for which to replace nan-like representations.
             Ignored.
-        y : Optional[Union[Any, None]], default=None
+        y : Optional[Any], default=None
             The target for the data. Ignored.
 
         Returns

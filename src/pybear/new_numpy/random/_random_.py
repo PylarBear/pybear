@@ -204,14 +204,25 @@ def choice(
 
 
 
+EngineType: TypeAlias = \
+    Literal["choice", "filter", "serialized", "iterative", "default"]
+
+
 class Sparse:
     """Return random values from a “discrete uniform” (integer) or
     "uniform" (float) distribution of the specified dtype in the
     “half-open” interval [`minimum`, `maximum`) (includes low, but
     excludes the maximum), with desired sparsity.
 
-    Samples are uniformly over the interval. In other words, any value
-    within the given interval is equally likely to be drawn.
+    Samples are uniformly distributed over the interval. In other words,
+    any value within the given interval is equally likely to be drawn.
+
+    The sparse array is constructed at instantiation of the `Sparse`
+    class, and is accessible via the `sparse_array_` attribute of the
+    instance. This means that `Sparse` cannot generate arrays dynamically;
+    one instance, one array. If you want to change any of the parameters
+    of the instance to create a new array, you need to create a new
+    instance.
 
     **Engine**
 
@@ -323,10 +334,6 @@ class Sparse:
     """
 
 
-    EngineType: TypeAlias = \
-        Literal["choice", "filter", "serialized", "iterative", "default"]
-
-
     def __init__(
         self,
         minimum: numbers.Real,
@@ -356,7 +363,7 @@ class Sparse:
         # _min ** * ** * ** * ** * ** * ** *
         try:
             float(self._min)
-        except:
+        except Exception as e:
             raise TypeError(f"'minimum' must be numeric")
 
         if 'INT' in str(self._dtype).upper():
@@ -398,52 +405,37 @@ class Sparse:
 
         # shape ** * ** * ** * ** * ** * ** * ** *
 
-        if isinstance(self._shape, (str, dict)):
-            raise TypeError(f"'shape' expected a sequence of integers or a "
-                f"single integer, got type '{type(self._shape)}'")
-        elif isinstance(self._shape, type(None)):
+        err_msg = f"'shape' expected a sequence of integers or a single integer"
+
+        try:
+            if isinstance(self._shape, type(None)):
+                raise MemoryError
+            float(self._shape)
+            self._shape = (self._shape, )
+        except MemoryError:
             self._shape = ()
-        else:
+        except Exception as e:
             try:
-                tuple(self._shape)
-            except:
+                list(self._shape)
+                if isinstance(self._shape, (str, dict)):
+                    raise Exception
+            except Exception as f:
+                raise TypeError(f"{err_msg}, got type '{type(self._shape)}'")
 
-                err_msg = (f"'shape' expected a sequence of integers or a "
-                           f"single integer, got '{self._shape}'")
-                try:
-                    float(self._shape)
-                except:
-                    raise TypeError(err_msg)
+        # self._shape must be an iterable
 
-                if int(self._shape) != self._shape:
-                    raise TypeError(err_msg)
-                if self._shape < 0:
-                    raise ValueError(f"negative dimensions are not allowed")
-                self._shape = (self._shape,)
+        if len(np.array(list(self._shape)).shape) > 1:
+            raise TypeError(err_msg)
 
-                del err_msg
+        self._shape = tuple(self._shape)
 
+        if any(map(lambda x: x < 0, self._shape)):
+            raise ValueError(f"negative dimensions are not allowed")
 
-            if len(np.array(self._shape).shape) > 1:
-                raise TypeError(f"'shape' expected a sequence of integers or "
-                    f"a single integer")
-
-            self._shape = tuple(self._shape)
-
-            err_msg = f"cannot be interpreted as an integer"
-            for item in self._shape:
-                try:
-                    float(item)
-                except:
-                    raise TypeError(f"'shape' {type(item)} {err_msg}")
-
-                if int(item) != item:
-                    raise TypeError(f"{item} {err_msg}")
-                if item < 0:
-                    raise ValueError(f"negative dimensions are not allowed")
-
-            del err_msg
-
+        if not all(map(
+            isinstance, self._shape, (numbers.Integral for i in self._shape)
+        )):
+            raise TypeError(err_msg)
 
         # END shape ** * ** * ** * ** * ** * ** * ** *
 
@@ -494,17 +486,9 @@ class Sparse:
 
         # END VALIDATION ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
-
-        if self._shape == 0:
-            self.sparse_array_ = np.array([], dtype=self._dtype)
-
-        try:
-            if 0 in self._shape:
-                self.sparse_array_ = \
-                    np.array([], dtype=self._dtype).reshape(self._shape)
-        except:
-            pass
-
+        if 0 in self._shape:
+            self.sparse_array_ = \
+                np.array([], dtype=self._dtype).reshape(self._shape)
 
         if self._sparsity == 0:
             self.sparse_array_ = self._make_base_array_with_no_zeros(
@@ -547,76 +531,61 @@ class Sparse:
     def _make_base_array_with_no_zeros(
         self, _min, _max, _shape, _dtype
     ) -> npt.NDArray[numbers.Real]:
-
-        """
-        Generate an array based on the given minimum, maximum, shape, and
-        dtype rules, and iteratively replace any zeros with non-zero
+        """Generate an array based on the given minimum, maximum, shape,
+        and dtype rules, and iteratively replace any zeros with non-zero
         values generated by the same rules.
-
 
         Parameters
         ----------
-        _min:
-            int - the low end of the range of random numbers in the
-                fully-dense base array
-        _max:
-            int - the hign end of the range of random numbers in the
-                fully-dense base array
-        _shape:
-            tuple[int] - the shape of the final sparse array
-        _dtype:
-            the dtype of the final sparse array
-
+        _min : int
+            The low end of the range of random numbers in the fully-dense
+            base array.
+        _max : int
+            The high end of the range of random numbers in the fully-dense
+            base array.
+        _shape : tuple[int]
+            The shape of the final sparse array.
+        _dtype : object
+            The dtype of the final sparse array.
 
         Returns
         -------
-        -
-            BASE_ARRAY: npt.NDArray[numbers.Real] - fully dense
-                numpy ndarray with minumum, maximum, shape, and dtype as
-                specified.
+        BASE_ARRAY: npt.NDArray[numbers.Real]
+            Fully dense numpy ndarray with minimum, maximum, shape, and
+            dtype as specified.
 
         """
 
-        # Set the numpy array generators to be used based on dtype.
-
+        # Set the numpy array generators to be used based on dtype. *********
         if 'INT' in str(self._dtype).upper():
             array_generator = np.random.randint
-
         elif 'FLOAT' in str(self._dtype).upper():
             # CREATE A WRAPPER FOR np.random.uniform SO THAT IT'S SIGNATURE IS
             # THE SAME AS np.random.randint. dtype WILL JUST PASS THROUGH.
-
             def new_rand_uniform(_min, _max, _shape, _dtype):
                 return np.random.uniform(_min, _max, _shape)
 
             array_generator = new_rand_uniform
+        else:
+            raise Exception
+        # END Set the numpy array generators to be used based on dtype. ******
 
-
-        def _make_patch(__shape):
-
-            nonlocal _min, _max, _dtype
-
-            return array_generator(_min, _max, __shape, _dtype)
-
-
-        BASE_ARRAY = _make_patch(_shape)
-
+        BASE_ARRAY = array_generator(_min, _max, _shape, _dtype)
         # DONT LOOP THE ZEROES OUT OF BASE_ARRAY "NON_ZERO_VALUES"!
         # LOOP THEM OUT OF THE PATCH!
         if 0 in BASE_ARRAY:
             MASK = (BASE_ARRAY == 0)
-            PATCH = _make_patch(np.sum(MASK))
+            PATCH = array_generator(_min, _max, np.sum(MASK), _dtype)
 
             while 0 in PATCH:
                 PATCH_MASK = (PATCH == 0)
-                PATCH[PATCH_MASK] = _make_patch(np.sum(PATCH_MASK))
+                PATCH[PATCH_MASK] = \
+                    array_generator(_min, _max, np.sum(PATCH_MASK), _dtype)
                 del PATCH_MASK
 
             BASE_ARRAY[MASK] = PATCH
 
             del MASK, PATCH
-
-        del _make_patch
 
         return BASE_ARRAY
 
@@ -631,10 +600,10 @@ class Sparse:
 
         self._dense_size = self._total_size / 100 * (100 - self._sparsity)
 
-        # IF SPARSITY DOESNT GO EVENLY INTO NUM ELEMENTS (I.E. _dense_size IS
-        # NOT AN INTEGER), RANDOMLY ROUND OFF _dense_size
+        # IF SPARSITY DOESNT GO EVENLY INTO NUM ELEMENTS (I.E. _dense_size
+        # IS NOT AN INTEGER), ROUND OFF _dense_size
         if self._dense_size % 1 > 0:
-            self._dense_size = int(self._dense_size // 1 + np.random.randint(2))
+            self._dense_size = int(round(self._dense_size, 0))
         else:
             self._dense_size = int(self._dense_size)
 
@@ -653,41 +622,31 @@ class Sparse:
 
         Returns
         -------
-        -
-            SPARSE_ARRAY:
-                npt.NDArray[numbers.Real] - sparse array of
-                specified minimum & maximum (excluding zeros), shape and
-                dtype, made by applying a random.choice binary mask to a
-                fully dense array.
+        SPARSE_ARRAY : npt.NDArray[numbers.Real]
+            Sparse array of specified minimum & maximum (excluding zeros),
+            shape and dtype, made by applying a random.choice binary mask
+            to a fully dense array.
 
         """
 
-        #######################################################################
-        # METHOD 1 "choice" - BUILD A FULL-SIZED MASK WITH SPARSE LOCATIONS
-        # DETERMINED BY random.choice ON [0,1], WITH p ACHIEVING AMOUNT OF
-        # SPARSITY. APPLY MASK TO A FULL SIZED 100% DENSE NP ARRAY
+        ################################################################
+        # "choice" - BUILD A FULL-SIZED MASK WITH SPARSE LOCATIONS
+        # DETERMINED BY random.choice ON [0,1], WITH p ACHIEVING AMOUNT
+        # OF SPARSITY. APPLY MASK TO A FULL SIZED 100% DENSE NP ARRAY
         # FILLED AS DICTATED BY PARAMETERS.
-        #######################################################################
+        ################################################################
 
-        # REMEMBER! THE MASK IS GOING TO BE A BOOL TO REPRESENT PLACES IN THE
-        # BASE ARRAY THAT WILL GO TO ZERO!  THAT MEANS THAT THE PLACES THAT
-        # WILL BE ZERO MUST BE A ONE IN THE MASK, AND ZERO IF NOT GOING TO BE
-        # ZERO! MAKE SENSE?
+        # REMEMBER! THE MASK IS GOING TO BE A BOOL TO REPRESENT PLACES
+        # IN THE BASE ARRAY THAT WILL GO TO ZERO!  THAT MEANS THAT THE
+        # PLACES THAT WILL BE ZERO MUST BE A ONE IN THE MASK, AND ZERO
+        # IF NOT GOING TO BE ZERO! MAKE SENSE?
         MASK = np.random.choice(
-            [1, 0],
-            self._shape,
-            replace=True,
-            p=(
-                self._sparsity / 100,
-                (100 - self._sparsity) / 100
-            )
+            [1, 0], self._shape, replace=True,
+            p=(self._sparsity / 100, (100 - self._sparsity) / 100)
         ).astype(bool)
 
         SPARSE_ARRAY = self._make_base_array_with_no_zeros(
-            self._min,
-            self._max,
-            self._shape,
-            self._dtype
+            self._min, self._max, self._shape, self._dtype
         )
 
         SPARSE_ARRAY[MASK] = 0
@@ -695,15 +654,12 @@ class Sparse:
 
         return SPARSE_ARRAY.astype(self._dtype)
 
-        # END METHOD 1  #######################################################
-        #######################################################################
-
 
     def _filter(self):
-        """
-        Generate an array filled randomly from [1,100000] and turn it into a
-        mask by applying a number filter. Generate a 100% dense array of
-        ints or floats then apply the mask to it to achieve sparsity.
+        """Generate an array filled randomly from [1,100000] and turn it
+        into a mask by applying a number filter; generate a 100% dense
+        array of ints or floats then apply the mask to it to achieve
+        sparsity.
 
         Returns
         -------
@@ -714,37 +670,29 @@ class Sparse:
 
         """
 
-        #######################################################################
-        # METHOD 2 "filter" - BUILD A FULL-SIZED ARRAY FILLED RANDOMLY ON RANGE
-        # [0-100000]. CONVERT THE ARRAY TO A MASK THAT FIXES THE SPARSE LOCATIONS
-        # BY APPLYING A NUMBER FILTER DERIVED FROM THE TARGET SPARSITY. APPLY
-        # THE MASK OVER A FULL SIZED 100% DENSE NP ARRAY.
-        #######################################################################
+        ################################################################
+        # "filter" - BUILD A FULL-SIZED ARRAY FILLED RANDOMLY ON RANGE
+        # [0-100000]. CONVERT THE ARRAY TO A MASK THAT FIXES THE SPARSE
+        # LOCATIONS BY APPLYING A NUMBER FILTER DERIVED FROM THE TARGET
+        # SPARSITY. APPLY THE MASK OVER A FULL SIZED 100% DENSE NP ARRAY.
+        ################################################################
 
         # USE THIS TO DETERMINE WHAT WILL BECOME ZEROS
         MASK = np.random.randint(0, 100000, self._shape, dtype=np.int32)
-        cutoff = (1 - self._sparsity / 100) * 100000
-        MASK = (MASK >= cutoff).astype(bool)
+        MASK = (MASK >= (1 - self._sparsity / 100) * 100000).astype(bool)
 
         SPARSE_ARRAY = self._make_base_array_with_no_zeros(
-            self._min,
-            self._max,
-            self._shape,
-            self._dtype
+            self._min, self._max, self._shape, self._dtype
         )
         SPARSE_ARRAY[MASK] = 0
 
-        del MASK, cutoff
+        del MASK
 
         return SPARSE_ARRAY.astype(self._dtype)
 
-        # END METHOD 2 ########################################################
-        #######################################################################
-
 
     def _serialized(self):
-        """
-        Generate a serialized list of unique indices and random values
+        """Generate a serialized list of unique indices and random values
         (or zeros) then map the values (or zeros) into a fully sparse
         (or dense) array.
 
@@ -757,16 +705,16 @@ class Sparse:
 
         """
 
-        #######################################################################
-        # METHOD 3 "serialized" -
+        ################################################################
+        # "serialized"
         # i) DETERMINE THE NUMBER OF DENSE (OR SPARSE) POSITIONS IN THE ARRAY.
-        # ii) GENERATE THAT NUMBER OF RANDOM DENSE (OR SPARSE) INDICES SERIALLY
-        # USING random.choice *WITHOUT REPLACEMENT*. THIS GUARANTEES NO
-        # DUPLICATE INDICES.
+        # ii) GENERATE THAT NUMBER OF RANDOM DENSE (OR SPARSE) INDICES
+        # SERIALLY USING random.choice *WITHOUT REPLACEMENT*. THIS GUARANTEES
+        # NO DUPLICATE INDICES.
         # iii) GENERATE AN EQUALLY-SIZED VECTOR OF DENSE VALUES (OR ZEROS).
         # iv) MAP THE VECTOR OF VALUES (OR ZEROS) TO THE INDEX POSITIONS IN A
         # 100% SPARSE (OR DENSE) FULL SIZED ARRAY
-        #######################################################################
+        ################################################################
 
         self._calc_support_info()
 
@@ -791,10 +739,7 @@ class Sparse:
 
             # CREATE RANDOM VALUES MATCHING THE DENSE SIZE
             SERIAL_VALUES = self._make_base_array_with_no_zeros(
-                self._min,
-                self._max,
-                self._dense_size,
-                self._dtype
+                self._min, self._max, self._dense_size, self._dtype
             )
 
             SPARSE_ARRAY = np.zeros(self._shape, dtype=self._dtype)
@@ -837,16 +782,14 @@ class Sparse:
             return SPARSE_ARRAY.astype(self._dtype)
 
 
-        # END METHOD 3 ########################################################
-        #######################################################################
-
-
     def _iterative(self):
         """Generate a serialized list of not-necessarily-unique indices
         and random values (or zeros) then map the values (or zeros) into
         a fully sparse (or dense) array, and repeat iteratively until the
-        desired sparsity is achieved. Same as _serialized except these
-        indices are not necessarily unique and the process is iterative.
+        desired sparsity is achieved.
+
+        Same as _serialized except these indices are not necessarily
+        unique and the process is iterative.
 
         Returns
         -------
@@ -857,8 +800,8 @@ class Sparse:
 
         """
 
-        #######################################################################
-        # METHOD 4 - "iterative"
+        ###############################################################
+        # "iterative"
         # i) DETERMINE THE NUMBER OF DENSE (OR SPARSE) POSITIONS IN THE ARRAY.
         # ii) GENERATE THAT NUMBER OF RANDOM DENSE (OR SPARSE) INDICES SERIALLY
         # *WITH REPLACEMENT*. THIS DOES NOT GUARANTEE NON-DUPLICATE INDICES.
@@ -867,12 +810,12 @@ class Sparse:
         # 100% SPARSE (OR DENSE) FULL SIZED ARRAY
         # v) BECAUSE THERE MAY HAVE BEEN DUPLICATE INDICES, REPEAT STEPS
         # ii - iv UNTIL DESIRED SPARSITY IS ACHIEVED
-        #######################################################################
+        ################################################################
 
         self._calc_support_info()
 
-        # ALLOW pybear.new_numpy.random.choice TO SELECT FROM THE SMALLER OF
-        # dense_size OR sparse_size, SAVES MEMORY & TIME
+        # ALLOW pybear.new_numpy.random.choice TO SELECT FROM THE SMALLER
+        # OF dense_size OR sparse_size, SAVES MEMORY & TIME
 
         if self._dense_size == 0 and self._sparse_size == 0:
 
@@ -921,10 +864,7 @@ class Sparse:
         elif self._sparse_size < self._dense_size:  # WHEN SPARSE IS SMALLER
 
             SPARSE_ARRAY = self._make_base_array_with_no_zeros(
-                self._min,
-                self._max,
-                self._shape,
-                self._dtype
+                self._min, self._max, self._shape, self._dtype
             )
 
             _last_sparsity = 0
@@ -953,10 +893,6 @@ class Sparse:
                     _last_sparsity = _new_sparsity
 
             return SPARSE_ARRAY.astype(self._dtype)
-
-        # END METHOD 4 ########################################################
-        #######################################################################
-
 
 
 def sparse(

@@ -22,7 +22,7 @@ from pybear.utilities._array_sparsity import array_sparsity as arsp
 
 @pytest.fixture
 def good_shape():
-    return (3,3)
+    return (py_rand.choice(range(3, 10)), py_rand.choice(range(3, 10)))
 
 @pytest.fixture
 def allowed_engines():
@@ -60,22 +60,11 @@ class TestImports:
         assert len(out) == 1
 
 
-# START DATA VALIDATION TESTS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-class TestDtypes:
-
-    def test_accepts_valid_dtypes(self, good_shape, engine, valid_dtypes):
-        for valid_dtype in valid_dtypes:
-            Sparse(0, 5, good_shape, 50, engine, valid_dtype)
+# START DATA VALIDATION TESTS ** * ** * ** * ** * ** * ** * ** * ** * **
+class Validation:
 
 
-    @pytest.mark.parametrize('_dtype', (0, 'junk', [], None, {'a':1}))
-    def test_rejects_invalid_dtypes(self, good_shape, engine, _dtype):
-        with pytest.raises(TypeError):
-            Sparse(0, 5, good_shape, 50, engine, _dtype)
-
-
-class TestMin:
-
+    # min -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @pytest.mark.parametrize('_min', ('junk', [], None, {'a':1}))
     @pytest.mark.parametrize('_dtype', (np.int8, np.float64))
     def test_rejects_non_numeric(self, _min, good_shape, engine, _dtype):
@@ -91,15 +80,13 @@ class TestMin:
     def test_accepts_float_if_float_dtype(self, good_shape, engine):
         Sparse(np.pi, 5, good_shape, 50, engine, np.float64)
 
-
     @pytest.mark.parametrize('_min', (float('-inf'), float('inf')))
     def test_rejects_infinity(self, _min, good_shape, engine):
         with pytest.raises(ValueError):
             Sparse(_min, 5, good_shape, 50, engine, np.float64)
+    # END min -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-
-class TestMax:
-
+    # max -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @pytest.mark.parametrize('_max', ('junk', [], None, {'a':1}))
     @pytest.mark.parametrize('_dtype', (np.int8, np.float64))
     def test_rejects_non_numeric(self, _max, good_shape, engine, _dtype):
@@ -120,10 +107,9 @@ class TestMax:
     def test_rejects_infinity(self, _max, good_shape, engine):
         with pytest.raises(ValueError):
             Sparse(0, _max, good_shape, 50, engine, np.float64)
+    # END max -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-
-class TestMin_V_Max:
-
+    # min vs max -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @pytest.mark.parametrize('_min', (5, 4))
     def test_when_int_rejects_min_gtoet_max(self, _min, good_shape, engine):
         with pytest.raises(ValueError):
@@ -133,10 +119,9 @@ class TestMin_V_Max:
     @pytest.mark.parametrize('_min', (5, 4))
     def test_when_float_accepts_min_gtoet_max(self, _min, good_shape, engine):
         Sparse(_min, 4, good_shape, 50, engine, np.float64)
+    # END min vs max -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-
-class TestShape:
-
+    # shape -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @pytest.mark.parametrize('_dtype', (np.int8, np.float64))
     def test_accepts_integer(self, engine, _dtype):
         Sparse(0, 3, 5, 50, engine, _dtype)
@@ -164,10 +149,9 @@ class TestShape:
     def test_rejects_bad_shape_with_value_error(self, engine, _dtype):
         with pytest.raises(ValueError):
             Sparse(0, 3, (-1,-1), 50, engine, dtype=_dtype)
+    # END shape -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-
-class TestSparsity:
-
+    # sparsity -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @pytest.mark.parametrize('_dtype', (np.int8, np.float64))
     @pytest.mark.parametrize('_sparsity', ('junk', [], None, {'a':1}, ()))
     def test_rejects_non_numeric(self, _sparsity, good_shape, engine, _dtype):
@@ -197,10 +181,9 @@ class TestSparsity:
 
         with pytest.raises(ValueError):
             Sparse(0, 0, good_shape, _sparsity, engine, dtype=np.float64)
+    # END sparsity -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-
-class TestEngine:
-
+    # engine -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @pytest.mark.parametrize('_engine', (0, np.pi, None, True, [], {'a', 1}))
     def test_rejects_non_string(self, good_shape, _engine):
         with pytest.raises(TypeError):
@@ -216,88 +199,75 @@ class TestEngine:
     def test_accepts_allowed_strings_case_insensitive(
         self, good_shape, allowed_engines
     ):
-
         for _engine in allowed_engines:
             Sparse(0, 10, good_shape, 50, engine=_engine, dtype=np.uint8)
 
         for _engine in allowed_engines:
             Sparse(0, 10, good_shape, 50, engine=_engine.upper(),dtype=np.uint8)
-# END DATA VALIDATION TESTS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # END engine -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+    # dtypes -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    def test_accepts_valid_dtypes(self, good_shape, engine, valid_dtypes):
+        for valid_dtype in valid_dtypes:
+            Sparse(0, 5, good_shape, 50, engine, valid_dtype)
 
 
-# START RESULT ACCURACY TESTS ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    @pytest.mark.parametrize('_dtype', (0, 'junk', [], None, {'a':1}))
+    def test_rejects_invalid_dtypes(self, good_shape, engine, _dtype):
+        with pytest.raises(TypeError):
+            Sparse(0, 5, good_shape, 50, engine, _dtype)
+    # END dtypes -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-@pytest.mark.parametrize('_dtype', (np.int8, np.float64))
-def test_access_SPARSE_ARRAY(good_shape, allowed_engines, _dtype):
-    for _engine in allowed_engines:
-        sparse_instance = Sparse(0, 10, good_shape, 50, _engine, _dtype)
-        sparse_array = sparse_instance.sparse_array_
-        assert sparse_array.shape == good_shape
-        assert isinstance(sparse_array, np.ndarray)
-        assert sparse_array.dtype == _dtype
+# END DATA VALIDATION TESTS ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-@pytest.mark.parametrize('sparsity', (0, 50, 100))
+# START RESULT ACCURACY TESTS ** * ** * ** * ** * ** * ** * ** * ** * **
+
+class TestReturnsNDArray:
+
+    @pytest.mark.parametrize('engine',
+        ('choice', 'filter', 'serialized', 'iterative', 'default')
+    )
+    @pytest.mark.parametrize('_dtype', (np.int8, np.float64))
+    def test_access_SPARSE_ARRAY(self, good_shape, engine, _dtype):
+
+        sparse_instance = Sparse(0, 10, good_shape, 50, engine, _dtype)
+
+        assert isinstance(sparse_instance.sparse_array_, np.ndarray)
+
+
 class TestReturnsCorrectDtypes:
 
-    def test_choice(self, good_shape, sparsity, valid_dtypes):
-        for _dtype in valid_dtypes:
-            output_array = Sparse(
-                0, 10, good_shape, sparsity, engine='choice', dtype=_dtype
-            ).sparse_array_
-
-            assert output_array.dtype == _dtype
-
-
-    def test_filter(self, good_shape, sparsity, valid_dtypes):
-        for _dtype in valid_dtypes:
-            output_array = Sparse(
-                0, 10, good_shape, sparsity, engine='filter', dtype=_dtype
-            ).sparse_array_
-
-            assert output_array.dtype == _dtype
-
-
-    def test_serialized(self, good_shape, sparsity, valid_dtypes):
-        for _dtype in valid_dtypes:
-            output_array = Sparse(
-                0, 10, good_shape, sparsity, engine='serialized', dtype=_dtype
-            ).sparse_array_
-
-            assert output_array.dtype == _dtype
-
-
-    def test_iterative(self, good_shape, sparsity, valid_dtypes):
-        for _dtype in valid_dtypes:
-            output_array = Sparse(
-                0, 10, good_shape, sparsity, engine='iterative', dtype=_dtype
-            ).sparse_array_
-
-            assert output_array.dtype == _dtype
-
-
-    def test_default(self, good_shape, sparsity, valid_dtypes):
-        for _dtype in valid_dtypes:
-            output_array = Sparse(
-                0, 10, good_shape, sparsity, engine='default', dtype=_dtype
-            ).sparse_array_
-
-            assert output_array.dtype == _dtype
-
-
-@pytest.mark.parametrize('shape',
-    (
-        1, 3, 100,
-        (1,), (3,), (3,3), (2, 3, 5), (2,2,3,3)
+    @pytest.mark.parametrize('engine',
+        ('choice', 'filter', 'serialized', 'iterative', 'default')
     )
-)
-@pytest.mark.parametrize('sparsity', (0, 50, 100))
-@pytest.mark.parametrize('dtype', (np.int8, np.float64))
+    @pytest.mark.parametrize('sparsity', (0, 50, 100))
+    def test_dtypes(self, good_shape, sparsity, engine, valid_dtypes):
+
+        for _dtype in valid_dtypes:
+            output_array = Sparse(
+                0, 10, good_shape, sparsity, engine=engine, dtype=_dtype
+            ).sparse_array_
+
+            assert output_array.dtype == _dtype
+
+
 class TestReturnsCorrectShapes_NonNull:
 
-    def test_choice(self, shape, sparsity, dtype):
+    @pytest.mark.parametrize('engine',
+        ('choice', 'filter', 'serialized', 'iterative', 'default')
+    )
+    @pytest.mark.parametrize('shape',
+        (
+             1, 3, 100,
+             (1,), (3,), (3, 3), (2, 3, 5), (2, 2, 3, 3)
+        )
+    )
+    @pytest.mark.parametrize('sparsity', (0, 50, 100))
+    @pytest.mark.parametrize('dtype', (np.int8, np.float64))
+    def test_non_null_vs_np(self, engine, shape, sparsity, dtype):
         output_array = Sparse(
-            0, 10, shape, sparsity, engine='choice', dtype=dtype
+            0, 10, shape, sparsity, engine=engine, dtype=dtype
         ).sparse_array_
 
         try:
@@ -305,194 +275,57 @@ class TestReturnsCorrectShapes_NonNull:
             assert output_array.shape == shape
         except:
             assert output_array.shape == (shape, )
-
-
-    def test_filter(self, shape, sparsity, dtype):
-        output_array = Sparse(
-            0, 10, shape, sparsity, engine='filter', dtype=dtype
-        ).sparse_array_
-
-        try:
-            tuple(shape)
-            assert output_array.shape == shape
-        except:
-            assert output_array.shape == (shape, )
-
-
-    def test_serialized(self, shape, sparsity, dtype):
-        output_array = Sparse(
-            0, 10, shape, sparsity, engine='serialized', dtype=dtype
-        ).sparse_array_
-
-        try:
-            tuple(shape)
-            assert output_array.shape == shape
-        except:
-            assert output_array.shape == (shape, )
-
-
-    def test_iterative(self, shape, sparsity, dtype):
-        output_array = Sparse(
-            0, 10, shape, sparsity, engine='iterative', dtype=dtype
-        ).sparse_array_
-
-        try:
-            tuple(shape)
-            assert output_array.shape == shape
-        except:
-            assert output_array.shape == (shape, )
-
-
-    def test_default(self, shape, sparsity, dtype):
-        output_array = Sparse(
-            0, 10, shape, sparsity, engine='default', dtype=dtype
-        ).sparse_array_
-
-        try:
-            tuple(shape)
-            assert output_array.shape == shape
-        except:
-            assert output_array.shape == (shape, )
-
 
 
 # WHEN PASSED NULL SHAPES, RETURNS SAME OBJECT AS NUMPY
-@pytest.mark.parametrize('shape',
-    (
-        pytest.param(
-            None,
-            marks=pytest.mark.xfail(reason='known divergence from numpy')
-        ),
-        0,
-        (1,0),
-        (1,0,1),
-        (),
-        (()),
-        []
-    )
-)
-@pytest.mark.parametrize('sparsity', (0, 50, 100))
-@pytest.mark.parametrize('dtype', (np.int8, np.float64))
 class TestNullShapesReturnsMatchNumpy:
 
-    # Notes about None 24_04_13_13_06_00: For all Nullish shape inputs except
-    # None, numpy returns an ndarray, but for None returns just a number.
-    # Sparse returns an ndarray for all Nullish inputs. Reconciling this is
-    # bigger than it is worth.
+    # Notes about None 24_04_13_13_06_00: For all Nullish shape inputs
+    # except None, numpy returns an ndarray, but for None returns just a
+    # number. Sparse returns an ndarray for all Nullish inputs. Reconciling
+    # this is bigger than it is worth.
 
-    def get_np_output(self, _shape, _dtype):
-        if 'INT' in str(_dtype).upper():
-            return np.random.randint(0, 10, _shape, _dtype)
-        elif 'FLOAT' in str(_dtype).upper():
-            try:
-                return np.random.uniform(0, 10, _shape).astype(_dtype)
-            except:
-                return _dtype(np.random.uniform(0, 10, _shape))
+    @pytest.mark.parametrize('engine',
+        ('choice', 'filter', 'serialized', 'iterative', 'default')
+    )
+    @pytest.mark.parametrize('shape',
+        (
+            pytest.param(None, marks=pytest.mark.xfail(reason='known divergence from numpy')),
+            0, (1, 0), (1, 0, 1), (), (()), []
+        )
+    )
+    @pytest.mark.parametrize('sparsity', (0, 50, 100))
+    @pytest.mark.parametrize('dtype', (np.int8, np.float64))
+    def test_null(self, engine, shape, sparsity, dtype):
+
+        if 'INT' in str(dtype).upper():
+            np_output = np.random.randint(0, 10, shape, dtype)
+        elif 'FLOAT' in str(dtype).upper():
+            np_output = np.random.uniform(0, 10, shape).astype(dtype)
         else:
             raise ValueError(f'logic managing dtype failed')
 
-    def asserter(self, np_output, output):
-        if isinstance(np_output, np.ndarray):
-            assert output.shape == np_output.shape
-            assert output.dtype == np_output.dtype
-        elif any([_ in str(type(np_output)).upper() for _ in ['INT', 'FLOAT']]):
-            assert type(output) == type(np_output)
-        else:
-            raise ValueError(f'logic managing np_output type '
-                             f'({type(np_output)}) failed')
-
-
-    def test_choice(self, shape, sparsity, dtype):
-        np_output = self.get_np_output(shape, dtype)
-
         output = Sparse(
-            0, 10, shape, sparsity, engine='choice', dtype=dtype
+            0, 10, shape, sparsity, engine=engine, dtype=dtype
         ).sparse_array_
 
-        self. asserter(np_output, output)
+        assert output.shape == np_output.shape
+        assert output.dtype == np_output.dtype
 
 
-    def test_filter(self, shape, sparsity, dtype):
-        np_output = self.get_np_output(shape, dtype)
-
-        output = Sparse(
-            0, 10, shape, sparsity, engine='filter', dtype=dtype
-        ).sparse_array_
-
-        self. asserter(np_output, output)
-
-
-    def test_serialized(self, shape, sparsity, dtype):
-        np_output = self.get_np_output(shape, dtype)
-
-        output = Sparse(
-            0, 10, shape, sparsity, engine='serialized', dtype=dtype
-        ).sparse_array_
-
-        self. asserter(np_output, output)
-
-
-    def test_iterative(self, shape, sparsity, dtype):
-        np_output = self.get_np_output(shape, dtype)
-
-        output = Sparse(
-            0, 10, shape, sparsity, engine='iterative', dtype=dtype
-        ).sparse_array_
-
-        self. asserter(np_output, output)
-
-
-    def test_default(self, shape, sparsity, dtype):
-        np_output = self.get_np_output(shape, dtype)
-
-        output = Sparse(
-            0, 10, shape, sparsity, engine='default', dtype=dtype
-        ).sparse_array_
-
-        self. asserter(np_output, output)
-
-
+@pytest.mark.parametrize('engine',
+    ('choice', 'filter', 'serialized', 'iterative', 'default')
+)
 @pytest.mark.parametrize('shape', ((2,2), (2,2,2), (100,), (100,100), (10, 10, 10)))
 @pytest.mark.parametrize('sparsity', (0, 100))
 @pytest.mark.parametrize('dtype', (np.int8, np.float64))
 @pytest.mark.parametrize('_min,_max', ((0,10),(5,10)))
 class TestReturnsCorrectSparsity_0_100_AlwaysExact:
 
-    def test_choice(self, _min, _max, shape, sparsity, dtype):
+
+    def test_sparsity(self, _min, _max, shape, sparsity, engine, dtype):
         output_array = Sparse(
-            _min, _max, shape, sparsity, engine='choice', dtype=dtype
-        ).sparse_array_
-
-        assert arsp(output_array) == sparsity
-
-
-    def test_filter(self, _min, _max, shape, sparsity, dtype):
-        output_array = Sparse(
-            _min, _max, shape, sparsity, engine='filter', dtype=dtype
-        ).sparse_array_
-
-        assert arsp(output_array) == sparsity
-
-
-    def test_serialized(self, _min, _max, shape, sparsity, dtype):
-        output_array = Sparse(
-            _min, _max, shape, sparsity, engine='serialized', dtype=dtype
-        ).sparse_array_
-
-        assert arsp(output_array) == sparsity
-
-
-    def test_iterative(self, _min, _max, shape, sparsity, dtype):
-        output_array = Sparse(
-            _min, _max, shape, sparsity, engine='iterative', dtype=dtype
-        ).sparse_array_
-
-        assert arsp(output_array) == sparsity
-
-
-    def test_default(self, _min, _max, shape, sparsity, dtype):
-        output_array = Sparse(
-            _min, _max, shape, sparsity, engine='default', dtype=dtype
+            _min, _max, shape, sparsity, engine=engine, dtype=dtype
         ).sparse_array_
 
         assert arsp(output_array) == sparsity
@@ -570,7 +403,6 @@ class TestDefaultReturnsCorrectResultsForBothSizeRegimes:
             assert output_array.shape == (shape,)
 
 
-    # SHAPE NULL
     # CORRECT SPARSITY
     @pytest.mark.parametrize('shape', ((100, 100), (1100,1100)))
     @pytest.mark.parametrize('sparsity', (0, 100))
@@ -601,23 +433,6 @@ class TestDefaultReturnsCorrectResultsForBothSizeRegimes:
         ).sparse_array_
 
         assert sparsity - 0.2 <= arsp(output_array) <= sparsity + 0.2
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
