@@ -362,7 +362,7 @@ class TestXFactory:
     @pytest.mark.parametrize('_columns', (True, None))
     def test_columns_accuracy(self, _X_factory, _format, _columns, _shape):
 
-        _ref_columns = [str(uuid.uuid4())[:4] for _ in range(_shape[1])]
+        _ref_columns = [str(uuid.uuid4())[:8] for _ in range(_shape[1])]
 
         out = _X_factory(
             _dupl=None,
