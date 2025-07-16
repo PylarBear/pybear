@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
-## [0.2.0] - 2025-06-30
+## [0.2.0] - 2025-07-31
 
 ### Added
 - base:
@@ -18,12 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     check_2D_str_array,
     check_dtype,
     check_feature_names,
-    check_n_features,
     check_is_finite,
     check_is_fitted,
+    check_n_features,
     check_scipy_sparse,
     check_shape,
     copy_X,
+    DictMenuPrint,
     ensure_2D,
     get_feature_names,
     get_feature_names_out,
@@ -40,33 +41,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     SetOutputMixin,
     SetParamsMixin
 
-- feature_extraction.text:
-    AutoTextCleaner,
-    Lexicon,
-    NGramMerger,
-    StopRemover
-    TextJoiner,
-    TextJustifier,
-    TextLookup,
-    TextLookupRealTime,
-    TextNormalizer,
-    TextPadder,
-    TextRemover,
-    TextReplacer,
-    TextSplitter,
-    TextStatistics,
-    TextStripper
+- feature_extraction
+    - text:
+        AutoTextCleaner,
+        Lexicon,
+        NGramMerger,
+        StopRemover
+        TextJoiner,
+        TextJustifier,
+        TextLookup,
+        TextLookupRealTime,
+        TextNormalizer,
+        TextPadder,
+        TextRemover,
+        TextReplacer,
+        TextSplitter,
+        TextStatistics,
+        TextStripper
 
 - model_selection:
     autogridsearch_wrapper,
-    GSTCV,
     AutoGridSearchCV,
-    AutoGSTCV
+    AutoGSTCV,
+    GSTCV
 
 - new_numpy:
-    random.choice,
-    random.Sparse
-    random.sparse
+    - random:
+        choice,
+        Sparse
+        sparse
 
 - preprocessing:
     ColumnDeduplicateTransformer,
@@ -77,13 +80,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - utilities:
     array_sparsity, 
-    check_pipeline, 
-    get_methods_out_of_class,
+    check_pipeline,
+    feature_name_mapper,
     get_module_name,
+    inf_mask,
+    nan_mask,
+    nan_mask_numerical,
+    nan_mask_string,
     permuter,
     serial_index_mapper,
     time_memory_benchmark,
-    timer
+    timer,
+    union_find
 
 
 ### Changed

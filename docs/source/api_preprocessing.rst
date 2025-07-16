@@ -10,4 +10,5 @@ preprocessing
    ColumnDeduplicateTransformer
    InterceptManager
    MinCountTransformer
+   NanStandardizer
    SlimPolyFeatures
