@@ -270,7 +270,7 @@ have a corresponding twin in pybear-dask. You can pip install pybear-dask
 from PyPI in the same way as pybear. There is no Read The Docs website for
 pybear-dask, but it does have a GitHub repo.
 
-https://github.com/PylarBear/pybear/
+https://github.com/PylarBear/pybear-dask/
 
 Use the pybear documentation for guidance on how to use the pybear-dask modules.
 
