@@ -131,6 +131,33 @@ PyPI.
 
 =======
 
+Usage
+-----
+The folder structure of pybear is nearly identical to scikit-learn. This is so
+those that are familiar with the scikit layout and have experience with writing
+the associated import statements have an easy transition to pybear. The pybear
+subfolders are *base*, *feature_extraction*, *model_selection*, *new_numpy*,
+*preprocessing*, and *utilities*. For the full layout, see the API section of
+the pybear website on Read The Docs.
+
+You can import pybear's packages in the same way you would with scikit. Here
+are a few examples of how you could import and use pybear modules:
+
+.. code-block:: console
+
+    from pybear.preprocessing import InterceptManager as IM
+
+    trfm = IM()
+    trfm.fit(X, y)
+
+    from pybear import preprocessing as pp
+
+    trfm = pp.ColumnDeduplicateTransformer()
+    trfm.fit(X, y)
+
+
+=======
+
 Major Modules
 -------------
 
@@ -232,6 +259,21 @@ The modules include:
 - TextSplitter - Split contiguous text into tokens using literal strings or regex
 - TextStatistics - Compile statistics about a body of text
 - TextStripper - Remove leading and trailing spaces from text
+
+
+=======
+
+Related Resources
+-----------------
+pybear has a sister package called pybear-dask. A few of the pybear modules
+have a corresponding twin in pybear-dask. You can pip install pybear-dask
+from PyPI in the same way as pybear. There is no Read The Docs website for
+pybear-dask, but it does have a GitHub repo.
+
+https://github.com/PylarBear/pybear/
+
+Use the pybear documentation for guidance on how to use the pybear-dask modules.
+
 
 =======
 
