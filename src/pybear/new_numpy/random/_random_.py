@@ -40,9 +40,8 @@ def choice(
 
     This module improves on the impossible slowness of numpy.random.choice
     on large `a` when `replace=False`. Enter `a` as a 1-dimensional
-    vector. A 'p' argument is not available as this algorithm as this
-    algorithm relies on the assumption of equal likelihood for all
-    values in `a`.
+    vector. A 'p' argument is not available as this algorithm  relies on
+    the assumption of equal likelihood for all values in `a`.
 
     Parameters
     ----------
@@ -60,7 +59,7 @@ def choice(
 
     Returns
     -------
-    PICKED : numpy.ndarray[Any] of shape `shape`
+    picked : numpy.ndarray[Any] of shape 'shape'
         Elements randomly selected from `a`.
 
     See Also
@@ -188,19 +187,19 @@ def choice(
             joblib.delayed(_puller)(a[psi:psi+partition_size], *ARGS) for psi in psis
         )
 
-    PICKED = np.hstack((PULLED))
+    picked = np.hstack((PULLED))
 
     del partition_size, psis, _puller, ARGS, PULLED
 
 
-    if PICKED.size > pick_qty:
-        PICKED = np.random.choice(PICKED, pick_qty, replace=False)
-    elif PICKED.size < pick_qty:
+    if picked.size > pick_qty:
+        picked = np.random.choice(picked, pick_qty, replace=False)
+    elif picked.size < pick_qty:
         raise AssertionError(
-            f"'PICKED' is smaller than pick_qty, algorithm failure"
+            f"'picked' is smaller than pick_qty, algorithm failure"
         )
 
-    return PICKED.reshape(shape)
+    return picked.reshape(shape)
 
 
 
@@ -234,28 +233,32 @@ class Sparse:
     "choice"
         Build a full-size mask with sparse locations determined by
         numpy.random.choice on [0,1], with 'p' achieving amount of
-        sparsity. Apply the mask to a full-sized 100% dense numpy.ndarray
-        filled as dictated by parameters to populate it with zeros.
+        sparsity. Build a full-sized 100% dense numpy.ndarray filled as
+        dictated by parameters then apply the mask to populate it with
+        zeros.
 
     "filter"
         Generate an array filled randomly from [1,100000] and convert
         the array to a mask that fixes the sparse locations by applying
         a number filter derived from the target sparsity. Generate a
-        100% dense array of ints or floats then apply the mask to it to
-        achieve sparsity.
+        100% dense array of integers or floats then apply the mask to
+        it to achieve sparsity.
 
     "serialized"
         Generate a serialized list of unique indices and random values
         (or zeros) then map the values (or zeros) into a fully sparse
         (or dense) array.
 
-        i) Deterimine the number of dense (or sparse) positions in
+        1. Determine the number of dense (or sparse) positions in
             the target array.
-        ii) Generate that number of random dense (or sparse) indices
+
+        2. Generate that number of random dense (or sparse) indices
             serially using pybear.new_numpy.random.choice *without
             replacement*. This guarantees no duplicate indices.
-        iii) Generate an equally-sized vector of dense values (or zeros).
-        iv) Map the vector of values (or zeros) to the index positions
+
+        3. Generate an equally-sized vector of dense values (or zeros).
+
+        4. Map the vector of values (or zeros) to the index positions
             in a 100% sparse (or dense) full-sized array.
 
     "iterative"
@@ -265,16 +268,20 @@ class Sparse:
         desired sparsity is achieved. Same as 'serialized' except these
         indices are not necessarily unique and the process is iterative.
 
-        i) Determine the number of dense (or sparse) positions in the
-            target array.
-        ii) Generate that number of random dense (or sparse) indices
-            serially *with replacement*. This does not guarantee
-            non-duplicate indices.
-        iii) Generate an equally-sized vector of values (or zeros).
-        iv) Map the vector of values (or zeros) to the index positions
-            in a 100% sparse (or dense) full-sized array.
-        v) Because there may have been duplicate indices, repeat steps
-            ii-iv until desired sparsity is achieved.
+        1. Determine the number of dense (or sparse) positions in the
+        target array.
+
+        2. Generate that number of random dense (or sparse) indices
+        serially *with replacement*; this does not guarantee
+        non-duplicate indices.
+
+        3. Generate an equally-sized vector of values (or zeros).
+
+        4. Map the vector of values (or zeros) to the index positions
+        in a 100% sparse (or dense) full-sized array.
+
+        5. Because there may have been duplicate indices, repeat steps
+        2-4 until desired sparsity is achieved.
 
     "default"
         A hybrid method of "filter" and "iterative" that maximizes speed
@@ -905,7 +912,8 @@ def sparse(
 ):
     """Return random values from a “discrete uniform” (integer) or
     "uniform" (float) distribution of the specified dtype in the
-    “half-open” interval [`minimum`, `maximum`), with desired sparsity.
+    “half-open” interval [`minimum`, `maximum`) (includes low, but
+    excludes the maximum), with desired sparsity.
 
     Samples are uniformly distributed over the interval. In other words,
     any value within the given interval is equally likely to be drawn.
@@ -918,7 +926,7 @@ def sparse(
         Lowest (signed) value to be drawn from the distribution.
     maximum : numbers.Real
         Upper boundary of the output interval. All values generated will
-        be less than high.
+        be less than this number.
     shape : Union[numbers.Integral, Sequence[numbers.Integral]]
         Dimensions of the returned array.
     sparsity : Optional[numbers.Real], default = 0
@@ -928,7 +936,7 @@ def sparse(
 
     Returns
     -------
-    SPARSE_ARRAY : ndarray[numbers.Real]
+    sparse_array : numpy.ndarray[numbers.Real]
         Array of dimension `shape` with random values from the
         appropriate distribution and with the specified sparsity.
 

@@ -8,8 +8,14 @@
 
 import pytest
 
-from typing import Literal, Iterable
-from typing_extensions import Union, TypeAlias
+from typing import (
+    Iterable,
+    Literal
+)
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
 import numpy.typing as npt
 
 from uuid import uuid4
@@ -21,7 +27,7 @@ import polars as pl
 import scipy.sparse as ss
 
 
-FormatType: TypeAlias = Literal[
+XContainer: TypeAlias = Literal[
     'np', 'pd', 'pl', 'csr_matrix', 'csc_matrix', 'coo_matrix',
     'dia_matrix', 'lil_matrix', 'bsr_matrix', 'csr_array', 'csc_array',
     'coo_array', 'dia_array', 'lil_array', 'bsr_array'
@@ -33,13 +39,23 @@ FormatType: TypeAlias = Literal[
 
 
 @pytest.fixture(scope='session')
+def _shape():
+    return (10, 10)
+
+
+@pytest.fixture(scope='session')
 def _master_columns():
     _cols = 200
     while True:
-        _ = [str(uuid4())[:4] for _ in range(_cols)]
+        _ = [str(uuid4())[:8] for _ in range(_cols)]
         if len(np.unique(_)) == len(_):
             return np.array(_, dtype='<U4')
 
+
+@pytest.fixture(scope='module')
+def _columns(_master_columns, _shape):
+
+    return _master_columns.copy()[:_shape[1]]
 
 
 @pytest.fixture(scope='module')
@@ -53,7 +69,7 @@ def _X_factory(_shape):
     def foo(
         _dupl:list[list[int]]=None,
         _has_nan:Union[int, bool]=False,
-        _format:FormatType='np',
+        _format:XContainer='np',
         _dtype:Literal['flt','int','str','obj','hybrid']='flt',
         _columns:Union[Iterable[str], None]=None,
         _zeros:Union[float,None]=0,

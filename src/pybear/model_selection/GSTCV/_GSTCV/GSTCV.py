@@ -8,7 +8,6 @@
 
 from typing import (
     Callable,
-    Literal,
     Iterable,
     Sequence,
     Optional
@@ -301,15 +300,16 @@ class GSTCV(_GSTCVMixin):
 
         Below is an example of `cv_results_` for a logistic classifier,
         with:
-            cv=3,
 
-            param_grid={'C': [1e-5, 1e-4]},
+        cv=3,
 
-            thresholds=np.linspace(0,1,21),
+        param_grid={'C': [1e-5, 1e-4]},
 
-            scoring=['accuracy', 'balanced_accuracy']
+        thresholds=np.linspace(0,1,21),
 
-            return_train_score=False
+        scoring=['accuracy', 'balanced_accuracy']
+
+        return_train_score=False
 
         on random data.
 
@@ -389,8 +389,8 @@ class GSTCV(_GSTCVMixin):
         The dictionary found in the :attr:`cv_results_` 'params'
         column in the :attr:`best_index_` position, which gives the
         hyperparameter settings that resulted in the highest mean score
-        (best_score_) on the hold out (test) data with the best threshold
-        applied.
+        (`best_score_`) on the hold out (test) data with the best
+        threshold applied.
 
         `best_params_` never holds the best threshold. Access the
         best threshold via the :attr:`best_threshold_` attribute (if
@@ -422,7 +422,7 @@ class GSTCV(_GSTCVMixin):
         Class labels. Only exposed when `refit` is not False. Because
         `GSTCV` imposes a restriction that y must be binary in [0, 1],
         this must always return [0, 1].
-    feature_names_in_ : ndarray of shape (n_features_in_,)
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
         Names of features seen during fit. Only exposed when `refit` is
         not False and a container that has feature names was passed to
         :meth:`fit`.

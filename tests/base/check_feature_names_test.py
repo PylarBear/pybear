@@ -25,27 +25,6 @@ class TestCheckFeatureNames:
     #     reset: bool
     # ) -> Union[npt.NDArray[object], None]:
 
-    # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
-
-    @staticmethod
-    @pytest.fixture
-    def _shape():
-        return (20, 4)
-
-
-    @staticmethod
-    @pytest.fixture
-    def _columns(_master_columns, _shape):
-        return _master_columns.copy()[:_shape[1]].astype(object)
-
-
-    @staticmethod
-    @pytest.fixture
-    def _X_np(_shape):
-
-        return np.random.randint(0, 10, _shape)
-
-    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *

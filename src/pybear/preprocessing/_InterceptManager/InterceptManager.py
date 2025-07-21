@@ -648,7 +648,7 @@ class InterceptManager(
 
             - if `feature_names_in_` is not defined, then the following
                 input feature names are generated:
-                ["x0", "x1", ..., "x(n_features_in_ - 1)"].
+                ["x0", "x1", ..., "x(`n_features_in_` - 1)"].
 
             If `input_features` is not None:
 

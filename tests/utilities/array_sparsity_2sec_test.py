@@ -140,12 +140,6 @@ class TestAccuracy2D:
 
     @staticmethod
     @pytest.fixture
-    def _shape():
-        return (10,10)
-
-
-    @staticmethod
-    @pytest.fixture
     def good_array(_format, _sparsity, _shape):
 
         _base_X = np.random.randint(1, 100, _shape, dtype=np.uint8).astype(np.float64)

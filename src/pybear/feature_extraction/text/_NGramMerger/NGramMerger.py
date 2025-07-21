@@ -359,7 +359,7 @@ class NGramMerger(
     def row_support_(self) -> npt.NDArray[bool]:
         """Get the `row_support_` attribute.
 
-        A boolean 1D numpy vector of shape (n_rows_, ) indicating
+        A boolean 1D numpy vector of shape (`n_rows_`, ) indicating
         which rows of the data were kept (True) or removed (False)
         during transform.
 

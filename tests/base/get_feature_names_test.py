@@ -36,19 +36,6 @@ class TestGetFeatureNames:
     #           return that header
 
 
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (37, 13)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _columns(_master_columns, _shape):
-        return _master_columns.copy()[:_shape[1]].astype(object)
-
-
     @staticmethod
     @pytest.fixture(scope='module')
     def _X_np(_X_factory, _shape):

@@ -397,7 +397,7 @@ class MinCountTransformer(
     ----------
     n_features_in_ : int
         The number of features seen during fit.
-    feature_names_in_ : FeatureNamesInType of shape (n_features_in_,)
+    feature_names_in_ : FeatureNamesInType of shape (`n_features_in_`,)
         Names of features seen during fit. Defined only when X is passed
         in a container that has feature names and the feature names are
         all strings. If accessed when not defined, MCT will raise an
@@ -705,7 +705,7 @@ class MinCountTransformer(
 
             - if `feature_names_in_` is not defined, then the following
                 input feature names are generated:
-                ["x0", "x1", ..., "x(n_features_in_ - 1)"].
+                ["x0", "x1", ..., "x(`n_features_in_` - 1)"].
 
             If `input_features` is not None:
 
@@ -1024,7 +1024,7 @@ class MinCountTransformer(
         support : NDArray
             A mask that selects the features that are  retained during
             transform. If `indices` is False, this is a boolean vector
-            of shape (n_features_in_,) in which an element is True if
+            of shape (`n_features_in_`,) in which an element is True if
             its corresponding feature is selected for retention. If
             `indices` is True, this is an integer array of shape
             (n_transformed_features, ) whose values are indices into

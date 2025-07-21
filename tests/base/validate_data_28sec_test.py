@@ -28,18 +28,6 @@ class Fixtures:
 
     @staticmethod
     @pytest.fixture()
-    def _shape():
-        return (37, 13)
-
-
-    @staticmethod
-    @pytest.fixture()
-    def _X_np(_shape):
-        return np.random.randint(0, 10, _shape)
-
-
-    @staticmethod
-    @pytest.fixture()
     def _good_accept_sparse():
         return ('csr', 'csc', 'coo')
 

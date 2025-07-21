@@ -13,6 +13,7 @@ import numpy.typing as npt
 from copy import deepcopy
 import numbers
 import numpy as np
+import pandas as pd
 
 from ._nan_masking import nan_mask_numerical
 
@@ -72,7 +73,6 @@ def feature_name_mapper(
     >>> print(out)
     [-3 -1]
 
-
     """
 
 
@@ -83,7 +83,7 @@ def feature_name_mapper(
         if feature_names_in is None:
             raise UnicodeError
         iter(feature_names_in)
-        if isinstance(feature_names_in, (str, dict)):
+        if isinstance(feature_names_in, (str, dict, pd.core.frame.DataFrame)):
             raise Exception
         if len(np.array(list(feature_names_in)).shape) != 1:
             raise Exception
@@ -92,7 +92,7 @@ def feature_name_mapper(
         if not all(map(
             isinstance,
             feature_names_in,
-            (str for _ in feature_names_in)
+            (str for i in feature_names_in)
         )):
             raise Exception
     except UnicodeError:
@@ -122,9 +122,15 @@ def feature_name_mapper(
     # feature_names -- -- -- -- -- -- -- -- -- -- -- -- -- --
     try:
         iter(feature_names)
-        if isinstance(feature_names, (str, dict)):
+        if isinstance(feature_names, (str, dict, pd.core.frame.DataFrame)):
             raise Exception
         if len(np.array(list(feature_names), dtype=object).shape) != 1:
+            raise Exception
+        if not all(map(
+            isinstance,
+            feature_names,
+            ((numbers.Integral, str) for i in feature_names)
+        )):
             raise Exception
     except:
         raise TypeError(

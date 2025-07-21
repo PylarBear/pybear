@@ -59,7 +59,7 @@ def check_is_fitted(
         performed.
     attributes : Union[str, Sequence[str], None], default=None
         Attribute name(s) given as string or a list/tuple of strings
-        Eg.: "coef_" or ["coef_", "estimator_", ...].
+        Eg.: '`coef_`' or ['`coef_`', '`estimator_`', ...].
     msg : str, default=None
         The default error message is, f"This {name} instance is
         not fitted yet. Call `fit` with appropriate arguments before

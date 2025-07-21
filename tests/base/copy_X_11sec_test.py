@@ -23,11 +23,6 @@ class TestCopyX:
 
 
     # fixtures v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (37, 13)
-
 
     @staticmethod
     @pytest.fixture(scope='function')

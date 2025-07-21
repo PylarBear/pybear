@@ -39,4 +39,4 @@ are a few examples of how you could import and use pybear modules:
     trfm.fit(X, y)
 
 See the :ref:`API <api>` section of the docs for a complete listing of the
-available classes.
+available modules.

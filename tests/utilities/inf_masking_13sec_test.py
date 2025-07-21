@@ -20,84 +20,67 @@ from pybear.utilities._inf_masking import inf_mask
 
 
 
-# tests numpy arrays, pandas dataframes, and scipy.sparse with various
-# inf-like representations ('inf', '-inf', np.inf, -np.inf, np.PINF,
-# np.NINF, math.inf, -math.inf, float('inf'), float('-inf'),
+# tests python built-ins, numpy arrays, pandas dataframes, and scipy.sparse
+# with various inf-like representations ('inf', '-inf', np.inf, -np.inf,
+# np.PINF, np.NINF, math.inf, -math.inf, float('inf'), float('-inf'),
 # decimal.Decimal('Infinity'), decimal.Decimal('-Infinity'), for float,
 # int, str, and object dtypes.
 
 # np.PINF and np.NINF were removed from numpy 2.0. Want to be able to
 # handle and test for older versions of numpy. But supposedly these
-# constants are just aliases for numpy.inf and -numpy.inf, so these tests
-# assume that tests for np.PINF np.NINF are accomplished by the tests for
-# np.inf and -np.inf.
+# constants are just aliases for numpy.inf and -numpy.inf, so these
+# tests assume that tests for np.PINF np.NINF are accomplished by the
+# tests for np.inf and -np.inf.
 
 
-class Fixtures:
+@pytest.fixture(scope='module')
+def truth_mask_1(_shape):
+    """Random mask for building containers with inf in them."""
+    while True:
+        M = np.random.randint(0,2, _shape).astype(bool)
+        # make sure that there are both trues and falses in all columns
+        # so that pandas columns all have same dtype
+        for c_idx in range(_shape[1]):
+            if not 0 < np.sum(M[:, c_idx]) / M.size < 1:
+                break
+        else:
+            return M
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (10, 3)
+@pytest.fixture(scope='module')
+def truth_mask_2(_shape):
+    """Random mask for building containers with inf in them."""
+    while True:
+        M = np.random.randint(0,2, _shape).astype(bool)
+        # make sure that there are both trues and falses in all columns
+        # so that pandas columns all have same dtype
+        for c_idx in range(_shape[1]):
+            if not 0 < np.sum(M[:, c_idx]) / M.size < 1:
+                break
+        else:
+            return M
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _columns(_master_columns, _shape):
+@pytest.fixture(scope='module')
+def pd_assnmt_handle():
+    """Wrap inf assignments to pd dataframes in try except block."""
+    # 25_01_07 pandas future warnings about casting incompatible
+    # dtypes. put assignments under a try/except, if OK, return new
+    # X, if bad return None. in the test functions, if X comes back
+    # as None, skip the test.
 
-        return _master_columns.copy()[:_shape[1]]
+    def foo(X: pd.DataFrame, MASK: np.ndarray, value: any):
+        try:
+            X[MASK] = value
+            return X
+        except:
+            return None
 
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def truth_mask_1(_shape):
-        while True:
-            _ = np.random.randint(0,2, _shape).astype(bool)
-            # make sure that there are both trues and falses in all columns
-            # so that pandas columns all have same dtype
-            for c_idx in range(_shape[1]):
-                if not 0 < np.sum(_[:, c_idx]) / _.size < 1:
-                    break
-            else:
-                return _
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def truth_mask_2(_shape):
-        while True:
-            _ = np.random.randint(0,2, _shape).astype(bool)
-            # make sure that there are both trues and falses in all columns
-            # so that pandas columns all have same dtype
-            for c_idx in range(_shape[1]):
-                if not 0 < np.sum(_[:, c_idx]) / _.size < 1:
-                    break
-            else:
-                return _
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def pd_assnmt_handle():
-
-        # 25_01_07 pandas future warnings about casting incompatible
-        # dtypes. put assignments under a try/except, if OK, return new
-        # X, if bad return None. in the test functions, if X comes back
-        # as None, skip the test.
-
-        def foo(X: pd.DataFrame, MASK: np.ndarray, value: any):
-            try:
-                X[MASK] = value
-                return X
-            except:
-                return None
-
-        return foo
+    return foo
 
 
 
-class TestInfMaskNumeric(Fixtures):
+class TestInfMaskNumeric:
 
 
     @pytest.mark.parametrize('_container', (list, tuple, set))
@@ -119,7 +102,7 @@ class TestInfMaskNumeric(Fixtures):
                 pytest.skip(reason=f"cant have 2D set")
             if _trial != 'trial_3':
                 # the masks have multiple inf values and set is screwing
-                # up the count for sets, just do the empty mask trial and
+                # up the count, just do the empty mask trial and
                 # see that it passes thru.
                 pytest.skip(reason=f"sets mess up the inf count")
 
@@ -422,18 +405,17 @@ class TestInfMaskNumeric(Fixtures):
             raise Exception
 
         # get the inf mask as ss (dok & lil should raise)
-        if 'lil' in str(X_wip).lower() or 'dok' in str(X_wip).lower():
+        if 'lil' in _format or 'dok' in _format:
             with pytest.raises(TypeError):
-                inf_mask(X)
+                inf_mask(X_wip)
         else:
-            ss_out = inf_mask(X)
+            ss_out = inf_mask(X_wip)
             assert isinstance(ss_out, np.ndarray)
-            assert ss_out.shape == _shape
+            assert ss_out.shape == X_wip.data.shape
             assert ss_out.dtype == bool
 
 
-        # covert back to np to see if inf mask was affected, inf mask should
-        # equal the ss inf mask
+        # covert back to np to see if inf mask was affected
         X = X_wip.toarray()
 
         np_out = inf_mask(X)
@@ -442,11 +424,6 @@ class TestInfMaskNumeric(Fixtures):
         assert np_out.dtype == bool
 
         assert np.array_equal(np_out, MASK)
-
-        if 'lil' in str(X_wip).lower() or 'dok' in str(X_wip).lower():
-            pass
-        else:
-            assert np.array_equal(ss_out, np_out)
 
 
     # pd float dfs can take all of the inf-like forms tested here, but some
@@ -518,6 +495,7 @@ class TestInfMaskNumeric(Fixtures):
         _dtype = _dtypes[0]
 
         if np.sum(MASK) == 0:
+            # when mask makes no assignment, dtype is not changed
             assert _dtype == np.float64
         elif _inf_type in [
             'strinf', '-strinf', 'decimalInfinity', '-decimalInfinity'
@@ -525,6 +503,7 @@ class TestInfMaskNumeric(Fixtures):
             # 'strinf' and decimalinf' are changing dtype from float64 to object!
             assert _dtype == object
         else:
+            # for all other inf assignments, dtypes is not changed
             assert _dtype == np.float64
 
 
@@ -604,6 +583,7 @@ class TestInfMaskNumeric(Fixtures):
         _dtype = _dtypes[0]
 
         if np.sum(MASK) == 0:
+            # if the mask does not assign anything then dtype does not change
             assert _dtype == np.uint32
         elif _inf_type in [
             'strinf', '-strinf', 'decimalInfinity', '-decimalInfinity'
@@ -673,8 +653,6 @@ class TestInfMaskNumeric(Fixtures):
             MASK = MASK[:, 0]
             _shape = (_shape[0], )
 
-        _dtype = X.dtype
-
         # 'inf', '-inf',  decimal.Decimal('Infinity'), decimal.Decimal('-Infinity')
         # are not changing dtype from float64 to object!
         assert X.dtype == np.float64
@@ -692,92 +670,66 @@ class TestInfMaskNumeric(Fixtures):
         assert out.dtype == bool
         assert np.array_equal(out, MASK)
 
-    # pizza
-    # polars wont take a pandas dataframe that contains inf-types that
-    # coerced the pd dataframe to object dtype.
-    # @pytest.mark.parametrize('_dim', (1, 2))
-    # @pytest.mark.parametrize('_trial', (1, 2, 3))
-    # @pytest.mark.parametrize('_inf_type',
-    #     ('npinf', '-npinf', 'mathinf', '-mathinf', 'strinf', '-strinf',
-    #      'floatinf', '-floatinf', 'decimalInfinity', '-decimalInfinity')
-    # )
-    # def test_polars_int(
-    #     self, _shape, truth_mask_1, truth_mask_2, _dim, _trial, _inf_type,
-    #     _columns
-    # ):
-    #
-    #     # prepare the np array for conversion to polars -- -- -- -- --
-    #     X = np.random.randint(0, 10, _shape).astype(np.uint32)
-    #
-    #     if _trial == 1:
-    #         MASK = truth_mask_1
-    #     elif _trial == 2:
-    #         MASK = truth_mask_2
-    #     elif _trial == 3:
-    #         MASK = np.zeros(_shape).astype(bool)
-    #     else:
-    #         raise Exception
-    #
-    #     if _inf_type == 'npinf':
-    #         X[MASK] = np.inf
-    #     elif _inf_type == '-npinf':
-    #         X[MASK] = -np.inf
-    #     elif _inf_type == 'mathinf':
-    #         X[MASK] = math.inf
-    #     elif _inf_type == '-mathinf':
-    #         X[MASK] = -math.inf
-    #     elif _inf_type == 'strinf':
-    #         X[MASK] = 'inf'
-    #     elif _inf_type == '-strinf':
-    #         X[MASK] = '-inf'
-    #     elif _inf_type == 'floatinf':
-    #         X[MASK] = float('inf')
-    #     elif _inf_type == '-floatinf':
-    #         X[MASK] = float('-inf')
-    #     elif _inf_type == 'decimalInfinity':
-    #         X[MASK] = decimal.Decimal('Infinity')
-    #     elif _inf_type == '-decimalInfinity':
-    #         X[MASK] = decimal.Decimal('-Infinity')
-    #     else:
-    #         raise Exception
-    #
-    #     if _dim == 1:
-    #         X = X[:, 0]
-    #         MASK = MASK[:, 0]
-    #         _shape = (_shape[0], )
-    #
-    #     _dtypes = [X.dtypes] if _dim == 1 else list(set(X.dtypes))
-    #     assert len(_dtypes) == 1
-    #     _dtype = _dtypes[0]
-    #
-    #     if np.sum(MASK) == 0:
-    #         assert _dtype == np.uint32
-    #     elif _inf_type in [
-    #         'strinf', '-strinf', 'decimalInfinity', '-decimalInfinity'
-    #     ]:
-    #         # 'strinf' and decimalinf' are changing dtype from float64 to object!
-    #         assert _dtype == object
-    #     else:
-    #         # all other inf types are changing dtype from uint32 to float64!
-    #         assert _dtype == np.float64
-    #     # END prepare the np array for conversion to polars -- -- -- --
-    #
-    #     # polars wont take a pandas dataframe that contains inf-types that
-    #     # coerced the pd dataframe to object dtype.
-    #     if np.sum(MASK) != 0 and _inf_type in [
-    #         'strinf', '-strinf', 'decimalInfinity', '-decimalInfinity'
-    #     ]:
-    #         # this is raised by polars, let it raise whatever
-    #         with pytest.raises(Exception):
-    #             pl.from_numpy(X, schema=list(_columns))
-    #         pytest.skip(reason=f"cant do later tests after except")
-    #     else:
-    #         out = inf_mask(X)
-    #
-    #     assert isinstance(out, np.ndarray)
-    #     assert out.shape == _shape
-    #     assert out.dtype == bool
-    #     assert np.array_equal(out, MASK)
+
+    # polars wont cast any infs to Int32
+    @pytest.mark.parametrize('_dim', (1, 2))
+    @pytest.mark.parametrize('_trial', (1, 2))
+    @pytest.mark.parametrize('_inf_type',
+        ('npinf', '-npinf', 'mathinf', '-mathinf', 'strinf', '-strinf',
+         'floatinf', '-floatinf', 'decimalInfinity', '-decimalInfinity')
+    )
+    def test_polars_int(
+        self, _shape, truth_mask_1, truth_mask_2, _dim, _trial, _inf_type,
+        _columns
+    ):
+
+        # prepare the np array for conversion to polars -- -- -- -- --
+        X = np.random.randint(0, 10, _shape).astype(np.float64)
+
+        if _trial == 1:
+            MASK = truth_mask_1
+        elif _trial == 2:
+            MASK = truth_mask_2
+        else:
+            raise Exception
+
+        if _inf_type == 'npinf':
+            X[MASK] = np.inf
+        elif _inf_type == '-npinf':
+            X[MASK] = -np.inf
+        elif _inf_type == 'mathinf':
+            X[MASK] = math.inf
+        elif _inf_type == '-mathinf':
+            X[MASK] = -math.inf
+        elif _inf_type == 'strinf':
+            X[MASK] = 'inf'
+        elif _inf_type == '-strinf':
+            X[MASK] = '-inf'
+        elif _inf_type == 'floatinf':
+            X[MASK] = float('inf')
+        elif _inf_type == '-floatinf':
+            X[MASK] = float('-inf')
+        elif _inf_type == 'decimalInfinity':
+            X[MASK] = decimal.Decimal('Infinity')
+        elif _inf_type == '-decimalInfinity':
+            X[MASK] = decimal.Decimal('-Infinity')
+        else:
+            raise Exception
+
+        if _dim == 1:
+            X = X[:, 0]
+            MASK = MASK[:, 0]
+            _shape = (_shape[0], )
+            _wip_columns = _columns[:1]
+        else:
+            _wip_columns = _columns
+
+        assert X.dtype == np.float64
+
+        # polars wont cast any infs to Int32
+        # this is raised by polars, let it raise whatever
+        with pytest.raises(Exception):
+            X_wip = pl.from_numpy(X).cast(pl.Int32)
 
 
     # make a pandas dataframe with all the possible things that make an
@@ -828,8 +780,7 @@ class TestInfMaskNumeric(Fixtures):
         # 1D -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         _X = list(map(str, list(range(10))))
 
-        assert all(map(isinstance, _X, (str for _ in _X)))
-        np.array(_X, dtype=np.float64)
+        assert all(map(isinstance, _X, (str for i in _X)))
 
         _X[1] = 'inf'
         _X[2] = np.inf
@@ -837,7 +788,6 @@ class TestInfMaskNumeric(Fixtures):
         ref = np.zeros((10,)).astype(bool)
         ref[1] = True
         ref[2] = True
-        ref = ref.tolist()
 
         out = inf_mask(_X)
 
@@ -848,7 +798,6 @@ class TestInfMaskNumeric(Fixtures):
         _X = np.random.randint(0, 10, (5, 3)).astype(str)
 
         assert all(map(isinstance, _X[0], (str for _ in _X[0])))
-        np.array(_X, dtype=np.float64)
 
         _X[1][0] = 'inf'
         _X[2][0] = np.inf
@@ -865,7 +814,7 @@ class TestInfMaskNumeric(Fixtures):
         # END 2D -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
-class TestInfMaskString(Fixtures):
+class TestInfMaskString:
 
     # scipy sparse cannot take non-numeric datatypes
 
@@ -894,13 +843,12 @@ class TestInfMaskString(Fixtures):
                 pytest.skip(reason=f"cant have 2D set")
             if _trial != 'trial_3':
                 # the masks have multiple inf values and set is screwing
-                # up the count for sets, just do the empty mask trial and
+                # up the count, just do the empty mask trial and
                 # see that it passes thru.
                 pytest.skip(reason=f"sets mess up the inf count")
 
         # END skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        # remember to set str dtype like '<U10' to _X
 
         X = _X.astype('<U20')
 
@@ -965,7 +913,6 @@ class TestInfMaskString(Fixtures):
     def test_np_array_str(
         self, _X, truth_mask_1, truth_mask_2, _dim, _trial, _inf_type, _shape
     ):
-        # remember to set str dtype like '<U10' to _X
 
         X = _X.astype('<U20')
 
@@ -1091,7 +1038,6 @@ class TestInfMaskString(Fixtures):
         self, _X, truth_mask_1, truth_mask_2, _trial, _inf_type, _dim, _shape,
         _columns, pd_assnmt_handle
     ):
-        # remember to set str dtype like '<U10' to _X
 
         X = pd.DataFrame(
             data = _X,
@@ -1169,7 +1115,7 @@ class TestInfMaskString(Fixtures):
         self, _X, truth_mask_1, truth_mask_2, _dim, _trial, _inf_type, _shape,
         _columns, pd_assnmt_handle
     ):
-        # remember to set object dtype to _X
+
         X = pd.DataFrame(
             data = _X,
             columns = _columns,
@@ -1232,7 +1178,6 @@ class TestInfMaskString(Fixtures):
         assert np.array_equal(out, MASK)
 
 
-    # polars wont cast any num dtype infs into a str df
     @pytest.mark.parametrize('_dim', (1, 2))
     @pytest.mark.parametrize('_trial', (1, 2, 3))
     @pytest.mark.parametrize('_inf_type',
@@ -1244,12 +1189,7 @@ class TestInfMaskString(Fixtures):
         _columns
     ):
 
-        # create a pandas dataframe in the same way as when testing pandas
-        # but then convert to polars
-
         # prepare the np array before converting to polars -- -- --
-
-        # remember to set str dtype like '<U10' to _X
 
         X = _X.astype('<U10')
 
@@ -1290,25 +1230,13 @@ class TestInfMaskString(Fixtures):
         else:
             raise Exception
 
-        # pizza update the comment
-        # turns out pd cant have str dtypes, always coerced to object
-        # so that means these tests are redundant with the next tests
         assert X.dtype == '<U10'
         # END prepare the np array before converting to polars -- -- --
 
         if _dim == 1:
-            X = pl.Series(X)
+            X = pl.Series(X).cast(pl.Utf8)
         else:
-            X = pl.from_numpy(X, schema=list(_columns))
-
-        # pizza
-        # if np.sum(MASK) == 0 or _inf_type in ['strinf', '-strinf']:
-        #     X = pl.from_numpy(X)
-        # else:
-        #     with pytest.raises(Exception):
-        #         # this is handled by polars, let it raise whatever
-        #         X = pl.from_numpy(X)
-        #     pytest.skip(reason=f"cant do later tests after except")
+            X = pl.from_numpy(X, schema=list(_columns)).cast(pl.Utf8)
 
         out = inf_mask(X)
 
@@ -1318,10 +1246,9 @@ class TestInfMaskString(Fixtures):
         assert np.array_equal(out, MASK)
 
 
-    # polars wont cast num dtype inf into the polars df made from object
-    # dtype pandas. maybe polars is casting the obj dtype pandas to string?
+    # polars wont cast any infs to Object
     @pytest.mark.parametrize('_dim', (1, 2))
-    @pytest.mark.parametrize('_trial', (1, 2, 3))
+    @pytest.mark.parametrize('_trial', (1, 2))
     @pytest.mark.parametrize('_inf_type',
         ('npinf', '-npinf', 'mathinf', '-mathinf', 'strinf', '-strinf',
          'floatinf', '-floatinf', 'decimalInfinity', '-decimalInfinity')
@@ -1333,15 +1260,12 @@ class TestInfMaskString(Fixtures):
 
         # prepare the np array before converting to polars -- -- --
 
-        # remember to set object dtype to _X
         X = _X.astype(object)
 
         if _trial == 1:
             MASK = truth_mask_1
         elif _trial == 2:
             MASK = truth_mask_2
-        elif _trial == 3:
-            MASK = np.zeros(_shape).astype(bool)
         else:
             raise Exception
 
@@ -1377,22 +1301,15 @@ class TestInfMaskString(Fixtures):
 
         # END prepare the np array before converting to polars -- --
 
-        # pizza
-        # if np.sum(MASK) == 0 or _inf_type in ['strinf', '-strinf']:
-        #     pass
-        # else:
-        #     with pytest.raises(Exception):
-        #         # this is handled by polars, let it raise whatever
-        #         X = pl.from_numpy(X)
-        #     pytest.skip(reason=f"cant do later tests after except")
+        # polars wont cast any infs to Object
+        # this is raised by polars, let it raise whatever
 
-        out = inf_mask(X)
-
-        assert isinstance(out, np.ndarray)
-        assert out.shape == _shape
-        assert out.dtype == bool
-        assert np.array_equal(out, MASK)
-
+        with pytest.raises(Exception):
+            if _dim == 1:
+                pl.Series(X).cast(pl.Object)
+            else:
+                pl.from_numpy(X).cast(pl.Object)
+            pytest.skip(reason=f"cant do later tests after except")
 
 
 

@@ -344,7 +344,7 @@ class SlimPolyFeatures(
                 of integers of variable length. The minimum length of
                 the tuple must be `min_degree`, and the maximum length
                 must be `degree`, with each integer falling in the range
-                of [0, n_features_in_-1]
+                of [0, `n_features_in_`-1]
 
         2) Return a string that
             a) is not a duplicate of any originally seen feature name
@@ -771,7 +771,7 @@ class SlimPolyFeatures(
 
         Returns
         -------
-        poly_constants_: Union[PolyConstantsType, None]
+        poly_constants_ : Union[PolyConstantsType, None]
             keys: the poly combinations that produced a column of
             constants; values: the constant value for that poly feature.
             These are always omitted from the final expansion.
@@ -861,7 +861,7 @@ class SlimPolyFeatures(
 
             - if `feature_names_in_` is not defined, then the following
                 input feature names are generated:
-                ["x0", "x1", ..., "x(n_features_in_ - 1)"].
+                ["x0", "x1", ..., "x(`n_features_in_` - 1)"].
 
             If `input_features` is not None:
 

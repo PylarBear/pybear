@@ -47,7 +47,7 @@ def is_fitted(
         Estimator/transformer instance for which the check is performed.
     attributes : Union[str, Sequence[str], None], default=None
         Attribute name(s) given as string or a list/tuple of strings
-        Eg.: "coef_" or ["coef_", "estimator_", ...]
+        Eg.: '`coef_`' or ['`coef_`', '`estimator_`', ...]
     all_or_any : callable, {all, any}, default=all
         Specifies whether all or any of the given attributes must exist.
 

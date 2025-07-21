@@ -113,17 +113,6 @@ deep = True
 # objects.
 
 
-
-@pytest.fixture(scope='function')
-def _X_np():
-
-    _shape = (10, 5)
-
-    return np.random.randint(0, 10, _shape)
-
-# END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-
-
 class TestVarsDoesNotReturnAlphabetical:
 
     # originally this test intended to prove that the 'vars' builtin

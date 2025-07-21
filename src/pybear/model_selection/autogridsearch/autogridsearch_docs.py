@@ -43,10 +43,11 @@ parameter (or a different parameter such as 'parameters' for some
 GridSearch modules) and fit is called on the parent. Once the first
 search is complete and the `best_params_` attribute is retrieved, new
 search grids for the next pass are constructed based on:
-    • the preceding search grid,
-    • the results within `best_params_`,
-    • the hyperparameters' datatypes as specified in `params`,
-    • and the number of points as specified in `params`.
+
+• the preceding search grid,
+• the results within `best_params_`,
+• the hyperparameters' datatypes as specified in `params`,
+• and the number of points as specified in `params`.
 
 The new refined grids are then passed to the parent GridSearch again,
 another call to fit is made, `best_params_` is retrieved, and

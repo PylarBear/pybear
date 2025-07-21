@@ -270,7 +270,7 @@ class TextLookup(_TextLookupMixin):
         the :attr:`SKIP_ALWAYS_` attribute, which may have more words
         added to it during run-time in manual mode. Auto-mode will only
         a add entries to this list if `ignore_numbers` is True and TL
-        finds a number during (partial_)fit.
+        finds a number during partial_fit / fit.
     SPLIT_ALWAYS : Optional[Union[dict[str, Sequence[str]], None]], default=None
         A dictionary with words expected to be in the text body as keys
         and their respective multi-word lists of replacements as values.
@@ -297,7 +297,7 @@ class TextLookup(_TextLookupMixin):
     Attributes
     ----------
     n_rows_ : int
-        The cumulative number of rows of text passed to (partial_)fit.
+        The cumulative number of rows of text passed to partial_fit.
         Not necessarily the number of rows in the outputted data.
     row_support_ : npt.NDArray[bool]
         A 1D boolean vector of shape (n_rows, ) that indicates which
@@ -326,7 +326,7 @@ class TextLookup(_TextLookupMixin):
         A list of words that will always be deleted from the  text body
         by TL, even if they are in the `Lexicon`. This list is comprised
         of any words passed to `DELETE_ALWAYS` at instantiation and any
-        words added to this list during (partial_)fit.
+        words added to this list during partial_fit / fit.
     REPLACE_ALWAYS_ : dict[str, str]
         A dictionary with words expected to be in the text body as keys
         and their respective single-word replacements as values. TL will
@@ -358,11 +358,11 @@ class TextLookup(_TextLookupMixin):
         the same word in the text body it will not prompt the user
         again. The only way TL will add anything to this dictionary in
         auto mode is if `auto_split` is True and TL finds a valid split
-        of an unknown word during (partial_)fit.
+        of an unknown word during partial_fit / fit.
     OOV_ : dict[str, int]
         "Out-of-vocabulary" words that were found during transform and
         were not seen during fitting. If data that was not seen during
-        (partial_)fit is passed to :meth:`transform`, there is the
+        partial_fit / fit is passed to :meth:`transform`, there is the
         possibility that there are strings that were not previously
         seen. In this case, TL will not do any more learning and will
         not prompt for anything from the user. If `auto_delete` is True,
@@ -469,13 +469,13 @@ class TextLookup(_TextLookupMixin):
     def n_rows_(self) -> int:
         """Get the `n_rows_` attribute.
 
-        The cumulative number of rows of text passed to (partial_)fit.
+        The cumulative number of rows of text passed to 'partial_fit'.
         Not necessarily the number of rows in the outputted data.
 
         Returns
         -------
         n_rows_ : int
-            The cumulative number of rows of text passed to (partial_)fit.
+            The cumulative number of rows of text passed to `partial_fit`.
 
         """
 
@@ -861,7 +861,7 @@ class TextLookup(_TextLookupMixin):
         X:XContainer,
         copy:Optional[bool] = False
     ):
-        """Apply the handling learned in (partial_)fit to `X`.
+        """Apply the handling learned in partial_fit / fit to `X`.
 
         Parameters
         ----------

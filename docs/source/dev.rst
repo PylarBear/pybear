@@ -6,6 +6,10 @@ build pybear are available as part of the public API.
 
 .. toctree::
    :titlesonly:
-   
-   api_base
 
+   api_base
+   api_input_validation
+
+
+.. autosummary::
+   :template: autosummary/exception.rst

@@ -7,7 +7,7 @@
 
 
 from ....__shared._utilities._view_text_snippet import view_text_snippet
-from ......data_validation import validate_user_input as vui
+from ......input_validation import validate_user_input as vui
 
 
 

@@ -6,7 +6,7 @@
 
 
 
-from pybear.data_validation.validate_user_input import (
+from pybear.input_validation.validate_user_input import (
     validate_user_str,
     validate_user_str_cs,
     validate_user_mstr,

@@ -13,11 +13,9 @@ from pybear.utilities._nan_masking import (
 )
 
 
-from uuid import uuid4
 import numpy as np
 import pandas as pd
 import scipy.sparse as ss
-
 
 import pytest
 
@@ -37,24 +35,9 @@ class Fixtures:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _shape():
-        return (5, 3)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _columns(_shape):
-        while True:
-            _ = np.array([str(uuid4())[:4] for _ in range(_shape[1])])
-            if len(_) == len(np.unique(_)):
-                return _
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
     def truth_mask_1(_shape):
         while True:
-            __ = np.random.randint(0,2, _shape).astype(bool)
+            __ = np.random.randint(0, 2, _shape).astype(bool)
             # make sure that there are both trues and falses in all columns
             for c_idx in range(_shape[1]):
                 if 0 < np.sum(__[:, c_idx]) / _shape[0] < 1:
