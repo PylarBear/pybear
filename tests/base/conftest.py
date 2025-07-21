@@ -6,6 +6,8 @@
 
 
 
+import pytest
+
 from typing import (
     Iterable,
     Literal
@@ -22,19 +24,40 @@ import polars as pl
 import scipy.sparse as ss
 
 
-import pytest
 
+@pytest.fixture(scope='session')
+def _shape():
+
+    return (
+        int(np.random.randint(2, 1_000)),
+        int(np.random.randint(2, 20))
+    )
+    # return (37, 13)
 
 
 @pytest.fixture(scope='session')
 def _master_columns():
     _cols = 200   # do not change this, this gives surplus over columns in _shape
     while True:
-        _ = [str(uuid.uuid4())[:4] for _ in range(_cols)]
+        _ = [str(uuid.uuid4())[:8] for _ in range(_cols)]
         if len(np.unique(_)) == len(_):
             return np.array(_, dtype='<U4')
 
 
+@pytest.fixture(scope='module')
+def _columns(_master_columns, _shape):
+
+    return _master_columns.copy()[:_shape[1]]
+
+
+@pytest.fixture(scope='module')
+def _X_np(_shape):
+    return np.random.uniform(0, 1, _shape)
+
+
+@pytest.fixture(scope='module')
+def _y_np(_shape):
+    return np.random.randint(0, 2, _shape[0])
 
 
 @pytest.fixture(scope='module')

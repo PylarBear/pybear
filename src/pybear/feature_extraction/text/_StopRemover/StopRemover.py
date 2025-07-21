@@ -402,7 +402,7 @@ class StopRemover(
         copy:Optional[bool] = False
     ) -> list[list[str]]:
         """Scan `X` and remove any stop words as defined in the pybear
-        `Lexicon` 'stop_words_' attribute.
+        `Lexicon` `stop_words_` attribute.
 
         Optionally removes any empty rows left by the stop word removal
         process. Once data has been passed, the :attr:`n_rows_`

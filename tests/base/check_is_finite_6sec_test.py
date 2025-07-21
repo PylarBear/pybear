@@ -32,15 +32,11 @@ import pytest
 
 # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
-@pytest.fixture()
-def _shape():
-    return (20, 13)
-
 
 @pytest.fixture()
-def _X_np_clean(_shape):
+def _X_np_clean(_X_np):
 
-    return np.random.randint(0, 10, _shape)
+    return _X_np
 
 
 @pytest.fixture()

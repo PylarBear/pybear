@@ -46,7 +46,7 @@ XContainer: TypeAlias = \
 
 
 def inf_mask(
-    obj: XContainer
+    X: XContainer
 ) -> npt.NDArray[bool]:
     """Return a boolean numpy array or vector indicating the locations
     of infinity-like values in the data.
@@ -58,22 +58,23 @@ def inf_mask(
 
     This module accepts Python lists, tuples, and sets, numpy arrays,
     pandas series and dataframes, polars series and dataframes, and all
-    scipy sparse matrices/arrays except dok and lil formats. In all
-    cases, the given containers are ultimately coerced to a numpy
+    scipy sparse matrices/arrays except dok and lil formats. This module
+    does not accept ragged Python built-in containers, numpy recarrays,
+    or numpy masked arrays.
+
+    In all cases, the given containers are ultimately coerced to a numpy
     representation of the data. The boolean mask is then generated from
     the numpy container. Numpy arrays are handled as is. Pandas objects
-    are converted to a numpy array via the to_numpy method. Polars
-    objects are cast to a pandas dataframe by the 'to_pandas' method.
-    It is up to the user to ensure the particular infinity-like values
-    you are using in a polars container are preserved when converted to
-    a pandas dataframe by this method. The new pandas container is then
-    handled in the same way as any other passed pandas container. For
-    scipy sparse objects, the 'data' attribute (which is a numpy ndarray)
-    is extracted. This module does not accept ragged python built-in
-    containers, numpy recarrays, or numpy masked arrays.
+    are converted to a numpy array via the 'to_numpy' method. Polars
+    objects are first cast to a pandas dataframe by the 'to_pandas'
+    method. It is up to the user to ensure the particular infinity-like
+    values you are using in a polars container are preserved when
+    converted to a pandas dataframe by this method. The new pandas
+    container is then handled in the same way as any other passed pandas
+    container. For scipy sparse objects, the 'data' attribute (which is
+    a numpy ndarray) is extracted.
 
-    In the cases of 1D and 2D shaped objects (such as python built-in,
-    numpy, pandas, or polars objects) of shape (n_samples, ) or
+    In the cases of 1D and 2D shaped objects of shape (n_samples, ) or
     (n_samples, n_features), return an identically shaped boolean numpy
     array. In the cases of scipy sparse objects, return a boolean numpy
     vector of shape equal to that of the 'data' attribute of the sparse
@@ -109,16 +110,16 @@ def inf_mask(
 
     Parameters
     ----------
-    obj : XContainer of shape (n_samples, n_features) or (n_samples, )
+    X : XContainer of shape (n_samples, n_features) or (n_samples, )
         The object for which to mask infinity-like representations.
 
     Returns
     -------
     mask : numpy.ndarray[bool]
-        shape (n_samples, n_features), (n_samples, ), or of shape
-        (n_non_zero_values, ), indicating infinity-like representations
-        in 'obj' via the value boolean True. Values that are not
-        infinity-like are False.
+        shape (n_samples, n_features) or (n_samples, ) or (n_non_zero_values, ),
+        Indicates the locations of infinity-like representations in `X`
+        via the value boolean True. Values that are not infinity-like
+        are False.
 
     Notes
     -----
@@ -174,7 +175,7 @@ def inf_mask(
 
     # validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     _err_msg = (
-        f"'obj' must be an array-like with copy() or clone() methods, "
+        f"'obj' must be an array-like with a copy() or clone() method, "
         f"such as python built-ins, "
         f"\nnumpy arrays, pandas series/dataframes, polars "
         f"series/arrays, or scipy sparse matrices/arrays. "
@@ -183,106 +184,105 @@ def inf_mask(
     )
 
     try:
-        iter(obj)
-        if isinstance(obj, (str, dict)):
+        iter(X)
+        if isinstance(X, (str, dict)):
             raise Exception
-        if isinstance(obj, tuple):
+        if isinstance(X, tuple):
             pass
             # tuple doesnt have copy()
             # notice the elif
-        elif not hasattr(obj, 'copy') and not hasattr(obj, 'clone'):
+        elif not hasattr(X, 'copy') and not hasattr(X, 'clone'):
             raise Exception
-        if isinstance(obj, (np.recarray, np.ma.MaskedArray)):
+        if isinstance(X, (np.recarray, np.ma.MaskedArray)):
             raise Exception
-        if hasattr(obj, 'toarray'):
-            if not hasattr(obj, 'data'):  # ss dok
+        if hasattr(X, 'toarray'):
+            if not hasattr(X, 'data'):  # ss dok
                 raise Exception
-            elif all(map(isinstance, obj.data, (list for _ in obj.data))):  # ss lil
+            elif all(map(isinstance, X.data, (list for _ in X.data))):  # ss lil
                 raise Exception
-    except:
+    except Exception as e:
         raise TypeError(_err_msg)
 
-    if isinstance(obj, (list, tuple, set)):
+    # determine if python built-ins are ragged
+    if isinstance(X, (list, tuple, set)):
         try:
             # if is all strings, get these iterables out of the equation
-            if all(map(isinstance, obj, (str for _ in obj))):
+            if all(map(isinstance, X, (str for i in X))):
                 raise Exception
             # so it cant be all strings, but there might be some strings.
             # of those that are not strings, if any are iterable it is
             # ragged so reject.
-            if any(map(isinstance, obj, (str for _ in obj))):
+            if any(map(isinstance, X, (str for i in X))):
                 if any(map(
                     lambda x: isinstance(x, Iterable),
-                    [i for i in obj if not isinstance(i, str)]
+                    [i for i in X if not isinstance(i, str)]
                 )):
                     raise UnicodeError
             # cant be strings or a mix of strings and iters, so any iters means 2D
-            list(map(iter, obj))
+            list(map(iter, X))
             # if 2D, check for raggedness
-            if len(set(map(len, obj))) != 1:
+            if len(set(map(len, X))) != 1:
                 raise UnicodeError
         except UnicodeError:
             raise ValueError(
                 f"inf_mask does not accept ragged python built-ins"
             )
-        except:
+        except Exception as e:
             # is 1D
             pass
 
     # END validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-    # cant use pybear.base.copy_X here, circular import
-    if hasattr(obj, 'toarray'):
-        _ = obj.data.copy()
-    elif hasattr(obj, 'clone'):
+    # create a numpy array with same dims as X -- -- -- -- -- -- -- --
+    if hasattr(X, 'toarray'):
+        M = X.data.copy()
+    elif hasattr(X, 'clone'):
         # Polars uses zero-copy conversion when possible, meaning the
         # underlying memory is still controlled by Polars and marked
         # as read-only. NumPy and Pandas may inherit this read-only
         # flag, preventing modifications.
-        # Tests did not expose this as a problem like it did for numerical().
-        # just to be safe though, do this the same way as numerical().
-        _ = obj.to_pandas().copy()  # polars
-    elif isinstance(obj, (list, tuple, set)):
+        M = X.to_pandas().copy()  # polars
+    elif isinstance(X, (list, tuple, set)):
         # we cant just map list here, could have strings inside
         # but we do know its not ragged
         try:
             # if any strings inside, must be 1D
-            if any(map(isinstance, obj, (str for i in obj))):
+            if any(map(isinstance, X, (str for i in X))):
                 raise Exception
             # so there cant be any strings inside. now if there are iterables
             # it must be 2D
-            list(map(iter, obj))
+            list(map(iter, X))
             raise MemoryError
         except MemoryError:
             # for 2D
-            _ = list(map(list, deepcopy(obj)))
+            M = list(map(list, deepcopy(X)))
         except Exception as e:
             # for 1D
-            _ = list(deepcopy(obj))
+            M = list(deepcopy(X))
 
-        _ = np.array(_)
+        M = np.array(M)
     else:
-        _ = _ = obj.copy()    # obj.copy()  # numpy, pandas, and scipy
+        M = X.copy()    # X.copy()  # numpy, pandas, and scipy
 
 
     try:
-        _ = _.to_numpy()   # works for pandas and polars
+        M = M.to_numpy()   # works for pandas and polars
     except:
         pass
+    # END create a numpy array with same dims as X -- -- -- -- -- -- --
 
-
-    # want to be able to handle int dtype objects. if obj is int dtype,
+    # want to be able to handle int dtype objects. if X is int dtype,
     # then it cant possibly have 'inf' int it. to avoid converting an int
     # dtype over to float64 (even if it would be only a transient state),
     # look to see if it is int dtype and just return a mask of Falses.
-    if 'int' in str(_.dtype).lower():
-        return np.zeros(_.shape).astype(bool)
+    if 'int' in str(M.dtype).lower():
+        return np.zeros(M.shape).astype(bool)
 
     try:
         # np.isinf cannot take non-num dtype. try to coerce the data to
         # float64, if it wont go, try to handle it as string/object.
         # otherwise, if data is already float dtype, then we are good here.
-        return np.isinf(_.astype(np.float64)).astype(bool)
+        return np.isinf(M.astype(np.float64)).astype(bool)
     except:
         # fortunately, at creation of a str np array, if there are float
         # or str inf-likes in it, almost all of them are coerced to
@@ -294,9 +294,9 @@ def inf_mask(
         # a problem because np.isinf cannot take object formats, but it
         # is very plausible that there are inf-likes in it. so need to
         # convert the object dtype to str, which will force the coersion.
-        _ = _.astype(str)
-        _ = (_ == 'inf') + (_ == '-inf') + (_ == 'Infinity') + (_ == '-Infinity')
-        return _.astype(bool)
+        M = M.astype(str)
+        M = (M == 'inf') + (M == '-inf') + (M == 'Infinity') + (M == '-Infinity')
+        return M.astype(bool)
 
 
 

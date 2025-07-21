@@ -36,27 +36,6 @@ class TestFeatureMixin:
 
     @staticmethod
     @pytest.fixture(scope='function')
-    def _shape():
-        return (
-            int(np.random.randint(2, 1_000)),
-            int(np.random.randint(2, 20))
-        )
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _X_np(_shape):
-        return np.random.randint(0, 10, _shape)
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
-    def _columns(_master_columns, _shape):
-        return _master_columns.copy()[:_shape[1]]
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
     def _X_pd(_X_np, _columns):
         return pd.DataFrame(data=_X_np, columns=_columns)
 

@@ -5,9 +5,11 @@
 #
 
 
+
 from pybear.utilities._feature_name_mapper import feature_name_mapper
 
 import numpy as np
+import pandas as pd
 
 import pytest
 
@@ -16,7 +18,68 @@ import pytest
 class TestColumnNameMapper:
 
 
-    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+    # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+    # feature_names -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    @pytest.mark.parametrize('junk_fn',
+        (-2.7, -1, 0, 1, 2.7, True, 'junk', {'a':1}, lambda x: x)
+    )
+    def test_feature_names_rejects_junk(self, junk_fn):
+        with pytest.raises(TypeError):
+            feature_name_mapper(
+                junk_fn,
+                set('abcde'),
+                positive=True
+            )
+
+
+    @pytest.mark.parametrize('bad_fn',
+        ('list_bool', 'np', 'pd')
+    )
+    def test_feature_names_rejects_bad(self, bad_fn):
+
+        if bad_fn == 'list_bool':
+            bad_fn = [True, False]
+        elif bad_fn == 'np':
+            bad_fn = np.random.randint(0, 10, (3, 3))
+        elif bad_fn == 'pd':
+            bad_fn = pd.DataFrame(
+                data=np.random.randint(0, 10, (3, 3)),
+                columns=['A', 'B', 'C']
+            )
+        else:
+            raise Exception
+
+        with pytest.raises(TypeError):
+            feature_name_mapper(
+                bad_fn,
+                tuple('abcde'),
+                positive=True
+            )
+
+
+    @pytest.mark.parametrize('good_fn',
+        (
+            list('abcd'),
+            tuple('abcd'),
+            set('abcd'),
+            np.array(list('abcd')),
+            [1,2,3],
+            set((-1, -2, -3)),
+            (0, 1, 2),
+             np.array([12, 13, 14])
+        )
+    )
+    def test_feature_names_accepts_good(self, good_fn):
+
+        out = feature_name_mapper(
+            good_fn,
+            np.array(list('abcdefghijklmnop')),
+            positive=None
+        )
+
+        assert isinstance(out, np.ndarray)
+    # feature_names -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     # feature_names_in -- -- -- -- -- -- -- -- -- -- -- -- --
     @pytest.mark.parametrize('junk_fni',
@@ -31,9 +94,28 @@ class TestColumnNameMapper:
             )
 
     @pytest.mark.parametrize('bad_fni',
-        ([1, 2, 3], [True, False], np.random.randint(0,10, (3,3)), [list('abc')], [])
+        ('list_int', 'list_bool', 'np', 'pd', 'double_list_str', 'empty')
     )
     def test_feature_names_in_rejects_bad(self, bad_fni):
+
+        if bad_fni == 'list_int':
+            bad_fni = [1, 2, 3]
+        elif bad_fni == 'list_bool':
+            bad_fni = [True, False]
+        elif bad_fni == 'np':
+            bad_fni = np.random.randint(0,10, (3,3))
+        elif bad_fni == 'pd':
+            bad_fni = pd.DataFrame(
+                data=np.random.randint(0,10, (3,3)),
+                columns=list('abc')
+            )
+        elif bad_fni == 'double_list_str':
+            bad_fni = [list('abc')]
+        elif bad_fni == 'empty':
+            bad_fni = []
+        else:
+            raise Exception
+
         with pytest.raises(TypeError):
             feature_name_mapper(
                 None,
@@ -84,54 +166,6 @@ class TestColumnNameMapper:
 
         assert out is None
     # END positive -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
-    # feature_names -- -- -- -- -- -- -- -- -- -- -- -- -- --
-    @pytest.mark.parametrize('junk_fn',
-        (-2.7, -1, 0, 1, 2.7, True, 'junk', {'a':1}, lambda x: x)
-    )
-    def test_feature_names_rejects_junk(self, junk_fn):
-        with pytest.raises(TypeError):
-            feature_name_mapper(
-                junk_fn,
-                set('abcde'),
-                positive=True
-            )
-
-
-    @pytest.mark.parametrize('bad_fn',
-        ([True, False], np.random.randint(0,10, (3,3)))
-    )
-    def test_feature_names_rejects_bad(self, bad_fn):
-        with pytest.raises(TypeError):
-            feature_name_mapper(
-                bad_fn,
-                tuple('abcde'),
-                positive=True
-            )
-
-
-    @pytest.mark.parametrize('good_fn',
-        (
-            list('abcd'),
-            tuple('abcd'),
-            set('abcd'),
-            np.array(list('abcd')),
-            [1,2,3],
-            set((-1, -2, -3)),
-            (0, 1, 2),
-             np.array([12, 13, 14])
-        )
-    )
-    def test_feature_names_accepts_good(self, good_fn):
-
-        out = feature_name_mapper(
-            good_fn,
-            np.array(list('abcdefghijklmnop')),
-            positive=None
-        )
-
-        assert isinstance(out, np.ndarray)
-    # feature_names -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     # joint -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @pytest.mark.parametrize('bad_fn_indices',
@@ -287,16 +321,6 @@ class TestColumnNameMapper:
                 assert np.array_equiv(out, [2, 2, 1, 1])
         else:
             raise Exception
-
-
-
-
-
-
-
-
-
-
 
 
 

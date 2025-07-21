@@ -7,7 +7,6 @@ base
    :toctree: generated
    :signatures: none
 
-   
     cast_to_ndarray
     check_1D_num_sequence
     check_1D_str_sequence

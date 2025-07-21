@@ -36,7 +36,7 @@ from ._shared._type_aliases import (
 from ..__shared._transform._map_X_to_list import _map_X_to_list
 from ..__shared._utilities._view_text_snippet import view_text_snippet
 
-from ....data_validation import validate_user_input as vui
+from ....input_validation import validate_user_input as vui
 
 from ....base._copy_X import copy_X
 
@@ -74,13 +74,13 @@ class TextLookupRealTime(_TextLookupMixin):
     the data is modified in-situ immediately when you indicate an
     action. TL is a more conventional scikit-style transformer in
     that the learning that takes place for both autonomous and manual
-    modes happens in (partial_)fit, information is stored in 'holder'
+    modes happens in partial_fit / fit, information is stored in 'holder'
     attributes, and then that information is applied blindly to any
     data that is passed to transform. TL does not mutate your data
     during fitting, so the changes to your data do not happen in
     'real time'. Because of this temporal dynamic, TL is not able to
-    save changes to your data in-situ. If you log a lot of changes
-    to your data during (partial_)fit and then the program terminates
+    save changes to your data in-situ. If you log a lot of changes to
+    your data during partial_fit / fit and then the program terminates
     for whatever reason, you lose all your work. TLRT affords you
     the opportunity to save your work in-situ, making your changes
     permanent. Another benefit of operating directly on the data
@@ -191,12 +191,12 @@ class TextLookupRealTime(_TextLookupMixin):
     First, in autonomous mode, TLRT already knows everything it needs to
     do transformations from the parameters and the `Lexicon`. Secondly,
     in manual mode the user interacts with the data during transform,
-    not (partial_)fit. These no-op methods are available to fulfill the
-    scikit transformer API and make TLRT suitable for incorporation into
-    larger workflows, such as Pipelines and dask_ml wrappers.
+    not partial_fit / fit. These no-op methods are available to fulfill
+    the scikit transformer API and make TLRT suitable for incorporation
+    into larger workflows, such as Pipelines and dask_ml wrappers.
 
-    Because TLRT doesn't need any information from (partial_)fit, it is
-    technically always in a 'fitted' state and ready to transform
+    Because TLRT doesn't need any information from partial_fit / fit ,
+    it is technically always in a 'fitted' state and ready to transform
     data. Checks for fittedness will always return True.
 
     TLRT exposes 2 attributes after a call to `transform`. First,

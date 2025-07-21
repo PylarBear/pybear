@@ -34,15 +34,6 @@ import inspect
 # - setting of leading, trailing underscores is not allowed
 
 
-
-@pytest.fixture(scope='function')
-def _X_np():
-
-    _shape = (10, 5)
-
-    return np.random.randint(0, 10, _shape)
-
-
 @pytest.fixture(scope='function')
 def _est_kwargs():
     return {

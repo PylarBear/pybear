@@ -18,6 +18,7 @@ from pybear.utilities._serial_index_mapper import serial_index_mapper as sim
 def good_shape():
     return (3,3,3)
 
+
 @pytest.fixture
 def good_positions():
     return [1,5,11,19,25]

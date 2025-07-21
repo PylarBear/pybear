@@ -22,12 +22,6 @@ class TestFitTransformMixin:
 
     @staticmethod
     @pytest.fixture(scope='function')
-    def _shape():
-        return (13, 7)
-
-
-    @staticmethod
-    @pytest.fixture(scope='function')
     def DummyTransformer():
 
 

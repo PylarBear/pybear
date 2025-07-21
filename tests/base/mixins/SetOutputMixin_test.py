@@ -215,31 +215,6 @@ class TestSetOutputMixin:
 
         return Foo
 
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (5, 4)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _X_np(_shape):
-        return np.random.uniform(0, 1, _shape)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _y_np(_shape):
-        return np.random.randint(0, 2, _shape[0])
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _columns(_shape):
-        return [str(uuid.uuid4())[:5] for _ in range(_shape[1])]
-
-
     # END fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
     # set_output validation -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --

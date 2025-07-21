@@ -416,7 +416,7 @@ class TextJustifier(
 
     @property
     def n_rows_(self) -> int:
-        """Get the 'n_rows_' attribute.
+        """Get the `n_rows_` attribute.
 
         The number of rows of text seen in data passed to :meth:`transform`;
         may not be the same as the number of rows in the outputted data.

@@ -28,7 +28,17 @@ def validate_user_str(
     Returns
     -------
     user_input : str
-        Validated user selection
+        Validated user selection.
+
+    Examples
+    --------
+    >>> from pybear.input_validation import validate_user_str
+    >>> out = validate_user_str('Enter selection > ', 'ABC') # doctest:+SKIP
+    Enter Selection > f
+    >>> # prompts again because of invalid selection
+    Enter Selection > a
+    >>> out  # doctest:+SKIP
+    A
 
     """
 
@@ -51,8 +61,8 @@ def validate_user_str_cs(
     user_prompt:str,
     options:str
 ) -> str:
-    """Validation of a single user-entered alpha character against a
-    list of allowed characters. Case sensitive.
+    """Case sensitive validation of a single user-entered alpha character
+    against a list of allowed characters.
 
     Parameters
     ----------
@@ -65,7 +75,17 @@ def validate_user_str_cs(
     Returns
     -------
     user_input : str
-        Validated user selection
+        Validated user selection.
+
+    Examples
+    --------
+    >>> from pybear.input_validation import validate_user_str_cs
+    >>> out = validate_user_str_cs('Enter selection > ', 'abc') # doctest:+SKIP
+    Enter Selection > A
+    >>> # prompts again because of invalid selection
+    Enter Selection > a
+    >>> out  # doctest:+SKIP
+    a
 
     """
 
@@ -90,21 +110,31 @@ def validate_user_mstr(
     max_len:numbers.Integral=2
 ) -> str:
     """String validation for multiple alpha character user entry that
-    screens by len of entry and allowed options.
+    screens by length of entry and allowed options. Not case sensitive.
 
     Parameters
     ----------
     user_prompt : str
-        Text string displayed to the user at prompt
+        Text string displayed to the user at prompt.
     options : str
-        A single text string containing the allowed characters
+        A single text string containing the allowed characters.
     max_len : numbers.Integral, default = 2
-        maximum number of allowed selections
+        Maximum number of allowed selections.
 
     Returns
     -------
     user_input : str
-        Validated user selection(s)
+        Validated user selection(s).
+
+    Examples
+    --------
+    >>> from pybear.input_validation import validate_user_mstr
+    >>> out = validate_user_mstr('Put something: ', 'pqrstuv', max_len=3) # doctest:+SKIP
+    Put something: rstu
+    >>> # prompts again because of invalid selection
+    Put something: rst
+    >>> out  # doctest:+SKIP
+    RST
 
     """
 
@@ -124,11 +154,16 @@ def validate_user_mstr(
     while True:
         user_input = input(user_prompt).upper()
         if len(user_input) <= max_len and user_input != '':
+            invalid = False
             for char in user_input:
                 if char.upper() not in options.upper():
-                    continue
+                    invalid = True
+
+            if invalid:
+                continue
             else:
                 break
+
     return user_input
 
 
@@ -142,16 +177,27 @@ def validate_user_int(
     Parameters
     ----------
     user_prompt : str
-        Text string displayed to the user at prompt
+        Text string displayed to the user at prompt.
     min : numbers.Real, default = float('-inf')
-        Minimum allowed entry
+        Minimum allowed entry.
     max : numbers.Real, default = float('inf')
-        Maximum allowed entry
+        Maximum allowed entry.
 
     Returns
     -------
     user_input : int
-        Validated user entry
+        Validated user entry.
+
+    Examples
+    --------
+    >>> from pybear.input_validation import validate_user_int
+    >>> out = validate_user_int('Enter integer > ', min=1, max=5) # doctest:+SKIP
+    Enter integer > 8
+    >>> # prompts again because of invalid selection
+    Must enter an integer between 1 and 5
+    Enter integer > 4
+    >>> out  # doctest:+SKIP
+    4
 
     """
 
@@ -207,7 +253,18 @@ def validate_user_float(
     Returns
     -------
     user_input : str
-        Validated user entry
+        Validated user entry.
+
+    Examples
+    --------
+    >>> from pybear.input_validation import validate_user_float
+    >>> out = validate_user_float('Enter float: ', min=2.718, max=3.142) # doctest:+SKIP
+    Enter float: 8.838
+    >>> # prompts again because of invalid selection
+    Must enter an float between 2.718 and 3.142
+    Enter float: 2.999
+    >>> out  # doctest:+SKIP
+    2.999
 
     """
 
@@ -237,11 +294,11 @@ def validate_user_float(
 
 
 def user_entry(prompt: str):
-    """String validation for user-entered string.
+    """Manual validation for user-entered string.
 
     Parameters
     ----------
-    user_prompt : str
+    prompt : str
         Text string displayed to the user at prompt.
 
     Returns
@@ -249,10 +306,20 @@ def user_entry(prompt: str):
     user_entry : str
         Validated user entry.
 
+    Examples
+    --------
+    >>> from pybear.input_validation import user_entry
+    >>> out = user_entry('Enter any input > ') # doctest:+SKIP
+    Enter any input > foo
+    >>> # user is prompted to verify their own entry
+    User entered "foo"... accept? (y/n) > y
+    >>> out  # doctest:+SKIP
+    foo
+
     """
 
     while True:
-        user_entry = input(f'{prompt} > ')
+        user_entry = input(f'{prompt}')
         if validate_user_str(
             f'\nUser entered "{user_entry}"... '
             f'accept? (y/n) > ', 'YN'
@@ -490,6 +557,8 @@ class ValidateUserDate:
 
             return (dt.date(self.startYYYY, self.startMM, self.startDD),
                     dt.date(self.endYYYY, self.endMM, self.endDD))
+
+
 
 
 

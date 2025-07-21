@@ -25,21 +25,6 @@ class TestCastToNDArray:
     # shape must be preserved
     # original dtype must be preserved
 
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _shape():
-        return (20, 13)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _columns(_master_columns, _shape):
-        return _master_columns.copy()[:_shape[1]]
-
-    # END fixtures v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-
-
     # test validation v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
     @pytest.mark.parametrize('junk_copy_X',

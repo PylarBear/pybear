@@ -69,8 +69,8 @@ class NanStandardizer(
     no-ops.
 
     NS does not track the number of features in the data or the feature
-    names. Attributes like 'n_features_in_', 'feature_names_in_' and
-    methdos like 'get_feature_names_out' are not available. You should
+    names. Attributes like `n_features_in_`, `feature_names_in_` and
+    methods like `get_feature_names_out` are not available. You should
     be able to pass any valid container at any time, regardless of what
     containers NS has seen previously.
 

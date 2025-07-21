@@ -108,12 +108,6 @@ class TestFileDumpMixin:
 
     @staticmethod
     @pytest.fixture(scope='module')
-    def _shape():
-        return (5, 5)
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
     def _dum_X(_shape):
         return np.random.choice(list('abcdefghi'), _shape)
 
@@ -182,12 +176,6 @@ class TestFileDumpMixin:
 
 
         return foo
-
-
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def _y_np(_shape):
-        return np.random.randint(0, 2, _shape[0])
 
     # END fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 

@@ -26,7 +26,7 @@ import numpy as np
 import pandas as pd
 import polars as pl
 
-from ...data_validation import validate_user_input as vui
+from ...input_validation import validate_user_input as vui
 
 from .._check_1D_str_sequence import check_1D_str_sequence
 from .._check_2D_str_array import check_2D_str_array

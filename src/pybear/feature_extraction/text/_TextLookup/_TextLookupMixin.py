@@ -130,7 +130,7 @@ class _TextLookupMixin(
         A list of words that will always be deleted from the text body
         by TL, even if they are in the Lexicon. This list is comprised
         of any words passed to `DELETE_ALWAYS` at instantiation and any
-        words added to this list during (partial_)fit.
+        words added to this list during partial_fit / fit.
 
         Returns
         -------
@@ -200,7 +200,7 @@ class _TextLookupMixin(
         body it will not prompt the user again. The only way TL will
         add anything to this dictionary in auto mode is if `auto_split`
         is True and TL finds a valid split of an unknown word during
-        (partial_)fit.
+        (partial_fit / fit.
 
         Returns
         -------
