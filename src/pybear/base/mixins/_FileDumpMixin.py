@@ -45,13 +45,14 @@ class FileDumpMixin:
 
     Notes
     -----
+
     **Type Aliases**
 
     PythonTypes:
         Union[Sequence[str], Sequence[Sequence[str]], set[str]]
 
     NumpyTypes:
-        npt.NDArray[str]
+        numpy.ndarray[str]
 
     PandasTypes:
         Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
@@ -110,35 +111,62 @@ class FileDumpMixin:
 
 
     @_dump_to_file_wrapper
-    def dump_to_csv(self, _X: list[str], filename: str) -> None:
-        """Dump `X` to csv."""
+    def dump_to_csv(self, X: list[str], filename: str) -> None:
+        """Dump `X` to csv.
+
+        Parameters
+        ----------
+        X : list[str]
+            The data.
+        filename : str
+            The name for the saved csv file.
+
+        Returns
+        -------
+        None
+
+        """
 
         print(f'\nSaving data to csv...')
 
         pd.Series(
-            data=list(map(str, _X))
+            data=list(map(str, X))
         ).to_csv(f"{filename}.csv", header=True, index=False)
 
         return
 
 
     @_dump_to_file_wrapper
-    def dump_to_txt(self, _X: list[str], filename: str) -> None:
-        """Dump `X` to txt."""
+    def dump_to_txt(self, X: list[str], filename: str) -> None:
+        """Dump `X` to txt.
+
+        Parameters
+        ----------
+        X : list[str]
+            The data.
+        filename : str
+            The name for the saved txt file.
+
+        Returns
+        -------
+        None
+
+        """
 
 
         print(f'\nSaving data to txt file...')
 
         with open(f"{filename}.txt", 'w') as f:
-            for line in _X:
+            for line in X:
                 f.write(line + '\n')
             f.close()
 
         return
 
 
-    def _validate_X_container(self, _X: XContainer) -> bool:
+    def _validate_X_container(self, X: XContainer) -> bool:
         """Validate that `X` is an allowed container and is 1D or 2D.
+
         This checks the dimensionality of `X`. Must be 1D or 2D. Returns
         True if the data is 1D, False if the data is 2D.
 
@@ -150,35 +178,35 @@ class FileDumpMixin:
         Returns
         -------
         is_1D : bool
-            True if 1D, False if 2D
+            True if 1D, False if 2D.
 
         """
 
 
         if not isinstance(
-            _X,
+            X,
             (list, tuple, set, np.ndarray, pd.Series, pd.DataFrame,
              pl.Series, pl.DataFrame)
         ):
-            raise TypeError(f"invalid container for X, got {type(_X)}")
+            raise TypeError(f"invalid container for X, got {type(X)}")
 
 
         err_msg = f"FileDumpMixin - disallowed dimension of X, must be 1D or 2D."
 
-        if hasattr(_X, 'shape'):
-            _dim = len(_X.shape)
+        if hasattr(X, 'shape'):
+            _dim = len(X.shape)
             if _dim not in [1,2]:
                 raise ValueError(err_msg)
 
 
         try:
-            check_1D_str_sequence(_X, require_all_finite=False)
+            check_1D_str_sequence(X, require_all_finite=False)
             return True
         except:
             pass
 
         try:
-            check_2D_str_array(_X, require_all_finite=False)
+            check_2D_str_array(X, require_all_finite=False)
             return False
         except:
             pass
@@ -189,8 +217,6 @@ class FileDumpMixin:
 
 
         return (_dim == 1)
-
-
 
 
 

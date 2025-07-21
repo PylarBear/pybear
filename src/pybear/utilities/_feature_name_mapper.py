@@ -6,7 +6,7 @@
 
 
 
-from typing import Iterable
+from typing import Sequence
 from typing_extensions import Union
 import numpy.typing as npt
 
@@ -19,8 +19,8 @@ from ._nan_masking import nan_mask_numerical
 
 
 def feature_name_mapper(
-    feature_names: Union[Iterable[str], Iterable[int], None],
-    feature_names_in: Union[Iterable[str], None],
+    feature_names: Union[Sequence[str], Sequence[int], None],
+    feature_names_in: Union[Sequence[str], None],
     positive: Union[bool, None]=True
 ) -> npt.NDArray[np.int32]:
     """Map a vector of feature names `feature_names` against the full set
@@ -33,21 +33,21 @@ def feature_name_mapper(
 
     Parameters
     ----------
-    feature_names : Union[Iterable[str], Iterable[int], None]
-        The feature names to be mapped to index positions. if None,
-        returns, None. If an empty 1D iterable, returns the same. If
+    feature_names : Union[Sequence[str], Sequence[int], None]
+        The feature names to be mapped to index positions. If None,
+        returns None. If an empty 1D sequence, returns the same. If
         passed as integers without a `feature_names_in` reference,
         returns the original. if passed as integers with a
         `feature_names_in` reference, the index values are validated
         against the dimensions of the `feature_names_in` vector and
         mapped to all positive or all negative values based on `positive`.
         If passed as strings without a `feature_names_in` reference,
-        raises exception. if passed as strings with a `feature_names_in`
+        raises exception. If passed as strings with a `feature_names_in`
         reference, the string values are mapped to the index positions
         in the `feature_names_in` vector and mapped to all positive or
-        all negative values based on `positive`. if passed as string
+        all negative values based on `positive`. If passed as string
         values and a value is not in `feature_names_in`, raises exception.
-    feature_names_in : Union[Iterable[str], None]
+    feature_names_in : Union[Sequence[str], None]
         If not None, a 1D list-like containing strings that are the
         feature names of a data-bearing container.
     positive : Union[bool, None]
@@ -56,8 +56,22 @@ def feature_name_mapper(
 
     Returns
     -------
-    indices : npt.NDArray[np.int32]
+    indices : numpy.ndarray[np.int32]
         The given feature names mapped to index positions.
+
+    Examples
+    --------
+    >>> from pybear.utilities import feature_name_mapper
+    >>> import numpy as np
+    >>> data = np.random.randint(0, 10, (5, 3))
+    >>> columns = np.array(['A', 'B', 'C'])
+    >>> feature_names = np.array(['A', 'C'])
+    >>> out = feature_name_mapper(
+    ...     feature_names, columns, positive=False
+    ... )
+    >>> print(out)
+    [-3 -1]
+
 
     """
 

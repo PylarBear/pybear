@@ -6,7 +6,7 @@
 
 
 
-from typing import Iterable
+from typing import Sequence
 from typing_extensions import Union
 
 import numpy.typing as npt
@@ -17,33 +17,34 @@ import numbers
 
 
 def get_feature_names_out(
-    input_features: Union[Iterable[str], None],
+    input_features: Union[Sequence[str], None],
     feature_names_in_: Union[npt.NDArray[object], None],
     n_features_in_: numbers.Integral
 ) -> npt.NDArray[object]:
-    """Return the feature name vector for the transformed output.
+    """Return the feature name vector for the output of a pybear
+    estimator or transformer.
 
     - If `input_features` is None, then `feature_names_in_` is
       used as the feature names. If `feature_names_in_` is not defined,
       then the following input feature names are generated:
-      '["x0", "x1", ..., "x(n_features_in_ - 1)"]'.
+      '["x0", "x1", ..., "x(`n_features_in_` - 1)"]'.
     - If `input_features` is an array-like, then `input_features` must
       match `feature_names_in_` if `feature_names_in_` is defined.
 
     Parameters
     ----------
-    input_features : Union[Iterable[str], None]
+    input_features : Union[Sequence[str], None]
         Input features.
-    feature_names_in_ : Union[npt.NDArray[object], None]
+    feature_names_in_ : Union[numpy.ndarray[object], None]
         The names of the features as seen during fitting. Only available
-        if `X` is passed to :meth:`partial_fit` or :meth:`fit` in a
-        container that has a header.
+        if `X` is passed to `partial_fit` or `fit` in a container that
+        has a header.
     n_features_in_ : numbers.Integral
         The number of features in `X`.
 
     Returns
     -------
-    _feature_names_out : npt.NDArray[object]
+    _feature_names_out : numpy.ndarray[object]
         The feature names for the transformed output.
 
     """

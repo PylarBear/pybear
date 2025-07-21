@@ -37,6 +37,8 @@ from .mixins._ReprMixin import ReprMixin
 from .mixins._SetOutputMixin import SetOutputMixin
 from .mixins._SetParamsMixin import SetParamsMixin
 
+from .exceptions._exceptions import NotFittedError
+
 
 
 __all__ = [
@@ -68,11 +70,9 @@ __all__ = [
     'GetParamsMixin',
     'ReprMixin',
     'SetOutputMixin',
-    'SetParamsMixin'
+    'SetParamsMixin',
+    'NotFittedError'
 ]
-
-
-
 
 
 

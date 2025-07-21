@@ -26,15 +26,15 @@ def set_order(
     'C' is row-major order, 'F' is column major order.
 
     For 1D and trivial 2D (shape=(10, 1) or (1, 10)) numpy arrays, the
-    'flags' attribute will report both C_CONTIGUOUS and F_CONTIGUOUS as
-    True. This is because these arrays are a single continuous block of
-    memory with no dimensions to reorder. Both C_CONTIGUOUS and
-    F_CONTIGUOUS are True because there is no ambiguity in accessing
+    'flags' attribute will report both 'C_CONTIGUOUS' and 'F_CONTIGUOUS'
+    as True. This is because these arrays are a single continuous block
+    of memory with no dimensions to reorder. Both 'C_CONTIGUOUS' and
+    'F_CONTIGUOUS' are True because there is no ambiguity in accessing
     elements — the memory layout trivially satisfies both definitions.
 
     Parameters
     ----------
-    X : NDArray
+    X : numpy.ndarray
         The numpy array for which to set the memory layout.
     order : Literal['c', 'C', 'f', 'F']
         The memory layout for `X`. 'C' is row-major order, 'F' is
@@ -45,8 +45,23 @@ def set_order(
 
     Returns
     -------
-    X : NDArray
+    X : numpy.ndarray
         `X` in the desired memory layout.
+
+    Examples
+    --------
+    >>> from pybear.base import set_order
+    >>> import numpy as np
+    >>> X = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int8)
+    >>> print(X.flags['C_CONTIGUOUS'])
+    True
+    >>> print(X.flags['F_CONTIGUOUS'])
+    False
+    >>> out = set_order(X, order='F', copy_X=True)
+    >>> print(out.flags['C_CONTIGUOUS'])
+    False
+    >>> print(out.flags['F_CONTIGUOUS'])
+    True
 
     """
 

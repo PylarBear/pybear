@@ -7,6 +7,7 @@
 
 
 class FitTransformMixin:
+    """Provides the `fit_transform` method to pybear transformers."""
 
 
     def fit_transform(self, X, y=None, **fit_params):
@@ -18,10 +19,10 @@ class FitTransformMixin:
         Parameters
         ----------
         X : array_like of shape (n_samples, n_features)
-            Input samples.
+            Required. The data.
 
-        y : array_like of shape (n_samples, n_outputs) or (n_samples,),
-            default=None - Target values (None for unsupervised
+        y : array_like of shape (n_samples, n_outputs) or (n_samples,)
+            Optional, default=None.  Target values (None for unsupervised
             transformations).
 
         **fit_params : dict

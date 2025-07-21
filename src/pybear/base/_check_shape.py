@@ -6,7 +6,7 @@
 
 
 
-from typing import Iterable
+from typing import Sequence
 from typing_extensions import (
     TypeAlias,
     Union
@@ -35,27 +35,33 @@ def check_shape(
     max_features: Union[numbers.Integral, None]=None,
     min_samples: numbers.Integral=1,
     sample_check: Union[numbers.Integral, None]=None,
-    allowed_dimensionality: Iterable[numbers.Integral] = (1, 2)
+    allowed_dimensionality: Sequence[numbers.Integral] = (1, 2)
 ) -> tuple[int, ...]:
     """Check the shape of a data-bearing object against user-defined
     criteria.
 
     `X` must have a 'shape' method.
+
     The number of samples in `X` must be greater than or equal to
-    min_samples.
-    If sample_check is not None (must be an integer greater than or equal
-    to min_samples), the number of samples in `X` must equal sample_check.
+    `min_samples`.
+
+    If `sample_check` is not None (must be an integer greater than or
+    equal to `min_samples`), the number of samples in `X` must equal
+    `sample_check`.
+
     The number of features in `X` must be greater than or equal to
-    min_features.
-    If max_features is not None (must be an integer greater than or equal
-    to min_features), then number of features in `X` cannot exceed
-    max_features.
+    `min_features`.
+
+    If `max_features` is not None (must be an integer greater than or
+    equal to `min_features`), then number of features in `X` cannot
+    exceed `max_features`.
+
     The dimensionality of `X` must be one of the allowed values in
-    allowed_dimensionality.
+    `allowed_dimensionality`.
 
     Parameters
     ----------
-    X : array_like or shape (n_samples, n_features) or (n_samples,)
+    X : XContainer of shape (n_samples, n_features) or (n_samples,)
         The data-bearing object for which to get and validate the shape.
         Must have a 'shape' attribute.
     min_features : numbers.Integral
@@ -63,24 +69,37 @@ def check_shape(
         than or equal to zero.
     max_features : Union[numbers.Integral, None]
         The maximum number of features allowed in `X`; if not None, must
-        be greater than or equal to min_features. If None, then there is
-        no restriction on the maximum number of features in `X`.
+        be greater than or equal to `min_features`. If None, then there
+        is no restriction on the maximum number of features in `X`.
     min_samples : numbers.Integral
         The minimum number of samples required in `X`; must be greater
-        than or equal to zero. Ignored if :param: `sample_check` is not
-        None.
+        than or equal to zero. Ignored if `sample_check` is not None.
     sample_check : Union[numbers.Integral, None]
         The exact number of samples allowed in `X`. If not None, must be
         a non-negative integer. Use this to check, for example, that the
         number of samples in y equals the number of samples in `X`. If
         None, this check is not performed.
-    allowed_dimensionality : Iterable[numbers.Integral]
+    allowed_dimensionality : Sequence[numbers.Integral]
         The allowed dimensionalities of `X`. All entries must be greater
         than zero and less than or equal to two.
 
+    Raises
+    ------
+        ValueError:
+
+            The number of dimensions of `X` is not allowed.
+
+            The number of samples in `X` does not match `sample_check`.
+
+            The number of samples in `X` is below `min_samples`.
+
+            The number of features in `X` is below `min_features`.
+
+            The number of features in `X` is above `max_features`.
+
     Returns
     -------
-    _shape : tuple[int, ...]
+    shape : tuple[int, ...]
         The shape of `X`.
 
     Notes
@@ -107,6 +126,26 @@ def check_shape(
 
     XContainer:
         Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+
+    Examples
+    --------
+    >>> from pybear.base import check_shape
+    >>> import numpy as np
+    >>> X = np.random.randint(0, 10, (5, 3))
+    >>> kwargs = {'min_features': 1, 'max_features': None, 'min_samples': 1,
+    ...     'sample_check': None, 'allowed_dimensionality': (2, )}
+    >>>
+    >>> # Demonstrate a valid container passes and returns the shape
+    >>> print(check_shape(X, **kwargs))
+    (5, 3)
+    >>>
+    >>> # Demonstrate an invalid container raises ValueError
+    >>> X = np.random.randint(0, 10, (5,))
+    >>> try:
+    ...     check_shape(X, **kwargs)
+    ... except Exception as e:
+    ...     print(repr(e))
+    ValueError('The dimensionality of the passed object must be in (2,). Got 1.')
 
     """
 
@@ -154,7 +193,7 @@ def check_shape(
             raise ValueError(err_msg)
         del err_msg
 
-    err_msg = (f"'allowed_dimensionality' must be a vector-like iterable "
+    err_msg = (f"'allowed_dimensionality' must be a vector-like sequence "
         f"of integers greater than zero and less than three.")
     try:
         __ = allowed_dimensionality

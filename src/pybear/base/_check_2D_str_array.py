@@ -8,7 +8,8 @@
 
 from typing import (
     Iterable,
-    Optional
+    Optional,
+    Sequence
 )
 from typing_extensions import (
     TypeAlias,
@@ -39,7 +40,7 @@ def check_2D_str_array(
 ) -> None:
     """Validate things that are expected to be 2D arrays of strings.
 
-    Accepts 2D python built-ins, numpy arrays, pandas dataframes,
+    Accepts 2D Python built-ins, numpy arrays, pandas dataframes,
     and polars dataframes. Python built-ins can be ragged. When
     `require_all_finite` is True, every element in the array must be
     an instance of str; a ValueError will be raised if there are any
@@ -50,17 +51,17 @@ def check_2D_str_array(
     Parameters
     ----------
     X : XContainer[str]
-        something that is expected to be a 2D array of strings.
+        Something that is expected to be a 2D array of strings.
     require_all_finite : Optional[bool], default=False
-        if True, disallow all non-finite values, such as nan-like or
+        If True, disallow all non-finite values, such as nan-like or
         infinity-like values.
 
     Raises
     ------
     TypeError:
-        for invalid container
+        For invalid container.
     ValueError:
-        for non-finite values when `require_all_finite` is True
+        For non-finite values when `require_all_finite` is True.
 
     Returns
     -------
@@ -90,11 +91,10 @@ def check_2D_str_array(
     --------
     >>> from pybear.base import check_2D_str_array
     >>> import numpy as np
-    >>> X = np.random.choice(list('abcde'), (37, 13))
+    >>> X = np.random.choice(list('abcde'), (37, 13)).astype('<U4')
     >>> X[0][8] = 'nan'
     >>> X[31][3] = '-inf'
     >>> check_2D_str_array(X, require_all_finite=False)
-
     >>> try:
     ...     check_2D_str_array(X, require_all_finite=True)
     ... except ValueError as e:
@@ -142,7 +142,7 @@ def check_2D_str_array(
     # define function to manage error handling -- -- -- -- -- -- -- --
     def _exception_helper(
         _X_object,
-        _require_all_finite: Iterable[bool],
+        _require_all_finite: Sequence[bool],
     ) -> None:
 
         """

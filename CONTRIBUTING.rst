@@ -1,5 +1,5 @@
-Contributing To pybear
-======================
+Contributing
+============
 
 pybear is not actively seeking contributions. However, at the same time, pybear 
 does not want to turn away good work that enhances pybear and the Python data 

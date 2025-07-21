@@ -22,10 +22,12 @@ def serial_index_mapper(
     coordinates in an object of the given shape.
 
     For example in a 2D array of shape (3,3):
-    serial index position 1 maps to (0,1)
-    serial index position 5 maps to (1,2)
+        serial index position 1 maps to (0,1)
+
+        serial index position 5 maps to (1,2)
+
     In a 3D array of shape (2,2,2):
-    serial index position 5 maps to (1, 0, 1)
+        serial index position 5 maps to (1, 0, 1)
 
     Parameters
     ----------
@@ -36,7 +38,7 @@ def serial_index_mapper(
 
     Returns
     -------
-    coordinates : list[tuple[int, int]]
+    coordinates : list[tuple[int, ...]]
         The zero-based Cartesian coordinates for each given serialized
         index position.
 

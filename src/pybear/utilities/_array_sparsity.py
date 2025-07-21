@@ -54,7 +54,7 @@ def array_sparsity(a: Container) -> float:
     Returns
     -------
     sparsity : float
-        percentage of zeros in `a`.
+        Percentage of zeros in `a`.
 
     Examples
     --------

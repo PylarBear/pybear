@@ -20,10 +20,10 @@ import numpy as np
 def get_feature_names(X: Any):
     """Get feature names from `X`.
 
-    X must have a 'columns' attribute or a __dataframe__ dunder, i.e.,
-    follows the dataframe interchange protocol. Otherwise, feature names
-    are not retrieved and None is returned. If the dataframe does not
-    have a header comprised of strings (the dataframe was constructed
+    `X` must have a 'columns' attribute or a '__dataframe__' dunder,
+    i.e., follows the dataframe interchange protocol. Otherwise, feature
+    names are not retrieved and None is returned. If the dataframe does
+    not have a header comprised of strings (the dataframe was constructed
     without passing a header and a default non-string header is used),
     a warning is raised and None is returned.
 
@@ -32,20 +32,31 @@ def get_feature_names(X: Any):
     X : array_like of shape (n_samples, n_features) or (n_samples, )
         Array container from which to extract feature names.
 
-        Objects that have known compatibility with this module:
-        pandas dataframe, dask series, dask dataframe, polars dataframe.
-        The columns will be considered to be feature names. If the
-        dataframe contains non-string feature names, None is returned.
+        Objects that have known compatibility with this module: pandas
+        dataframe and, polars dataframe. The columns will be considered
+        to be feature names. If the dataframe contains non-string feature
+        names, None is returned.
 
         All other array containers will return 'None'. Examples of
-        containers known to not yield feature names: numpy arrays, dask
-        arrays, scipy sparse matrices / arrays.
+        containers known to not yield feature names: numpy arrays and
+        scipy sparse matrices / arrays.
 
     Returns
     -------
-    feature_names : Union[NDArray[object], None]
+    feature_names : Union[numpy.ndarray[object], None]
         The feature names of `X`. Unrecognized array containers return
         None.
+
+    Examples
+    --------
+    >>> from pybear.base import get_feature_names
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> data = np.random.uniform(0, 1, (5, 3))
+    >>> X = pd.DataFrame(data=data, columns=['A', 'B', 'C'])
+    >>> out = get_feature_names(X)
+    >>> print(out)
+    ['A' 'B' 'C']
 
     """
 

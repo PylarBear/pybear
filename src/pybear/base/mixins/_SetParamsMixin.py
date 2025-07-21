@@ -13,6 +13,9 @@ from copy import deepcopy
 
 
 class SetParamsMixin:
+    """Provides the `set_params` method to estimators, transformers,
+    and GridSearch modules.
+    """
 
 
     def set_params(self, **params) -> Self:
@@ -23,7 +26,7 @@ class SetParamsMixin:
 
         Setting the parameters of simple estimators and transformers is
         straightforward. Pass the exact parameter name and its value
-        as a keyword argument to the set_params method call. Or use
+        as a keyword argument to the `set_params` method call. Or use
         ** dictionary unpacking on a dictionary keyed with exact
         parameter names and the new parameter values as the dictionary
         values. Valid parameter keys can be listed with :meth:`get_params`.
@@ -34,19 +37,19 @@ class SetParamsMixin:
         on the parameter names.
 
         Simple estimators in a GridSearch instance can be updated by
-        prefixing the estimator's parameters with 'estimator__'. For
+        prefixing the estimator's parameters with `estimator__`. For
         example, if some estimator has a 'depth' parameter, then setting
         the value of that parameter to 3 would be accomplished by passing
-        estimator__depth=3 as a keyword argument to the set_params method
-        call.
+        `estimator__depth=3` as a keyword argument to the `set_params`
+        method call.
 
         The parameters of a pipeline nested in a GridSearch instance
-        can be updated using the form estimator__<pipe_parameter>.
+        can be updated using the form `estimator__<pipe_parameter>`.
         The parameters of the steps of a pipeline have the form
-        <step>__<parameter> so that it’s also possible to update a
-        step's parameters through the set_params method interface.
+        `<step>__<parameter>` so that it’s also possible to update a
+        step's parameters through the `set_params` method interface.
         The parameters of steps in the pipeline can be updated using
-        'estimator__<step>__<parameter>'.
+        `estimator__<step>__<parameter>`.
 
         Parameters
         ----------

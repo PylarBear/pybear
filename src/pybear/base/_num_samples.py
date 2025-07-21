@@ -27,13 +27,16 @@ def num_samples(X: XContainer) -> int:
 
     `X` must have a 'shape' attribute.
 
-    numpy, pandas, & polars: `X` must be 1 or 2 dimensional.
-    scipy: `X` must be 2 dimensional.
-    If `X` is a 1D vector (i.e., len(shape)==1), return len(X).
+    numpy, pandas, & polars:
+        `X` must be 1 or 2 dimensional.
+    scipy:
+        `X` must be 2 dimensional.
+
+    If `X` is a 1D vector (i.e., `len(X.shape)==1`), return `len(X)`.
 
     Parameters
     ----------
-    X : array_like of shape (n_samples, n_features) or (n_samples,)
+    X : XContainer of shape (n_samples, n_features) or (n_samples,)
         Object to find the number of samples in, that has a 'shape'
         attribute.
 
@@ -66,6 +69,14 @@ def num_samples(X: XContainer) -> int:
 
     XContainer:
         Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+
+    Examples
+    --------
+    >>> from pybear.base import num_samples
+    >>> import numpy as np
+    >>> X = np.random.randint(0, 10, (5, 4))
+    >>> num_samples(X)
+    5
 
     """
 

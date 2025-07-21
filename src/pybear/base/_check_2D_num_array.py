@@ -8,7 +8,8 @@
 
 from typing import (
     Iterable,
-    Optional
+    Optional,
+    Sequence
 )
 from typing_extensions import (
     TypeAlias,
@@ -43,7 +44,7 @@ def check_2D_num_array(
 ) -> None:
     """Validate things that are expected to be 2D arrays of numbers.
 
-    Accepts 2D python built-ins, numpy arrays, pandas dataframes, polars
+    Accepts 2D Python built-ins, numpy arrays, pandas dataframes, polars
     dataframes, and all scipy sparse matrices/arrays. Python built-ins
     can be ragged. When `require_all_finite` is True, every element in
     the array must be an instance of numbers.Number; a ValueError will
@@ -55,17 +56,17 @@ def check_2D_num_array(
     Parameters
     ----------
     X : XContainer[numbers.Number]
-        something that is expected to be a 2D array of numbers.
+        Something that is expected to be a 2D array of numbers.
     require_all_finite : Optional[bool], default=False
-        if True, disallow all non-finite values, such as nan-like or
+        If True, disallow all non-finite values, such as nan-like or
         infinity-like values.
 
     Raises
     ------
     TypeError:
-        for invalid container
+        For invalid container.
     ValueError:
-        for non-finite values when `require_all_finite` is True
+        For non-finite values when `require_all_finite` is True.
 
     Returns
     -------
@@ -98,8 +99,8 @@ def check_2D_num_array(
 
     XContainer:
         Union[
-            Python2DTypes, Numpy2DTypes, Pandas2DTypes,
-            Polars2DTypes, ScipySparseTypes
+            Python2DTypes, Numpy2DTypes, Pandas2DTypes, Polars2DTypes,
+            ScipySparseTypes
         ]
 
     Examples
@@ -110,7 +111,6 @@ def check_2D_num_array(
     >>> X[0][8] = np.nan
     >>> X[31][3] = np.inf
     >>> check_2D_num_array(X, require_all_finite=False)
-
     >>> try:
     ...     check_2D_num_array(X, require_all_finite=True)
     ... except ValueError as e:
@@ -158,7 +158,7 @@ def check_2D_num_array(
     # define function to manage error handling -- -- -- -- -- -- -- --
     def _exception_helper(
         _X_object,
-        _require_all_finite: Iterable[bool],
+        _require_all_finite: Sequence[bool],
     ) -> None:
         """
         The errors raised below come from 1D files. Override with
@@ -186,7 +186,7 @@ def check_2D_num_array(
         except TypeError as t:
 
             _base = f"Expected a 1D sequence of number-like values."
-            _bad_container = f"Accepted containers are python lists,"
+            _bad_container = f"Accepted containers are Python lists,"
 
             # this should be in both
             assert _base in str(t)
@@ -197,13 +197,9 @@ def check_2D_num_array(
             elif _bad_container in str(t):
                 # this is for bad container
                 # not expecting this to ever raise!
-                raise Exception(
-                    f"unexpected container error from {_fxn_name}"
-                )
+                raise Exception(f"unexpected container error from {_fxn_name}")
             else:
-                raise Exception(
-                    f"unexpected exception string from {_fxn_name}"
-                )
+                raise Exception(f"unexpected exception string from {_fxn_name}")
 
         except Exception as e:
             raise Exception(

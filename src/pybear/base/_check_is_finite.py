@@ -22,6 +22,7 @@ from ..utilities._inf_masking import inf_mask
 from ._copy_X import copy_X as _copy_X
 
 
+
 SparseTypes: TypeAlias = Union[
     ss._csr.csr_matrix,
     ss._csc.csc_matrix,
@@ -35,16 +36,18 @@ SparseTypes: TypeAlias = Union[
     ss._bsr.bsr_array
 ]
 
+XContainer: TypeAlias = Union[npt.NDArray, pd.DataFrame, SparseTypes]
+
 
 
 def check_is_finite(
-    X: Union[npt.NDArray, pd.DataFrame, SparseTypes],
+    X: XContainer,
     allow_nan:bool = True,
     allow_inf:bool = True,
     cast_inf_to_nan:bool = True,
     standardize_nan:bool = True,
     copy_X:bool = True
-) -> Union[npt.NDArray, pd.DataFrame, SparseTypes]:
+) -> XContainer:
     """Look for any nan-like and/or infinity-like values in `X`.
 
     If any of these are disallowed then raise a ValueError if any are
@@ -61,7 +64,7 @@ def check_is_finite(
 
     Parameters
     ----------
-    X : array_like of shape (n_samples, n_features) or (n_samples,)
+    X : XContainer of shape (n_samples, n_features) or (n_samples,)
         The data to be searched for nan-like and infinity-like values.
     allow_nan : bool, default=True
         If nan-like values are found and this parameter is set to False
@@ -77,7 +80,7 @@ def check_is_finite(
         If True, make a copy of `X` if any infinity-likes are cast to
         np.nan or if any nan-likes are cast to np.nan. If False, operate
         directly on the passed `X` object. Only applicable if either
-        `cast_inf_to_nan` or `cast_nan_to_inf` is True and there are
+        `cast_inf_to_nan` or `standardize_nan` is True and there are
         infinity-like or nan-like values in the data.
 
     Returns
@@ -85,6 +88,39 @@ def check_is_finite(
     X : Union[npt.NDArray, pd.DataFrame, SparseTypes]
         The originally passed data with all checks performed and any
         replacements made.
+
+    Notes
+    -----
+
+    **Type Aliases**
+
+    SparseTypes:
+        Union[
+            ss._csr.csr_matrix, ss._csc.csc_matrix, ss._coo.coo_matrix,
+            ss._dia.dia_matrix, ss._bsr.bsr_matrix, ss._csr.csr_array,
+            ss._csc.csc_array, ss._coo.coo_array, ss._dia.dia_array,
+            ss._bsr.bsr_array
+        ]
+
+    XContainer:
+        Union[numpy.ndarray, pandas.core.frame.DataFrame, SparseTypes]
+
+    Examples
+    --------
+    >>> from pybear.base import check_is_finite
+    >>> import numpy as np
+    >>> X = np.random.uniform(0, 1, (5, 3))
+    >>> kwargs = {'allow_nan': False, 'allow_inf': False,
+    ...   'cast_inf_to_nan': False, 'standardize_nan': False}
+    >>> out = check_is_finite(X, **kwargs)
+    >>> type(out)
+    <class 'numpy.ndarray'>
+    >>> X[0, 0] = np.nan
+    >>> try:
+    ...     check_is_finite(X, **kwargs)
+    ... except Exception as e:
+    ...     print(repr(e))
+    ValueError("'X' has nan-like values but are disallowed")
 
     """
 

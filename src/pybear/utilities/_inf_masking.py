@@ -56,13 +56,13 @@ def inf_mask(
     float('inf'), float('-inf'), decimal.Decimal('Infinity'), and
     'decimal.Decimal('-Infinity').
 
-    This module accepts python lists, tuples, and sets, numpy arrays,
+    This module accepts Python lists, tuples, and sets, numpy arrays,
     pandas series and dataframes, polars series and dataframes, and all
     scipy sparse matrices/arrays except dok and lil formats. In all
     cases, the given containers are ultimately coerced to a numpy
     representation of the data. The boolean mask is then generated from
     the numpy container. Numpy arrays are handled as is. Pandas objects
-    are converted to a numpy array via the to_numpy() method. Polars
+    are converted to a numpy array via the to_numpy method. Polars
     objects are cast to a pandas dataframe by the 'to_pandas' method.
     It is up to the user to ensure the particular infinity-like values
     you are using in a polars container are preserved when converted to
@@ -80,9 +80,9 @@ def inf_mask(
     object.
 
     'dok' is the only scipy sparse format that does not have a 'data'
-    attribute, and for that reason it is not handled by inf_mask().
+    attribute, and for that reason it is not handled by `inf_mask`.
     scipy sparse 'lil' cannot be masked in an elegant way, and for that
-    reason it is also not handled by inf_mask(). All other scipy sparse
+    reason it is also not handled by `inf_mask`. All other scipy sparse
     formats only take numeric data.
 
     This module relies heavily on numpy.isinf to locate infinity-like
@@ -114,7 +114,7 @@ def inf_mask(
 
     Returns
     -------
-    mask : NDArray[bool]
+    mask : numpy.ndarray[bool]
         shape (n_samples, n_features), (n_samples, ), or of shape
         (n_non_zero_values, ), indicating infinity-like representations
         in 'obj' via the value boolean True. Values that are not

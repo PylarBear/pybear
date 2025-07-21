@@ -8,8 +8,8 @@
 
 from typing import (
     Literal,
-    Iterable,
-    Optional
+    Optional,
+    Sequence
 )
 from typing_extensions import Union
 
@@ -33,7 +33,7 @@ def validate_data(
     *,
     copy_X:Optional[bool] = True,
     cast_to_ndarray:Optional[bool] = False,
-    accept_sparse:Optional[Union[Iterable[Literal[
+    accept_sparse:Optional[Union[Sequence[Literal[
         "csr", "csc", "coo", "dia", "lil", "dok", "bsr"
     ]], Literal[False], None]] = \
         ("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
@@ -41,7 +41,7 @@ def validate_data(
     require_all_finite:Optional[bool] = True,
     cast_inf_to_nan:Optional[bool] = True,
     standardize_nan:Optional[bool] = True,
-    allowed_dimensionality:Optional[Iterable[numbers.Integral]] = (1,2),
+    allowed_dimensionality:Optional[Sequence[numbers.Integral]] = (1,2),
     ensure_2d:Optional[bool] = True,
     order:Optional[Literal['C', 'F']] = 'C',
     ensure_min_features:Optional[numbers.Integral] = 1,
@@ -73,69 +73,116 @@ def validate_data(
     X : array_like of shape (n_samples, n_features) or (n_samples,)
         The data to be validated.
     copy_X : Optional[bool], default=True
-        Whether to operate directly on the passed X or create a copy.
+        Whether to operate directly on the passed `X` or create a copy.
     cast_to_ndarray : Optional[bool], default=False
-        If True, convert the passed X to numpy ndarray.
-    accept_sparse : Optional[Union[Iterable[str], Literal[False], None]]
-        default=("csr", "csc", "coo", "dia", "lil", "dok", "bsr")
+        If True, convert the passed `X` to numpy ndarray.
+    accept_sparse : Optional[Union[Sequence[str], Literal[False], None]]
+        default=("csr", "csc", "coo", "dia", "lil", "dok", "bsr").
+
         The scipy sparse matrix/array formats that are allowed. If no
         scipy sparse are allowed, literal False or None can be passed,
-        and an exception will be raised if X is a scipy sparse object.
-        Otherwise, must be a 1D vector-like (such as a python list or
+        and an exception will be raised if `X` is a scipy sparse object.
+        Otherwise, must be a 1D vector-like (such as a Python list or
         tuple) containing some or all of the 3-character acronyms shown
         here. Not case sensitive. Entries cover both the 'matrix' and
         'array' formats, e.g., ['csr', 'csc'] will allow csr_matrix,
         csr_array, csc_matrix, and csc_array formats.
     dtype : Optional[Literal['numeric','str','any']], default='any'
-        The allowed datatype of X. If 'numeric', data that cannot be
+        The allowed datatype of `X`. If 'numeric', data that cannot be
         coerced to a numeric datatype will raise a TypeError. If 'str',
-        all data in X is must be strings or a TypeError is raised. If
-        'any', no restrictions are imposed on the datatype of X.
+        all data in `X` is must be strings or a TypeError is raised. If
+        'any', no restrictions are imposed on the datatype of `X`.
     require_all_finite : Optional[bool], default=True
         If True, block data that has undefined values, in particular,
         nan-like and infinity-like values. If False, nan-like and
-        infinity like values are allowed.
+        infinity-like values are allowed.
     cast_inf_to_nan : Optional[bool], default=True
         If True, coerce any infinity-like values in the data to
         numpy.nan; if False, leave any infinity-like values as is.
     standardize_nan : Optional[bool], default=True
         If True, coerce all nan-like values in the data to numpy.nan; if
         False, leave all the nan-like values in the given state.
-    allowed_dimensionality : Optional[Iterable[numbers.Integral]] - The
-        allowed dimension of X. All entries must be greater than zero
-        and less than or equal to two. Examples: (1,)  {1,2}, [2]
+    allowed_dimensionality : Optional[Sequence[numbers.Integral]]
+        The allowed dimension of `X`. All entries must be greater than
+        zero and less than or equal to two. Examples: (1,)  {1,2}, [2].
     ensure_2d : Optional[bool], default=True
         Coerce the data to a 2-dimensional format. For example, a 1D
         numpy vector would be reshaped to a 2D numpy array; a 1D pandas
         series would be converted to a 2D pandas dataframe.
     order : Optional[Literal['C', 'F']], default='C'
-        Only applicable if X is a numpy array or :param: cast_to_ndarray
-        is True. Sets the memory order of X. 'C' is row-major and 'F' is
+        Only applicable if `X` is a numpy array or `cast_to_ndarray` is
+        True. Sets the memory order of `X`. 'C' is row-major and 'F' is
         column-major. The default for numpy arrays is 'C', and major
         packages like scikit typically expect to see numpy arrays with
         'C' order. pybear recommends that this parameter be used with
         understanding of the potential performance implications of
-        changing the memory order of X on downstream processes that may
-        be designed for 'C' order.
+        changing the memory order of `X` on downstream processes that
+        may be designed for 'C' order.
     ensure_min_features : Optional[numbers.Integral], default=1
-        The minimum number of features (columns) that must be in X.
+        The minimum number of features (columns) that must be in `X`.
     ensure_max_features : Optional[Union[numbers.Integral, None]]
-        The maximum number of features allowed in X; if not None, must
-        be greater than or equal to ensure_min_features. If None, then
-        there is no restriction on the maximum number of features in X.
+        The maximum number of features allowed in `X`; if not None, must
+        be greater than or equal to `ensure_min_features`. If None, then
+        there is no restriction on the maximum number of features in `X`.
     ensure_min_samples : Optional[numbers.Integral], default=1
-        The minimum number of samples (rows) that must be in X. Ignored
-        if :param: sample_check is not None.
+        The minimum number of samples (rows) that must be in `X`. Ignored
+        if `sample_check` is not None.
     sample_check : Optional[Union[numbers.Integral, None]]
-        The exact number of samples allowed in X. If not None, must be
+        The exact number of samples allowed in `X`. If not None, must be
         a non-negative integer. Use this to check, for example, that the
-        number of samples in y equals the number of samples in X. If
+        number of samples in `y` equals the number of samples in `X`. If
         None, this check is not performed.
 
     Returns
     -------
     X : array_like of shape (n_samples, n_features) or (n_samples,)
-        The validated data.
+        The validated, and possibly modified, data.
+
+    Examples
+    --------
+    >>> from pybear.base import validate_data
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> import scipy.sparse as ss
+    >>> X_np = np.array([[0, 1], [2, 3], [4, 5]], dtype=np.int8)
+    >>> X_pd = pd.DataFrame(data=X_np, columns=['A', 'B'])
+    >>> X_ss = ss.csr_array(X_np)
+    >>> kwargs = {
+    ... 'copy_X': False,
+    ... 'cast_to_ndarray': True,
+    ... 'accept_sparse': False,
+    ... 'dtype': 'any',
+    ... 'require_all_finite': False,
+    ... 'cast_inf_to_nan': False,
+    ... 'standardize_nan': False,
+    ... 'allowed_dimensionality': (1, 2),
+    ... 'ensure_2d': False,
+    ... 'order': 'C',
+    ... 'ensure_min_features': 1,
+    ... 'ensure_max_features': None,
+    ... 'ensure_min_samples': 1,
+    ... 'sample_check': None
+    ... }
+    >>>
+    >>> # demonstrate pandas dataframe is cast to ndarray
+    >>> out = validate_data(X_pd, **kwargs)
+    >>> print(out)
+    [[0 1]
+     [2 3]
+     [4 5]]
+    >>>
+    >>> # demonstrate scipy sparse is rejected
+    >>> try:
+    ...     validate_data(X_ss, **kwargs)
+    ... except Exception as e:
+    ...     print(repr(e)[:53])
+    TypeError("X is <class 'scipy.sparse._csr.csr_array'>
+    >>>
+    >>> # demonstrate numpy ndarray passes and is not mutated
+    >>> print(validate_data(X_np, **kwargs))
+    [[0 1]
+     [2 3]
+     [4 5]]
 
     """
 
@@ -211,9 +258,9 @@ def validate_data(
     # this is handled by check_shape()
     # # END ensure_max_features -- -- -- -- -- -- -- -- -- -- -- --
     #
-    # # ensure_min_samples / sample_check -- -- -- -- -- -- -- -- -- -- --
+    # # ensure_min_samples / sample_check -- -- -- -- -- -- -- -- -- --
     # this is handled by check_shape()
-    # # END ensure_min_samples / sample_check -- -- -- -- -- -- -- -- -- -
+    # # END ensure_min_samples / sample_check -- -- -- -- -- -- -- -- --
 
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *

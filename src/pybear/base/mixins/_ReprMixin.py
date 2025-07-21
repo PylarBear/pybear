@@ -21,7 +21,9 @@ import threading
 
 
 class ReprMixin:
-
+    """This mixin provided the `__repr__` magic method to pybear
+    transformers and estimators.
+    """
 
     def __repr__(self, N_CHAR_MAX=700):
         # N_CHAR_MAX is the (approximate) maximum number of non-blank
