@@ -5,6 +5,7 @@
 # License: BSD 3 clause
 
 
+
 from typing import Callable
 import numpy.typing as npt
 
@@ -20,22 +21,22 @@ import psutil
 
 def timer(orig_func) -> Callable:
     """Wraps a function with a timer that displays the time in seconds
-    it took for a function to run.
+    it took for the function to run.
 
     Parameters
     ----------
-    orig_func : callable
-        function to be timed when called
+    orig_func : Callable
+        Function to be timed when called.
 
     Returns
     -------
     wrapper : Callable
-        wrapped original function
+        Wrapped original function.
 
     Examples
     --------
     >>> from pybear.utilities import timer
-
+    >>>
     >>> @timer
     ... def my_function(x):
     ...     time.sleep(x)
@@ -84,17 +85,18 @@ def time_memory_benchmark(
     Parameters
     ----------
     *args
-        tuples of ('function_name', function, ARGS_AS_LIST, KWARGS_AS_DICT)
+        Tuples of ('function_name', function, ARGS_AS_LIST, KWARGS_AS_DICT).
     number_of_trials : numbers.Integral
-        number of times to run each given function. Given, for example,
+        Number of times to run each given function. Given, for example,
         two trials with functions f1, f2, and f3, runs are ordered as f1,
         f2, f3, f1, f2, f3, not f1, f1, f2, f2, f3, f3.
     rest_time : numbers.Real
-        time to rest in seconds before and after running a function to
+        Time to rest in seconds before and after running a function to
         allow for RAM equilibration. The rest time is not included in
         the reported computation time.
-    verbose : numbers.Real - print (verbose > 0) or do not print
-        (verbose=0) information to the screen during run time.
+    verbose : numbers.Real
+        Print (verbose > 0) or do not print (verbose=0) information to
+        the screen during run time.
 
     Returns
     -------
@@ -125,7 +127,6 @@ def time_memory_benchmark(
     Running trial 1...
          function_a...
          function_b...
-
     ********************************************************************
     Running trial 2...
          function_a...
@@ -134,6 +135,7 @@ def time_memory_benchmark(
     Done.
 
     function_a     time = 6.005 +/- 0.000 sec; mem = 0.000 +/- 0.000 MB
+
     function_b     time = 4.004 +/- 0.002 sec; mem = 0.000 +/- 0.000 MB
 
     >>> print(results) #doctest:+SKIP

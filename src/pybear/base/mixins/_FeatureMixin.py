@@ -6,7 +6,7 @@
 
 
 
-from typing import Iterable
+from typing import Sequence
 from typing_extensions import (
     TypeAlias,
     Union
@@ -30,7 +30,28 @@ XContainer: TypeAlias = \
 
 
 class FeatureMixin:
+    """This mixin manages feature names for pybear transformers and
+    estimators.
 
+    It is able to collect feature names from data containers, validate
+    them, and provides access points for users. This mixin provides
+    the `get_feature_names_out` method of the pybear API to pybear
+    transformers.
+
+    The `get_feature_names_out` method returns the features names that
+    correspond to the output of `transform`. This particular method can
+    only be used for transformers that do not alter the feature axis,
+    that is, the feature name output is one-to-one with the feature name
+    input. If the transformer does alter the feature axis of the data,
+    then a dedicated `get_feature_names_out` method will need to be used
+    in place of this one.
+
+    If you are trying to use this to build your own estimator or
+    transformer, it is probably better to explore this mixin in the
+    source code, because of hidden methods and documentation not exposed
+    in the online docs.
+
+    """
 
     def _check_n_features(
         self,
@@ -39,21 +60,22 @@ class FeatureMixin:
     ) -> int:
         """Set the `n_features_in_` attribute, or check against it.
 
-        pybear recommends calling reset=True in :meth:`fit` and in the
-        first call to :meth:`partial_fit`. All other methods that
-        validate `X` should set 'reset=False'.
+        pybear recommends calling `reset=True` in `fit` and in the first
+        call to `partial_fit`. All other methods that validate `X` should
+        set `reset=False`.
 
         Parameters
         ----------
-        X : array_like of shape (n_samples, n_features) or (n_samples,)
-            The input data; with a 'shape' attribute.
+        X : XContainer of shape (n_samples, n_features) or (n_samples,)
+            The input data, with a 'shape' attribute.
         reset : bool
-            If True, the `n_features_in_` attribute is set to 'X.shape[1]'
+            If True:
+                The `n_features_in_` attribute is set to `X.shape[1]`.
 
             If False:
-                if `n_features_in_` exists check it is equal to 'X.shape[1]'
+                If `n_features_in_` exists check it is equal to `X.shape[1]`.
 
-                if `n_features_in_` does *not* exist the check is skipped
+                If `n_features_in_` does *not* exist the check is skipped.
 
         Returns
         -------
@@ -105,38 +127,39 @@ class FeatureMixin:
     ) -> npt.NDArray[object]:
         """Set or check the `feature_names_in_` attribute.
 
-        pybear recommends setting 'reset=True' in :meth:`fit` and in the
+        pybear recommends setting `reset=True` in :meth:`fit` and in the
         first call to :meth:`partial_fit`. All other methods that validate
-        `X` should set 'reset=False'.
+        `X` should set `reset=False`.
 
         If reset is True:
-            Get the feature names from `X` and return. If `X` does not
-            have valid string feature names, return None.
-            `feature_names_in_` does not matter.
+            Get the feature names from `X` and return. If `X` does not have
+            valid string feature names, return None. `feature_names_in_`
+            passed as a parameter to the function does not matter.
 
         If reset is False:
             When `feature_names_in_` exists and the checks of this module
             are satisfied then `feature_names_in_` is always returned.
+
+            If `feature_names_in_` exists (a header was seen on first fit) and:
+                `X` has a header:
+                Validate that the feature names of `X` have the exact
+                names and order as those seen during fit. If they are equal,
+                return the feature names; if they are not equal, raise
+                ValueError.
+
+                `X` does not have a header:
+                Warn and return `feature_names_in_`.
+
             If `feature_names_in_` does not exist and the checks of this
             module are satisfied then None is always returned regardless
             of any header that the current `X` may have.
 
-            If `feature_names_in_` exists (a header was seen on first fit):
-                if `X` has a (valid) header:
-                    Validate that the feature names of `X` (if any) have
-                    the exact names and order as those seen during fit.
-                    If they are equal, return the feature names; if they
-                    are not equal, raise ValueError.
+            If `feature_names_in_` does not exist (a header was not seen
+            on the first fit) and:
 
-                if `X` does not have a (valid) header:
-                    Warn and return `feature_names_in_`.
+                `X` has a header:  Warn and return None.
 
-            If `feature_names_in_` does not exist (a header was not
-                seen on the first fit):
-
-                if `X` does not have a (valid) header: return None
-
-                if `X` has a (valid) header:  Warn and return None.
+                `X` does not have a header: return None
 
         Parameters
         ----------
@@ -144,12 +167,11 @@ class FeatureMixin:
             The data from which to extract feature names. `X` will
             provide feature names if it is a dataframe constructed with
             a valid header of strings. Some objects that are known to
-            yield feature names are pandas dataframes, dask dataframes,
-            and polars dataframes. If `X` does not have a valid header
-            then None is returned. Objects that are known to not yield
-            feature names are numpy arrays, dask arrays, and scipy sparse
-            matrices/arrays.                  .
-        feature_names_in_ : NDArray[object] of shape (n_features, )
+            yield feature names are pandas and polars dataframes. If `X`
+            does not have a valid header then None is returned. Objects
+            that are known to not yield feature names are numpy arrays
+            and scipy sparse matrices/arrays.                  .
+        feature_names_in_ : numpy.ndarray[object] of shape (n_features, )
             The feature names seen on the first fit, if an object with a
             valid header was passed on the first fit. None if feature
             names were not seen on the first fit.
@@ -160,7 +182,7 @@ class FeatureMixin:
 
         Returns
         -------
-        feature_names_in_ : Union[NDArray[object], None]
+        feature_names_in_ : Union[numpy.ndarray[object], None]
             The validated feature names if feature names were seen the
             last time reset was True. None if the estimator/transformer
             did not see valid feature names at the first fit.
@@ -213,36 +235,26 @@ class FeatureMixin:
 
     def get_feature_names_out(
         self,
-        input_features: Union[Iterable[str], None]=None
+        input_features: Union[Sequence[str], None]=None
     ) -> npt.NDArray[object]:
         """Return the feature name vector for the transformed output.
 
-        - If `input_features` is None, then :attr:`feature_names_in_` is
-          used as feature names in. If :attr:`feature_names_in_` is not
+        - If `input_features` is None, then :attr:`feature_names_in_`
+          is used as feature names in. If `feature_names_in_` is not
           defined, then the following input feature names are generated:
           '["x0", "x1", ..., "x(:attr:`n_features_in_` - 1)"]'.
-        - If :attr:`input_features` is an array-like, then :attr:`input_features`
-          must match :attr:`feature_names_in_` if :attr:`feature_names_in_`
-          is defined.
-
-        This mixin provides the get_feature_names_out() method of the
-        pybear API to pybear transformers. The `get_feature_names_out`
-        method returns the features names that correspond to the output
-        of :meth:`transform`. This particular mixin can only be used
-        for transformers that do not alter the feature axis, that is,
-        the feature name output is one-to-one with the feature name
-        input. If the transformer does alter the feature axis of the
-        data, then a dedicated `get_feature_names_out` method will need
-        to be used in place of this.
+        - If `input_features` is an array-like, then `input_features`
+          must match `feature_names_in_` if `feature_names_in_` is
+          defined.
 
         Parameters
         ----------
-        input_features : Union[Iterable[str], None]
+        input_features : Union[Sequence[str], None]
             Input features.
 
         Returns
         -------
-        feature_names_out : npt.NDArray[object]
+        feature_names_out : numpy.ndarray[object]
             The feature names for the transformed output.
 
         """

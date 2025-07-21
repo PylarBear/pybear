@@ -25,15 +25,19 @@ XContainer: TypeAlias = \
 def num_features(X: XContainer) -> int:
     """Return the number of features in an array-like `X`.
 
-    X must have a 'shape' attribute.
+    `X` must have a 'shape' attribute.
 
-    numpy, pandas, & polars: `X` must be 1 or 2 dimensional.
-    scipy: `X` must be 2 dimensional.
-    If `X` is a 1D vector (i.e., len(shape)==1), return 1.
+    numpy, pandas, & polars:
+        `X` must be 1 or 2 dimensional.
+
+    scipy:
+        `X` must be 2 dimensional.
+
+    If `X` is a 1D vector (i.e., `len(X.shape)==1`), return 1.
 
     Parameters
     ----------
-    X : array_like of shape (n_samples, n_features) or (n_samples,)
+    X : XContainer of shape (n_samples, n_features) or (n_samples,)
         Object to find the number of features in, that has a 'shape'
         attribute.
 

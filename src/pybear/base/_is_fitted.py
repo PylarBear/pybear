@@ -8,7 +8,8 @@
 
 from typing import (
     Callable,
-    Iterable
+    Iterable,
+    Sequence
 )
 from typing_extensions import (
     TypeAlias,
@@ -19,38 +20,34 @@ AllFunc: TypeAlias = Callable[[Iterable], bool]
 AnyFunc: TypeAlias = Callable[[Iterable], bool]
 
 
+
 def is_fitted(
     estimator,
-    attributes: Union[str, Iterable[str], None]=None,
+    attributes: Union[str, Sequence[str], None]=None,
     all_or_any: Union[AllFunc, AnyFunc]=all
 ) -> bool:
-
-    """
-    Determine if an estimator/transformer is fitted and return a boolean.
+    """Determine if an estimator/transformer is fitted and return a
+    boolean.
 
     'True' means fitted and 'False' means not fitted.
 
     This algorithm looks for 3 things, in the presented order.
 
     The estimator/transformer is fitted if it:
-        1) has a __pybear_is_fitted__ dunder method and it returns
+        1) has a `__pybear_is_fitted__` dunder method and it returns
             boolean True
-
-        2) has any or all attributes given by :param: `attributes`, if
-            it is passed; if not passed, this step is skipped
-
+        2) has any or all attributes given by `attributes`, if it is
+            passed; if not passed, this step is skipped
         3) has an attribute that ends with an underscore and does not
             start with double underscore.
 
     Parameters
     ----------
-    estimator : estimator/transformer instance
+    estimator : object
         Estimator/transformer instance for which the check is performed.
-
-    attributes : Union[str, Iterable[str], None], default=None
+    attributes : Union[str, Sequence[str], None], default=None
         Attribute name(s) given as string or a list/tuple of strings
         Eg.: "coef_" or ["coef_", "estimator_", ...]
-
     all_or_any : callable, {all, any}, default=all
         Specifies whether all or any of the given attributes must exist.
 
@@ -96,7 +93,7 @@ def is_fitted(
         pass
     except:
         raise ValueError(
-            f"'attributes' must be a string, Iterable[str], or None"
+            f"'attributes' must be a string, Sequence[str], or None"
         )
 
     if not (all_or_any is all or all_or_any is any):

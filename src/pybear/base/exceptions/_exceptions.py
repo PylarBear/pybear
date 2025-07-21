@@ -6,7 +6,6 @@
 
 
 
-
 class NotFittedError(ValueError, AttributeError):
     """Exception class to raise if estimator is used before fitting.
 
@@ -22,10 +21,9 @@ class NotFittedError(ValueError, AttributeError):
     >>> try:
     ...     CDT().transform(X)
     ... except NotFittedError as e:
-    ...     print(e)
+    ...     print(e)  # doctest:+SKIP
     This ColumnDeduplicateTransformer instance is not fitted yet.
     Call 'fit' with appropriate arguments before using this estimator.
-
 
     """
 

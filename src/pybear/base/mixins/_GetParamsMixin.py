@@ -13,11 +13,16 @@ from copy import deepcopy
 import inspect
 
 
+
 class GetParamsMixin:
+    """Provides the `get_params` method to estimators, transformers,
+    and GridSearch modules.
+    """
 
 
     def get_params(self, deep:Optional[bool]=True) -> dict[str, Any]:
         """Get parameters for this instance.
+
         The 'instance' may be a pybear estimator, transformer, or a
         gridsearch module that wraps a nested estimator or pipeline.
 
@@ -25,18 +30,18 @@ class GetParamsMixin:
         ----------
         deep : Optional[bool], default=True
             For instances that do not have nested instances in an
-            'estimator' attribute (such as estimators or transformers),
+            `estimator` attribute (such as estimators or transformers),
             this parameter is ignored and the same (full) set of
             parameters for the instance is returned regardless of the
             value of this parameter.
 
             For instances that have nested instances (such as a
             GridSearch instance with a nested estimator or pipeline) in
-            the 'estimator' attribute, deep=False will only return the
+            the `estimator` attribute, `deep=False` will only return the
             parameters for the wrapping instance. For example, a
             GridSearch module wrapping an estimator will only return
             parameters for the GridSearch instance, ignoring the
-            parameters of the nested instance. When deep=True, this
+            parameters of the nested instance. When `deep=True, this
             method returns the parameters of the wrapping instance as
             well as the parameters of the nested instance. When the
             nested instance is a single estimator, the full set of

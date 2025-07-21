@@ -15,9 +15,9 @@ base
     check_2D_str_array
     check_dtype
     check_feature_names
-    check_n_features
     check_is_finite
     check_is_fitted
+    check_n_features
     check_scipy_sparse
     check_shape
     copy_X
@@ -37,6 +37,7 @@ base
     ReprMixin
     SetOutputMixin
     SetParamsMixin
+    NotFittedError
 
 
 

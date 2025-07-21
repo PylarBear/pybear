@@ -18,48 +18,49 @@ from ..data_validation import validate_user_str_cs
 class DictMenuPrint:
     """Manage the display and operation of an interactive user menu.
 
-    Display the allowed menu options from a full menu to the screen.
+    Display the allowed sub-menu options from a full menu to the screen.
 
-    The 'choose' method displays the allowed menu options and offers
-    a validated prompt to select one of the options.
+    The :meth:`choose` method displays the allowed menu options and
+    offers a validated prompt to select one of the options.
 
     Parameters
     ----------
     MENU_DICT : dict[str, str]
-        Required, dictionary of unit-length alpha characters as keys and
-        the descriptions of their associated actions as values. keys are
-        case-sensitive.
+        Required. A Dictionary of unit-length alpha characters as keys
+        and the descriptions of their associated actions as values. Keys
+        are case-sensitive.
     disp_width : Optional[numbers.Integral], default=80
         The maximum number of characters to display per line.
     fixed_col_width : Optional[Union[numbers.Integral, None]], default=None
         Set a fixed width for each column of menu items in the display.
         DMP will determine a number of columns that causes the overall
-        width of the display to be less than or equal to 'disp_width'.
+        width of the display to be less than or equal to `disp_width`.
     allowed : Optional[Union[str, None]], default=None
-        Can only enter this if 'disallowed' is not entered, cannot enter
+        Can only enter this if `disallowed` is not entered, cannot enter
         both. The action keys that are allowed to be selected from the
-        full section available in MENU_DICT. case-sensitive. Enter as a
-        contiguous sequence of characters.
+        full selection available in `MENU_DICT`. case-sensitive. Enter
+        as a contiguous sequence of characters.
     disallowed : Optional[Union[str, None]], default=None
-        Can only enter this if 'allowed' is not entered, cannot enter
+        Can only enter this if `allowed` is not entered, cannot enter
         both. The action keys that are not allowed to be selected from
-        MENU_DICT. 'allowed' becomes the space of action keys that are
-        not disallowed. case-sensitive. Enter as a contiguous sequence
+        `MENU_DICT`. `allowed` becomes the space of action keys that are
+        not disallowed. Case-sensitive. Enter as a contiguous sequence
         of characters.
 
     Attributes
     ----------
     allowed : str
-        The positive space out of MENU_DICT that the user is allowed to
-        select from. This attribute is always the set of allowed options
-        determined at instantiation. The instance attribute IS NOT
-        overwritten by any 'allowed' or 'disallowed' passed to the
-        methods. The 'allowed' passed to or determined by the methods
-        is used only temporarily in place of the permanent 'allowed'
-        attribute. The menu associated the stored 'allowed' attribute
-        is always available as the default menu.
+        The positive space out of `MENU_DICT` that the user is allowed
+        to select from. This attribute is always the set of allowed
+        options determined at instantiation. The instance attribute IS
+        NOT overwritten by any `allowed` or `disallowed` passed to the
+        methods. The `allowed` passed to or determined by the methods
+        is used only temporarily in place of the permanent `allowed`
+        attribute. The menu associated with the stored `allowed`
+        attribute is always available as the default menu.
     all_allowed_str : str
-        The full set of possible options taken from the keys of MENU_DICT.
+        The full set of possible options taken from the keys of
+        `MENU_DICT`.
     disp_width : numbers.Integral
         The maximum character display width passed at instantiation or
         the default if not passed.
@@ -67,7 +68,24 @@ class DictMenuPrint:
         The fixed column width within the full display width passed at
         instantiation or the default if not passed.
     MENU_DICT : dict[str, str]
-        The MENU_DICT passed at instantiation.
+        The `MENU_DICT` passed at instantiation.
+
+    Examples
+    --------
+    >>> MENU_DICT = {
+    ...    'a': 'Apply Option 1', 'b': 'Apply Option 2',
+    ...    'c': 'Apply Option 3', 'd': 'Apply Option 4'
+    ... }
+    >>> DMP = DictMenuPrint(
+    ...    MENU_DICT,
+    ...    disp_width = 80,
+    ...    fixed_col_width = None,
+    ...    allowed = 'abcd',
+    ...    disallowed = None
+    ... )
+    >>> DMP.choose(allowed='ab', prompt='pick one')   # doctest:+SKIP
+    a) Apply Option 1     b) Apply Option 2
+    pick one >
 
     """
 
@@ -148,15 +166,23 @@ class DictMenuPrint:
         _allowed:Optional[Union[str, None]] = None,
         _disallowed:Optional[Union[str, None]] = None
     ) -> str:
-        """Validate allowed & disallowed, determine allowed, and return it.
+        """Validate `allowed` & `disallowed`, determine allowed, and
+        return it.
 
         Parameters
         ----------
-        _allowed : Optional[Union[str, None]] = None
+        _allowed : Optional[Union[str, None]], default = None
             Options in the full menu that the user is allowed to choose.
-        _disallowed : Optional[Union[str, None]] = None
+        _disallowed : Optional[Union[str, None]], default = None
             Options in the full menu that the user is not allowed to
             choose.
+
+        Returns
+        -------
+        __ : str
+            The allowed subset from `all_allowed_str`, arrived at by
+            applying the characters in `allowed` and `disallowed` against
+            the characters in `all_allowed_str`.
 
         """
 
@@ -205,14 +231,27 @@ class DictMenuPrint:
 
         if len(_allowed) == 0:
             raise ValueError(
-                f"the given values for 'allowed' or 'disallowed' have left no "
-                f"allowwed menu choices."
+                f"the given values for 'allowed' or 'disallowed' have left "
+                f"no allowed menu choices."
             )
 
         return _allowed
 
 
     def _generate_subdict_and_print(self, _allowed: str):
+        """Print the allowed menu options to screen.
+
+        Parameters
+        ----------
+        allowed : str
+            The subset of the fullset of menu options that are to be
+            printed to screen.
+
+        Returns
+        -------
+        None
+
+        """
 
         SUB_DICT = {
             k: v for k, v in self.MENU_DICT.items() if k in _allowed
@@ -252,26 +291,31 @@ class DictMenuPrint:
 
         Prompts the user for a case-sensitive selection. Returns the
         single-character action command selected by the user. The default
-        menu associated with the 'allowed' action keys that were passed
+        menu associated with the `allowed` action keys that were passed
         at instantiation is available by passing no kwargs, or pass
-        custom 'allowed' or 'disallowed' to generate a different menu
-        for the one time. The custom 'allowed' or 'disallowed' that are
-        passed here DO NOT overwrite the 'allowed' attribute of the
+        custom `allowed` or `disallowed` to generate a different menu
+        for the one time. The custom `allowed` or `disallowed` that are
+        passed here DO NOT overwrite the `allowed` attribute of the
         instance, that will always be available as the default menu.
 
         Parameters
         ----------
         allowed : Optional[Union[str, None]], default=None
-            Can only enter this if 'disallowed' is not entered, cannot
-            enter both. The action keys that are allowed to be selected
-            from the full section available in MENU_DICT. case-sensitive.
-            Enter as a contiguous sequence of characters.
+            Can only enter this if `disallowed` is not entered,
+            cannot enter both. The action keys that are allowed to be
+            selected from the full section available in `MENU_DICT`.
+            Case-sensitive. Enter as a contiguous sequence of characters.
         disallowed : Optional[Union[str, None]], default=None
-            Can only enter this if 'allowed' is not entered, cannot
+            Can only enter this if `allowed` is not entered, cannot
             enter both. The action keys that are not allowed to be
-            selected from MENU_DICT. 'allowed' becomes the space of
-            action keys that are not disallowed. case-sensitive. Enter
+            selected from `MENU_DICT`. `allowed` becomes the space of
+            action keys that are not disallowed. Case-sensitive. Enter
             as a contiguous sequence of characters.
+
+        Returns
+        -------
+        char : str
+            The value of the menu item selected by the user.
 
         """
 

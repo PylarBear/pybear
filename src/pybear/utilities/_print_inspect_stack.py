@@ -16,11 +16,10 @@ def print_inspect_stack(inspect_stack: Callable):
     Pass inspect.stack (not inspect.stack()) to this in body of a
     function or module to print its stack hierarchy to screen.
 
-
     Parameters
     ----------
     inspect_stack:
-        inspect.stack from the calling function / module
+        inspect.stack from the calling function / module.
 
     Returns
     -------

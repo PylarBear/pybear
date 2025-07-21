@@ -6,7 +6,7 @@
 
 
 
-from typing import Iterable
+from typing import Sequence
 from typing_extensions import Any
 
 from collections import defaultdict
@@ -14,18 +14,18 @@ from collections import defaultdict
 
 
 def union_find(
-    pairs: Iterable[Iterable[Any]]
+    pairs: Sequence[Sequence[Any]]
 ) -> tuple[tuple[Any, Any], ...]:
     """Use the union-find algorithm to find groups of connected values
     from disjoint pairs of connected values.
 
-    Requires an iterable list-like container holding iterable list-like
+    Requires an sequence list-like container holding sequence list-like
     pairs of values. The contents of the pairs are not validated, but
-    must hashable by a python dictionary and must be compatible with
+    must be hashable by a Python dictionary and must be compatible with
     python '==' and '!=' operators. Python lists and tuples are tested
     and recommended, though other list-like containers such as sets and
     numpy arrays are likely to work. The output is not sorted in any way;
-    any sorting needs to be done external to union_find.
+    any sorting needs to be done external to `union_find`.
 
     Parameters
     ----------

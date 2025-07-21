@@ -18,9 +18,9 @@ def check_pipeline(
     """Validate a pipeline setup.
 
     In particular, the construction of the steps attribute. Validate that
-    'steps' is a list of tuples. In the first position of each tuple must
+    `steps` is a list of tuples. In the first position of each tuple must
     be a string. The second position of each tuple must contain a class
-    instance that has a 'fit' method.
+    instance that has a `fit` method.
 
     Parameters
     ----------

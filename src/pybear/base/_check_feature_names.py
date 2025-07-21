@@ -28,38 +28,38 @@ def check_feature_names(
 ) -> Union[npt.NDArray[object], None]:
     """Set or check the `feature_names_in_` attribute.
 
-    pybear recommends setting 'reset=True' in :meth:`fit` and in the
+    pybear recommends setting `reset=True` in :meth:`fit` and in the
     first call to :meth:`partial_fit`. All other methods that validate
-    `X` should set 'reset=False'.
+    `X` should set `reset=False`.
 
     If reset is True:
         Get the feature names from `X` and return. If `X` does not have
         valid string feature names, return None. `feature_names_in_`
-        does not matter.
+        passed as a parameter to the function does not matter.
 
     If reset is False:
-        When `feature_names_in_` exists and the checks of this module are
-        satisfied then `feature_names_in_` is always returned. If
-        `feature_names_in_` does not exist and the checks of this module
-        are satisfied then None is always returned regardless of any
-        header that the current `X` may have.
+        When `feature_names_in_` exists and the checks of this module
+        are satisfied then `feature_names_in_` is always returned.
 
         If `feature_names_in_` exists (a header was seen on first fit) and:
-            `X` has a (valid) header:
-            Validate that the feature names of `X` (if any) have the
-            exact names and order as those seen during fit. If they are
-            equal, return the feature names; if they are not equal, raise
-            ValueError.
+            `X` has a header:
+            Validate that the feature names of `X` have the exact names
+            and order as those seen during fit. If they are equal, return
+            the feature names; if they are not equal, raise ValueError.
 
-            `X` does not have a (valid) header:
+            `X` does not have a header:
             Warn and return `feature_names_in_`.
 
+        If `feature_names_in_` does not exist and the checks of this
+        module are satisfied then None is always returned regardless of
+        any header that the current `X` may have.
+
         If `feature_names_in_` does not exist (a header was not seen on
-            first fit) and:
+        first fit) and:
 
-            `X` does not have a (valid) header: return None
+            `X` has a header:  Warn and return None.
 
-            `X` has a (valid) header:  Warn and return None.
+            `X` does not have a header: return None
 
     Parameters
     ----------
@@ -67,11 +67,11 @@ def check_feature_names(
         The data from which to extract feature names. `X` will provide
         feature names if it is a dataframe constructed with a valid
         header of strings. Some objects that are known to yield feature
-        names are pandas dataframes, dask dataframes, and polars
-        dataframes. If `X` does not have a valid header then None is
-        returned. Objects that are known to not yield feature names are
-        numpy arrays, dask arrays, and scipy sparse matrices/arrays.                  .
-    feature_names_in_ : NDArray[object] of shape (n_features, )
+        names are pandas and polars dataframes. If `X` does not have a
+        valid header then None is returned. Objects that are known to
+        not yield feature names are numpy arrays and scipy sparse
+        matrices/arrays.                  .
+    feature_names_in_ : numpy.ndarray[object] of shape (n_features, )
         The feature names seen on the first fit, if an object with a
         valid header was passed on the first fit. None if feature names
         were not seen on the first fit.
@@ -82,10 +82,23 @@ def check_feature_names(
 
     Returns
     -------
-    feature_names_in_ : Union[NDArray[object], None]
+    feature_names_in_ : Union[numpy.ndarray[object], None]
         The validated feature names if feature names were seen the last
         time reset was set to True. None if the estimator/transformer
         did not see valid feature names at the first fit.
+
+    Examples
+    --------
+    >>> from pybear.base import check_feature_names
+    >>> import pandas as pd
+    >>> import numpy as np
+    >>> data = np.random.randint(0, 10, (5, 3))
+    >>> feature_names_in_ = np.array(['a', 'b', 'c'])
+    >>> X = pd.DataFrame(data=data, columns=list('abc'))
+
+    # Verify accepts a valid header and returns it
+    >>> check_feature_names(X, feature_names_in_=feature_names_in_, reset=False)
+    array(['a', 'b', 'c'], dtype='<U1')
 
     """
 

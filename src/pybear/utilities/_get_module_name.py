@@ -16,7 +16,8 @@ def get_module_name(sys_modules_string:str) -> str:
     Parameters
     ----------
     sys_modules_string : str
-        Must be passed as 'str(sys.modules[__name__])'.
+        Must be passed as 'str(sys.modules[__name__])' in the calling
+        module.
 
     Returns
     -------

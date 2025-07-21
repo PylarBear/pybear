@@ -8,7 +8,7 @@
 
 from typing import (
     Literal,
-    Iterable
+    Sequence
 )
 from typing_extensions import (
     Any,
@@ -24,18 +24,18 @@ def check_scipy_sparse(
     allowed: Union[
         Literal[False],
         None,
-        Iterable[Literal["csr", "csc", "coo", "dia", "lil", "dok", "bsr"]]
+        Sequence[Literal["csr", "csc", "coo", "dia", "lil", "dok", "bsr"]]
     ]
 ) -> None:
     """Check whether a passed data container is a scipy sparse matrix /
     array.
 
     If it is, check the type against the allowed types specified by the
-    user in :param: allowed. If `X` is not a scipy sparse container,
-    skip all checks and return None. If `X` is an allowed scipy sparse
-    container, return None. If `X` is a disallowed scipy container, do
-    not recast the passed container to a valid scipy sparse container
-    but raise a TypeError.
+    user in `allowed`. If `X` is not a scipy sparse container, skip all
+    checks and return None. If `X` is an allowed scipy sparse container,
+    return None. If `X` is a disallowed scipy container, do not recast
+    the passed container to a valid scipy sparse container but raise a
+    TypeError.
 
     Parameters
     ----------
@@ -44,25 +44,49 @@ def check_scipy_sparse(
         matrix / array. This parameter is not checked for being a valid
         data container. It only undergoes checks if it is a scipy sparse
         container.
-    allowed : Union[Literal[False], None, Iterable[str]]
+    allowed : Union[Literal[False], None, Sequence[str]]
         If None or False, disallow any scipy sparse containers. Otherwise,
-        a vector-like iterable of literals indicating the types of scipy
-        sparse matrices / arrays that are allowed. If a disallowed scipy
-        sparse type is passed it is not recast to a valid type, but a
-        TypeError is raised.
+        a vector-like sequence of literals indicating the types of scipy
+        sparse matrices / arrays that are allowed.  Valid literals are
+        'csr', 'csc', 'coo', 'dia', 'lil', 'dok', and 'bsr'. If a
+        disallowed scipy sparse type is passed it is not recast to a
+        valid type, but a TypeError is raised.
+
+    Raises
+    ------
+    TypeError:
+        If `allowed` is None or False and `X` is a scipy sparse container.
+
+        If `X` is a scipy sparse container but not one of the allowed
+        containers.
 
     Returns
     -------
     None
+
+    Examples
+    --------
+    >>> from pybear.base import check_scipy_sparse
+    >>> import numpy as np
+    >>> import scipy.sparse as ss
+    >>> X_np = np.random.uniform(0, 1, (5, 3))
+    >>> X_csc = ss.csc_array(X_np)
+    >>> print(check_scipy_sparse(X_csc, ['csc', 'csr', 'coo']))
+    None
+    >>> try:
+    ...     check_scipy_sparse(X_csc, False)
+    ... except Exception as e:
+    ...     print(repr(e)[:53])
+    TypeError("X is <class 'scipy.sparse._csc.csc_array'>
 
     """
 
     # all of this just to validate :param: 'allowed'
 
     err_msg = (f":param: 'allowed' must be None, literal False, or a "
-        f"vector-like iterable of literals indicating the types of scipy "
+        f"vector-like sequence of literals indicating the types of scipy "
         f"sparse containers that are allowed. see the docs for the valid "
-        f"literals accepted in the :param: 'allowed' iterable.")
+        f"literals accepted in the :param: 'allowed' sequence.")
 
     try:
         if allowed is None:

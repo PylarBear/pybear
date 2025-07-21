@@ -5,12 +5,37 @@
 #
 
 
+
+from typing_extensions import (
+    TypeAlias,
+    Union
+)
+from .__type_aliases import (
+    PandasTypes,
+    PolarsTypes
+)
+
 import numpy as np
 import pandas as pd
 import polars as pl
 import scipy.sparse as ss
 
 from ._copy_X import copy_X as _copy_X
+
+
+
+NumpyTypes: TypeAlias = \
+    Union[np.ndarray, np.ma.MaskedArray]
+
+ScipySparseTypes: TypeAlias = \
+    Union[
+        ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
+        ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
+        ss.lil_matrix, ss.lil_array, ss.bsr_matrix, ss.bsr_array
+    ]
+
+XContainer: TypeAlias = \
+    Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
 
 
 
@@ -37,6 +62,43 @@ def ensure_2D(
     -------
     X : array_like of shape (n_samples, n_features)
         The data in a 2-dimensional container.
+
+    Notes
+    -----
+
+    **Type Aliases**
+
+    NumpyTypes:
+        Union[numpy.ndarray, numpy.ma.MaskedArray]
+
+    PandasTypes:
+        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+
+    PolarsTypes:
+        Union[polars.series.Series, polars.dataframe.DataFrame]
+
+    ScipySparseTypes:
+        Union[
+            ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
+            ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
+            ss.lil_matrix, ss.lil_array, ss.bsr_matrix, ss.bsr_array
+        ]
+
+    XContainer:
+        Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+
+    Examples
+    --------
+    >>> from pybear.base import ensure_2D
+    >>> import numpy as np
+    >>> X = np.array([1, 2, 3, 4, 5], dtype=np.int8)
+    >>> out = ensure_2D(X, copy_X=True)
+    >>> print(out)
+    [[1]
+     [2]
+     [3]
+     [4]
+     [5]]
 
     """
 

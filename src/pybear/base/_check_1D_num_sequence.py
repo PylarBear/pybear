@@ -43,28 +43,28 @@ def check_1D_num_sequence(
 ) -> None:
     """Validate things that are expected to be 1D sequences of numbers.
 
-    Accepts 1D python built-ins, numpy arrays, pandas series, and polars
-    series. When `require_all_finite` is True, every element in the
-    sequence must be an instance of numbers.Number; a ValueError will be
-    raised if there are any nan-like or infinity-like values. If
-    `require_all_finite` is False, non-finite values are ignored and
-    only the finite values must be an instance of numbers.Number. If all
-    checks pass then None is returned.
+    Accepts 1D Python built-ins, numpy arrays, pandas series, and
+    polars series. When `require_all_finite` is True, every element in
+    the sequence must be an instance of numbers.Number; a ValueError
+    will be raised if there are any nan-like or infinity-like values.
+    If `require_all_finite` is False, non-finite values are ignored
+    and only the finite values must be an instance of numbers.Number.
+    If all checks pass then None is returned.
 
     Parameters
     ----------
     X : XContainer[numbers.Number] of shape (n_samples,)
-        something that is expected to be a 1D sequence of numbers.
+        Something that is expected to be a 1D sequence of numbers.
     require_all_finite : Optional[bool], default=False
-        if True, disallow all non-finite values, such as nan-like or
+        If True, disallow all non-finite values, such as nan-like or
         infinity-like values.
 
     Raises
     ------
     TypeError:
-        for invalid container
+        For invalid container.
     ValueError:
-        for non-finite values when `require_all_finite` is True
+        For non-finite values when `require_all_finite` is True.
 
     Returns
     -------
@@ -95,7 +95,6 @@ def check_1D_num_sequence(
     >>> from pybear.base import check_1D_num_sequence
     >>> X = [1, 2, 3, np.nan, 4]
     >>> check_1D_num_sequence(X, require_all_finite=False)
-
     >>> try:
     ...     check_1D_num_sequence(X, require_all_finite=True)
     ... except ValueError as e:

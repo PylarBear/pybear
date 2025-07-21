@@ -42,14 +42,14 @@ def check_dtype(
     allowed:Optional[Literal['numeric', 'str', 'any']] = 'any',
     require_all_finite:Optional[bool] = False
 ) -> None:
-    """Check that the passed data contains a datatype that is allowed.
+    """Check that the passed data is of an allowed datatype.
 
     If not, raise TypeError. Allowed dtypes are 'any', 'numeric', and
     'str'. If all checks pass then return None.
 
     Parameters
     ----------
-    X : array_like of shape (n_samples, n_features) or (n_samples,)
+    X : XContainer of shape (n_samples, n_features) or (n_samples,)
         The data to be checked for allowed datatype.
     allowed : Optional[Literal['numeric', 'str', 'any']], default='any'
         The allowed datatype for the data. If 'numeric', only allow
@@ -100,13 +100,11 @@ def check_dtype(
     >>> from pybear.base import check_dtype
     >>> X = [1, 3, 5, np.nan]
     >>> check_dtype(X, allowed='numeric', require_all_finite=False)
-
     >>> try:
     ...     check_dtype(X, allowed='str', require_all_finite=False)
     ... except TypeError as e:
     ...     print(repr(e))
     TypeError('Expected a 1D sequence of string-like values. ')
-
     >>> try:
     ...     check_dtype(X, allowed='numeric', require_all_finite=True)
     ... except ValueError as e:

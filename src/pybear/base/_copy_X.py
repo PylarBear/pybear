@@ -44,21 +44,21 @@ XContainer: TypeAlias = \
 def copy_X(
     X: XContainer
 ) -> XContainer:
-    """Make a deep copy of X.
+    """Make a deep copy of `X`.
 
-    Can take python lists, tuples, and sets, numpy ndarrays and masked
+    Can take Python lists, tuples, and sets, numpy ndarrays and masked
     arrays, pandas dataframes and series, polars dataframes and series,
     and scipy sparse matrices/arrays.
 
     Parameters
     ----------
-    X : XContainer
+    X : XContainer of shape (n_samples, n_features) or (n_samples,)
         The data to be copied.
 
     Returns
     -------
     X : XContainer
-        A deep copy of X.
+        A deep copy of `X`.
 
     Notes
     -----
@@ -84,10 +84,12 @@ def copy_X(
             ss.bsr_matrix, ss.bsr_array
         ]
 
+    XContainer:
+        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, SparseTypes]
+
     Examples
     --------
     >>> from pybear.base import copy_X
-    >>> import numpy as np
     >>> import pandas as pd
     >>> X = pd.DataFrame([[1, 2], [3, 4], [5, 6]])
     >>> X

@@ -41,7 +41,7 @@ def check_1D_str_sequence(
 ) -> None:
     """Validate things that are expected to be 1D sequences of strings.
 
-    Accepts 1D python built-ins, numpy arrays, pandas series, and polars
+    Accepts 1D Python built-ins, numpy arrays, pandas series, and polars
     series. When `require_all_finite` is True, every element in the
     sequence must be an instance of str; a ValueError will be
     raised if there are any nan-like or infinity-like values. If
@@ -52,17 +52,17 @@ def check_1D_str_sequence(
     Parameters
     ----------
     X : XContainer[str] of shape (n_samples, )
-        something that is expected to be a 1D sequence of strings.
+        Something that is expected to be a 1D sequence of strings.
     require_all_finite : Optional[bool], default=False
-        if True, disallow all non-finite values, such as nan-like or
+        If True, disallow all non-finite values, such as nan-like or
         infinity-like values.
 
     Raises
     ------
     TypeError:
-        for invalid container
+        For invalid container.
     ValueError:
-        for non-finite values when `require_all_finite` is True
+        For non-finite values when `require_all_finite` is True.
 
     Returns
     -------
@@ -93,7 +93,6 @@ def check_1D_str_sequence(
     >>> from pybear.base import check_1D_str_sequence
     >>> X = ['a', 'b', 'c', 'nan', 'd']
     >>> check_1D_str_sequence(X, require_all_finite=False)
-
     >>> try:
     ...     check_1D_str_sequence(X, require_all_finite=True)
     ... except ValueError as e:

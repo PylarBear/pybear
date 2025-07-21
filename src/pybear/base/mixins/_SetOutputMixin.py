@@ -23,40 +23,43 @@ from pybear.utilities._nan_masking import nan_mask
 class SetOutputMixin:
     """This mixin provides the `set_output` method to pybear transformers.
 
-    Use `set_output` to set the container of the output for :meth:`transform`
-    and :meth:`fit_transform` (when FitTransformMixin is used.) Use
-    the `_set_output_for_transform` method to decorate `transform` in
-    the child class. This rendition of `set_output` does not require that
-    the `get_feature_names_out` method exist. If there is no
+    Use `set_output` to set the container of the output for `transform`
+    and `fit_transform` (when the FitTransformMixin is used.) Use the
+    `_set_output_for_transform` method to decorate `transform` in
+    the child class. This rendition of `set_output` does not require
+    that the `get_feature_names_out` method exist. If there is no
     `get_feature_names_out` method, range(X.shape[1]) is passed to
     pandas/polars for column names.
+
     """
 
     def set_output(
         self,
         transform: Union[Literal['default', 'pandas', 'polars'], None] = None
     ):
-        """Set the output container when :meth:`transform`
-        and :meth:`fit_transform` are called.
+        """Set the output container when the `transform` and
+        `fit_transform` methods or the transformer are called.
 
         Parameters
         ----------
         transform : Union[Literal['default', 'pandas', 'polars'], None],
-            default = None
-            Configure the output of transform and fit_transform.
 
-            -'default': Default output format of a transformer (numpy array)
+            The default value for the `transform` parameter is None.
 
-            -'pandas': pandas dataframe output
+            Configure the output of `transform` and `fit_transform`.
 
-            -'polars': polars dataframe output
+            'default': Default output format (numpy array)
 
-            -None: Transform configuration is unchanged
+            'pandas': pandas dataframe output
+
+            'polars': polars dataframe output
+
+            None: The output container is the same as the given container.
 
         Returns
         -------
         self : object
-            This instance.
+            The transformer instance.
 
         """
 
@@ -84,9 +87,9 @@ class SetOutputMixin:
 
 
     def _set_output_for_transform(foo):
-        """This method decorates :meth:`transform` in pybear transformers.
+        """This method decorates `transform` in pybear transformers.
 
-        When SetOutputMixin is passed to a child transformer, decorate the
+        When `SetOutputMixin` is passed to a child transformer, decorate the
         `transform` method with @SetOutputMixin._set_output_for_transform.
 
         """
