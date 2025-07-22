@@ -7,7 +7,7 @@
 
 
 from ....__shared._utilities._view_text_snippet import view_text_snippet
-from ......base import validate_user_input as vui
+from ......base._validate_user_input import validate_user_str
 
 
 
@@ -62,7 +62,7 @@ def _quasi_auto_word_splitter(
                   f'*{_word[split_idx:]}* ***\n')
             # if user does not like the suggested split, continue making
             # & recommending splits. if no more splits, return the empty _NEW_LINE.
-            if vui.validate_user_str(f'Accept? (y/n) > ', 'YN') == 'Y':
+            if validate_user_str(f'Accept? (y/n) > ', 'YN') == 'Y':
 
                 _NEW_WORDS.append(_word[:split_idx])
                 _NEW_WORDS.append(_word[split_idx:])

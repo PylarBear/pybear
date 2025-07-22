@@ -6,7 +6,7 @@
 
 
 
-from ......base import validate_user_input as vui
+from ......base._validate_user_input import validate_user_str
 
 
 def _word_editor(
@@ -40,7 +40,7 @@ def _word_editor(
 
         _word = input(f'{_prompt} > ')
 
-        if vui.validate_user_str(
+        if validate_user_str(
             f'User entered *{_word}* -- accept? (y/n) > ', 'YN'
         ) == 'Y':
             break
