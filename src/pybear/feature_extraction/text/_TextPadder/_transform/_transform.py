@@ -20,7 +20,7 @@ def _transform(
 ) -> list[list[str]]:
     """Pad ragged `X` vector with fill value to make a full array.
 
-    Returns a Python list of python lists of strings.
+    Returns a Python list of Python lists of strings.
 
     Parameters
     ----------

@@ -19,10 +19,7 @@ def _val_numerical_param_value(
     _num_param_value: InNumParamType,
     _total_passes: numbers.Integral
 ) -> None:
-
-
-    """
-    Validate _num_param_value.
+    """Validate `_num_param_value`.
 
     COMES IN AS
     list-like(
@@ -44,24 +41,20 @@ def _val_numerical_param_value(
     powers that are like 10^0.5, 10^0.6, ..., but you can have powers
     like 10^2, 10^4, ...
 
-
     Parameters
     ----------
-    _num_param_key:
-        str - the estimator parameter name to be grid-searched.
-    _num_param_value:
-        InNumParamType - the list-like of instructions for the multi-pass
-        grid search of this numerical parameter.
-    _total_passes:
-        numbers.Integral - the total number of rounds of gridsearch
-        entered by the user at init.
-
+    _num_param_key : str
+        The estimator parameter name to be grid-searched.
+    _num_param_value : InNumParamType
+        The list-like of instructions for the multi-pass grid search of
+        this numerical parameter.
+    _total_passes : numbers.Integral
+        The total number of rounds of gridsearch entered by the user at
+        init.
 
     Returns
     -------
-    -
-        None
-
+    None
 
     """
 

@@ -38,7 +38,7 @@ Every pybear estimator/transformer seeks to fulfill 4 objectives:
 
 2) fast processing with parallelism: use joblib when there is benefit
 
-3) bigger than memory data: every module has a partial_fit method for incremental learning
+3) bigger than memory data: every module is capable of incremental learning
 
 4) accept all common containers: accepts numpy, pandas, polars, and scipy sparse containers. 
 

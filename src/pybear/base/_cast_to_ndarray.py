@@ -57,7 +57,7 @@ def cast_to_ndarray(
     Returns
     -------
     X : numpy.ndarray
-        The original data converted to NDArray.
+        The original data converted to numpy.ndarray.
 
     Notes
     -----

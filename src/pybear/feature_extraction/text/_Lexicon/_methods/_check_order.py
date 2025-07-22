@@ -16,13 +16,13 @@ def _check_order(
     """Determine if the lexicon files are out of alphabetical order.
 
     Compare the words as stored against a sorted vector of the words.
-    Displays any out-of-order words to screen and return a python list
+    Displays any out-of-order words to screen and return a Python list
     of the words.
 
     Parameters
     ----------
     lexicon_ : list[str]
-        The python list containing the pybear lexicon.
+        The Python list containing the pybear lexicon.
 
     Returns
     -------

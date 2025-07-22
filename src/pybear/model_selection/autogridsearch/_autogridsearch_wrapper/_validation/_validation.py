@@ -29,12 +29,10 @@ def _validation(
     _max_shifts: Union[None, numbers.Integral],
     _agscv_verbose: bool
 ) -> None:
+    """Centralized hub for validation.
 
-    """
-    Centralized hub for validation. The heavy lifting is handled by
-    the individual submodules. See the individual modules for more
-    information.
-
+    The heavy lifting is handled by the individual submodules. See the
+    individual modules for more information.
 
     Parameters
     ----------
@@ -49,12 +47,9 @@ def _validation(
     _agscv_verbose:
         bool
 
-
     Returns
     -------
-    -
-        None
-
+    None
 
     """
 

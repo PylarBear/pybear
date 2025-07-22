@@ -134,7 +134,7 @@ class TextSplitter(
     TextSplitter accepts 1D list-like vectors of strings. Accepted
     containers include Python lists, tuples, and sets, numpy vectors,
     pandas series, and polars series. Output is always returned as a
-    python list of python lists of strings.
+    Python list of Python lists of strings.
 
     Parameters
     ----------

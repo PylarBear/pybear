@@ -47,7 +47,7 @@ class NanStandardizer(
     For details, see the docs for :func:`nan_mask_numerical`
     and :func:`nan_mask_string`.
 
-    This transformer accepts python built-ins, numpy arrays, pandas
+    This transformer accepts Python built-ins, numpy arrays, pandas
     dataframes/series, and polars dataframes/series of shape (n_samples,
     n_features) or (n_samples, ) and returns the same container with the
     value specified by the `new_value` parameter in the former positions

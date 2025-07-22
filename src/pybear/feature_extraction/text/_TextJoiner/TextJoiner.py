@@ -49,7 +49,7 @@ class TextJoiner(
 
     When passed a 2D array-like of strings, `TextJoiner` (TJ) joins each
     row-wise sequence of strings on the value given by `sep` and returns
-    a 1D python list of joined strings in place of the original inner
+    a 1D Python list of joined strings in place of the original inner
     containers.
 
     The `sep` parameter can be passed as a single character string, in
@@ -76,7 +76,7 @@ class TextJoiner(
     TJ has one attribute, :attr:`n_rows_`, which is only available after
     data has been passed to :meth:`transform`. `n_rows_` is the number
     of rows of text seen in the original data, and must be the number of
-    strings in the returned 1D python list.
+    strings in the returned 1D Python list.
 
     Parameters
     ----------
@@ -89,9 +89,7 @@ class TextJoiner(
 
     Attributes
     ----------
-    n_rows_ : int
-        The number of rows of text seen during transform and the number
-        of strings in the returned 1D python list.
+    n_rows_
 
     Notes
     -----
@@ -151,7 +149,7 @@ class TextJoiner(
         """Get the `n_rows_` attribute.
 
         The number of rows of text seen during transform and the number
-        of strings in the returned 1D python list.
+        of strings in the returned 1D Python list.
 
         Returns
         -------
@@ -168,7 +166,7 @@ class TextJoiner(
 
 
     def get_metadata_routing(self):
-        """`get_metadata_routing` is not implemented in TextJoiner"""
+        """`get_metadata_routing` is not implemented in TextJoiner."""
         raise NotImplementedError(
             f"'get_metadata_routing' is not implemented in TextJoiner"
         )
@@ -241,10 +239,10 @@ class TextJoiner(
         X:XContainer,
         copy:Optional[bool] = False
     ) -> XWipContainer:
-        """Convert each row of strings in X to a single string.
+        """Convert each row of tokenized strings in X to a single string.
 
         Joining on the string character sequence(s) provided by `sep`.
-        Returns a python list of strings.
+        Returns a Python list of strings.
 
         Parameters
         ----------

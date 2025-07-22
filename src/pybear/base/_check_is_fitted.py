@@ -83,7 +83,7 @@ def check_is_fitted(
         If the value passed to `msg` is not a string or None.
 
         If the function passed to `all_or_any` is not one of the built-in
-        python all() or any() functions.
+        Python all() or any() functions.
 
     NotFittedError
         If the estimator/transformer fails all 3 checks for being fit.

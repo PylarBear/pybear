@@ -64,24 +64,68 @@ class NGramMerger(
     will find blocks of words that you specify and join them by a
     separator of your choosing to create a single contiguous string.
 
-    NGM works from top-to-bottom and left-to-right across the data,
-    using a forward-greedy approach to merging n-grams. For example, if
-    you passed an n-gram pattern of [('BACON', 'BACON')], and in the text
-    body there is a line that contains ...'BACON', 'BACON', 'BACON', ...
-    NGM will apply the n-gram as 'BACON_BACON', 'BACON'. This aspect of
-    NGM's operation cannot be changed. When using wrapped searches (read
-    on for more information about wrapping), the same forward-greedy
-    technique is applied. Consider, for example, a case where a pattern
-    match exists at the end of one line and into the next line, but in
-    the next line there is an overlapping match. NGM will apply the
-    wrapped match first because it is first in the working order, and
-    consume the words out of the overlap, destroying the second matching
-    pattern.
+    NGM has dual functionality. N-grams can be searched using literal
+    strings or regular expressions. For those of you who do not know
+    regex, you can safely ignore any references to flags, re.compile,
+    or re.Pattern, and just use literal strings. Provide literal strings
+    and/or re.compile objects containing your regex patterns intended to
+    match full strings. DO NOT PASS A REGEX PATTERN AS A LITERAL STRING.
+    YOU WILL NOT GET THE CORRECT RESULT. ALWAYS PASS REGEX PATTERNS IN A
+    re.compile OBJECT. DO NOTESCAPE LITERAL STRINGS, NGM WILL DO THAT
+    FOR YOU. If you don't know what any of that means, then you don't
+    need to worry about it.
 
-    NGM handles all pattern matches as mutually exclusive. Overlapping
-    match patterns are not acknowledged. When NGM finds a pattern match,
-    it will immediately jump to the next word AFTER the pattern, not
-    the next word within the pattern.
+    NGM accepts n-gram patterns in Python sequences passed to the
+    `ngrams` parameter. In each position of the sequence(s), specify the
+    whole-string pattern for each individual string to be searched for
+    in your text. NGM always looks for full matches against tokens, it
+    does not do partial matches.
+
+    N-gram searches always default to case-sensitive, but can be made
+    to be case-insensitive. You can globally set this behavior via the
+    `case_sensitive` parameter. For those of you that know regex, you
+    can also put flags in the re.compile objects passed to `ngrams`, or
+    flags can be set globally via `flags`. Case-sensitivity is generally
+    controlled by `case_sensitive` but IGNORECASE flags passed via
+    re.compile objects or `flags` will ALWAYS overrule `case_sensitive`.
+
+    NGM works from top-to-bottom and left-to-right across the data,
+    using a forward-greedy approach to merging n-grams. All pattern
+    matches are mutually exclusive. Overlapping match patterns are not
+    acknowledged. When NGM finds a pattern match, it will immediately
+    jump to the next word AFTER the pattern, not the next word within
+    the pattern. For example, if you passed an n-gram pattern of
+    [('BACON', 'BACON')], and in the text body there is a line that
+    contains ...'BACON', 'BACON', 'BACON', ... NGM will apply the n-gram
+    as 'BACON_BACON', 'BACON'. This aspect of NGM's operation cannot be
+    changed.
+
+    NGM is able to wrap across the beginnings and ends of lines, if you
+    desire. This can be toggled with `wrap`. If you do not want NGM to
+    look for and join n-grams across the end of one line into the
+    beginning of another, set this parameter to False (the default).
+    When True, NGM will look for matches as if there is no break between
+    the two lines. When allowed and an n-gram match is found across 2
+    lines, the joined n-gram is put into the line where the match BEGAN.
+    For example, if an n-gram match is found starting at the end of line
+    724 and ends in the beginning of line 725, the joined n-gram will
+    go at the end of line 724 and the respective words in line 725 will
+    be removed.
+
+    When using wrapped searches, the same forward-greedy discussed above
+    is applied. Consider, for example, a case where a pattern match
+    exists at the end of one line and into the next line, but in the next
+    line there is an overlapping match. NGM will apply the wrapped match
+    first because it is first in the working order, and consume the words
+    out of the overlap, destroying the second matching pattern.
+
+    NGM only looks for wrapped n-grams across 2 lines, no more. Consider
+    the case where you have text that is one word per line, and you are
+    looking for a pattern like [('ONE', 'TWO', 'THREE')]. NGM will not
+    find a match for this across 3 lines. The way to match this n-gram
+    would be 1) put all your tokens on one line, or 2) make 2 passes.
+    On the first pass look for the n-gram [('ONE', 'TWO')], then on the
+    second pass look for the n-gram [('ONE_TWO', 'THREE')].
 
     NGM does not necessarily run your n-grams in the given order. To
     prevent conflicts, NGM runs the n-gram patterns in descending order
@@ -95,21 +139,6 @@ class NGramMerger(
     data in memory. Then use `set_params` to set the lesser-preferred
     n-grams and pass the processed data to `transform` again.
 
-    NGM has dual functionality. N-grams can be searched using literal
-    strings or regular expressions. For those of you who do not know
-    regex, you can safely ignore any references to flags, re.compile,
-    or re.Pattern, and just use literal strings. NGM accepts n-gram
-    patterns in python sequences passed to the `ngrams` parameter. In
-    each position of the sequence(s), specify the whole-string pattern
-    for each individual string to be searched for in your text. NGM
-    always looks for full matches against tokens, it does not do partial
-    matches. Provide literal strings and/or re.compile objects containing
-    your regex patterns intended to match full strings. DO NOT PASS A
-    REGEX PATTERN AS A LITERAL STRING. YOU WILL NOT GET THE CORRECT
-    RESULT. ALWAYS PASS REGEX PATTERNS IN A re.compile OBJECT. DO NOT
-    ESCAPE LITERAL STRINGS, NGM WILL DO THAT FOR YOU. If you don't know
-    what any of that means, then you don't need to worry about it.
-
     NGM affords you some control over how the n-grams are merged in the
     text body. There are two parameters that control this, `sep` and
     `ngcallable`. `ngcallable` allows you to pass a function that takes
@@ -121,32 +150,6 @@ class NGramMerger(
     separator. In short, NGM merges words that match n-gram patterns
     using the following hierarchy:
     given callable > given separator > default separator.
-
-    NGM is able to wrap across the beginnings and ends of lines, if you
-    desire. This can be toggled with `wrap`. If you do not want NGM to
-    look for and join n-grams across the end of one line into the
-    beginning of another, set this parameter to False (the default).
-    When True, NGM will look for matches as if there is no break between
-    the two lines. When allowed and an n-gram match is found across 2
-    lines, the joined n-gram is put into the line where the match BEGAN.
-    For example, if an n-gram match is found starting at the end of line
-    724 and ends in the beginning of line 725, the joined n-gram will
-    go at the end of line 724 and the respective words in line 725 will
-    be removed. NGM only looks for wrapped n-grams across 2 lines, no
-    more. Consider the case where you have text that is one word per line,
-    and you are looking for a pattern like [('ONE', 'TWO', 'THREE')].
-    NGM will not find a match for this across 3 lines. The way to match
-    this n-gram would be 1) put all your tokens on one line, or 2) make
-    2 passes. On, the first pass look for the n-gram [('ONE', 'TWO')],
-    then on the second pass look for the n-gram [('ONE_TWO', 'THREE')].
-
-    N-gram searches always default to case-sensitive, but can be made
-    to be case-insensitive. You can globally set this behavior via the
-    `case_sensitive` parameter. For those of you that know regex, you
-    can also put flags in the re.compile objects passed to `ngrams`, or
-    flags can be set globally via `flags`. Case-sensitivity is generally
-    controlled by `case_sensitive` but IGNORECASE flags passed via
-    re.compile objects or `flags` will ALWAYS overrule `case_sensitive`.
 
     If no parameters are passed, i.e., all parameters are left to
     their default values at instantiation, then NGM does a no-op on
@@ -166,9 +169,9 @@ class NGramMerger(
     into tokens. (If you have 1D data and know what your separators are
     as either string literal or regex patterns, use :class:`TextSplitter`
     to convert your data to 2D before using NGM.) Accepted 2D objects
-    include python list/tuple of lists/tuples, numpy arrays, pandas
+    include Python list/tuple of lists/tuples, numpy arrays, pandas
     dataframes, and polars dataframes. Results are always returned as a
-    python list of lists of strings.
+    Python list of lists of strings.
 
     NGM is a full-fledged scikit-style transformer. It has fully
     functional `get_params`, `set_params`, `transform`, and `fit_transform`

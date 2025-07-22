@@ -61,8 +61,9 @@ class StopRemover(
     processed data. SR should not be the first (or even near the first)
     step in a complex text wrangling workflow. This should be one of the
     last steps. An example of the last steps of a workflow using pybear
-    text wrangling modules could be: ... > TextLookup > StopRemover >
-    NGramMerger > TextJustifier.
+    text wrangling modules could be:
+
+    ... > TextLookup > StopRemover > NGramMerger > TextJustifier.
 
     To this end, SR only accepts tokenized text in 2D array-like format.
     Trying to manage the contingencies of replacing stop words vis-a-vis
@@ -71,12 +72,12 @@ class StopRemover(
     is intractable. Therefore, pybear pushes back to the user to require
     that the data be processed at least to the point where you know what
     your separators are and you are able to split your data into tokens.
-    (If you have 1D data and know what your separators are as either
+    If you have 1D data and know what your separators are as either
     string literal or regex patterns, use pybear :class:`TextSplitter`
-    to convert your data to 2D before using SR.) Accepted 2D objects
-    include python list/tuple of lists/tuples, numpy arrays, pandas
+    to convert your data to 2D before using SR. Accepted 2D objects
+    include Python list/tuple of lists/tuples, numpy arrays, pandas
     dataframes, and polars dataframes. Results are always returned as a
-    python list of lists of strings.
+    Python list of lists of strings.
 
     The default text comparer in SR does a case-insensitive, exact
     character-to-character match of each token in the text body against
@@ -102,7 +103,7 @@ class StopRemover(
     methods. It also has `partial_fit`, `fit`, and `score` methods, which
     are no-ops. SR technically does not need to be fit because it already
     knows everything it needs to do transformations from the parameters
-    and the stop words in the pybear Lexicon. These no-op methods are
+    and the stop words in the pybear `Lexicon`. These no-op methods are
     available to fulfill the scikit transformer API and make SR suitable
     for incorporation into larger workflows, such as Pipelines and
     dask_ml wrappers.
@@ -134,7 +135,7 @@ class StopRemover(
         accuracy of their callable and ensure that the output is a
         boolean. When designing the callable, the first string in the
         signature is the word from the text, the second string is a
-        stop word. If you have modified your local copy of the Lexicon
+        stop word. If you have modified your local copy of the `Lexicon`
         and/or the stop words and you intend to use regex in your
         callable, remember that it may be important to use re.escape.
     remove_empty_rows : Optional[bool], default=True
@@ -144,8 +145,8 @@ class StopRemover(
         Stop words that are exempted from the search. Text that matches
         these words will not be removed. Ensure that the capitalization
         of the word(s) that you enter exactly matches that of the word(s)
-        in the Lexicon. Always enter words in majuscule if working with
-        the default pybear Lexicon.
+        in the `Lexicon`. Always enter words in majuscule if working with
+        the default pybear `Lexicon`.
     supplemental : Optional[Union[list[str], None]], default=None
         Words to be removed in addition to the stop words. If you intend
         to do a case-sensitive search then the capitalization of these
@@ -159,15 +160,8 @@ class StopRemover(
 
     Attributes
     ----------
-    n_rows_ : int
-        The number of rows in the data passed to :meth:`transform`.
-    row_support_ : NDArray[bool] of shape (n_original_rows, )
-        A 1D boolean numpy vector indicating which rows have been kept
-        (True) after the stop word removal process. Entries in this
-        vector could only become False if `remove_empty_rows` is True
-        and one or more rows became empty during the transform process.
-        The :attr:`row_support_` attribute  only reflects the last
-        dataset passed to `transform`.
+    n_rows_
+    row_support_
 
     Notes
     -----
@@ -202,11 +196,11 @@ class StopRemover(
     >>> X = [
     ...     ['but', 'I', 'like', 'to', 'be', 'here'],
     ...     ['oh', 'I', 'like', 'it', 'a', 'lot'],
-    ...     ['said', 'the', 'cat', 'in', 'the', 'that'],
+    ...     ['said', 'the', 'cat', 'in', 'the', 'hat'],
     ...     ['to', 'the', 'fish', 'in', 'the', 'pot']
     ... ]
     >>> trfm.transform(X)
-    [['oh', 'lot'], ['cat'], ['fish', 'pot']]
+    [['oh', 'lot'], ['cat', 'hat'], ['fish', 'pot']]
 
     """
 
@@ -251,16 +245,17 @@ class StopRemover(
     def row_support_(self) -> npt.NDArray[bool]:
         """Get the `row_support_` attribute.
 
-        A boolean vector indicating which rows were kept (True) in
-        the data during the transform process. Only available if a
-        transform has been performed, and only reflects the results of
-        the last transform. Entries in this vector could only become
-        False if `remove_empty_rows` is True and one or more rows became
-        empty during the transform process.
+        A 1D boolean numpy vector indicating which rows have been kept
+        (True) after the stop word removal process. Entries in this
+        vector could only become False if `remove_empty_rows` is True
+        and one or more rows became empty during the transform process.
+        The `row_support_` attribute is only available if a transform
+        has been performed, and only reflects the last dataset passed
+        to :meth:`transform`.
 
         Returns
         -------
-        row_support_ : NDArray[bool] of shape (n_original_rows, )
+        row_support_ : numpy.ndarray[bool] of shape (n_original_rows, )
             A 1D boolean numpy vector indicating which rows have been
             kept (True) after the stop word removal process.
 
@@ -274,7 +269,7 @@ class StopRemover(
 
 
     def get_metadata_routing(self):
-        """get_metadata_routing is not implemented in StopRemover"""
+        """get_metadata_routing is not implemented in StopRemover."""
         raise NotImplementedError(
             f"'get_metadata_routing' is not implemented in StopRemover"
         )

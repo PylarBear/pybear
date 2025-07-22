@@ -6,6 +6,13 @@
 
 
 
+import pytest
+
+import numpy as np
+import pandas as pd
+import scipy.sparse as ss
+import polars as pl
+
 from pybear.utilities._nan_masking import (
     nan_mask_numerical,
     nan_mask_string,
@@ -13,86 +20,151 @@ from pybear.utilities._nan_masking import (
 )
 
 
-import numpy as np
-import pandas as pd
-import scipy.sparse as ss
-
-import pytest
-
-
-
 
 # 'nan_mask' is tested alongside 'nan_mask_numerical' and
 # 'nan_mask_string', it should replicate the behavior of both
 
-# tests numpy arrays, pandas dataframes, and scipy.sparse with various
-# nan-like representations (np.nan, 'nan', 'pd.NA', None),
+# tests python built-ins, numpy arrays, pandas dataframes, and scipy.sparse
+# with various nan-like representations (np.nan, 'nan', 'pd.NA', None),
 # for float, int, str, and object dtypes.
 
 
-class Fixtures:
+
+@pytest.fixture(scope='module')
+def truth_mask_1(_shape):
+    """Random mask for building containers with nans in them."""
+    while True:
+        M = np.random.randint(0, 2, _shape).astype(bool)
+        # make sure that there are both trues and falses in all columns
+        # so that pandas columns all have same dtype
+        for c_idx in range(_shape[1]):
+            if not 0 < np.sum(M[:, c_idx]) / _shape[0] < 1:
+                break
+        else:
+            return M
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def truth_mask_1(_shape):
-        while True:
-            __ = np.random.randint(0, 2, _shape).astype(bool)
-            # make sure that there are both trues and falses in all columns
-            for c_idx in range(_shape[1]):
-                if 0 < np.sum(__[:, c_idx]) / _shape[0] < 1:
-                    pass
-                else:
-                    break
-            else:
-                return __
+@pytest.fixture(scope='module')
+def truth_mask_2(_shape):
+    """Random mask for building containers with nans in them."""
+    while True:
+        M = np.random.randint(0,2, _shape).astype(bool)
+        # make sure that there are both trues and falses in all columns
+        # so that pandas columns all have same dtype
+        for c_idx in range(_shape[1]):
+            if not 0 < np.sum(M[:, c_idx]) / _shape[0] < 1:
+                break
+        else:
+            return M
 
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def truth_mask_2(_shape):
-        while True:
-            __ = np.random.randint(0,2, _shape).astype(bool)
-            # make sure that there are both trues and falses
-            for c_idx in range(_shape[1]):
-                if 0 < np.sum(__[:, c_idx]) / _shape[0] < 1:
-                    pass
-                else:
-                    break
-            else:
-                return __
+@pytest.fixture(scope='module')
+def pd_assnmt_handle():
+    """Wrap nan assignments to pd dataframes in try except block."""
+    # 24_10_28 pandas future warnings about casting incompatible
+    # dtypes. put assignments under a try/except, if OK, return new
+    # X, if bad return None. in the test functions, if X comes back
+    # as None, skip the test.
 
+    def foo(X: pd.DataFrame, MASK: np.ndarray, value: any):
+        try:
+            X[MASK] = value
+            return X
+        except:
+            return None
 
-    @staticmethod
-    @pytest.fixture(scope='module')
-    def pd_assnmt_handle():
-
-        # 24_10_28 pandas future warnings about casting incompatible
-        # dtypes. put assignments under a try/except, if OK, return new
-        # X, if bad return None. in the test functions, if X comes back
-        # as None, skip the test.
-
-        def foo(X: pd.DataFrame, MASK: np.ndarray, value: any):
-            try:
-                X[MASK] = value
-                return X
-            except:
-                return None
-
-        return foo
+    return foo
 
 
 
-class TestNanMaskNumeric(Fixtures):
+class TestNanMaskNumeric:
+
+
+    @pytest.mark.parametrize('_container', (list, tuple, set))
+    @pytest.mark.parametrize('_dim', (1, 2))
+    @pytest.mark.parametrize('_trial', (1, 2, 3))
+    @pytest.mark.parametrize('_nan_type',
+        ('npnan', 'strnan', 'any string', 'pdNA', 'none')
+    )
+    def test_python_builtins_num(
+        self, _shape, truth_mask_1, truth_mask_2, _container, _dim, _trial,
+        _nan_type
+    ):
+
+        # skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        if _container is set:
+            if _dim == 2:
+                pytest.skip(reason=f"cant have 2D set")
+            if _trial != 'trial_3':
+                # the masks have multiple inf values and set is screwing
+                # up the count, just do the empty mask trial and
+                # see that it passes thru.
+                pytest.skip(reason=f"sets mess up the inf count")
+
+        # END skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        X = np.random.uniform(0, 1, _shape)
+
+        if _trial == 1:
+            MASK = truth_mask_1
+        elif _trial == 2:
+            MASK = truth_mask_2
+        elif _trial == 3:
+            MASK = np.zeros(_shape).astype(bool)
+        else:
+            raise Exception
+
+        if _nan_type == 'npnan':
+            X[MASK] = np.nan
+        elif _nan_type == 'strnan':
+            X[MASK] = 'nan'
+        elif _nan_type == 'any string':
+            with pytest.raises(ValueError):
+                X[MASK] = 'any string'
+            pytest.skip()
+        elif _nan_type == 'pdNA':
+            with pytest.raises(TypeError):
+                X[MASK] = pd.NA
+            pytest.skip()
+        elif _nan_type == 'none':
+            X[MASK] = None
+        else:
+            raise Exception
+
+        if _dim == 1:
+            X = _container(X[:, 0].tolist())
+            MASK = MASK[:, 0]
+            _shape = (_shape[0], )
+        elif _dim == 2:
+            X = _container(map(_container, X))
+        else:
+            raise Exception
+
+        out = nan_mask_numerical(X)
+
+        assert isinstance(out, np.ndarray)
+        assert out.shape == _shape
+        assert out.dtype == bool
+        assert np.array_equal(out, MASK)
+
+        out_2 = nan_mask(X)
+
+        assert isinstance(out_2, np.ndarray)
+        assert out_2.shape == _shape
+        assert out_2.dtype == bool
+        assert np.array_equal(out_2, MASK)
+
 
     # the only np numerical that can take nan is np ndarray.astype(float64)
     # and it must be np.nan, 'nan' (not case sensitive), or None (not pd.NA!)
-    @pytest.mark.parametrize('_trial', (1, 2))
+    @pytest.mark.parametrize('_dim', (1, 2))
+    @pytest.mark.parametrize('_trial', (1, 2, 3))
     @pytest.mark.parametrize('_nan_type',
         ('npnan', 'strnan', 'any string', 'pdNA', 'none')
     )
     def test_np_float_array(
-        self, _shape, truth_mask_1, truth_mask_2, _trial, _nan_type
+        self, _shape, truth_mask_1, truth_mask_2, _dim, _trial, _nan_type
     ):
 
         X = np.random.uniform(0,1,_shape)
@@ -101,6 +173,8 @@ class TestNanMaskNumeric(Fixtures):
             MASK = truth_mask_1
         elif _trial == 2:
             MASK = truth_mask_2
+        elif _trial == 3:
+            MASK = np.zeros(_shape).astype(bool)
         else:
             raise Exception
 
@@ -122,22 +196,35 @@ class TestNanMaskNumeric(Fixtures):
             raise Exception
 
         out = nan_mask_numerical(X)
+
+        assert isinstance(out, np.ndarray)
+        assert out.shape == _shape
+        assert out.dtype == bool
+        assert np.array_equal(out, MASK)
+
         out_2 = nan_mask(X)
 
-        assert np.array_equal(out, MASK)
+        assert isinstance(out_2, np.ndarray)
+        assert out_2.shape == _shape
+        assert out_2.dtype == bool
         assert np.array_equal(out_2, MASK)
 
 
-
     # numpy integer array cannot take any representation of nan.
-    # would need to convert this to float64
+    # would need to convert X to float64
+    @pytest.mark.parametrize('_dim', (1, 2))
     @pytest.mark.parametrize('_trial', (1, 2))
     @pytest.mark.parametrize('_nan_type',
         ('npnan', 'strnan', 'any string', 'pdNA', 'none')
     )
     def test_np_int_array(
-        self, _shape, truth_mask_1, truth_mask_2, _trial, _nan_type
+        self, _shape, truth_mask_1, truth_mask_2, _dim, _trial, _nan_type
     ):
+
+        # all inf-likes raise exception when casting into int dtypes
+
+        # this is also testing an int dtype with no infs to see if
+        # nan_mask() can take int dtype (and return a mask of all Falses).
 
         X = np.random.randint(0,10, _shape)
 
@@ -147,6 +234,11 @@ class TestNanMaskNumeric(Fixtures):
             MASK = truth_mask_2
         else:
             raise Exception
+
+        if _dim == 1:
+            X = X[:, 0]
+            MASK = MASK[:, 0]
+            _shape = (_shape[0], )
 
         # everything here raises an except
         if _nan_type == 'npnan':
@@ -173,15 +265,22 @@ class TestNanMaskNumeric(Fixtures):
             raise Exception
 
         out = nan_mask_numerical(X)
+
+        assert isinstance(out, np.ndarray)
+        assert out.shape == _shape
+        assert out.dtype == bool
+        assert np.array_equal(out, MASK)
+
         out_2 = nan_mask(X)
 
-        assert np.array_equal(out, MASK)
+        assert isinstance(out_2, np.ndarray)
+        assert out_2.shape == _shape
+        assert out_2.dtype == bool
         assert np.array_equal(out_2, MASK)
 
 
-
     # all scipy sparses return np float array np.nans correctly
-    @pytest.mark.parametrize('_trial', (1, 2))
+    @pytest.mark.parametrize('_trial', (1, 2, 3))
     @pytest.mark.parametrize('_format',
         (
             'csr_matrix', 'csc_matrix', 'coo_matrix', 'dia_matrix',
@@ -196,7 +295,9 @@ class TestNanMaskNumeric(Fixtures):
         self, _shape, truth_mask_1, truth_mask_2, _trial, _format, _nan_type
     ):
 
-        X = np.random.uniform(0,1,_shape)
+        # can only be 2D and numeric
+
+        X = np.random.uniform(0, 1 ,_shape)
 
         # make a lot of sparsity so that converting to sparse reduces
         for _col_idx in range(_shape[1]):
@@ -212,6 +313,8 @@ class TestNanMaskNumeric(Fixtures):
             MASK = truth_mask_1
         elif _trial == 2:
             MASK = truth_mask_2
+        elif _trial == 3:
+            MASK = np.zeros(_shape).astype(bool)
         else:
             raise Exception
 
@@ -232,6 +335,8 @@ class TestNanMaskNumeric(Fixtures):
         else:
             raise Exception
 
+
+        assert X.dtype == np.float64
 
         if _format == 'csr_matrix':
             X_wip = ss._csr.csr_matrix(X)
@@ -264,28 +369,48 @@ class TestNanMaskNumeric(Fixtures):
         else:
             raise Exception
 
+        # get the inf mask as ss (dok & lil should raise)
+        if 'lil' in _format or 'dok' in _format:
+            with pytest.raises(TypeError):
+                nan_mask_numerical(X_wip)
+
+            with pytest.raises(TypeError):
+                nan_mask(X_wip)
+        else:
+            out = nan_mask_numerical(X_wip)
+
+            assert isinstance(out, np.ndarray)
+            assert out.shape == X_wip.data.shape
+            assert out.dtype == bool
+
+            out_2 = nan_mask(X_wip)
+
+            assert isinstance(out_2, np.ndarray)
+            assert out_2.shape == X_wip.data.shape
+            assert out_2.dtype == bool
 
         # covert back to np to see if nan mask was affected
         X = X_wip.toarray()
 
-        out = nan_mask_numerical(X)
-        out_2 = nan_mask(X)
+        np_out = nan_mask(X)
+        assert isinstance(np_out, np.ndarray)
+        assert np_out.shape == _shape
+        assert np_out.dtype == bool
 
-        assert np.array_equal(out, MASK)
-        assert np.array_equal(out_2, MASK)
-
+        assert np.array_equal(np_out, MASK)
 
 
     # pd float dfs can take any of the following representations of nan
     # and convert them to either np.nan or pd.NA:
     # np.nan, any string, pd.NA, or None
-    @pytest.mark.parametrize('_trial', (1, 2))
+    @pytest.mark.parametrize('_dim', (1, 2))
+    @pytest.mark.parametrize('_trial', (1, 2, 3))
     @pytest.mark.parametrize('_nan_type',
         ('npnan', 'strnan', 'any string', 'pdNA', 'none')
     )
     def test_pd_float(
-        self, _shape, truth_mask_1, truth_mask_2, _trial, _nan_type, _columns,
-        pd_assnmt_handle
+        self, _shape, truth_mask_1, truth_mask_2, _dim, _trial, _nan_type,
+        _columns, pd_assnmt_handle
     ):
 
         X = pd.DataFrame(
@@ -294,11 +419,12 @@ class TestNanMaskNumeric(Fixtures):
             dtype=np.float64
         )
 
-
         if _trial == 1:
             MASK = truth_mask_1
         elif _trial == 2:
             MASK = truth_mask_2
+        elif _trial == 3:
+            MASK = np.zeros(_shape).astype(bool)
         else:
             raise Exception
 
@@ -315,31 +441,64 @@ class TestNanMaskNumeric(Fixtures):
         else:
             raise Exception
 
+        if _dim == 1:
+            X = X.iloc[:, 0].squeeze()
+            MASK = MASK[:, 0]
+            _shape = (_shape[0], )
+
         # if exception is raised by pd_assnmnt_handle because of casting
         # nan to disallowed dtype, then X is None and skip test
         if X is None:
             pytest.skip(reason=f"invalid value cast to dataframe dtype, skip test")
 
-        if _nan_type == 'any string':
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        _dtypes = [X.dtypes] if _dim == 1 else list(set(X.dtypes))
+        assert len(_dtypes) == 1
+        _dtype = _dtypes[0]
+
+        if np.sum(MASK) == 0:
+            # when mask makes no assignment, dtype is not changed
+            assert _dtype == np.float64
+        elif _nan_type in [
+            'strnan', 'any string'
+        ]:
+            # 'strnan' and 'any string' are changing dtype from float64 to object!
+            assert _dtype == object
+        else:
+            # for all other inf assignments, dtypes is not changed
+            assert _dtype == np.float64
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        if np.sum(MASK) != 0 and _nan_type == 'any string':
             with pytest.raises(ValueError):
                 nan_mask_numerical(X)
 
             assert np.sum(nan_mask(X)) == 0
         else:
-            assert np.array_equal(nan_mask_numerical(X), MASK)
-            assert np.array_equal(nan_mask(X), MASK)
+            out = nan_mask_numerical(X)
+            assert isinstance(out, np.ndarray)
+            assert out.shape == _shape
+            assert out.dtype == bool
+            assert np.array_equal(out, MASK)
+
+            out_2 = nan_mask(X)
+            assert isinstance(out_2, np.ndarray)
+            assert out_2.shape == _shape
+            assert out_2.dtype == bool
+            assert np.array_equal(out_2, MASK)
 
 
     # pd int dfs can take any of the following representations of nan
     # and convert them to either np.nan or pd.NA:
     # np.nan, any string, pd.NA, or None
-    @pytest.mark.parametrize('_trial', (1, 2))
+    @pytest.mark.parametrize('_dim', (1, 2))
+    @pytest.mark.parametrize('_trial', (1, 2, 3))
     @pytest.mark.parametrize('_nan_type',
         ('npnan', 'strnan', 'any string', 'pdNA', 'none')
     )
     def test_pd_int(
-        self, _shape, truth_mask_1, truth_mask_2, _trial, _nan_type, _columns,
-        pd_assnmt_handle
+        self, _shape, truth_mask_1, truth_mask_2, _dim, _trial, _nan_type,
+        _columns, pd_assnmt_handle
     ):
 
         X = pd.DataFrame(
@@ -348,11 +507,12 @@ class TestNanMaskNumeric(Fixtures):
             dtype=np.uint32
         )
 
-
         if _trial == 1:
             MASK = truth_mask_1
         elif _trial == 2:
             MASK = truth_mask_2
+        elif _trial == 3:
+            MASK = np.zeros(_shape).astype(bool)
         else:
             raise Exception
 
@@ -369,19 +529,32 @@ class TestNanMaskNumeric(Fixtures):
         else:
             raise Exception
 
+        if _dim == 1:
+            X = X.iloc[:, 0].squeeze()
+            MASK = MASK[:, 0]
+            _shape = (_shape[0], )
+
         # if exception is raised by pd_assnmnt_handle because of casting
         # nan to disallowed dtype, then X is None and skip test
         if X is None:
             pytest.skip(reason=f"invalid value cast to dataframe dtype, skip test")
 
-        # putting float nans into a pd int df
-        # coerces the df over to float64
-        if _nan_type in ['strnan', 'any string']:
-            assert list(set(X.dtypes))[0] == 'O'
-        else:
-            assert list(set(X.dtypes))[0] == np.float64
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        _dtypes = [X.dtypes] if _dim == 1 else list(set(X.dtypes))
+        assert len(_dtypes) == 1
+        _dtype = _dtypes[0]
 
-        if _nan_type == 'any string':
+        if np.sum(MASK) == 0:
+            # if the mask does not assign anything then dtype does not change
+            assert _dtype == np.uint32
+        elif _nan_type in ['strnan', 'any string']:
+            # 'strnan' and 'any string' are changing dtype from float64 to object!
+            assert _dtype == object
+        else:
+            assert _dtype == np.float64
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        if np.sum(MASK) == 0 or _nan_type == 'any string':
             with pytest.raises(ValueError):
                 nan_mask_numerical(X)
 
@@ -391,13 +564,135 @@ class TestNanMaskNumeric(Fixtures):
             assert np.array_equal(nan_mask(X), MASK)
 
 
+    @pytest.mark.parametrize('_dim', (1, 2))
+    @pytest.mark.parametrize('_trial', (1, 2, 3))
+    @pytest.mark.parametrize('_nan_type',
+        ('npnan', 'strnan', 'any string', 'pdNA', 'none')
+    )
+    def test_polars_float(
+        self, _shape, truth_mask_1, truth_mask_2, _dim, _trial, _nan_type,
+        _columns
+    ):
+
+        # prepare np array for conversion to polars -- -- -- -- -- --
+        X = np.random.uniform(0, 1, _shape).astype(np.float64)
+
+        if _trial == 1:
+            MASK = truth_mask_1
+        elif _trial == 2:
+            MASK = truth_mask_2
+        elif _trial == 3:
+            MASK = np.zeros(_shape).astype(bool)
+        else:
+            raise Exception
+
+        if _nan_type == 'npnan':
+            X[MASK] = np.nan
+        elif _nan_type == 'strnan':
+            X[MASK] = 'nan'
+        elif _nan_type == 'any string':
+            with pytest.raises(ValueError):
+                X[MASK] = 'any string'
+            pytest.skip()
+        elif _nan_type == 'pdNA':
+            with pytest.raises(TypeError):
+                X[MASK] = pd.NA
+            pytest.skip()
+        elif _nan_type == 'none':
+            X[MASK] = None
+        else:
+            raise Exception
+
+        if _dim == 1:
+            X = X[:, 0]
+            MASK = MASK[:, 0]
+            _shape = (_shape[0], )
+
+        assert X.dtype == np.float64
+        # END prepare the np array for conversion to polars -- -- -- --
+
+        if _dim == 1:
+            X = pl.Series(X)
+        else:
+            X = pl.from_numpy(X, schema=list(_columns))
+
+
+        if _nan_type == 'any string':
+            with pytest.raises(ValueError):
+                nan_mask_numerical(X)
+
+            assert np.sum(nan_mask(X)) == 0
+        else:
+            out = nan_mask_numerical(X)
+            assert isinstance(out, np.ndarray)
+            assert out.shape == _shape
+            assert out.dtype == bool
+            assert np.array_equal(out, MASK)
+
+            out_2 = nan_mask(X)
+            assert isinstance(out_2, np.ndarray)
+            assert out_2.shape == _shape
+            assert out_2.dtype == bool
+            assert np.array_equal(out_2, MASK)
+
+
+    @pytest.mark.parametrize('_dim', (1, 2))
+    @pytest.mark.parametrize('_trial', (1, 2))
+    @pytest.mark.parametrize('_nan_type',
+        ('npnan', 'strnan', 'any string', 'pdNA', 'none')
+    )
+    def test_polars_int(
+        self, _shape, truth_mask_1, truth_mask_2, _trial, _dim, _nan_type,
+        _columns
+    ):
+
+        # prepare the np array for conversion to polars -- -- -- -- --
+        X = np.random.randint(0, 10, _shape).astype(np.float64)
+
+        if _trial == 1:
+            MASK = truth_mask_1
+        elif _trial == 2:
+            MASK = truth_mask_2
+        else:
+            raise Exception
+
+        if _nan_type == 'npnan':
+            X[MASK] = np.nan
+        elif _nan_type == 'strnan':
+            X[MASK] = 'nan'
+        elif _nan_type == 'any string':
+            with pytest.raises(ValueError):
+                X[MASK] = 'any string'
+            pytest.skip()
+        elif _nan_type == 'pdNA':
+            with pytest.raises(TypeError):
+                X[MASK] = pd.NA
+            pytest.skip()
+        elif _nan_type == 'none':
+            X[MASK] = None
+        else:
+            raise Exception
+
+        if _dim == 1:
+            X = X[:, 0]
+            MASK = MASK[:, 0]
+            _shape = (_shape[0], )
+
+        assert X.dtype == np.float64
+
+        # polars wont cast any infs to Int32
+        # this is raised by polars, let it raise whatever
+        with pytest.raises(Exception):
+            X_wip = pl.from_numpy(X).cast(pl.Int32)
+
+
     # make a pandas dataframe with all the possible things that make an
     # nan-like in a dataframe. see if converting to np array converts
     # them all to np.nan, and is recognized.
     # takeaway:
     # to_numpy() converts all of these different nans to np.nan correctly
     def numpy_float_via_pd_made_with_various_nan_types(
-        self, _shape, truth_mask_1, truth_mask_2, _trial, _nan_type, _columns
+        self, _shape, _trial, _nan_type, _columns
     ):
 
         X = pd.DataFrame(
@@ -423,7 +718,14 @@ class TestNanMaskNumeric(Fixtures):
         out = nan_mask_numerical(X)
         out_2 = nan_mask(X)
 
+        assert isinstance(out, np.ndarray)
+        assert out.shape == _shape
+        assert out.dtype == bool
         assert np.array_equal(out, MASK)
+
+        assert isinstance(out_2, np.ndarray)
+        assert out_2.shape == _shape
+        assert out_2.dtype == bool
         assert np.array_equal(out_2, MASK)
 
 
@@ -433,7 +735,6 @@ class TestNanMaskNumeric(Fixtures):
         _X = list(map(str, list(range(10))))
 
         assert all(map(isinstance, _X, (str for _ in _X)))
-        np.array(_X, dtype=np.float64)
 
         _X[1] = 'nan'
         _X[2] = np.nan
@@ -441,7 +742,6 @@ class TestNanMaskNumeric(Fixtures):
         ref = np.zeros((10,)).astype(bool)
         ref[1] = True
         ref[2] = True
-        ref = ref.tolist()
 
         out = nan_mask_numerical(_X)
 
@@ -452,7 +752,6 @@ class TestNanMaskNumeric(Fixtures):
         _X = np.random.randint(0, 10, (5, 3)).astype(str)
 
         assert all(map(isinstance, _X[0], (str for _ in _X[0])))
-        np.array(_X, dtype=np.float64)
 
         _X[1][0] = 'nan'
         _X[2][0] = np.nan
@@ -484,8 +783,7 @@ class TestNanMaskNumeric(Fixtures):
         assert not any(nan_mask_numerical(_nums))
 
 
-
-class TestNanMaskString(Fixtures):
+class TestNanMaskString:
 
     # scipy sparse cannot take non-numeric datatypes
 
@@ -495,16 +793,30 @@ class TestNanMaskString(Fixtures):
         return np.random.choice(list('abcdefghij'), _shape, replace=True)
 
 
-    # np str arrays can take any of the following representations of nan:
-    # np.nan, 'nan', pd.NA, None
-    @pytest.mark.parametrize('_trial', (1, 2))
+    @pytest.mark.parametrize('_container', (list, tuple, set))
+    @pytest.mark.parametrize('_dim', (1, 2))
+    @pytest.mark.parametrize('_trial', (1, 2, 3))
     @pytest.mark.parametrize('_nan_type',
         ('npnan', 'strnan', 'any string', 'pdNA', 'none')
     )
-    def test_np_array_str(
-        self, _X, truth_mask_1, truth_mask_2, _trial, _nan_type, _shape
+    def test_python_builtins_str(
+        self, _X, truth_mask_1, truth_mask_2, _container, _dim, _trial,
+        _nan_type, _shape
     ):
-        # remember to set str dtype like '<U10' to _X
+
+        # skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+        if _container is set:
+            if _dim == 2:
+                pytest.skip(reason=f"cant have 2D set")
+            if _trial != 'trial_3':
+                # the masks have multiple inf values and set is screwing
+                # up the count, just do the empty mask trial and
+                # see that it passes thru.
+                pytest.skip(reason=f"sets mess up the inf count")
+
+        # END skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
 
         X = _X.astype('<U10')
 
@@ -512,6 +824,8 @@ class TestNanMaskString(Fixtures):
             MASK = truth_mask_1
         elif _trial == 2:
             MASK = truth_mask_2
+        elif _trial == 3:
+            MASK = np.zeros(_shape).astype(bool)
         else:
             raise Exception
 
@@ -530,7 +844,72 @@ class TestNanMaskString(Fixtures):
             raise Exception
 
         out = nan_mask_string(X)
+
         out_2 = nan_mask(X)
+
+        assert isinstance(out, np.ndarray)
+        assert out.shape == _shape
+        assert out.dtype == bool
+
+        assert isinstance(out_2, np.ndarray)
+        assert out_2.shape == _shape
+        assert out_2.dtype == bool
+
+        if _nan_type == 'any string':
+            assert np.sum(out) == 0
+            assert np.sum(out_2) == 0
+        else:
+            assert np.array_equal(out, MASK)
+            assert np.array_equal(out_2, MASK)
+
+
+    # np str arrays can take any of the folloing representations of nan:
+    # np.nan, 'nan', pd.NA, None
+    @pytest.mark.parametrize('_dim', (1, 2))
+    @pytest.mark.parametrize('_trial', (1, 2, 3))
+    @pytest.mark.parametrize('_nan_type',
+        ('npnan', 'strnan', 'any string', 'pdNA', 'none')
+    )
+    def test_np_array_str(
+        self, _X, truth_mask_1, truth_mask_2, _dim, _trial, _nan_type, _shape
+    ):
+
+        X = _X.astype('<U10')
+
+        if _trial == 1:
+            MASK = truth_mask_1
+        elif _trial == 2:
+            MASK = truth_mask_2
+        elif _trial == 3:
+            MASK = np.zeros(_shape).astype(bool)
+        else:
+            raise Exception
+
+        if _nan_type == 'npnan':
+            X[MASK] = np.nan
+        elif _nan_type == 'strnan':
+            X[MASK] = 'nan'
+        elif _nan_type == 'any string':
+            X[MASK] = 'any string'
+            # this is a valid assignment into a str array
+        elif _nan_type == 'pdNA':
+            X[MASK] = pd.NA
+        elif _nan_type == 'none':
+            X[MASK] = None
+        else:
+            raise Exception
+
+        out = nan_mask_string(X)
+
+        out_2 = nan_mask(X)
+
+        assert isinstance(out, np.ndarray)
+        assert out.shape == _shape
+        assert out.dtype == bool
+
+        assert isinstance(out_2, np.ndarray)
+        assert out_2.shape == _shape
+        assert out_2.dtype == bool
 
         if _nan_type == 'any string':
             assert np.sum(out) == 0
@@ -542,20 +921,23 @@ class TestNanMaskString(Fixtures):
 
     # np object arrays can take any of the following representations of nan:
     # np.nan, 'nan', pd.NA, None
-    @pytest.mark.parametrize('_trial', (1, 2))
+    @pytest.mark.parametrize('_dim', (1, 2))
+    @pytest.mark.parametrize('_trial', (1, 2, 3))
     @pytest.mark.parametrize('_nan_type',
         ('npnan', 'strnan', 'any string', 'pdNA', 'none')
     )
     def test_np_array_object(
-        self, _X, truth_mask_1, truth_mask_2, _trial, _nan_type, _shape
+        self, _X, truth_mask_1, truth_mask_2, _dim, _trial, _nan_type, _shape
     ):
-        # remember to set object dtype to _X
+
         X = _X.astype(object)
 
         if _trial == 1:
             MASK = truth_mask_1
         elif _trial == 2:
             MASK = truth_mask_2
+        elif _trial == 3:
+            MASK = np.zeros(_shape).astype(bool)
         else:
             raise Exception
 
@@ -573,8 +955,24 @@ class TestNanMaskString(Fixtures):
         else:
             raise Exception
 
+        if _dim == 1:
+            X = X[:, 0].squeeze()
+            MASK = MASK[:, 0]
+            _shape = (_shape[0], )
+
+        assert X.dtype == object
+
         out = nan_mask_string(X)
+
+        assert isinstance(out, np.ndarray)
+        assert out.shape == _shape
+        assert out.dtype == bool
+
         out_2 = nan_mask(X)
+
+        assert isinstance(out_2, np.ndarray)
+        assert out_2.shape == _shape
+        assert out_2.dtype == bool
 
         if _nan_type == 'any string':
             assert np.sum(out) == 0
@@ -586,15 +984,15 @@ class TestNanMaskString(Fixtures):
 
     # pd str dfs can take any of the following representations of nan:
     # np.nan, 'nan', pd.NA, None
-    @pytest.mark.parametrize('_trial', (1, 2))
+    @pytest.mark.parametrize('_dim', (1, 2))
+    @pytest.mark.parametrize('_trial', (1, 2, 3))
     @pytest.mark.parametrize('_nan_type',
         ('npnan', 'strnan', 'any string', 'pdNA', 'none')
     )
     def test_pd_str(
-        self, _X, truth_mask_1, truth_mask_2, _trial, _nan_type, _shape,
+        self, _X, truth_mask_1, truth_mask_2, _dim, _trial, _nan_type, _shape,
         _columns, pd_assnmt_handle
     ):
-        # remember to set str dtype like '<U10' to _X
 
         X = pd.DataFrame(
             data = _X,
@@ -606,8 +1004,15 @@ class TestNanMaskString(Fixtures):
             MASK = truth_mask_1
         elif _trial == 2:
             MASK = truth_mask_2
+        elif _trial == 3:
+            MASK = np.zeros(_shape).astype(bool)
         else:
             raise Exception
+
+        if _dim == 1:
+            X = X.iloc[:, 0].squeeze()
+            MASK = MASK[:, 0]
+            _shape = (_shape[0], )
 
         if _nan_type == 'npnan':
             X = pd_assnmt_handle(X, MASK, np.nan)
@@ -628,8 +1033,23 @@ class TestNanMaskString(Fixtures):
         if X is None:
             pytest.skip(reason=f"invalid value cast to dataframe dtype, skip test")
 
+        # pd cant have str dtypes, always coerced to object
+        # so that means these tests are redundant with the next tests
+        _dtypes = [X.dtypes] if _dim == 1 else list(set(X.dtypes))
+        assert len(_dtypes) == 1
+        assert _dtypes[0] == object
+
         out = nan_mask_string(X)
+
+        assert isinstance(out, np.ndarray)
+        assert out.shape == _shape
+        assert out.dtype == bool
+
         out_2 = nan_mask(X)
+
+        assert isinstance(out_2, np.ndarray)
+        assert out_2.shape == _shape
+        assert out_2.dtype == bool
 
         if _nan_type == 'any string':
             assert np.sum(out) == 0
@@ -641,15 +1061,16 @@ class TestNanMaskString(Fixtures):
 
     # pd obj dfs can take any of the following representations of nan:
     # np.nan, 'nan', pd.NA, None
-    @pytest.mark.parametrize('_trial', (1, 2))
+    @pytest.mark.parametrize('_dim', (1, 2))
+    @pytest.mark.parametrize('_trial', (1, 2, 3))
     @pytest.mark.parametrize('_nan_type',
         ('npnan', 'strnan', 'any string', 'pdNA', 'none')
     )
     def test_pd_object(
-        self, _X, truth_mask_1, truth_mask_2, _trial, _nan_type, _shape,
+        self, _X, truth_mask_1, truth_mask_2, _dim, _trial, _nan_type, _shape,
         _columns, pd_assnmt_handle
     ):
-        # remember to set object dtype to _X
+
         X = pd.DataFrame(
             data = _X,
             columns = _columns,
@@ -660,8 +1081,15 @@ class TestNanMaskString(Fixtures):
             MASK = truth_mask_1
         elif _trial == 2:
             MASK = truth_mask_2
+        elif _trial == 3:
+            MASK = np.zeros(_shape).astype(bool)
         else:
             raise Exception
+
+        if _dim == 1:
+            X = X.iloc[:, 0].squeeze()
+            MASK = MASK[:, 0]
+            _shape = (_shape[0], )
 
         if _nan_type == 'npnan':
             X = pd_assnmt_handle(X, MASK, np.nan)
@@ -682,8 +1110,21 @@ class TestNanMaskString(Fixtures):
         if X is None:
             pytest.skip(reason=f"invalid value cast to dataframe dtype, skip test")
 
+        _dtypes = [X.dtypes] if _dim == 1 else list(set(X.dtypes))
+        assert len(_dtypes) == 1
+        assert _dtypes[0] == object
+
         out = nan_mask_string(X)
+
+        assert isinstance(out, np.ndarray)
+        assert out.shape == _shape
+        assert out.dtype == bool
+
         out_2 = nan_mask(X)
+
+        assert isinstance(out_2, np.ndarray)
+        assert out_2.shape == _shape
+        assert out_2.dtype == bool
 
         if _nan_type == 'any string':
             assert np.sum(out) == 0
@@ -693,12 +1134,60 @@ class TestNanMaskString(Fixtures):
             assert np.array_equal(out_2, MASK)
 
 
+    # polars wont cast any infs to Object
+    @pytest.mark.parametrize('_dim', (1, 2))
+    @pytest.mark.parametrize('_trial', (1, 2))
+    @pytest.mark.parametrize('_nan_type',
+        ('npnan', 'strnan', 'any string', 'pdNA', 'none')
+    )
+    def test_polars_object(
+        self, _X, truth_mask_1, truth_mask_2, _dim, _trial, _nan_type, _shape,
+        _columns
+    ):
 
+        # prepare the np array before converting to polars -- -- --
 
+        X = _X.astype(object)
 
+        if _trial == 1:
+            MASK = truth_mask_1
+        elif _trial == 2:
+            MASK = truth_mask_2
+        else:
+            raise Exception
 
+        if _dim == 1:
+            X = X[:, 0]
+            MASK = MASK[:, 0]
+            _shape = (_shape[0], )
 
+        if _nan_type == 'npnan':
+            X[MASK] = np.nan
+        elif _nan_type == 'strnan':
+            X[MASK] = 'nan'
+        elif _nan_type == 'any string':
+            X[MASK] = 'any string'
+            # this is a valid assignment into a obj array
+        elif _nan_type == 'pdNA':
+            X[MASK] = pd.NA
+        elif _nan_type == 'none':
+            X[MASK] = None
+        else:
+            raise Exception
 
+        assert X.dtype == object
+
+        # END prepare the np array before converting to polars -- --
+
+        # polars wont cast any infs to Object
+        # this is raised by polars, let it raise whatever
+
+        with pytest.raises(Exception):
+            if _dim == 1:
+                pl.Series(X).cast(pl.Object)
+            else:
+                pl.from_numpy(X).cast(pl.Object)
+            pytest.skip(reason=f"cant do later tests after except")
 
 
 

@@ -35,7 +35,7 @@ def validate_user_str(
     >>> from pybear.input_validation import validate_user_str
     >>> out = validate_user_str('Enter selection > ', 'ABC') # doctest:+SKIP
     Enter Selection > f
-    >>> # prompts again because of invalid selection
+    >>> # prompts again because of invalid selection (not a given option)
     Enter Selection > a
     >>> out  # doctest:+SKIP
     A
@@ -82,7 +82,7 @@ def validate_user_str_cs(
     >>> from pybear.input_validation import validate_user_str_cs
     >>> out = validate_user_str_cs('Enter selection > ', 'abc') # doctest:+SKIP
     Enter Selection > A
-    >>> # prompts again because of invalid selection
+    >>> # prompts again because of invalid selection (case does not match)
     Enter Selection > a
     >>> out  # doctest:+SKIP
     a
@@ -131,7 +131,7 @@ def validate_user_mstr(
     >>> from pybear.input_validation import validate_user_mstr
     >>> out = validate_user_mstr('Put something: ', 'pqrstuv', max_len=3) # doctest:+SKIP
     Put something: rstu
-    >>> # prompts again because of invalid selection
+    >>> # prompts again because of invalid selection (too many selections)
     Put something: rst
     >>> out  # doctest:+SKIP
     RST
@@ -193,7 +193,7 @@ def validate_user_int(
     >>> from pybear.input_validation import validate_user_int
     >>> out = validate_user_int('Enter integer > ', min=1, max=5) # doctest:+SKIP
     Enter integer > 8
-    >>> # prompts again because of invalid selection
+    >>> # prompts again because of invalid selection (out of range)
     Must enter an integer between 1 and 5
     Enter integer > 4
     >>> out  # doctest:+SKIP
@@ -260,7 +260,7 @@ def validate_user_float(
     >>> from pybear.input_validation import validate_user_float
     >>> out = validate_user_float('Enter float: ', min=2.718, max=3.142) # doctest:+SKIP
     Enter float: 8.838
-    >>> # prompts again because of invalid selection
+    >>> # prompts again because of invalid selection (out of range)
     Must enter an float between 2.718 and 3.142
     Enter float: 2.999
     >>> out  # doctest:+SKIP

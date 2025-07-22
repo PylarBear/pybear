@@ -432,7 +432,7 @@ class MinCountTransformer(
     those uniques. For a float column, in most applications every value
     in the column is unique, and the dictionary fills as such. The user
     is advised that a float column with, say, 100,000,000 unique values
-    will generate an equally sized python dictionary, which has immense
+    will generate an equally sized Python dictionary, which has immense
     carrying-cost, and will be a pinch-point for MCT and your RAM.
 
     The analyst is cautioned that this transformer:

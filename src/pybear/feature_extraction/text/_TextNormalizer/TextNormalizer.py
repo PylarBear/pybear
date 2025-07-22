@@ -49,7 +49,7 @@ class TextNormalizer(
     `TextNormalizer` (TN) accepts 1D list-like vectors of strings, such
     as Python lists, tuples, and sets, numpy vectors, pandas series, and
     polars series. TN also accepts 2D array-like containers such as
-    (possibly ragged) nested 2D python objects, numpy arrays, pandas
+    (possibly ragged) nested 2D Python objects, numpy arrays, pandas
     dataframes, and polars dataframes. If you pass dataframes that have
     feature names, TN does not retain them. The returned objects are
     always constructed with Python lists, and have shape identical to

@@ -17,28 +17,21 @@ def _val_max_shifts(
     _max_shifts: Union[None, numbers.Integral],
     _can_be_None: Optional[bool] = False
 ) -> None:
+    """Validate `_max_shifts`.
 
-
-    """
-    Validate _max_shifts. Must be an integer >= 1. Can conditionally be
-    None.
-
+    Must be an integer >= 1. Can conditionally be None.
 
     Parameters
     ----------
-    _max_shifts:
-        Union[None, numbers.Integral] - the maximum number of grid shifts
-        allowed when trying to center parameters within their search
-        grids.
-    _can_be_None:
-        Optional[bool], default=False - whether 'max_shifts' can be
-        None-valued.
-
+    _max_shifts : Union[None, numbers.Integral]
+        The maximum number of grid shifts allowed when trying to center
+        parameters within their search grids.
+    _can_be_None : Optional[bool], default=False
+        Whether `max_shifts` can be None-valued.
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 
