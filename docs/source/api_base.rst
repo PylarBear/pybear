@@ -28,7 +28,13 @@ base
     num_features
     num_samples
     set_order
+    user_entry
     validate_data
+    validate_user_int
+    validate_user_float
+    validate_user_mstr
+    validate_user_str
+    validate_user_str_cs
     FeatureMixin
     FileDumpMixin
     FitTransformMixin

@@ -8,7 +8,6 @@ build pybear are available as part of the public API.
    :titlesonly:
 
    api_base
-   api_input_validation
 
 
 .. autosummary::

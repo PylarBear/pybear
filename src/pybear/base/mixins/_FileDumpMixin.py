@@ -26,7 +26,7 @@ import numpy as np
 import pandas as pd
 import polars as pl
 
-from ...input_validation import validate_user_input as vui
+from .._validate_user_input import validate_user_str
 
 from .._check_1D_str_sequence import check_1D_str_sequence
 from .._check_2D_str_array import check_2D_str_array
@@ -88,7 +88,7 @@ class FileDumpMixin:
 
             for _ in range(10):
                 filename = input(f'Enter filename without extension > ')
-                _opt = vui.validate_user_str(
+                _opt = validate_user_str(
                     f'User entered *{filename}*  ---  Accept? (y/n) > ',
                     'YN'
                 )

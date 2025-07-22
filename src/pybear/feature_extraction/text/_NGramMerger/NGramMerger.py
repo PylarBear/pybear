@@ -64,22 +64,21 @@ class NGramMerger(
     will find blocks of words that you specify and join them by a
     separator of your choosing to create a single contiguous string.
 
-    NGM has dual functionality. N-grams can be searched using literal
-    strings or regular expressions. For those of you who do not know
-    regex, you can safely ignore any references to flags, re.compile,
-    or re.Pattern, and just use literal strings. Provide literal strings
-    and/or re.compile objects containing your regex patterns intended to
-    match full strings. DO NOT PASS A REGEX PATTERN AS A LITERAL STRING.
-    YOU WILL NOT GET THE CORRECT RESULT. ALWAYS PASS REGEX PATTERNS IN A
-    re.compile OBJECT. DO NOTESCAPE LITERAL STRINGS, NGM WILL DO THAT
-    FOR YOU. If you don't know what any of that means, then you don't
-    need to worry about it.
-
     NGM accepts n-gram patterns in Python sequences passed to the
     `ngrams` parameter. In each position of the sequence(s), specify the
     whole-string pattern for each individual string to be searched for
     in your text. NGM always looks for full matches against tokens, it
     does not do partial matches.
+
+    N-grams can be searched using literal strings or regular expressions.
+    For those of you who do not know regex, you can safely ignore any
+    references to flags, re.compile, or re.Pattern, and just use literal
+    strings. Provide literal strings and/or re.compile objects containing
+    your regex patterns intended to match full strings. DO NOT PASS A
+    REGEX PATTERN AS A LITERAL STRING. YOU WILL NOT GET THE CORRECT
+    RESULT. ALWAYS PASS REGEX PATTERNS IN A re.compile OBJECT. DO
+    NOTESCAPE LITERAL STRINGS, NGM WILL DO THAT FOR YOU. If you don't
+    know what any of that means, then you don't need to worry about it.
 
     N-gram searches always default to case-sensitive, but can be made
     to be case-insensitive. You can globally set this behavior via the
@@ -112,8 +111,8 @@ class NGramMerger(
     go at the end of line 724 and the respective words in line 725 will
     be removed.
 
-    When using wrapped searches, the same forward-greedy discussed above
-    is applied. Consider, for example, a case where a pattern match
+    When using wrapped searches, the same forward-greedy method discussed
+    above is applied. Consider, for example, a case where a pattern match
     exists at the end of one line and into the next line, but in the next
     line there is an overlapping match. NGM will apply the wrapped match
     first because it is first in the working order, and consume the words
@@ -173,14 +172,14 @@ class NGramMerger(
     dataframes, and polars dataframes. Results are always returned as a
     Python list of lists of strings.
 
-    NGM is a full-fledged scikit-style transformer. It has fully
-    functional `get_params`, `set_params`, `transform`, and `fit_transform`
-    methods. It also has `partial_fit`, `fit`, and `score` methods,
-    which are no-ops. NGM technically does not need to be fit because it
-    already knows everything it needs to do transformations from the
-    parameters. These no-op methods are available to fulfill the scikit
-    transformer API and make NGM suitable for incorporation into larger
-    workflows, such as Pipelines and dask_ml wrappers.
+    NGM is a full-fledged scikit-style transformer. It has functional
+    `get_params`, `set_params`, `transform`, and `fit_transform` methods.
+    It also has `partial_fit`, `fit`, and `score` methods, which are
+    no-ops. NGM technically does not need to be fit because it already
+    knows everything it needs to do transformations from the parameters.
+    These no-op methods are available to fulfill the scikit transformer
+    API and make NGM suitable for incorporation into larger workflows,
+    such as pipelines and dask_ml wrappers.
 
     Because NGM doesn't need any information from :meth:`partial_fit`
     and :meth:`fit`, it is technically always in a 'fitted' state and
@@ -190,7 +189,7 @@ class NGramMerger(
     NGM has 2 attributes which are only available after data has been
     passed to `transform`. :attr:`n_rows_` is the number of rows of
     text seen in the original data, which may not be equal to the number
-    sof rows in the outputted data. :attr:`row_support_` is a 1D boolean
+    of rows in the outputted data. :attr:`row_support_` is a 1D boolean
     vector that indicates which rows were kept (True) and which
     rows were removed (False) from the data during transform. The only
     way for an entry to become False (i.e. a row was removed) is if
@@ -227,7 +226,7 @@ class NGramMerger(
     flags : Union[numbers.Integral, None]
         The global flags value(s) applied to the n-gram search. Must be
         None or an integer. The values of the integers are not validated
-        for legitimacy, any exceptions would be raised by re.fullmatch.
+        for legitimacy, any exceptions would be raised by `re.fullmatch`.
         An IGNORECASE flag passed here will override `case_sensitive`.
 
     Attributes
@@ -377,7 +376,7 @@ class NGramMerger(
 
         Returns
         -------
-        row_support_ : NDArray[bool] of shape (n_original_rows, )
+        row_support_ : numpy.ndarray[bool] of shape (n_original_rows, )
             A boolean vector indicating which rows were kept in the data
             during the transform process.
 
@@ -416,9 +415,9 @@ class NGramMerger(
 
 
     def get_metadata_routing(self):
-        """get_metadata_routing is not implemented in NGramMerger"""
+        """get_metadata_routing is not implemented in NGramMerger."""
         raise NotImplementedError(
-            f"'get_metadata_routing' is not implemented in NGramMerger"
+            f"'get_metadata_routing' is not implemented in NGramMerger."
         )
 
 

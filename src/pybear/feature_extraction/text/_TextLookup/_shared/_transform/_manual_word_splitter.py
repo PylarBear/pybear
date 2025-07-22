@@ -9,7 +9,10 @@
 from ._word_editor import _word_editor
 
 from ....__shared._utilities._view_text_snippet import view_text_snippet
-from ......input_validation import validate_user_input as vui
+from ......base._validate_user_input import (
+    validate_user_int,
+    validate_user_str
+)
 
 
 
@@ -56,7 +59,7 @@ def _manual_word_splitter(
             f'Enter number of ways to split  *{_word}*  '
             f'in  *{view_text_snippet(_line, _word_idx, _span=7)}* > '
         )
-        new_word_ct = vui.validate_user_int(_prompt, min=1, max=100)
+        new_word_ct = validate_user_int(_prompt, min=1, max=100)
         del _prompt
         # END ask user number of new words to make -- -- -- -- -- -- --
 
@@ -74,7 +77,7 @@ def _manual_word_splitter(
 
         # ask user if the new words are correct -- -- -- -- -- -- -- --
         _prompt = f'User entered *{"*, *".join(_NEW_WORDS)}* > accept? (y/n) > '
-        if vui.validate_user_str(_prompt, 'YN') == 'Y':
+        if validate_user_str(_prompt, 'YN') == 'Y':
             del _prompt
             break
         else:

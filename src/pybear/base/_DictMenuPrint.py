@@ -11,7 +11,7 @@ from typing_extensions import Union
 
 import numbers
 
-from ..input_validation import validate_user_str_cs
+from ._validate_user_input import validate_user_str_cs
 
 
 

@@ -36,7 +36,7 @@ from ._shared._type_aliases import (
 from ..__shared._transform._map_X_to_list import _map_X_to_list
 from ..__shared._utilities._view_text_snippet import view_text_snippet
 
-from ....input_validation import validate_user_input as vui
+from ....base._validate_user_input import validate_user_str
 
 from ....base._copy_X import copy_X
 
@@ -626,7 +626,7 @@ class TextLookupRealTime(_TextLookupMixin):
             self._display_lexicon_update(n=10)
             print()
 
-            _opt = vui.validate_user_str(
+            _opt = validate_user_str(
                 f'Empty it(e), Proceed anyway(p), Abort TextLookupRealTime(a) > ',
                 'AEP'
             )
@@ -666,8 +666,8 @@ class TextLookupRealTime(_TextLookupMixin):
                 # in this scope because it needs the FileDumpMixin.
                 if _n_edits != 0 and _n_edits % 20 == 0:
                     _prompt = f'\nSave in-situ changes to file(s) or Continue(c) > '
-                    if vui.validate_user_str(_prompt, 'SC') == 'S':
-                        _opt = vui.validate_user_str(
+                    if validate_user_str(_prompt, 'SC') == 'S':
+                        _opt = validate_user_str(
                             f'\nSave to csv(c), Save to txt(t), Abort(a)? > ',
                             'CTA'
                         )
@@ -947,8 +947,8 @@ class TextLookupRealTime(_TextLookupMixin):
         if not self.auto_add_to_lexicon and not self.auto_delete:
             print(f'\n*** LAST CHANCE TO SAVE ***\n')
             _prompt = f'\nSave completed text to file(s) or Skip(c) > '
-            if vui.validate_user_str(_prompt, 'SC') == 'S':
-                _opt = vui.validate_user_str(
+            if validate_user_str(_prompt, 'SC') == 'S':
+                _opt = validate_user_str(
                     f'\nSave to csv(c), Save to txt(t), Abort(a)? > ',
                     'CTA'
                 )

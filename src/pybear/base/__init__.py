@@ -28,6 +28,16 @@ from ._num_features import num_features
 from ._num_samples import num_samples
 from ._set_order import set_order
 from ._validate_data import validate_data
+from ._validate_user_input import (
+    validate_user_str,
+    validate_user_str_cs,
+    validate_user_mstr,
+    validate_user_int,
+    validate_user_float,
+    user_entry,
+    ValidateUserDate
+)
+
 
 from .mixins._FeatureMixin import FeatureMixin
 from .mixins._FileDumpMixin import FileDumpMixin
@@ -63,7 +73,14 @@ __all__ = [
     'num_features',
     'num_samples',
     'set_order',
+    'user_entry',
     'validate_data',
+    'validate_user_float',
+    'validate_user_int',
+    'validate_user_mstr',
+    'validate_user_str',
+    'validate_user_str_cs',
+    'ValidateUserDate',
     'FeatureMixin',
     'FileDumpMixin',
     'FitTransformMixin',
@@ -73,6 +90,7 @@ __all__ = [
     'SetParamsMixin',
     'NotFittedError'
 ]
+
 
 
 

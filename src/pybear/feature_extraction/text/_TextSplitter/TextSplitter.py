@@ -48,8 +48,8 @@ class TextSplitter(
 ):
     """Split a dataset of strings on the given separator(s).
 
-    So why not just use str.split or re.split? `TextSplitter` has some
-    advantages over the built-ins.
+    So why not just use `str.split` or `re.split`? `TextSplitter` has
+    some advantages over the built-ins.
 
     First, multiple splitting criteria can be passed to the `sep`
     parameter to split on multiple character sequences, which
@@ -209,7 +209,7 @@ class TextSplitter(
         Optional[Union[SepType, list[SepType]]]
 
     CaseSensitiveType:
-        Optional[Union[bool, list[None, bool]]]
+        Optional[Union[bool, list[Union[None, bool]]]]
 
     MaxSplitType:
         Union[None, numbers.Integral]
