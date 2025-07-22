@@ -9,23 +9,19 @@
 def _val_total_passes_is_hard(
     _total_passes_is_hard: bool
 ) -> None:
+    """Validate `_total_passes_is_hard`.
 
-
-    """
-    Validate `_total_passes_is_hard`. Must be boolean.
-
+    Must be boolean.
 
     Parameters
     ----------
-    _total_passes_is_hard:
-        bool - whether the number of agscv passes is fixed or can
-        increase based on the number of shifts needed.
-
+    _total_passes_is_hard : bool
+        Whether the number of agscv passes is fixed or can increase based
+        on the number of shifts needed.
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 

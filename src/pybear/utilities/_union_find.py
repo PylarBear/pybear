@@ -22,7 +22,7 @@ def union_find(
     Requires an sequence list-like container holding sequence list-like
     pairs of values. The contents of the pairs are not validated, but
     must be hashable by a Python dictionary and must be compatible with
-    python '==' and '!=' operators. Python lists and tuples are tested
+    Python '==' and '!=' operators. Python lists and tuples are tested
     and recommended, though other list-like containers such as sets and
     numpy arrays are likely to work. The output is not sorted in any way;
     any sorting needs to be done external to `union_find`.

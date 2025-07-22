@@ -16,7 +16,7 @@ def _transform(
     """Convert each row of strings in `_X` to a single string, joining on
     the string character sequence(s) provided by the `sep` parameter.
 
-    Returns a python list of strings.
+    Returns a Python list of strings.
 
     Parameters
     ----------
@@ -26,7 +26,7 @@ def _transform(
         been converted to a list-of-lists in the transform method of
         the :class:`TextJoiner` main module.
     _sep:
-        list[str] - the 1D python list of strings to use to join the
+        list[str] - the 1D Python list of strings to use to join the
         strings in the data. The length is identical to the number of
         rows in the data, and each string in _sep is used to join the
         corresponding sequence of strings in the data.

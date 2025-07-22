@@ -41,7 +41,7 @@ def truth_mask_1(_shape):
         # make sure that there are both trues and falses in all columns
         # so that pandas columns all have same dtype
         for c_idx in range(_shape[1]):
-            if not 0 < np.sum(M[:, c_idx]) / M.size < 1:
+            if not 0 < np.sum(M[:, c_idx]) / _shape[0] < 1:
                 break
         else:
             return M
@@ -55,7 +55,7 @@ def truth_mask_2(_shape):
         # make sure that there are both trues and falses in all columns
         # so that pandas columns all have same dtype
         for c_idx in range(_shape[1]):
-            if not 0 < np.sum(M[:, c_idx]) / M.size < 1:
+            if not 0 < np.sum(M[:, c_idx]) / _shape[0] < 1:
                 break
         else:
             return M
@@ -106,7 +106,7 @@ class TestInfMaskNumeric:
                 # see that it passes thru.
                 pytest.skip(reason=f"sets mess up the inf count")
 
-        # END skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # END skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         X = np.random.uniform(0, 1, _shape)
 
@@ -150,7 +150,6 @@ class TestInfMaskNumeric:
             X = _container(map(_container, X))
         else:
             raise Exception
-
 
         out = inf_mask(X)
 
@@ -256,6 +255,7 @@ class TestInfMaskNumeric:
             MASK = MASK[:, 0]
             _shape = (_shape[0], )
 
+        # everything here raises an except
         if _inf_type == 'npinf':
             with pytest.raises(OverflowError):
                 X[MASK] = np.inf
@@ -428,7 +428,7 @@ class TestInfMaskNumeric:
 
     # pd float dfs can take all of the inf-like forms tested here, but some
     # of them are coercing float64 dtype to object dtype.
-    # 'strinf' and decimalinf' are changing dtype from float64 to object
+    # 'strinf' and 'decimalinf' are changing dtype from float64 to object
     @pytest.mark.parametrize('_dim', (1, 2))
     @pytest.mark.parametrize('_trial', (1, 2, 3))
     @pytest.mark.parametrize('_inf_type',
@@ -486,10 +486,9 @@ class TestInfMaskNumeric:
         # if exception is raised by pd_assnmt_handle because of casting
         # inf to disallowed dtype, then X is None and skip test
         if X is None:
-            pytest.skip(
-                reason=f"invalid value cast to dataframe dtype, skip test"
-            )
+            pytest.skip(reason=f"invalid value cast to dataframe dtype, skip test")
 
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         _dtypes = [X.dtypes] if _dim == 1 else list(set(X.dtypes))
         assert len(_dtypes) == 1
         _dtype = _dtypes[0]
@@ -500,12 +499,12 @@ class TestInfMaskNumeric:
         elif _inf_type in [
             'strinf', '-strinf', 'decimalInfinity', '-decimalInfinity'
         ]:
-            # 'strinf' and decimalinf' are changing dtype from float64 to object!
+            # 'strinf' and 'decimalinf' are changing dtype from float64 to object!
             assert _dtype == object
         else:
             # for all other inf assignments, dtypes is not changed
             assert _dtype == np.float64
-
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         out = inf_mask(X)
 
@@ -574,10 +573,9 @@ class TestInfMaskNumeric:
         # if exception is raised by pd_assnmt_handle because of casting
         # inf to disallowed dtype, then X is None and skip test
         if X is None:
-            pytest.skip(
-                reason=f"invalid value cast to dataframe dtype, skip test"
-            )
+            pytest.skip(reason=f"invalid value cast to dataframe dtype, skip test")
 
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         _dtypes = [X.dtypes] if _dim == 1 else list(set(X.dtypes))
         assert len(_dtypes) == 1
         _dtype = _dtypes[0]
@@ -588,11 +586,12 @@ class TestInfMaskNumeric:
         elif _inf_type in [
             'strinf', '-strinf', 'decimalInfinity', '-decimalInfinity'
         ]:
-            # 'strinf' and decimalinf' are changing dtype from float64 to object!
+            # 'strinf' and 'decimalinf' are changing dtype from float64 to object!
             assert _dtype == object
         else:
             # all other inf types are changing dtype from uint32 to float64!
             assert _dtype == np.float64
+        # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         out = inf_mask(X)
 
@@ -720,9 +719,6 @@ class TestInfMaskNumeric:
             X = X[:, 0]
             MASK = MASK[:, 0]
             _shape = (_shape[0], )
-            _wip_columns = _columns[:1]
-        else:
-            _wip_columns = _columns
 
         assert X.dtype == np.float64
 
@@ -847,7 +843,7 @@ class TestInfMaskString:
                 # see that it passes thru.
                 pytest.skip(reason=f"sets mess up the inf count")
 
-        # END skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+        # END skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
         X = _X.astype('<U20')
@@ -976,7 +972,7 @@ class TestInfMaskString:
     def test_np_array_object(
         self, _X, truth_mask_1, truth_mask_2, _dim, _trial, _inf_type, _shape
     ):
-        # remember to set object dtype to _X
+
         X = _X.astype(object)
 
         if _trial == 1:
@@ -1035,7 +1031,7 @@ class TestInfMaskString:
          'floatinf', '-floatinf', 'decimalInfinity', '-decimalInfinity')
     )
     def test_pd_str(
-        self, _X, truth_mask_1, truth_mask_2, _trial, _inf_type, _dim, _shape,
+        self, _X, truth_mask_1, truth_mask_2, _dim, _trial, _inf_type, _shape,
         _columns, pd_assnmt_handle
     ):
 
@@ -1086,11 +1082,9 @@ class TestInfMaskString:
         # if exception is raised by pd_assnmt_handle because of casting
         # inf to disallowed dtype, then X is None and skip test
         if X is None:
-            pytest.skip(
-                reason=f"invalid value cast to dataframe dtype, skip test"
-            )
+            pytest.skip(reason=f"invalid value cast to dataframe dtype, skip test")
 
-        # turns out pd cant have str dtypes, always coerced to object
+        # pd cant have str dtypes, always coerced to object
         # so that means these tests are redundant with the next tests
         _dtypes = [X.dtypes] if _dim == 1 else list(set(X.dtypes))
         assert len(_dtypes) == 1
@@ -1162,9 +1156,7 @@ class TestInfMaskString:
         # if exception is raised by pd_assnmt_handle because of casting
         # inf to disallowed dtype, then X is None and skip test
         if X is None:
-            pytest.skip(
-                reason=f"invalid value cast to dataframe dtype, skip test"
-            )
+            pytest.skip(reason=f"invalid value cast to dataframe dtype, skip test")
 
         _dtypes = [X.dtypes] if _dim == 1 else list(set(X.dtypes))
         assert len(_dtypes) == 1

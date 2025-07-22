@@ -29,7 +29,7 @@ def _transform(
     """Fit text as strings to the user-specified number of characters per
     row.
 
-    For this module, the data must be a 1D python list of strings.
+    For this module, the data must be a 1D Python list of strings.
 
     `_sep` and `_line_break` must have already been processed
     by :func:`_param_conditioner`, i.e., all literal strings must be
@@ -39,7 +39,7 @@ def _transform(
     Parameters
     ----------
     _X : list[str]
-        The text to justify as a 1D python list of strings.
+        The text to justify as a 1D Python list of strings.
     _n_chars : numbers.Integral
         The number of characters per line to target when justifying the
         text.
@@ -62,7 +62,7 @@ def _transform(
     Return
     ------
     _X : list[str]
-        The justified text in a python list of strings.
+        The justified text in a Python list of strings.
 
     """
 

@@ -104,7 +104,7 @@ class TextRemover(
     Accepts 1D list-like and (possibly ragged) 2D array-likes of strings.
     Accepted 1D containers include Python lists, tuples, and sets, numpy
     vectors, pandas series, and polars series. Accepted 2D containers
-    include embedded python sequences, numpy arrays, pandas dataframes,
+    include embedded Python sequences, numpy arrays, pandas dataframes,
     and polars dataframes. When passed a 1D list-like, returns a Python
     list of strings. When passed a 2D array-like, returns a Python list
     of Python lists of strings. If you pass your data as a dataframe
@@ -140,7 +140,7 @@ class TextRemover(
         When passed as a single literal string or re.compile object,
         that is applied to every string in the data, and every full
         string that matches exactly will be removed. When passed as a
-        python tuple of character strings and/or re.compile objects,
+        Python tuple of character strings and/or re.compile objects,
         each pattern is searched against all the strings in the data
         and any exact matches are removed. If passed as a list, the
         number of entries must match the number of rows in `X`, and each

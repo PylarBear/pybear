@@ -113,7 +113,7 @@ class TextStatistics(
 
     TS accepts 1D list-likes or (possibly ragged) 2D array-likes
     containing only strings. This includes Python lists, sets, and
-    tuples, numpy vectors, pandas series, polars series, 2D python
+    tuples, numpy vectors, pandas series, polars series, 2D Python
     built-ins, numpy arrays, pandas dataframes, and polars dataframes.
 
     TS is case-sensitive during fitting, always. This is a design choice

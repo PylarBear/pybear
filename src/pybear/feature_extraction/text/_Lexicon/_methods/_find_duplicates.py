@@ -17,7 +17,7 @@ def _find_duplicates(
 ) -> dict[str, numbers.Integral]:
     """Find any duplicates in the Lexicon.
 
-    If any, display to screen and return as python dictionary with
+    If any, display to screen and return as Python dictionary with
     frequencies.
 
     Parameters

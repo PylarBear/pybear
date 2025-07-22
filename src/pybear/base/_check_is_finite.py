@@ -59,7 +59,7 @@ def check_is_finite(
     If `standardize_nan` is True, all nan-like values will be cast to
     np.nan, otherwise they are left as is.
 
-    `X` cannot be a python builtin iterable, like list or set. `X` must
+    `X` cannot be a Python builtin iterable, like list or set. `X` must
     have a copy method.
 
     Parameters

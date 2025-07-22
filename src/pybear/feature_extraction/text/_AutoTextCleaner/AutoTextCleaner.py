@@ -77,10 +77,10 @@ class AutoTextCleaner(
     AutoTextCleaner (ATC) combines the functionality of the pybear
     text transformers into one module. In one shot you can strip,
     normalize, replace, remove, and justifiy text. You can also
-    cross-reference the text against the pybear Lexicon, handle unknown
-    words, remove stops, and merge n-grams. All the while, ATC is
-    capable of compiling statistics about the incoming and outgoing
-    text.
+    cross-reference the text against the pybear :class:`Lexicon`, handle
+    unknown words, remove stops, and merge n-grams. All the while,
+    ATC is capable of compiling statistics about the incoming and
+    outgoing text.
 
     ATC adds no new functionality beyond what is in the other pybear
     text transformers; it simply lines them up and runs them all at once
@@ -88,7 +88,7 @@ class AutoTextCleaner(
     inner workings of this module is available in the docs for the
     submodules.
 
-    This method does have parameters and attributes that are unique
+    This module does have parameters and attributes that are unique
     to it. The documentation here mostly highlights these unique
     characteristics and points the reader to other documentation for
     more information.
@@ -110,8 +110,8 @@ class AutoTextCleaner(
     worry about it.
 
     IMPORTANT: if you want to use the `lexicon_lookup` parameter and
-    check your text against the pybear Lexicon, remember that the
-    Lexicon is majuscule and has no non-alpha characters. You MUST
+    check your text against the pybear `Lexicon`, remember that the
+    `Lexicon` is majuscule and has no non-alpha characters. You MUST
     set `normalize` to True to get meaningful results, or you risk
     losing content that is not the correct case. Also, when you are in
     the manual text lookup process and are entering words at the prompts
@@ -123,30 +123,30 @@ class AutoTextCleaner(
 
     ATC is a full-fledged scikit-style transformer. It has functional
     `get_params`, `set_params`, `transform`, and `fit_transform`
-    methods. It also has no-op `partial_fit` and `fit` methods to allow
-    for integration into larger workflows, like scikit pipelines.
-    Technically ATC does not need to be fit and is always in a fitted
-    state (any 'is_fitted' checks of an instance will always return
-    True) because ATC knows everything it needs to know to transform
-    data from the parameters. It also has a no-op `score` method to
-    allow dask_ml wrappers.
+    methods. It also has no-op :meth:`partial_fit` and :meth:`fit`
+    methods to allow for integration into larger workflows, like scikit
+    pipelines. Technically ATC does not need to be fit and is always in
+    a fitted state (any 'is_fitted' checks of an instance will always
+    return True) because ATC knows everything it needs to know to
+    transform data from the parameters. It also has a no-op `score`
+    method to allow dask_ml wrappers.
 
-    When using `set_params` to change the ATC instance's parameters away
-    from those passed at instantiation, always make a call to no-op `fit`
-    to reset the instance. The submodules are instantiated when ATC is
-    instantiated, so when the parameters that impact the submodules
+    When using :meth:`set_params` to change the ATC instance's parameters
+    away from those passed at instantiation, always make a call to no-op
+    `fit` to reset the instance. The submodules are instantiated when
+    ATC is instantiated, so when the parameters that impact the submodules
     change, the submodules need to be instantiated again.
 
     ATC accepts 1D list-like and (possibly ragged) 2D array-likes of
     strings. Accepted 1D containers include Python lists, tuples, and
     sets, numpy vectors, pandas series, and polars series. Accepted 2D
-    containers include embedded python sequences, numpy arrays, pandas
+    containers include embedded Python sequences, numpy arrays, pandas
     dataframes, and polars dataframes. The dimensionality of the output
-    can be controlled by the `return_dim`. When data is returned in 1D
-    format, the output is a python list of strings. When the data is
-    returned in 2D format, the output is a python list of python lists
-    of strings. If you pass your data as a dataframe with feature names,
-    the feature names are not preserved.
+    can be controlled by the `return_dim` parameter. When data is
+    returned in 1D format, the output is a Python list of strings. When
+    the data is returned in 2D format, the output is a Python list of
+    Python lists of strings. If you pass your data as a dataframe with
+    feature names, the feature names are not preserved.
 
     Parameters
     ----------
@@ -169,8 +169,8 @@ class AutoTextCleaner(
         overrule.
     remove_empty_rows : Optional[bool], default=False
         Some operations during the cleaning process, such as remove
-        character patterns and/or stop words, ngram merge, and Lexicon
-        lookup may leave some rows with no strings in them. If this
+        character patterns and/or stop words, ngram merge, and `Lexicon`
+        lookup, may leave some rows with no strings in them. If this
         happens and this parameter is True, then that empty row is
         removed from the data.
     return_dim : Optional[ReturnDimType], default=None
@@ -201,15 +201,15 @@ class AutoTextCleaner(
         If True, convert all text in `X` to upper-case; if False, convert
         to lower-case; if None, do a no-op.
     lexicon_lookup : Optional[Union[LexiconLookupType, None]], default=None
-        Remember that the pybear Lexicon is majuscule, so your text
+        Remember that the pybear `Lexicon` is majuscule, so your text
         should be also if you choose to use this. When None, skip the
-        Lexicon lookup process. Otherwise, must be a dictionary of
+        `Lexicon` lookup process. Otherwise, must be a dictionary of
         parameters for :class:`TextLookupRealTime`. If `remove_empty_rows`
         is passed here, it will override the ATC `remove_empty_rows`
         parameter, otherwise the ATC `remove_empty_rows` parameter will
         be used. See :attr:`lexicon_lookup_` for more information. Also
         see the docs for pybear `TextLookupRealTime` for information
-        about the parameters and the Lexicon lookup process.
+        about the parameters and the `Lexicon` lookup process.
     remove_stops : Optional[bool], default=False
         Whether to remove pybear-defined stop words from the text.
     ngram_merge : Optional[Union[None, NGramsType]], default=None
@@ -222,13 +222,12 @@ class AutoTextCleaner(
         key takes a boolean value. True will look for ngram merges
         around the beginnings and ends of adjacent lines, False will
         only look for ngrams within the contiguous text of one line.
-        See pybear NGramMerger for more information.
+        See pybear :class:`NGramMerger` for more information.
     justify : Optional[Union[numbers.Integral, None]], default=None
         When None do not justify the text. Otherwise, pass an integer
         to indicate to ATC to justify the data to that character width.
-        When this is not None, i.e., the instruction to justify is
-        given by passing an integer value, ATC does not expose
-        the :attr:`row_support_` attribute.
+        When this is not None, i.e., an integer is passed, ATC does not
+        expose the :attr:`row_support_` attribute.
     get_statistics : Optional[Union[None, GetStatisticsType]]
         None or a dictionary keyed with 'before' and 'after'. When None,
         do not accumulate statistics about the incoming and outgoing
@@ -546,15 +545,15 @@ class AutoTextCleaner(
         if any, were removed during the cleaning process. The length
         must equal the number of rows in the data originally passed
         to :meth:`transform`. A row that was removed is indicated by
-        a False in the corresponding position in the vector, and a row
-        that remains is indicated by True. This attribute only reflects
-        the last batch of data passed to :meth:`transform`; it is not
-        cumulative. This attribute is not available if ATC parameter
+        a False in the corresponding position in the vector, and a
+        row that remains is indicated by True. This attribute only
+        reflects the last batch of data passed to `transform`; it is
+        not cumulative. This attribute is not available if ATC parameter
         `justify` is enabled.
 
         Returns
         -------
-        _row_support : npt.NDArray[bool]
+        _row_support : np.ndarray[bool]
             A 1D boolean numpy vector indicating which rows of the data,
             if any, were removed during the cleaning process.
 

@@ -97,15 +97,15 @@ class TextJustifier(
     to the default value of None. Both `sep` and `line_break` can accept
     patterns as literal strings or regular expressions. Also, both
     parameters can accept multiple patterns to wrap/break on via 1D
-    list-likes of patterns.
+    sequences of patterns.
 
     To identify wrap points and line breaks using literal strings, pass
-    a string or 1D list-likes of strings to `sep` and `line_break`. You
+    a string or 1D sequence of strings to `sep` and `line_break`. You
     can mix containers to the different parameters, i.e., one could be a
-    list-like and the other could be a single string. To identify wrap
+    sequence and the other could be a single string. To identify wrap
     points and line breaks using regex patterns, pass a re.compile
     object with the regex pattern (and flags, if desired) or pass a 1D
-    list-like of such objects. DO NOT PASS A REGEX PATTERN AS A LITERAL
+    sequence of such objects. DO NOT PASS A REGEX PATTERN AS A LITERAL
     STRING. YOU WILL NOT GET THE CORRECT RESULT. ALWAYS PASS REGEX
     PATTERNS IN A re.compile OBJECT. DO NOT ESCAPE LITERAL STRINGS,
     TextJustifier WILL DO THAT FOR YOU. If you don't know what any of
@@ -155,8 +155,8 @@ class TextJustifier(
     there is a shortfall of characters in a line, TJ will look to the
     next line to backfill strings. In the case where the line being
     backfilled onto does not have a separator at the end of the string,
-    the character string given by :param: `backfill_sep` will separate
-    the otherwise separator-less string from the string being backfilled
+    the character string given by `backfill_sep` will separate the
+    otherwise separator-less string from the string being backfilled
     onto it.
 
     As simple as the tool is in concept, there are some nuances. Here is
@@ -176,16 +176,16 @@ class TextJustifier(
     you want an itemized list of all the tokens in your text, set
     `n_chars` to 1.
 
-    TJ accepts 1D and 2D data formats. Accepted objects include python
+    TJ accepts 1D and 2D data formats. Accepted objects include Python
     built-in lists, tuples, and sets, numpy arrays, pandas series and
     dataframes, and polars series and dataframes. When data is passed
-    in a 1D container, results are always returned as a 1D python
+    in a 1D container, results are always returned as a 1D Python
     list of strings. When data is passed in a 2D container, TJ uses
     pybear :class:`TextJoiner` and the `join_2D` parameter to convert it
     to a 1D list for processing. Then, once the processing is done, TJ
     uses pybear :class:`TextSplitter` and the `join_2D` parameter again
     to convert it back to 2D. The 2D results are always returned in a
-    Python list of python lists of strings. See TextJoiner and
+    Python list of Python lists of strings. See TextJoiner and
     TextSplitter.
 
     TJ is a full-fledged scikit-style transformer. It has fully
@@ -219,33 +219,34 @@ class TextJustifier(
         short. If margins are unusually small, the output can exceed
         the given margins (e.g. the margin is set lower than an
         individual word's length.)
-    sep : SepType, default=' ' - the literal string(s) or re.compile
-        object(s) that indicate to `TextJustifier` where it is allowed
-        to wrap a line. When passed as a 1D list-like, TJ will consider
-        any of those patterns as a place where it can wrap a line. If
-        a `sep` pattern is in the middle of a sequence that might
-        otherwise be expected to be contiguous, TJ will wrap a new line
-        AFTER the `sep` indiscriminately if proximity to the `n_chars`
-        limit dictates to do so. Cannot be an empty string or a regex
-        pattern that blatantly returns zero-span matches. Cannot be an
-        empty list-like. When passed as re.compile object(s), it is only
-        validated to be an instance of re.Pattern and that it is not
-        likely to return zero-span matches. TJ does not assess the
-        validity of the expression itself. Any exceptions would be
-        raised by re.search. See the main docs for more discussion about
-        limitations on what can be passed here.
+    sep : SepType, default=' '
+        The literal string(s) or re.compile object(s) that indicate
+        to `TextJustifier` where it is allowed to wrap a line. When
+        passed as a 1D sequence, TJ will consider any of those patterns
+        as a place where it can wrap a line. If a `sep` pattern is
+        in the middle of a sequence that might otherwise be expected
+        to be contiguous, TJ will wrap a new line AFTER the `sep`
+        indiscriminately if proximity to the `n_chars` limit dictates
+        to do so. Cannot be an empty string or a regex pattern that
+        blatantly returns zero-span matches. Cannot be an empty sequence.
+        When passed as re.compile object(s), it is only validated to be
+        an instance of re.Pattern and that it is not likely to return
+        zero-span matches. TJ does not assess the validity of the
+        expression itself. Any exceptions would be raised by `re.search`.
+        See the main docs for more discussion about limitations on what
+        can be passed here.
     sep_flags : Optional[Union[numbers.Integral, None]], default=None
         The flags for the `sep` parameter. THIS WILL APPLY EVEN IF YOU
         PASS LITERAL STRINGS TO `sep`. IGNORECASE flags passed to this
         will overrule `case_sensitive` for `sep`. This parameter is only
         validated by TJ to be an instance of numbers.Integral or None.
         TJ does not assess the validity of the value. Any exceptions
-        would be raised by re.search.
+        would be raised by `re.search`.
     line_break : LineBreakType, default=None
         Literal string(s) or re.compile object(s) that indicate to TJ
         where it MUST end a line. TJ will start a new line immediately
         AFTER the occurrence of the pattern regardless of the number
-        of characters in the line. When passed as a 1D list-like of
+        of characters in the line. When passed as a 1D sequence of
         literals or re.compile objects, TJ will start a new line
         immediately after all occurrences of the patterns given. If
         None, do not force any line breaks. If the there are no
@@ -255,11 +256,11 @@ class TextJustifier(
         contiguous, TJ will force a new line after the `line_break`
         indiscriminately. Cannot be an empty string or a regex pattern
         that blatantly returns zero-span matches. Cannot be an empty
-        1D list-like. When passed as re.compile object(s), it is only
+        1D sequence. When passed as re.compile object(s), it is only
         validated to be an instance of re.Pattern and that it is not
         likely to return zero-span matches. TJ does not assess the
         validity of the expression itself. Any exceptions would be
-        raised by re.search. See the main docs for more discussion
+        raised by `re.search`. See the main docs for more discussion
         about limitations on what can be passed here.
     line_break_flags : Optional[Union[numbers.Integral, None]], default=None
         The flags for the `line_break` parameter. THIS WILL APPLY EVEN
@@ -267,7 +268,7 @@ class TextJustifier(
         passed to this will overrule `case_sensitive` for `line_break`.
         This parameter is only validated by TJ to be an instance of
         numbers.Integral or None. TJ does not assess the validity of
-        the value. Any exceptions would be raised by re.search.
+        the value. Any exceptions would be raised by `re.search`.
     backfill_sep : Optional[str], default=' '
         In the case where a line is shorter than `n_chars`, DOES NOT END
         WITH A WRAP SEPARATOR, and the following line is short enough to
@@ -275,7 +276,7 @@ class TextJustifier(
         strings when merged. If you do not want a separator in this case,
         pass an empty string to this parameter.
     join_2D : Optional[str], default=' '
-        Ignored if the data is given as a 1D list-like. For 2D containers
+        Ignored if the data is given as a 1D sequence. For 2D containers
         of strings, this is the character string sequence that is used
         to join the strings within rows to convert the data to 1D for
         processing. The single string value is used to join the strings
@@ -283,11 +284,7 @@ class TextJustifier(
 
     Attributes
     ----------
-    n_rows_ : int
-        The number of rows in data passed to :meth:`transform`; the
-        outputted data may not have the same number of rows. This
-        number is not cumulative and only reflects the last batch of
-        data passed to `transform`.
+    n_rows_
 
     Notes
     -----
@@ -372,7 +369,7 @@ class TextJustifier(
     But when she got there, The cupboard was bare, And so the poor dog
     had none. She went to the baker’s To buy him some bread; And when she
     came back, The poor dog was dead.
-
+    >>>
     >>> # Demonstrate regex and do a different justify on the same data
     >>> trfm.set_params(n_chars=45, sep=[re.compile(' '), re.compile(',')])
     TextJustifier(n_chars=45, sep=[re.compile(' '), re.compile(',')])
@@ -418,10 +415,10 @@ class TextJustifier(
     def n_rows_(self) -> int:
         """Get the `n_rows_` attribute.
 
-        The number of rows of text seen in data passed to :meth:`transform`;
-        may not be the same as the number of rows in the outputted data.
-        This number is not cumulative and only reflects the last batch
-        of data passed to `transform`.
+        The number of rows in data passed to :meth:`transform`; may not
+        be the same as the number of rows in the outputted data. This
+        number is not cumulative and only reflects the last batch of
+        data passed to `transform`.
 
         Returns
         -------
@@ -563,7 +560,7 @@ class TextJustifier(
         X:XContainer,
         copy:Optional[bool] = False
     ) -> XWipContainer:
-        """Justify the text in a 1D list-like of strings or a (possibly
+        """Justify the text in a 1D sequence of strings or a (possibly
         ragged) 2D array-like of strings.
 
         Parameters
@@ -577,7 +574,7 @@ class TextJustifier(
         Returns
         -------
         X_tr : XWipContainer
-            The justified data returned as a 1D python list of strings.
+            The justified data returned as a 1D Python list of strings.
 
         """
 

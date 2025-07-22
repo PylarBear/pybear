@@ -435,7 +435,7 @@ class SlimPolyFeatures(
     the various infinity-types, e.g, numpy.inf, -numpy.inf, float('inf'),
     float('-inf'), etc. This is a design decision to not force infinity
     values to numpy.nan. SPF falls back to the native handling of these
-    values for python and numpy. Specifically, numpy.inf==numpy.inf and
+    values for Python and numpy. Specifically, numpy.inf==numpy.inf and
     float('inf')==float('inf').
 
     Concerning the handling of scipy sparse arrays. When constructing

@@ -14,9 +14,7 @@ def _val_bool_param_value(
     _bool_param_key: str,
     _bool_param_value: InBoolParamType
 ) -> None:
-
-    """
-    Validate _bool_param_value.
+    """Validate `_bool_param_value`.
 
     COMES IN AS
     list-like(
@@ -30,21 +28,17 @@ def _val_bool_param_value(
     (ii) 'points' not validated here anymore
     (iii) 'fixed_bool' (literal string 'fixed_bool')
 
-
     Parameters
     ----------
-    _bool_param_key:
-        str - the estimator parameter name to be grid-searched.
-    _bool_param_value:
-        InBoolParamType - the list-like of instructions for the multi-pass
-        grid search of this boolean-valued parameter.
-
+    _bool_param_key : str
+        The estimator parameter name to be grid-searched.
+    _bool_param_value : InBoolParamType
+        The list-like of instructions for the multi-pass grid search of
+        this boolean-valued parameter.
 
     Returns
     -------
-    -
-        None
-
+    None
 
     """
 

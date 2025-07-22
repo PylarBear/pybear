@@ -13,23 +13,20 @@ import numbers
 def _val_total_passes(
     _total_passes: numbers.Integral
 ) -> None:
+    """Validate `total_passes`.
 
-    """
-    Validate `total_passes`. Must be an integer >= 1.
-
+    Must be an integer >= 1.
 
     Parameters
     ----------
-    _total_passes:
-        numbers.Integral - the number of grid-search passes to run. The
-        actual number of passes run can be higher than this number under
-        certain circumstances.
-
+    _total_passes : numbers.Integral
+        The number of grid-search passes to run. The actual number of
+        passes run can be higher than this number under certain
+        circumstances.
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 

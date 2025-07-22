@@ -14,9 +14,7 @@ def _val_string_param_value(
     _string_param_key: str,
     _string_param_value: InStrParamType
 ) -> None:
-
-    """
-    Validate _string_param_value.
+    """Validate `_string_param_value`.
 
     COMES IN AS
     list-like(
@@ -30,21 +28,17 @@ def _val_string_param_value(
     (ii) 'points' not validated here anymore
     (iii) 'fixed_string' (literal string 'fixed_string')
 
-
     Parameters
     ----------
-    _string_param_key:
-        str - the estimator parameter name to be grid-searched.
-    _string_param_value:
-        InStrParamType - the list-like of instructions for the multi-pass
-        grid search of this string-valued parameter.
-
+    _string_param_key : str
+        The estimator parameter name to be grid-searched.
+    _string_param_value : InStrParamType
+        The list-like of instructions for the multi-pass grid search of
+        this string-valued parameter.
 
     Returns
     -------
-    -
-        None
-
+    None
 
     """
 

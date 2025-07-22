@@ -63,7 +63,7 @@ def _param_conditioner(
         When '_pattern_holder' is or has in it a tuple of literal
         strings and/or re.compiles, whether the order of operations and
         redundancy are important. If not important, any redundancy can
-        be eliminated with python sets and order can change without
+        be eliminated with Python sets and order can change without
         consequence.
     _n_rows : numbers.Integral
         The number of rows in the data. if _flags, _pattern_holder,

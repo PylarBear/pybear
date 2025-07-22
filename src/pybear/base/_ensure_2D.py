@@ -48,7 +48,7 @@ def ensure_2D(
     If `X` is a 1D vector, assume the vector is a single feature of
     samples, not a single sample of features. `X` must have a 'shape'
     attribute. The only time `copy_X` matters is if `copy_X` is True and
-    `X` is 1-dimensional. This module does not accept python builtin
+    `X` is 1-dimensional. This module does not accept Python builtin
     iterables like list, set, and tuple.
 
     Parameters

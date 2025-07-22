@@ -35,12 +35,12 @@ def _val_sep_or_line_break(
     difference for what can be passed to `sep` and `line_break`.
 
     For string mode:
-    Must be a non-empty string or a non-empty python sequence of
+    Must be a non-empty string or a non-empty Python sequence of
     non-empty strings.
 
     For regex mode:
     Must be a re.compile object that does not blatantly return zero-span
-    matches or a non-empty python sequence of such objects. re.Pattern
+    matches or a non-empty Python sequence of such objects. re.Pattern
     objects are only validated to be an instance of re.Pattern and to
     not blatantly return zero-span matches. There is no attempt to assess
     the validity of the expression itself. Any exceptions would be raised

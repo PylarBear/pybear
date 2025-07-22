@@ -103,7 +103,7 @@ class TextPadder(
     lists of strings. There is some control over the output container
     via :meth:`set_output`, which allows the user to set some common
     output containers for the shaped array. `set_output` can be set to
-    None which returns the default python list, 'default' which returns
+    None which returns the default Python list, 'default' which returns
     a numpy array, 'pandas' which returns a pandas dataframe, and
     'polars', which returns a polars dataframe.
 
