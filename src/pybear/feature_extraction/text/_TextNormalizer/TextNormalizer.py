@@ -161,7 +161,7 @@ class TextNormalizer(
         Parameters
         ----------
         X : XContainer
-            The data whose text will be normalized.
+            The text data to normalize.
         y : Optional[Any], default=None
             The target for the data. Always ignored.
 
@@ -186,7 +186,7 @@ class TextNormalizer(
         Parameters
         ----------
         X : XContainer
-            The data whose text will be normalized.
+            The text data to normalize.
         y : Optional[Any], default=None
             The target for the data. Always ignored.
 
@@ -211,9 +211,9 @@ class TextNormalizer(
         Parameters
         ----------
         X : XContainer
-            The data whose text will be normalized.
+            The text data to normalize.
         copy : Optional[bool], default=False
-            whether to normalize the text in the original `X` object or
+            Whether to normalize the text in the original `X` object or
             a deepcopy of `X`.
 
         Returns

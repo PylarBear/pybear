@@ -156,7 +156,7 @@ class TextStatistics(
     standard deviation of length, maximum length, minimum length, overall
     character frequency, and first character frequency. Functionality
     lost includes the unique strings themselves as would otherwise be
-    available through :attr:`uniques_` and :attr:`string_frequencies_`,
+    available through :attr:`uniques_` and :attr:`string_frequency_`,
     and information about longest string and shortest string. Methods
     whose information reporting is impacted include :meth:`lookup_string`
     and :meth:`lookup_substring`, as well as the associated printing
@@ -167,36 +167,18 @@ class TextStatistics(
     store_uniques : Optional[bool], default=True
         Whether to retain the unique strings seen by the `TextStatistics`
         instance in memory. If True, all attributes and print methods
-        are fully informative. If False, the :attr:`string_frequencies_`
+        are fully informative. If False, the :attr:`string_frequency_`
         and :attr:`uniques_` attributes are always empty, and functionality
         that depends on these attributes have reduced capability.
 
     Attributes
     ----------
-    size_ : int
-        The number of strings fitted on the `TextStatistics` instance.
-    uniques_ : list[str]
-        A 1D list of the unique strings fitted on the `TextStatistics`
-        instance. If `store_uniques` is False, this will always be empty.
-    overall_statistics_ : dict[str, numbers.Real]
-        A dictionary that holds information about all the strings fitted
-        on the `TextStatistics` instance. Available statistics are size
-        (number of strings seen during fitting), uniques count, average
-        string length, standard deviation of string length, maximum
-        string length, and minimum string length. If `store_uniques` is
-        False, the `uniques_count` field will always be zero.
-    string_frequency_ : dict[str, int]
-        A dictionary that holds the unique strings and the respective
-        number of occurrences seen during fitting. If the `store_uniques`
-        parameter is False, this will always be empty.
-    startswith_frequency_ : dict[str, int]
-        A dictionary that holds the first characters and their
-        frequencies in the first position for all the strings fitted on
-        the `TextStatistics` instance.
-    character_frequency_ : dict[str, int]
-        A dictionary that holds all the unique single characters
-        and their frequencies for all the strings fitted on the
-        `TextStatistics` instance.
+    size_
+    uniques_
+    overall_statistics_
+    string_frequency_
+    startswith_frequency_
+    character_frequency_
 
     Examples
     --------
@@ -250,12 +232,12 @@ class TextStatistics(
     def size_(self) -> int:
         """Get the `size_` attribute.
 
-        The number of strings fitted on the TextStatistics instance.
+        The number of strings fitted on the `TextStatistics` instance.
 
         Returns
         -------
         size : int
-            The number of strings fitted on the TextStatistics instance.
+            The number of strings fitted on the `TextStatistics` instance.
 
         """
 
@@ -269,7 +251,7 @@ class TextStatistics(
         """Get the `uniques_` attribute.
 
         A 1D list of the unique strings fitted on the `TextStatistics`
-        instance. `store_uniques` is False, this will always be empty.
+        instance. If `store_uniques` is False, this will always be empty.
 
         Returns
         -------
@@ -301,7 +283,7 @@ class TextStatistics(
         Returns
         -------
         overall_statistics_ : dict[str, numbers.Real]
-            Summary information about all the strings seen during fit..
+            Summary information about all the strings seen during fit.
 
         """
 
@@ -312,7 +294,7 @@ class TextStatistics(
 
     @property
     def string_frequency_(self) -> dict[str, int]:
-        """Get the `string_frequence_` attribute.
+        """Get the `string_frequency_` attribute.
 
         A dictionary that holds the unique strings and the respective
         number of occurrences seen during fitting. If the `store_uniques`
@@ -353,7 +335,7 @@ class TextStatistics(
 
     @property
     def character_frequency_(self) -> dict[str, int]:
-        """Get the `character_frequence_` attribute.
+        """Get the `character_frequency_` attribute.
 
         A dictionary that holds all the unique single characters
         and their frequencies for all the strings fitted on the
@@ -407,7 +389,7 @@ class TextStatistics(
     # def fit_transform() - inherited from FitTransformMixin
 
     def set_params(self, **params) -> Self:
-        """No-op set_params method.
+        """No-op `set_params` method.
 
         Returns
         -------
@@ -701,8 +683,8 @@ class TextStatistics(
         self,
         n: Optional[numbers.Integral] = 10
     ) -> dict[str, int]:
-        """The longest strings seen by the TextStatistics instance during
-        fitting.
+        """The longest strings seen by the `TextStatistics` instance
+        during fitting.
 
         Only available if `store_uniques` is True. If False, the uniques
         seen during fitting are not available and an empty dictionary is
@@ -856,8 +838,8 @@ class TextStatistics(
         case_sensitive : Optional[bool], default = True
             Ignored if a re.compile object is passed to `pattern`. If
             True, search for the exact pattern in the fitted data. If
-            False, ignore the case of words in uniques while performing
-            the search.
+            False, ignore the case of words in :attr:`uniques` while
+            performing the search.
 
         Returns
         -------

@@ -117,9 +117,9 @@ class TextStripper(
 
 
     def get_metadata_routing(self):
-        """'get_metadata_routing' is not implemented in TextStripper"""
+        """'get_metadata_routing' is not implemented in TextStripper."""
         raise NotImplementedError(
-            f"'get_metadata_routing' is not implemented in TextStripper"
+            f"'get_metadata_routing' is not implemented in TextStripper."
         )
 
 

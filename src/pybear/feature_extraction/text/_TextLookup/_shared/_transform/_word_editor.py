@@ -6,7 +6,7 @@
 
 
 
-from ......input_validation import validate_user_input as vui
+from ......base import validate_user_input as vui
 
 
 def _word_editor(

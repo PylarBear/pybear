@@ -36,7 +36,7 @@ from ._shared._type_aliases import (
 from ..__shared._transform._map_X_to_list import _map_X_to_list
 from ..__shared._utilities._view_text_snippet import view_text_snippet
 
-from ....input_validation import validate_user_input as vui
+from ....base import validate_user_input as vui
 
 from ....base._copy_X import copy_X
 

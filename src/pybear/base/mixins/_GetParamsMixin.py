@@ -43,7 +43,7 @@ class GetParamsMixin:
             parameters for the GridSearch instance, ignoring the
             parameters of the nested instance. When `deep=True`, this
             method returns the parameters of the wrapping instance as
-            well as the parameters of the nested instance. When thes
+            well as the parameters of the nested instance. When the
             nested instance is a single estimator, the full set of
             parameters for the single estimator are returned in addition
             to the parameters of the wrapping instance. If the nested

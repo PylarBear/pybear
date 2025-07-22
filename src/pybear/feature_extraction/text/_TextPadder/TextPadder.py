@@ -49,7 +49,8 @@ class TextPadder(
     SetOutputMixin,
     SetParamsMixin
 ):
-    """Map ragged text data to a shaped array.
+    """Map ragged text data to a shaped array, using a fill value to
+    fill out any ragged area.
 
     Why not just use `itertools.zip_longest`? `TextPadder` has 2 benefits
     not available with `zip_longest`.
@@ -87,13 +88,13 @@ class TextPadder(
     previously seen data, and records the maximum length anew with
     every call to it.
 
-    During transform, TP will always force the n_features value to be at
-    least the maximum number of strings seen in a single example during
-    fitting. This is the tightest possible wrap on the data without
-    truncating, what `zip_longest` would do, and what TP does when
-    `n_features` is set to the default value of None. If data that is
-    shorter than `n_features` is passed to :meth:`transform`, then all
-    examples will be padded with the fill value to the `n_features`
+    During transform, TP will always force the `n_features` value to be
+    at least the maximum number of strings seen in a single example
+    during fitting. This is the tightest possible wrap on the data
+    without truncating, what `zip_longest` would do, and what TP does
+    when `n_features` is set to the default value of None. If data that
+    is shorter than `n_features` is passed to :meth:`transform`, then
+    all examples will be padded with the fill value to the `n_features`
     dimension. If data to be transformed has an example that is longer
     than any example seen during fitting (which means that TP was not
     fitted on this example), and is also longer than the `n_features`
@@ -103,7 +104,7 @@ class TextPadder(
     lists of strings. There is some control over the output container
     via :meth:`set_output`, which allows the user to set some common
     output containers for the shaped array. `set_output` can be set to
-    None which returns the default Python list, 'default' which returns
+    None which returns the default python list, 'default' which returns
     a numpy array, 'pandas' which returns a pandas dataframe, and
     'polars', which returns a polars dataframe.
 
@@ -111,13 +112,13 @@ class TextPadder(
     and :meth:`get_params`, behave as expected for scikit-style
     transformers.
 
-    The score method (:meth:`score`) is a no-op that allows TP to be
-    wrapped by dask_ml ParallelPostFit and Incremental wrappers.
+    The :meth:`score` method is a no-op that allows TP to be wrapped by
+    dask_ml ParallelPostFit and Incremental wrappers.
 
     Parameters
     ----------
     fill : Optional[str], default=""
-        The character sequence to pad text sequences with.
+        The character string to pad text sequences with.
     n_features : Optional[Union[numbers.Integral, None]], default=None
         The number of features to create when padding the data, i.e.,
         the length of the feature axis. When None, TP pads all examples
@@ -130,11 +131,7 @@ class TextPadder(
 
     Attributes
     ----------
-    n_features_ : int
-        The number of features to pad the data to during transform; the
-        number of features in the outputted array. This number is the
-        greater of `n_features` or the maximum number of strings seen in
-        a single example during fitting.
+    n_features_
 
     Notes
     -----
@@ -235,6 +232,11 @@ class TextPadder(
     @property
     def n_features_(self) -> int:
         """Get the `n_features_` attribute.
+
+        The number of features to pad the data to during transform; the
+        number of features in the outputted array. This number is the
+        greater of `n_features` or the maximum number of strings seen in
+        a single example during fitting.
 
         Returns
         -------

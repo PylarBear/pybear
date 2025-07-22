@@ -53,7 +53,7 @@ class TextRemover(
     """Remove full strings (not substrings) from text data.
 
     Identify full strings to remove by literal string equality or by
-    regular expression fullmatch. Remove any and all matches completely
+    regular expression `fullmatch`. Remove any and all matches completely
     from the data.
 
     One particularly useful application is to take out empty or gibberish
@@ -63,8 +63,8 @@ class TextRemover(
 
     `TextRemover` (TR) always looks for matches against entire strings,
     it does not do partial matches. You can tell TR what strings to
-    remove with literal strings, or regular expressions in re.compile
-    objects, passed to `remove`. Pass literal strings or re.compile
+    remove with literal strings or regular expressions in re.compile
+    objects passed to `remove`. Pass literal strings or re.compile
     objects that are intended to match entire words. DO NOT PASS A REGEX
     PATTERN AS A LITERAL STRING. YOU WILL NOT GET THE CORRECT RESULT.
     ALWAYS PASS REGEX PATTERNS IN A re.compile OBJECT. DO NOT ESCAPE
@@ -130,8 +130,8 @@ class TextRemover(
     applied to a target for the data (if any) so that the rows in the
     target match the rows in the data after transform. The length of
     `row_support_` must equal `n_rows_`. Neither of these attributes
-    are cumulative, they only reflect the last dataset passed to
-    `transform`.
+    are cumulative, they only reflect the last dataset passed
+    to :meth:`transform`.
 
     Parameters
     ----------
@@ -175,18 +175,8 @@ class TextRemover(
 
     Attributes
     ----------
-    n_rows_ : int
-        The number of rows in the data passed to :meth:`transform`.
-        This reflects the data that is passed, not the data that is
-        returned, which may not necessarily have the same number of
-        rows as the original data. Only available if a transform has
-        been performed, and only reflects the results of the last
-        transform done, it is not cumulative.
-    row_support_ : RowSupportType
-        A boolean vector indicating which rows were kept (True) or
-        removed (False) during the transform process. Only available
-        if a transform has been performed, and only reflects the results
-        of the last transform done, it is not cumulative.
+    n_rows_
+    row_support_
 
     Notes
     -----
@@ -280,7 +270,12 @@ class TextRemover(
     def n_rows_(self) -> int:
         """Get the `n_rows_` attribute.
 
-        The number of rows in the data passed to transform.
+        The number of rows in the data passed to :meth:`transform`.
+        This reflects the data that is passed, not the data that is
+        returned, which may not necessarily have the same number of
+        rows as the original data. Only available if a transform has
+        been performed, and only reflects the results of the last
+        transform done, it is not cumulative.
 
         Returns
         -------
@@ -296,14 +291,14 @@ class TextRemover(
     def row_support_(self) -> npt.NDArray[bool]:
         """Get the `row_support_` attribute.
 
-        A boolean vector indicating which rows were kept in the data
-        during the transform process. Only available if a transform has
-        been performed, and only reflects the results of the last
-        transform done.
+        A boolean vector indicating which rows were kept (True) or
+        removed (False) during the transform process. Only available
+        if a transform has been performed, and only reflects the results
+        of the last transform done, it is not cumulative.
 
         Returns
         -------
-        row_support_ : npt.NDArray[bool]
+        row_support_ : numpy.ndarray[bool]
             A boolean vector indicating which rows were kept in the data
             during the transform process.
 

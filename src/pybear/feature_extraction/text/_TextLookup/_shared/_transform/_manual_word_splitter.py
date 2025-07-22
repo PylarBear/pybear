@@ -9,7 +9,7 @@
 from ._word_editor import _word_editor
 
 from ....__shared._utilities._view_text_snippet import view_text_snippet
-from ......input_validation import validate_user_input as vui
+from ......base import validate_user_input as vui
 
 
 

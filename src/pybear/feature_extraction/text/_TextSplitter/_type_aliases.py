@@ -44,7 +44,7 @@ SepsType: TypeAlias = Optional[Union[SepType, list[SepType]]]
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-CaseSensitiveType: TypeAlias = Optional[Union[bool, list[None, bool]]]
+CaseSensitiveType: TypeAlias = Optional[Union[bool, list[Union[None, bool]]]]
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 

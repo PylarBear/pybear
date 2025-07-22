@@ -38,7 +38,7 @@ class SetOutputMixin:
         transform: Union[Literal['default', 'pandas', 'polars'], None] = None
     ):
         """Set the output container when the `transform` and
-        `fit_transform` methods or the transformer are called.
+        `fit_transform` methods of the transformer are called.
 
         Parameters
         ----------
