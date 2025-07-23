@@ -14,7 +14,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
 from pybear.preprocessing import MinCountTransformer as MCT
-from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
+from pybear.preprocessing import ColumnDeduplicator as CDT
 from pybear.utilities import check_pipeline
 
 

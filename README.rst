@@ -152,7 +152,7 @@ are a few examples of how you could import and use pybear modules:
 
     from pybear import preprocessing as pp
 
-    trfm = pp.ColumnDeduplicateTransformer()
+    trfm = pp.ColumnDeduplicator()
     trfm.fit(X, y)
 
 
@@ -202,15 +202,15 @@ transform, and partial_fit methods.
 
 - Access via pybear.preprocessing.MinCountTransformer.
 
-ColumnDeduplicateTransformer
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ColumnDeduplicator
+~~~~~~~~~~~~~~~~~~
 Identify and selectively remove duplicate columns in numerical or categorical 
 data. Fully compliant with the scikit-learn transformer API, with fit,
 transform, and partial_fit methods. Perfect for removing duplicate columns from
 one-hot encoded data in a scikit-learn pipeline. Also fits and transforms data 
 batch-wise, such as with dask-ml Incremental and ParallelPostFit wrappers.
 
-- Access via pybear.preprocessing.ColumnDeduplicateTransformer.
+- Access via pybear.preprocessing.ColumnDeduplicator.
 
 InterceptManager
 ~~~~~~~~~~~~~~~~

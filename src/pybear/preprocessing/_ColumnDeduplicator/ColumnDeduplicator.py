@@ -53,7 +53,7 @@ from ...base import (
 
 
 
-class ColumnDeduplicateTransformer(
+class ColumnDeduplicator(
     FeatureMixin,
     FitTransformMixin,
     GetParamsMixin,
@@ -61,9 +61,9 @@ class ColumnDeduplicateTransformer(
     SetOutputMixin,
     SetParamsMixin
 ):
-    """`ColumnDeduplicateTransformer` (CDT) is a scikit-style transformer
-    that removes duplicate columns from data, leaving behind one column
-    out of a set of duplicate columns.
+    """`ColumnDeduplicator` (CDT) is a scikit-style transformer that
+    removes duplicate columns from data, leaving behind one column out
+    of a set of duplicate columns.
 
     Duplicate columns are a point of concern for analysts. In many data
     analytics learning algorithms, such a condition can cause convergence
@@ -365,7 +365,7 @@ class ColumnDeduplicateTransformer(
 
     Examples
     --------
-    >>> from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
+    >>> from pybear.preprocessing import ColumnDeduplicator as CDT
     >>> import numpy as np
     >>> np.random.seed(99)
     >>> X = np.random.randint(0, 10, (5, 5))
@@ -379,7 +379,7 @@ class ColumnDeduplicateTransformer(
      [2 0 2 8 0]]
     >>> trf = CDT(keep='first', do_not_drop=None)
     >>> trf.fit(X)
-    ColumnDeduplicateTransformer()
+    ColumnDeduplicator()
     >>> out = trf.transform(X)
     >>> print(out)
     [[1 3 8]
@@ -411,7 +411,7 @@ class ColumnDeduplicateTransformer(
         n_jobs: Optional[Union[numbers.Integral, None]]=None,
         job_size: Optional[numbers.Integral]=50
     ) -> None:
-        """Initialize the `ColumnDeduplicateTransformer` instance."""
+        """Initialize the `ColumnDeduplicator` instance."""
 
         self.keep = keep
         self.do_not_drop = do_not_drop
@@ -487,7 +487,7 @@ class ColumnDeduplicateTransformer(
         Returns
         -------
         self : object
-            The `ColumnDeduplicateTransformer` instance.
+            The `ColumnDeduplicator` instance.
 
         """
 
@@ -589,7 +589,7 @@ class ColumnDeduplicateTransformer(
         Returns
         -------
         self : object
-            The fitted `ColumnDeduplicateTransformer` instance.
+            The fitted `ColumnDeduplicator` instance.
 
         """
 
@@ -732,7 +732,7 @@ class ColumnDeduplicateTransformer(
         Returns
         -------
         self : object
-            The fitted `ColumnDeduplicateTransformer` instance.
+            The fitted `ColumnDeduplicator` instance.
 
         """
 

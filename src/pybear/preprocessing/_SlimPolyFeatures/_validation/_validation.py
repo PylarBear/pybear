@@ -58,7 +58,7 @@ def _validation(
         The minimum degree of the polynomial expansion.
     _scan_X : bool
         Whether to scan X for constants with `InterceptManager` and
-        duplicates with `ColumnDeduplicateTransformer`.
+        duplicates with `ColumnDeduplicator`.
     _keep : Literal['first', 'last', 'random']
         The instruction for choosing a column to keep out of a set of
         duplicates.

@@ -12,7 +12,7 @@ import itertools
 
 import numpy as np
 
-from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
+from pybear.preprocessing._ColumnDeduplicator._partial_fit. \
     _parallel_chunk_comparer import _parallel_chunk_comparer
 
 

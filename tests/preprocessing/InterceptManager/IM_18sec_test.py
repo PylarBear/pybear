@@ -24,7 +24,7 @@ from pybear.preprocessing._InterceptManager.InterceptManager import \
 from pybear.preprocessing._InterceptManager._partial_fit. \
     _parallel_constant_finder import _parallel_constant_finder
 
-from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
+from pybear.preprocessing._ColumnDeduplicator._partial_fit. \
     _parallel_column_comparer import _parallel_column_comparer
 
 from pybear.base.exceptions import NotFittedError

@@ -20,7 +20,7 @@ from sklearn.utils.estimator_checks import (
     check_transformer_get_feature_names_out_pandas
 )
 
-from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
+from pybear.preprocessing import ColumnDeduplicator as CDT
 
 
 
@@ -33,7 +33,7 @@ class TestSKLearnCheckTransformer:
     def test_transformers_unfitted(self):
         # this tests if Exception raised when transform() without fit()
         check_transformers_unfitted(
-            'ColumnDeduplicateTransformer',
+            'ColumnDeduplicator',
             CDT()
         )
 
@@ -41,14 +41,14 @@ class TestSKLearnCheckTransformer:
     def test_transformer_general(self):
 
         check_transformer_general(
-            'ColumnDeduplicateTransformer',
+            'ColumnDeduplicator',
             CDT()
         )
 
 
     def test_transformer_preserve_dtypes(self):
         check_transformer_preserve_dtypes(
-            'ColumnDeduplicateTransformer',
+            'ColumnDeduplicator',
             CDT()
         )
 
@@ -59,16 +59,16 @@ class TestSKLearnCheckTransformer:
 
         if float(self.sk_version[0:3]) >= 1.6:
             check_transformer_get_feature_names_out(
-                'ColumnDeduplicateTransformer',
+                'ColumnDeduplicator',
                 CDT()
             )
         else:
-            err_msg = (f"'ColumnDeduplicateTransformer' object has no "
+            err_msg = (f"'ColumnDeduplicator' object has no "
                        f"attribute '_get_tags'")
 
             with pytest.raises(AttributeError, match=re.escape(err_msg)):
                 check_transformer_get_feature_names_out(
-                    'ColumnDeduplicateTransformer',
+                    'ColumnDeduplicator',
                     CDT()
                 )
 
@@ -79,16 +79,16 @@ class TestSKLearnCheckTransformer:
 
         if float(self.sk_version[0:3]) >= 1.6:
             check_transformer_get_feature_names_out_pandas(
-                'ColumnDeduplicateTransformer',
+                'ColumnDeduplicator',
                 CDT()
             )
         else:
-            err_msg = (f"'ColumnDeduplicateTransformer' object has no "
+            err_msg = (f"'ColumnDeduplicator' object has no "
                        f"attribute '_get_tags'")
 
             with pytest.raises(AttributeError, match=re.escape(err_msg)):
                 check_transformer_get_feature_names_out_pandas(
-                    'ColumnDeduplicateTransformer',
+                    'ColumnDeduplicator',
                     CDT()
                 )
 

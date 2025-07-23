@@ -14,20 +14,21 @@ def _check_X_constants_dupls(
     _X_constants: dict[int, Any],
     _X_dupls: list[list[int]]
 ) -> None:
-    """Raise exception if `InterceptManager` found constants in X or if
-    `ColumnDeduplicateTransformer` found duplicates in X.
+    """Raise exception if `InterceptManager` found constants in `X` or
+    if `ColumnDeduplicator` found duplicates in `X`.
 
     Parameters
     ----------
     _X_constants : dict[int, Any]
         The constants found in X by `InterceptManager`. The keys of the
-        dictionary are the indices of the columns in X and the values
+        dictionary are the indices of the columns in `X` and the values
         are the constant values in that respective column. If it is
         empty, there are no constant columns.
     _X_dupls : list[list[int]]
-        The sets of duplicates found in X by `ColumnDeduplicateTransformer`.
-        Each list of integers is a group of column indices in X that are
-        duplicate. If `_X_dupls` is empty, there are no duplicate columns.
+        The sets of duplicates found in `X` by `ColumnDeduplicator`.
+        Each list of integers is a group of column indices in `X` that
+        are duplicate. If `_X_dupls` is empty, there are no duplicate
+        columns.
 
     Returns
     -------
@@ -57,8 +58,8 @@ def _check_X_constants_dupls(
 
     dupl_err = (
         f"X has duplicate columns: {_X_dupls}"
-        f"\nPlease use pybear ColumnDeduplicateTransformer to remove all "
-        f"duplicate columns from X before using SlimPolyFeatures."
+        f"\nPlease use pybear ColumnDeduplicator to remove all duplicate "
+        f"columns from X before using SlimPolyFeatures."
     )
 
 

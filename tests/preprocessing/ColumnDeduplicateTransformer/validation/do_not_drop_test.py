@@ -8,7 +8,7 @@
 
 import pytest
 
-from pybear.preprocessing._ColumnDeduplicateTransformer._validation. \
+from pybear.preprocessing._ColumnDeduplicator._validation. \
     _do_not_drop import _val_do_not_drop
 
 

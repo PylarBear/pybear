@@ -14,14 +14,14 @@ import numpy as np
 import pandas as pd
 import polars as pl
 
-from pybear.preprocessing._ColumnDeduplicateTransformer._inverse_transform. \
+from pybear.preprocessing._ColumnDeduplicator._inverse_transform. \
     _inverse_transform import _inverse_transform
 
-from pybear.preprocessing import ColumnDeduplicateTransformer
+from pybear.preprocessing import ColumnDeduplicator
 
 from pybear.utilities._nan_masking import nan_mask
 
-from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
+from pybear.preprocessing._ColumnDeduplicator._partial_fit. \
     _parallel_column_comparer import _parallel_column_comparer
 
 
@@ -61,7 +61,7 @@ class TestInverseTransform:
 
         # _CDT is only being used here to get the legit TRFM_X. only test
         # the core _inverse_transform module, not _CDT.inverse_transform.
-        _CDT = ColumnDeduplicateTransformer(**_kwargs)
+        _CDT = ColumnDeduplicator(**_kwargs)
 
         TRFM_X = _CDT.fit_transform(_X_wip)
 
@@ -118,7 +118,7 @@ class TestInverseTransform:
 
         # _CDT is only being used here to get the legit TRFM_X. only test
         # the core _inverse_transform module, not _CDT.inverse_transform.
-        _CDT = ColumnDeduplicateTransformer(
+        _CDT = ColumnDeduplicator(
             keep=_keep,
             do_not_drop=_do_not_drop,
             conflict='ignore',

@@ -149,8 +149,8 @@ def _merge_partialfit_dupls(
         if sum(map(lambda x: x==1, map(len, _dupl_set))) > 1:
             warnings.warn(
                 f"There are duplicate columns in X. Do more partial fits "
-                f"or use pybear ColumnDeduplicateTransformer to remove "
-                f"them before using SlimPoly."
+                f"or use pybear ColumnDeduplicator to remove them before "
+                f"using SlimPoly."
             )
 
 

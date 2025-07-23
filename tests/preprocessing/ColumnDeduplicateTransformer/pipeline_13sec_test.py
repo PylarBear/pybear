@@ -14,7 +14,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.linear_model import LogisticRegression
 
-from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
+from pybear.preprocessing import ColumnDeduplicator as CDT
 from pybear.utilities import check_pipeline
 
 

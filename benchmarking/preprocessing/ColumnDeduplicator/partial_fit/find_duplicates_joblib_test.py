@@ -8,8 +8,8 @@
 
 import numpy as np
 
-from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
-    _find_duplicates import _find_duplicates
+from pybear.preprocessing._ColumnDeduplicator._partial_fit._find_duplicates \
+    import _find_duplicates
 
 
 

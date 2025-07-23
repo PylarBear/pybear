@@ -16,10 +16,10 @@ import pandas as pd
 import polars as pl
 import scipy.sparse as ss
 
-from pybear.preprocessing._ColumnDeduplicateTransformer. \
-    ColumnDeduplicateTransformer import ColumnDeduplicateTransformer as CDT
+from pybear.preprocessing._ColumnDeduplicator.ColumnDeduplicator import \
+    ColumnDeduplicator as CDT
 
-from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
+from pybear.preprocessing._ColumnDeduplicator._partial_fit. \
     _parallel_column_comparer import _parallel_column_comparer
 
 from pybear.base.exceptions import NotFittedError

@@ -8,7 +8,7 @@
 
 import pytest
 
-from pybear.preprocessing._ColumnDeduplicateTransformer._validation.\
+from pybear.preprocessing._ColumnDeduplicator._validation.\
     _conflict import _val_conflict
 
 
