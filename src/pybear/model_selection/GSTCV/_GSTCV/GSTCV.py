@@ -9,7 +9,6 @@
 from typing import (
     Callable,
     Iterable,
-    Sequence,
     Optional
 )
 from typing_extensions import (
@@ -208,7 +207,7 @@ class GSTCV(_GSTCVMixin):
         hard-code the kwargs into the metric, e.g.,
 
         def your_metric_wrapper(y_true, y_pred):
-            return your_metric(y_true, y_pred, **hard_coded_kwargs)
+            return your_metric(y_true, y_pred, \\**hard_coded_kwargs)
     n_jobs : Optional[Union[numbers.Integral, None]], default=None
         Number of jobs to run in parallel. -1 means using all processors.
         For best speed benefit, pybear recommends setting `n_jobs` in
@@ -252,11 +251,12 @@ class GSTCV(_GSTCVMixin):
         Sets the cross-validation splitting strategy.
 
         Possible inputs for cv are:
+            None, to use the default 5-fold cross validation,
 
-        1) None, to use the default 5-fold cross validation,
-        2) an integer, must be 2 or greater, to specify the number of
+            an integer, must be 2 or greater, to specify the number of
             folds in a StratifiedKFold split,
-        3) an iterable yielding pairs of (train, test) split indices as
+
+            an iterable yielding pairs of (train, test) split indices as
             arrays.
 
         For passed iterables:
@@ -272,7 +272,7 @@ class GSTCV(_GSTCVMixin):
         are rejected. Boolean False is set to 0, boolean True is set to
         10. Negative numbers are rejected. Numbers greater than 10 are
         set to 10. Floats are rounded to integers.
-    pre_dispatch : PreDispatchType, default='2*n_jobs'
+    pre_dispatch : Optional[PreDispatchType], default='2*n_jobs'
         The number of batches (of tasks) to be pre-dispatched. Default
         is '2*n_jobs'. See the joblib.Parallel docs for more information.
     error_score : Optional[ErrorScoreType], default='raise'
@@ -373,8 +373,8 @@ class GSTCV(_GSTCVMixin):
         are available in the `cv_results_` dict at the keys ending with
         '_score'. For multi-metric evaluation, the scores for all the
         scorers are available in the `cv_results_` dict at the keys
-        ending with that scorer’s name ('_<scorer_name>').
-        (‘split0_test_precision’, ‘mean_train_precision’ etc.)
+        ending with that scorer’s name ('_<scorer_name>'). E.g.,
+        ‘split0_test_precision’, ‘mean_train_precision’, etc.
     best_estimator_ : object
         The estimator that was chosen by the search, i.e. the estimator
         which gave the highest score (or smallest loss) on the held-out
@@ -418,14 +418,9 @@ class GSTCV(_GSTCVMixin):
     multimetric_ : bool
         Whether several scoring metrics were used. False if one scorer
         was used, otherwise True. Always exposed after fit.
-    classes_ : ndarray of shape (n_classes,)
-        Class labels. Only exposed when `refit` is not False. Because
-        `GSTCV` imposes a restriction that y must be binary in [0, 1],
-        this must always return [0, 1].
-    feature_names_in_ : ndarray of shape (`n_features_in_`,)
-        Names of features seen during fit. Only exposed when `refit` is
-        not False and a container that has feature names was passed to
-        :meth:`fit`.
+    classes_
+    n_features_in_
+    feature_names_in_
     best_threshold_ : float
         The threshold that, along with the hyperparameter values found
         in `best_params_`, yields the highest score for the given
@@ -562,14 +557,12 @@ class GSTCV(_GSTCVMixin):
         param_grid: Union[ParamGridInputType, ParamGridsInputType],
         *,
         thresholds: ThresholdsInputType=None,
-        scoring: Optional[
-            Union[str, Sequence[str], Callable, dict[str, Callable]]
-        ]='accuracy',
+        scoring: ScorerInputType='accuracy',
         n_jobs: Optional[Union[numbers.Integral, None]]=None,
         refit: Optional[Union[bool, str, Callable]]=True,
         cv: Optional[Union[numbers.Integral, Iterable, None]]=None,
         verbose: Optional[numbers.Real]=0,
-        pre_dispatch: PreDispatchType='2*n_jobs',
+        pre_dispatch: Optional[PreDispatchType]='2*n_jobs',
         error_score: Optional[ErrorScoreType]='raise',
         return_train_score: Optional[bool]=False
     ) -> None:

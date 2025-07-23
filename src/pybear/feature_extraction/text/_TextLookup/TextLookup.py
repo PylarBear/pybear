@@ -296,80 +296,15 @@ class TextLookup(_TextLookupMixin):
 
     Attributes
     ----------
-    n_rows_ : int
-        The cumulative number of rows of text passed to partial_fit.
-        Not necessarily the number of rows in the outputted data.
-    row_support_ : npt.NDArray[bool]
-        A 1D boolean vector of shape (n_rows, ) that indicates which
-        rows have been kept in the data. Only reflects the last dataset
-        passed to :meth:`transform`.
-    LEXICON_ADDENDUM_ : list[str]
-        Can only have words in it if `update_lexicon` is True. If in
-        auto mode (`auto_add_to_lexicon` is True), anything encountered
-        in the text that is not in the :class:`Lexicon` is added to this
-        list. In manual mode, if the user selects to 'add to lexicon'
-        then the word is put in this list. TL does not automatically add
-        new words to the actual `Lexicon` directly. TL stages new words
-        in `LEXICON_ADDENDUM_` and at the end of a session prints them
-        to the screen and makes them available in this attribute.
-    KNOWN_WORDS_ : list[str]
-        This is a WIP object used by TL to determine "what is in the
-        `Lexicon`." At instantiation, this is just a copy of the
-        'lexicon_' attribute of the pybear `Lexicon` class. If
-        `update_lexicon` is True, any words to be added to the `Lexicon`
-        are inserted at the front of this list (in addition to also being
-        put in :attr:`LEXICON_ADDENDUM_`.) If `auto_add_to_lexicon` is
-        True, then words are inserted into this list silently during the
-        auto-lookup process. If `auto_add_to_lexicon` is False, words
-        are inserted into this list if the user selects 'add to lexicon'.
-    DELETE_ALWAYS_ : list[str]
-        A list of words that will always be deleted from the  text body
-        by TL, even if they are in the `Lexicon`. This list is comprised
-        of any words passed to `DELETE_ALWAYS` at instantiation and any
-        words added to this list during partial_fit / fit.
-    REPLACE_ALWAYS_ : dict[str, str]
-        A dictionary with words expected to be in the text body as keys
-        and their respective single-word replacements as values. TL will
-        replace these words even if they are in the `Lexicon`. This
-        holds anything passed to `REPLACE_ALWAYS` at instantiation and
-        anything added to it during run-time in manual mode. In manual
-        mode, if the user selects 'replace always', the next time TL sees
-        the word it will not prompt the user for any more information,
-        it will silently replace the word. When in auto mode, TL will
-        not add any entries to this dictionary.
-    SKIP_ALWAYS_ : list[str]
-        A list of words that are always ignored by TL, even if they are
-        not in the `Lexicon`. This list holds any words passed to the
-        `SKIP_ALWAYS` parameter at instantiation and any words added
-        to it when the user selects 'skip always' in manual mode. In
-        manual mode, the next time TL sees a word that is in this list
-        it will not prompt the user again, it will silently skip the
-        word. TL will only make additions to this list in auto mode if
-        `skip_numbers` is True and a number is found in the training
-        data.
-    SPLIT_ALWAYS_ : dict[str, Sequence[str]]
-        Similar to :attr:`REPLACE_ALWAYS_`, a dictionary with words
-        expected to be in the text body as keys and their respective
-        multi-word lists of replacements as values. TL will sub these
-        words in even if the original word is in the Lexicon. This
-        dictionary holds anything passed to `SPLIT_ALWAYS` at
-        instantiation and any splits made when 'split always' is
-        selected in manual mode. In manual mode, the next time TL sees
-        the same word in the text body it will not prompt the user
-        again. The only way TL will add anything to this dictionary in
-        auto mode is if `auto_split` is True and TL finds a valid split
-        of an unknown word during partial_fit / fit.
-    OOV_ : dict[str, int]
-        "Out-of-vocabulary" words that were found during transform and
-        were not seen during fitting. If data that was not seen during
-        partial_fit / fit is passed to :meth:`transform`, there is the
-        possibility that there are strings that were not previously
-        seen. In this case, TL will not do any more learning and will
-        not prompt for anything from the user. If `auto_delete` is True,
-        TL will delete this new word; if False, the word is skipped. In
-        both cases, TL will always add all unseen strings as keys in
-        this dictionary. The values are the frequency of each respective
-        string.
+    n_rows_
+    row_support_
+    DELETE_ALWAYS_
+    KNOWN_WORDS_
+    LEXICON_ADDENDUM_
+    REPLACE_ALWAYS_
+    SKIP_ALWAYS_
+    SPLIT_ALWAYS_
+    OOV_
 
     Notes
     -----
@@ -465,11 +400,12 @@ class TextLookup(_TextLookupMixin):
         return hasattr(self, 'KNOWN_WORDS_')
 
 
+    # property -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @property
     def n_rows_(self) -> int:
         """Get the `n_rows_` attribute.
 
-        The cumulative number of rows of text passed to 'partial_fit'.
+        The cumulative number of rows of text passed to :meth:`partial_fit`.
         Not necessarily the number of rows in the outputted data.
 
         Returns
@@ -486,12 +422,21 @@ class TextLookup(_TextLookupMixin):
     def OOV_(self) -> dict[str, int]:
         """Get the `OOV_` attribute.
 
-        Access out-of-vocabulary words found during transform.
+        Access "Out-of-vocabulary" words that were found during transform
+        but were not seen during fitting. If data that was not seen
+        during `partial_fit` / `fit` is passed to :meth:`transform`,
+        there is the possibility that there are strings that were not
+        previously seen. In this case, TL will not do any more learning
+        and will not prompt for anything from the user. If `auto_delete`
+        is True, TL will delete this new word; if False, the word is
+        skipped. In both cases, TL will always add all unseen strings
+        as keys in this dictionary. The values are the frequency of
+        each respective string.
 
         Returns
         -------
         OOV_ : dict[str, int]
-            Out-of-vocabulary words found during transform
+            Out-of-vocabulary words found during transform.
 
         """
 
@@ -501,6 +446,8 @@ class TextLookup(_TextLookupMixin):
             )
         else:
             return self._OOV
+
+    # END property -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
     # def get_params

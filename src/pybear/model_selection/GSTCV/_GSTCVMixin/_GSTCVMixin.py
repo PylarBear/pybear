@@ -60,7 +60,7 @@ class _GSTCVMixin(
     ReprMixin,
     SetParamsMixin
 ):
-    """Mixin for GSTCV and GSTCVDask."""
+    """Mixin for `GSTCV` and `GSTCVDask`."""
 
 
     # PROPERTIES v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
@@ -69,7 +69,9 @@ class _GSTCVMixin(
     def classes_(self) ->  npt.NDArray[np.int64]:
         """Class labels.
 
-        Only available when `refit=True`.
+        Only exposed when `refit` is not False. Because `GSTCV` imposes
+        a restriction that y must be binary in [0, 1], this must always
+        return [0, 1].
 
         Returns
         -------
@@ -85,8 +87,8 @@ class _GSTCVMixin(
     def feature_names_in_(self) -> FeatureNamesInType:
         """Feature names seen during fit.
 
-        Only available when `refit=True` and `GSTCV` was fit on data
-        that exposes feature names.
+        Only available when `refit` is not False and `GSTCV` was fit on
+        data that exposes feature names.
 
         Returns
         -------
@@ -101,9 +103,9 @@ class _GSTCVMixin(
 
     @property
     def n_features_in_(self) -> int:
-        """Number of features seen during :term:`fit`.
+        """Number of features seen during `fit`.
 
-        Only available when `refit=True`.
+        Only available when `refit` is not False.
 
         Returns
         -------

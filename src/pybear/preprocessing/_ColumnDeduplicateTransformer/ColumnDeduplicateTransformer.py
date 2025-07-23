@@ -88,7 +88,7 @@ class ColumnDeduplicateTransformer(
     their difference falls within the tolerance. See the numpy docs for
     clarification of the technical details. CDT requires that `rtol` and
     `atol` be non-boolean, non-negative real numbers, in addition to any
-    other restrictions enforced by numpy.allclose.
+    other restrictions enforced by `numpy.allclose`.
 
     The `equal_nan` parameter controls how CDT handles nan-like
     representations during comparisons. If `equal_nan` is True, exclude
@@ -116,16 +116,17 @@ class ColumnDeduplicateTransformer(
     randomly-selected column from the set of duplicates. All other
     columns in the set of duplicates are removed from the dataset.
 
-    The `do_not_drop` parameter allows the user to indicate columns
-    not to be removed from the data. This is to be given as a list-like
-    of integers or strings. If fitting is done with a data container
-    that has a header (such as pandas or polars dataframes), a list
-    of feature names may be provided. The values within must exactly
-    match the features as named in the dataframe header (case-sensitive.)
-    Otherwise, a list of column indices must be provided. The `do_not_drop`
-    instructions may conflict with the `keep` instructions. If a conflict
-    arises, such as two columns specified in `do_not_drop` are duplicates
-    of each other, the behavior is managed by `conflict`.
+    The `do_not_drop` parameter allows the user to indicate columns not
+    to be removed from the data. This is to be given as a list-like of
+    integers or strings. If fitting is done with a data container that
+    has a header (such as pandas or polars dataframes), a list of
+    feature names may be provided. The values within must exactly match
+    the features as named in the dataframe header (case-sensitive.)
+    Otherwise, a list of column indices must be provided. The
+    `do_not_drop` instructions could conflict with the `keep`
+    instructions. If a conflict arises, such as two columns specified
+    in `do_not_drop` are duplicates of each other, the behavior is
+    managed by `conflict`.
 
     `conflict` is ignored when `do_not_drop` is not passed. Otherwise,
     `conflict` accepts two possible values: 'raise' or 'ignore'. This
@@ -147,19 +148,19 @@ class ColumnDeduplicateTransformer(
         the entire set of duplicate columns. This also causes at least
         one member of the columns not to be dropped to be removed.
 
-    The `partial_fit`, `fit`, and `inverse_transform` methods of CDT
-    accept data as numpy arrays, pandas dataframes, polars dataframes,
-    and scipy sparse matrices/arrays. `inverse_transform` always returns
-    output in the same type of container as passed to it. The `transform`
-    and `fit_transform` methods can take all the containers listed
-    above but can return output in a variety of containers. CDT has
-    a :meth:`set_output` method, whereby the user can set the type of
-    output container for these two methods regardless of the type of
-    container the data is in when passed. `set_output` can return
-    transformed outputs as numpy arrays, pandas dataframes, or polars
-    dataframes. When `set_output` is None, the output container is the
-    same as the input, that is, numpy array, pandas or polars dataframe,
-    or scipy sparse matrix/array.
+    The :meth:`partial_fit`, :meth:`fit`, and :meth:`inverse_transform`
+    methods of CDT accept data as numpy arrays, pandas dataframes, polars
+    dataframes, and scipy sparse matrices/arrays. `inverse_transform`
+    always returns output in the same type of container as passed to
+    it. The :meth:`transform` and :meth:`fit_transform` methods can take
+    all the containers listed above but can return output in a variety
+    of containers. CDT has a :meth:`set_output` method, whereby the user
+    can set the type of output container for these two methods regardless
+    of the type of container the data is in when passed. `set_output`
+    can return transformed outputs as numpy arrays, pandas dataframes,
+    or polars dataframes. When `set_output` is None, the output container
+    is the same as the input, that is, numpy array, pandas or polars
+    dataframe, or scipy sparse matrix/array.
 
     The `partial_fit` method allows for incremental fitting of data.
     This makes CDT suitable for use with packages that do batch-wise
@@ -201,7 +202,6 @@ class ColumnDeduplicateTransformer(
         identical columns. 'first' retains the column left-most in the
         data; 'last' keeps the column right-most in the data; 'random'
         keeps a single randomly-selected column of the set of duplicates.
-
     do_not_drop : Optional[Union[Sequence[int], Sequence[str], None]], default=None
         A list of columns not to be dropped. If fitting is done with a
         container that has a header, a list of feature names may be
@@ -209,7 +209,6 @@ class ColumnDeduplicateTransformer(
         a conflict arises, such as when two columns specified in
         `do_not_drop` are duplicates of each other, the behavior is
         managed by `conflict`.
-
     conflict : Literal['raise', 'ignore']
         Ignored when `do_not_drop` is not passed. Instructs CDT how
         to deal with a conflict between the instructions in `keep`
@@ -220,8 +219,8 @@ class ColumnDeduplicateTransformer(
         is raised. When `conflict` is 'ignore', there are 2 possible
         scenarios:
 
-        1) when only one column in `do_not_drop` is among the columns to
-        be removed, the :param: `keep` instruction is overruled and the
+        1) when only one column in `do_not_drop` is among the columns
+        to be removed, the `keep` instruction is overruled and the
         do-not-drop column is kept.
 
         2) when multiple columns in `do_not_drop` are among the columns
@@ -231,7 +230,6 @@ class ColumnDeduplicateTransformer(
         the `keep` instruction to the entire set of duplicate columns.
         This also causes at least one member of the columns not to be
         dropped to be removed.
-
     equal_nan : bool, default=False
         When comparing pairs of columns row by row:
 
@@ -247,23 +245,19 @@ class ColumnDeduplicateTransformer(
         the pair to be not equivalent, thus making the column pair not
         equal. This is in line with the normal numpy handling of nan
         values.
-
     rtol : numbers.Real, default=1e-5
         The relative difference tolerance for equality. Must be a
-        non-boolean, non-negative, real number. See numpy.allclose.
-
-    atol : numbers.Real, default=1e-8 - The absolute difference tolerance
-        for equality. Must be a non-boolean, non-negative, real number.
-        See numpy.allclose.
-
+        non-boolean, non-negative, real number. See `numpy.allclose`.
+    atol : numbers.Real, default=1e-8
+        The absolute difference tolerance for equality. Must be a
+        non-boolean, non-negative, real number. See `numpy.allclose`.
     n_jobs : Union[numbers.Integral, None], default=None
         The number of joblib Parallel jobs to use when comparing columns.
         The default is to use processes, but can be overridden externally
-        using a joblib parallel_config context manager. The default value
-        for `n_jobs` is None, which uses the joblib default setting. To
-        get maximum speed benefit, pybear recommends setting this to -1,
-        which means use all processors.
-
+        using a joblib `parallel_config` context manager. The default
+        value for `n_jobs` is None, which uses the joblib default
+        setting. To get maximum speed benefit, pybear recommends setting
+        this to -1, which means use all processors.
     job_size : Optional[numbers.Integral], default=50
         The number of columns to send to a joblib job. Must be an integer
         greater than or equal to 2. This allows the user to optimize CPU
@@ -280,9 +274,9 @@ class ColumnDeduplicateTransformer(
     Attributes
     ----------
     n_features_in_ : int
-        number of features in the fitted data before deduplication.
+        The number of features in the fitted data before deduplication.
 
-    feature_names_in_ : NDArray[object]
+    feature_names_in_ : numpy.ndarray[object]
         The names of the features as seen during fitting. Only accessible
         if `X` is passed to :meth:`partial_fit` or :meth:`fit` in a
         container that has a header.
@@ -296,14 +290,14 @@ class ColumnDeduplicateTransformer(
     Concerning the handling of nan-like representations. While CDT
     accepts data in the form of numpy arrays, pandas dataframes, polars
     dataframes, and scipy sparse matrices/arrays, at comparison time the
-    columns of data are extracted from the passed data and converted to
-    numpy arrays. After the conversion and prior to the comparison, CDT
-    identifies any nan-like representations in both numpy arrays and
-    standardizes all of them to numpy.nan. The user needs to be wary
-    that whatever is used to indicate 'not-a-number' in the original
-    data must first survive the conversion to numpy array, then be
-    recognizable by CDT as nan-like, so that CDT can standardize it to
-    numpy.nan. nan-like representations that are recognized by CDT
+    two columns of data to be compared are extracted from the passed data
+    and converted to numpy arrays. After the conversion and prior to the
+    comparison, CDT identifies any nan-like representations in both
+    numpy arrays and standardizes all of them to numpy.nan. The user
+    needs to be wary that whatever is used to indicate 'not-a-number' in
+    the original data must first survive the conversion to numpy array,
+    then be recognizable by CDT as nan-like, so that CDT can standardize
+    it to numpy.nan. nan-like representations that are recognized by CDT
     include, at least, numpy.nan, pandas.NA, None (of type None, not
     string 'None'), and string representations of 'nan' (not case
     sensitive).
@@ -320,9 +314,9 @@ class ColumnDeduplicateTransformer(
 
     XContainer:
         Union[
-            npt.NDArray,
-            pd.DataFrame,
-            pl.DataFrame,
+            numpy.ndarray,
+            pandas.core.frame.DataFrame,
+            polars.dataframe.DataFrame,
             ss._csr.csr_matrix,
             ss._csc.csc_matrix,
             ss._coo.coo_matrix,
@@ -355,10 +349,10 @@ class ColumnDeduplicateTransformer(
         dict[int, int]
 
     ColumnMaskType:
-        npt.NDArray[bool]
+        numpy.ndarray[bool]
 
     FeatureNamesInType:
-        npt.NDArray[str]
+        numpy.ndarray[str]
 
     See Also
     --------
@@ -432,7 +426,7 @@ class ColumnDeduplicateTransformer(
     # properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
     @property
     def duplicates_(self) -> DuplicatesType:
-        """Retrieve the `duplicates_` attribute.
+        """Get the `duplicates_` attribute.
 
         Returns
         -------
@@ -449,16 +443,16 @@ class ColumnDeduplicateTransformer(
 
     @property
     def removed_columns_(self) -> RemovedColumnsType:
-        """Retrieve the `removed_columns_` attribute.
+        """Get the `removed_columns_` attribute.
 
         Returns
         -------
         removed_columns_ : dict[int, int]
-            Attributes dictionary whose keys are the indices of duplicate
-            columns removed from the original data, indexed by their
-            column location in the original data; the values are the
-            column index in the original data of the respective duplicate
-            that was kept.
+            Dictionary whose keys are the indices of duplicate columns
+            removed from the original data, indexed by their column
+            location in the original data; the values are the column
+            index in the original data of the respective duplicate that
+            was kept.
 
         """
 
@@ -469,11 +463,11 @@ class ColumnDeduplicateTransformer(
 
     @property
     def column_mask_(self) -> ColumnMaskType:
-        """Retrieve the `column_mask_` attribute.
+        """Get the `column_mask_` attribute.
 
         Returns
         -------
-        column_mask_ : NDArray[bool] of shape (`n_features_in_`,)
+        column_mask_ : numpy.ndarray[bool] of shape (`n_features_in_`,)
             Indicates which columns of the fitted data are kept (True)
             and which are removed (False) during transform.
 
@@ -528,20 +522,18 @@ class ColumnDeduplicateTransformer(
             the transformed data.
 
             If `input_features` is None:
-
-            - if `feature_names_in_` is defined, then `feature_names_in_`
+                if `feature_names_in_` is defined, then `feature_names_in_`
                 is used as the input features.
 
-            - if `feature_names_in_` is not defined, then the following
+                if `feature_names_in_` is not defined, then the following
                 input feature names are generated:
                 ["x0", "x1", ..., "x(`n_features_in_` - 1)"].
 
             If `input_features` is not None:
-
-            - if `feature_names_in_` is not defined, then `input_features`
+                if `feature_names_in_` is not defined, then `input_features`
                 is used as the input features.
 
-            - if `feature_names_in_` is defined, then `input_features`
+                if `feature_names_in_` is defined, then `input_features`
                 must exactly match the features in `feature_names_in_`.
 
         Returns

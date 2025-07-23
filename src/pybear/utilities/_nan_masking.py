@@ -36,9 +36,8 @@ ScipySparseTypes: TypeAlias = Union[
     ss._bsr.bsr_array
 ]
 
-XContainer: TypeAlias = Union[
-    PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes
-]
+XContainer: TypeAlias = \
+    Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
 
 
 
