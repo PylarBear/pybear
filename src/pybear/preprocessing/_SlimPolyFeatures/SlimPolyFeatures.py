@@ -59,8 +59,8 @@ from ._transform._build_poly import _build_poly
 
 from ...preprocessing._InterceptManager.InterceptManager import \
     InterceptManager as IM
-from ...preprocessing._ColumnDeduplicateTransformer. \
-    ColumnDeduplicateTransformer import ColumnDeduplicateTransformer as CDT
+from ...preprocessing._ColumnDeduplicator. \
+    ColumnDeduplicator import ColumnDeduplicator as CDT
 
 from ...base import (
     FeatureMixin,
@@ -160,10 +160,10 @@ class SlimPolyFeatures(
     in-situ with more partial fits. To properly pre-condition your
     data beforehand, remove constant columns from your data with
     pybear :class:`InterceptManager`, and remove duplicate columns from
-    your data with pybear :class:`ColumnDeduplicateTransformer`. If
-    there are no constant or duplicate columns in the data, setting
-    `scan_X` to False can reduce the cost of the polynomial expansion.
-    See more discussion in the `scan_X` parameter.
+    your data with pybear :class:`ColumnDeduplicator`. If there are no
+    constant or duplicate columns in the data, setting `scan_X` to False
+    can reduce the cost of the polynomial expansion. See more discussion
+    in the `scan_X` parameter.
 
     During the fitting process, SPF learns what columns in the expansion
     would be constant and/or duplicate. SPF does the expansion out
@@ -561,9 +561,9 @@ class SlimPolyFeatures(
     def _check_X_constants_and_dupls(self) -> None:
         """Check X for constant and duplicate columns.
 
-        When `scan_X` is True, SPF uses pybear `InterceptManager` and
-        pybear `ColumnDeduplicateTransformer` to scan X for constants
-        and duplicates. If any are found, this method will raise an
+        When `scan_X` is True, SPF uses pybear `InterceptManager`
+        and pybear `ColumnDeduplicator` to scan X for constants and
+        duplicates. If any are found, this method will raise an
         exception.
 
         Returns

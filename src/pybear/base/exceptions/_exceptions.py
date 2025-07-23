@@ -14,7 +14,7 @@ class NotFittedError(ValueError, AttributeError):
 
     Examples
     --------
-    >>> from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
+    >>> from pybear.preprocessing import ColumnDeduplicator as CDT
     >>> from pybear.base.exceptions import NotFittedError
     >>> import numpy as np
     >>> X = np.random.randint(0, 10, (5,3))
@@ -22,7 +22,7 @@ class NotFittedError(ValueError, AttributeError):
     ...     CDT().transform(X)
     ... except NotFittedError as e:
     ...     print(e)  # doctest:+SKIP
-    This ColumnDeduplicateTransformer instance is not fitted yet.
+    This ColumnDeduplicator instance is not fitted yet.
     Call 'fit' with appropriate arguments before using this estimator.
 
     """

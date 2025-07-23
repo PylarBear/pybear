@@ -34,7 +34,7 @@ XContainer: TypeAlias = Literal[
 ]
 
 
-# these fixtures are identical to those in ColumnDeduplicateTransformer
+# these fixtures are identical to those in ColumnDeduplicator
 # these are for diagnosing nan detection issues with nan_masking modules
 
 

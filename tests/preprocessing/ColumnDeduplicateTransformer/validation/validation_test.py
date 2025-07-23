@@ -10,7 +10,7 @@ import pytest
 
 import numpy as np
 
-from pybear.preprocessing._ColumnDeduplicateTransformer._validation._validation \
+from pybear.preprocessing._ColumnDeduplicator._validation._validation \
     import _validation
 
 

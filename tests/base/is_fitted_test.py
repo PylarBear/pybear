@@ -8,7 +8,7 @@
 
 from pybear.base._is_fitted import is_fitted
 from pybear.preprocessing import (
-    ColumnDeduplicateTransformer as CDT,
+    ColumnDeduplicator as CDT,
     InterceptManager as IM
 )
 from sklearn.linear_model import LogisticRegression

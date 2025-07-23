@@ -8,7 +8,7 @@
 
 import pytest
 
-from pybear.preprocessing._ColumnDeduplicateTransformer._partial_fit. \
+from pybear.preprocessing._ColumnDeduplicator._partial_fit. \
     _parallel_column_comparer import _parallel_column_comparer
 
 

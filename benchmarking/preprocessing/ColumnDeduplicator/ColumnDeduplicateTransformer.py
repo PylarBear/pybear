@@ -6,7 +6,7 @@
 
 
 
-from pybear.preprocessing import ColumnDeduplicateTransformer
+from pybear.preprocessing import ColumnDeduplicator
 
 
 import numpy as np
@@ -15,7 +15,7 @@ from uuid import uuid4
 
 
 
-CDT = ColumnDeduplicateTransformer()
+CDT = ColumnDeduplicator()
 
 _shape = (20,10)
 data = np.random.uniform(0,1,_shape)

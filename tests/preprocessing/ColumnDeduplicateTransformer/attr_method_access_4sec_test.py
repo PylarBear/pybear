@@ -15,7 +15,7 @@ import polars as pl
 from pybear.base import is_fitted
 from pybear.base.exceptions import NotFittedError
 
-from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
+from pybear.preprocessing import ColumnDeduplicator as CDT
 
 
 bypass = False

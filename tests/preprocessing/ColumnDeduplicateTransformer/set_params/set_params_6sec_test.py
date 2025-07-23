@@ -10,7 +10,7 @@ import pytest
 
 import numpy as np
 
-from pybear.preprocessing import ColumnDeduplicateTransformer as CDT
+from pybear.preprocessing import ColumnDeduplicator as CDT
 
 
 

@@ -7,7 +7,7 @@ preprocessing
    :toctree: generated
    :signatures: none
 
-   ColumnDeduplicateTransformer
+   ColumnDeduplicator
    InterceptManager
    MinCountTransformer
    NanStandardizer

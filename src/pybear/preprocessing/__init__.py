@@ -6,8 +6,7 @@
 
 
 
-from ._ColumnDeduplicateTransformer.ColumnDeduplicateTransformer import \
-    ColumnDeduplicateTransformer
+from ._ColumnDeduplicator.ColumnDeduplicator import ColumnDeduplicator
 from ._InterceptManager.InterceptManager import InterceptManager
 from ._MinCountTransformer.MinCountTransformer import MinCountTransformer
 from ._NanStandardizer.NanStandardizer import NanStandardizer
@@ -15,7 +14,7 @@ from ._SlimPolyFeatures.SlimPolyFeatures import SlimPolyFeatures
 
 
 __all__ = [
-    "ColumnDeduplicateTransformer",
+    "ColumnDeduplicator",
     "InterceptManager",
     "MinCountTransformer",
     "NanStandardizer",
