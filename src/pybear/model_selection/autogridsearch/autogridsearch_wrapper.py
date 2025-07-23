@@ -48,7 +48,7 @@ def autogridsearch_wrapper(GridSearchParent):
     """Wrap a scikit-learn, pybear, or dask_ml `GridSearchCV` class with
     a class that overwrites the `fit` method of that `GridSearchCV`.
 
-    The superseding fit method automates multiple calls to the super
+    The superseding fit method automates multiple calls to the parent
     `fit` method with progressively more precise search grids based on
     previous search results. See the scikit, pybear, and dask_ml
     documentation for more information about the available `GridSearchCV`
@@ -78,7 +78,7 @@ def autogridsearch_wrapper(GridSearchParent):
     >>> from sklearn.model_selection import GridSearchCV as sk_GSCV
     >>> from sklearn.linear_model import Ridge as sk_RR
     >>> from sklearn.datasets import make_regression
-
+    >>>
     >>> AGSCV = autogridsearch_wrapper(sk_GSCV)
     >>> _params = {
     ...     'alpha': [[0, 0.1, 0.2], 3, 'soft_float'],

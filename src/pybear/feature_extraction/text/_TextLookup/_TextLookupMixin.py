@@ -102,22 +102,21 @@ class _TextLookupMixin(
         return cls._lexicon_instance.lexicon_
 
 
-    # @property -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
+    # property -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     @property
     def row_support_(self) -> npt.NDArray[bool]:
         """Get the `row_support_` attribute.
 
-        A boolean vector indicating which rows were kept in the data
-        during the transform process. Only available if a transform has
-        been performed, and only reflects the results of the last
-        transform done.
+        A 1D boolean vector of shape (`n_rows_`, ) that indicates which
+        rows were kept in the data during transform. Only available if a
+        transform has been performed, and only reflects the last dataset
+        passed to :meth:`transform`.
 
         Returns
         -------
-        row_support_ : NDArray[bool] of shape (n_original_rows, )
-            A boolean vector indicating which rows were kept in the data
-            during the transform process.
+        row_support_ : numpy.ndarray[bool] of shape (`n_rows_`, )
+            A boolean vector that indicates which rows were kept in the
+            data during transform.
 
         """
 
@@ -128,31 +127,77 @@ class _TextLookupMixin(
         """Return the `DELETE_ALWAYS_` attribute.
 
         A list of words that will always be deleted from the text body
-        by TL, even if they are in the Lexicon. This list is comprised
-        of any words passed to `DELETE_ALWAYS` at instantiation and any
-        words added to this list during partial_fit / fit.
+        by TL(RT), even if they are in the `Lexicon`. This list is
+        comprised of any words passed to `DELETE_ALWAYS` at instantiation
+        and any words added in-situ.
 
         Returns
         -------
         DELETE_ALWAYS_ : list[str]
-            A list of words that will always be deleted from the
-            text body by TL, even if they are in the Lexicon.
+            A list of words that will always be deleted from the text
+            body by TL(RT), even if they are in the `Lexicon`.
 
         """
         return self._DELETE_ALWAYS
+
+    @property
+    def KNOWN_WORDS_(self) -> list[str]:
+        """A WIP object used by TL(RT) to determine "what is in the
+        `Lexicon`."
+
+        At instantiation, this is just a copy of the `lexicon_` attribute
+        of the pybear :class:`Lexicon` class. If `update_lexicon` is
+        True, any words to be added to the `Lexicon` are inserted
+        at the front of this list (in addition to also being put
+        in :attr:`LEXICON_ADDENDUM_`.) If `auto_add_to_lexicon` is True,
+        then words are inserted at the front of this list silently during
+        the auto-lookup process. If `auto_add_to_lexicon` is False, words
+        are inserted into this list if the user selects 'add to lexicon'.
+
+        Returns
+        -------
+        KNOWN_WORDS_ : list[str]
+            A WIP object used by TL(RT) to determine "what is in the
+            `Lexicon`."
+
+        """
+
+        return self._KNOWN_WORDS
+
+    @property
+    def LEXICON_ADDENDUM_(self) -> list[str]:
+        """Words queued for entry into the pybear `Lexicon`.
+
+        Can only have words in it if `update_lexicon` is True. If in
+        auto mode (`auto_add_to_lexicon` is True), anything encountered
+        in the text that is not in the :class:`Lexicon` is added to this
+        list. In manual mode, if the user selects to 'add to lexicon'
+        then the word is put in this list. TL(RT) does not automatically
+        add new words to the actual `Lexicon` directly. TL(RT) stages new
+        words in `LEXICON_ADDENDUM_` and at the end of a session prints
+        them to the screen and makes them available in this attribute.
+
+        Returns
+        -------
+        LEXICON_ADDENDUM_ : list[str]
+            Words queued for entry into the pybear `Lexicon`.
+
+        """
+
+        return self._LEXICON_ADDENDUM
 
     @property
     def REPLACE_ALWAYS_(self) -> dict[str, str]:
         """A dictionary with words expected to be in the text body as
         keys and their respective single-word replacements as values.
 
-        TL will replace these words even if they are in the Lexicon.
+        TL(RT) will replace these words even if they are in the `Lexicon`.
         This holds anything passed to `REPLACE_ALWAYS` at instantiation
         and anything added to it during run-time in manual mode. In
         manual mode, when the user selects 'replace always', the next
-        time TL sees the word it will not prompt the user for any more
-        information, it will silently replace the word. When in auto
-        mode, TL will not add any entries to this dictionary.
+        time TL(RT) sees the word it will not prompt the user for any
+        more information, it will silently replace the word. When in
+        auto mode, TL(RT) will not add any entries to this dictionary.
 
         Returns
         -------
@@ -166,22 +211,24 @@ class _TextLookupMixin(
 
     @property
     def SKIP_ALWAYS_(self) -> list[str]:
-        """A list of words that are always ignored by TL, even if they
-        are not in the Lexicon.
+        """A list of words that are always ignored by TL(RT), even if
+        they are not in the `Lexicon`.
 
         This list holds any words passed to the `SKIP_ALWAYS` parameter
         at instantiation and any words added to it when the user selects
-        'skip always' in manual mode. In manual mode, the next time TL
-        sees a word that is in this list it will not prompt the user
-        again, it will silently skip the word. TL will only make
-        additions to this list in auto mode if `skip_numbers` is True
-        and a number is found in the training data.
+        'skip always' in manual mode. In manual mode, the next time
+        TL(RT) sees a word that is in this list it will not prompt the
+        user again, it will silently skip the word.
+
+        TL will only make additions to this list in auto mode if
+        `skip_numbers` is True and a number is found in the training
+        data. TLRT does not make additions to this list in auto mode.
 
         Returns
         -------
         SKIP_ALWAYS_ : list[str]
-            A list of words that are always ignored by TL, even if they
-            are not in the Lexicon.
+            A list of words that are always ignored by TL(RT), even if
+            they are not in the `Lexicon`.
 
         """
         return self._SKIP_ALWAYS
@@ -192,15 +239,18 @@ class _TextLookupMixin(
         keys and their respective multi-word lists of replacements as
         values.
 
-        Similar to :attr:`REPLACE_ALWAYS_`. TL will sub these words in
-        even if the original word is in the Lexicon. This dictionary
+        Similar to :attr:`REPLACE_ALWAYS_`. TL(RT) will sub these words
+        in even if the original word is in the `Lexicon`. This dictionary
         holds anything passed to `SPLIT_ALWAYS` at instantiation and any
         splits made when 'split always' is selected in manual mode. In
-        manual mode, the next time TL sees the same word in the text
-        body it will not prompt the user again. The only way TL will
-        add anything to this dictionary in auto mode is if `auto_split`
-        is True and TL finds a valid split of an unknown word during
-        (partial_fit / fit.
+        manual mode, the next time TL(RT) sees the same word in the text
+        body it will not prompt the user again, just silently make the
+        split.
+
+        The only way TL will add anything to this dictionary in auto
+        mode is if `auto_split` is True and TL finds a valid split of an
+        unknown word during `partial_fit` / `fit`. TLRT does not add
+        anything to this dictionary in auto mode.
 
         Returns
         -------
@@ -212,51 +262,7 @@ class _TextLookupMixin(
         """
         return self._SPLIT_ALWAYS
 
-    @property
-    def LEXICON_ADDENDUM_(self) -> list[str]:
-        """Words queued for entry into the pybear Lexicon.
-
-        Can only have words in it if `update_lexicon` is True. If in
-        auto mode (`auto_add_to_lexicon` is True), anything encountered
-        in the text that is not in the Lexicon is added to this list. In
-        manual mode, if the user selects to 'add to lexicon' then the
-        word is put in this list. TL does not automatically add new
-        words to the actual Lexicon directly. TL stages new words in
-        `LEXICON_ADDENDUM_` and at the end of a session prints them to
-        the screen and makes them available in this attribute.
-
-        Returns
-        -------
-        LEXICON_ADDENDUM_ : list[str]
-            Words queued for entry into the pybear Lexicon.
-
-        """
-
-        return self._LEXICON_ADDENDUM
-
-    @property
-    def KNOWN_WORDS_(self) -> list[str]:
-        """A WIP object used by TL to determine "what is in the Lexicon."
-
-        At instantiation, this is just a copy of the `lexicon_` attribute
-        of the pybear :class:`Lexicon` class. If `update_lexicon` is
-        True, any words to be added to the `Lexicon` are inserted
-        at the front of this list (in addition to also being put
-        in :attr:`LEXICON_ADDENDUM_`.) If `auto_add_to_lexicon` is True,
-        then words are inserted into this list silently during the
-        auto-lookup process. If `auto_add_to_lexicon` is False, words
-        are inserted into this list if the user selects 'add to lexicon'.
-
-        Returns
-        -------
-        KNOWN_WORDS_ : list[str]
-            A WIP object used by TL to determine "what is in the Lexicon."
-
-        """
-
-        return self._KNOWN_WORDS
-
-    # END @property -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+    # END property -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 
     def reset(self) -> Self:

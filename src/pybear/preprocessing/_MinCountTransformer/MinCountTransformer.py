@@ -74,21 +74,20 @@ class MinCountTransformer(
     """Remove examples that contain values whose frequencies within
     their respective feature fall below the specified count threshold.
 
-    MinCountTransformer (MCT) is useful in cases where interest is only
-    in the events (values) that happen most frequently. MCT removes
+    `MinCountTransformer` (MCT) is useful in cases where interest is
+    only in the events (values) that happen most frequently. MCT removes
     infrequent occurrences that may distort relationships that govern
     the more frequent events.
 
-    MCT follows the scikit-learn API. It has :attr:`n_features_in_`
-    and :attr:`feature_names_in_` attributes. It has `partial_fit`,
-    `fit`, `transform`, `fit_transform`, `set_params`, `get_params`, and
-    `get_feature_names_out` methods. The methods that accept X and y
-    arguments can accomodate several types of containers. All MCT 'X'
+    MCT follows the scikit-learn API. It has `partial_fit`, `fit`,
+    `transform`, `fit_transform`, `set_params`, `get_params`, and
+    `get_feature_names_out` methods. The methods that accept `X` and `y`
+    arguments can accommodate several types of containers. All MCT `X`
     arguments must be 2D and can be passed as numpy array, pandas
-    DataFrame, polars DataFrame, or any scipy sparse matrix/array. All
-    MCT 'y' arguments (if passed) can be 1 or 2D and can be passed as
-    numpy array, pandas DataFrame, pandas Series, polars DataFrame, or
-    polars Series.
+    dataframe, polars dataframe, or any scipy sparse matrix/array. All
+    MCT `y` arguments (if passed) can be 1 or 2D and can be passed as
+    numpy array, pandas dataframe, pandas series, polars dataframe, or
+    polars series.
 
     At fit time, frequencies of unique values are totalled independently
     on each feature, not across the entire dataset. The uniques and
@@ -203,7 +202,7 @@ class MinCountTransformer(
 
     The `handle_as_bool` parameter (default=None) causes a feature to be
     handled as if it were boolean, i.e., in the same way as binary
-    integer columns. Consider a bag-of-words TextVectorizer operation
+    integer columns. Consider a bag-of-words `TextVectorizer` operation
     which results in a feature that is sparse except for a few non-zero
     integer values (which may be different.) `handle_as_bool` allows for
     the non-zero values to be handled as if they are the same value. In
@@ -217,12 +216,15 @@ class MinCountTransformer(
     is also indicated in `handle_as_bool`, `ignore_columns` supercedes
     `handle_as_bool` and the feature will be ignored.
 
-    The `ignore_columns` and `handle_as_bool` parameters accept:
-        1) a single vector of features names if the fit data is passed
-            in a format that contains feature names (e.g., a pandas or
-            polars dataframe)
-        2) a single vector of indices that indicate feature positions, or
-        3) a callable that returns 1) or 2) when passed X.
+    The `ignore_columns` and `handle_as_bool` parameters accept
+
+        a single vector of features names if the fit data is passed
+        in a format that contains feature names (e.g., a pandas or
+        polars dataframe)
+
+        a single vector of indices that indicate feature positions, or
+
+        a callable that returns 1) or 2) when passed `X`.
 
     If data is passed as a dataframe with strings as column names during
     fit, MCT will recognize those names when passed to these parameters
@@ -235,22 +237,22 @@ class MinCountTransformer(
     features to ignore or handle as boolean when the ultimate name or
     index of the desired feature(s) is/are not known beforehand, such
     as if the data undergoes another transformation prior to MCT. The
-    callable must accept a single argument, the X parameter passed to
+    callable must accept a single argument, the `X` parameter passed to
     methods :meth:`partial_fit`, :meth:`fit`, and :meth:`transform`,
-    whereby columns can be identified based on characteristics of X.
+    whereby columns can be identified based on characteristics of `X`.
     Consider a serialized process that includes some operations that act
-    on the features of the data, e.g. TextVectorizer or OneHotEncoder.
+    on the features of the data, e.g. `TextVectorizer` or `OneHotEncoder`.
     In that case, columns can be identified as ignored or handled as
     boolean mid-stream by passing a callable with an appropriate
     algorithm on the output of the preceding transformer.
 
     Additional care must be taken when using callables. The safest use
-    is with :meth: `fit_transform`, however, use is not limited to only
+    is with :meth:`fit_transform`, however, use is not limited to only
     that case to allow for use with batch-wise operations. Upon every
     call to `partial_fit` and `transform`, the callable is executed on
-    the currently-passed data X, generating column names or indices. In
+    the currently-passed data `X`, generating column names or indices. In
     a serialized data processing operation, the callable must generate
-    the same indices for each X seen or MCT will return nonsensical
+    the same indices for each `X` seen or MCT will return nonsensical
     results.
 
     The `reject_unseen_values` parameter tells MCT how to handle values
@@ -305,9 +307,9 @@ class MinCountTransformer(
     see the impact on the transformation. See the documentation for the
     `print_instructions` method for more information.
 
-    MCT has a `get_support` method that is available at any time that
-    MCT is in a fitted state. It can be either a boolean vector or a
-    vector of indices that indicates which features are kept from any
+    MCT has a :meth:`get_support` method that is available at any time
+    that MCT is in a fitted state. It can be either a boolean vector or
+    a vector of indices that indicates which features are kept from any
     data that is transformed.
 
     There is another method, :meth:`get_row_support`, that is only
@@ -346,7 +348,7 @@ class MinCountTransformer(
         one-dimensional vector of integer index positions or feature
         names (if data formats containing column names were used during
         fitting.) Also accepts a callable that creates such vectors when
-        passed the data (the 'X' argument). THERE ARE NO PROTECTIONS IN
+        passed the data (the `X` argument). THERE ARE NO PROTECTIONS IN
         PLACE IF THE CALLABLE GENERATES DIFFERENT PLAUSIBLE OUTPUTS ON
         DIFFERENT BATCHES IN AN EPOCH OF DATA. IF CONSISTENCY OF IGNORED
         COLUMNS IS REQUIRED, THEN THE USER MUST ENSURE THAT THE CALLABLE
@@ -365,16 +367,16 @@ class MinCountTransformer(
         of integer index positions or feature names (if data formats
         containing column names were used during fitting.) Also accepts
         a callable that creates such vectors when passed the data (the
-        'X' argument). THERE ARE NO PROTECTIONS IN PLACE IF THE CALLABLE
+        `X` argument). THERE ARE NO PROTECTIONS IN PLACE IF THE CALLABLE
         GENERATES DIFFERENT PLAUSIBLE OUTPUTS ON DIFFERENT BATCHES IN AN
         EPOCH OF DATA. IF CONSISTENCY OF COLUMNS TO BE HANDLED AS BOOLEAN
         IS REQUIRED, THEN THE USER MUST ENSURE THAT THE CALLABLE PRODUCES
         IDENTICAL OUTPUTS FOR EACH BATCH OF DATA WITHIN AN EPOCH.
     delete_axis_0 : Optional[bool], default=False
         Only applies to features indicated in `handle_as_bool` or binary
-        integer features such as those generated by OneHotEncoder. Under
-        normal operation of MCT, when the frequency of one of the two
-        values in a binary feature is below `count_threshold`, the
+        integer features such as those generated by `OneHotEncoder`.
+        Under normal operation of MCT, when the frequency of one of the
+        two values in a binary feature is below `count_threshold`, the
         minority-class examples would not be removed along the example
         axis, but the entire feature would be removed, leaving all
         other data intact. The `delete_axis_0` parameter overrides this
@@ -398,10 +400,10 @@ class MinCountTransformer(
     n_features_in_ : int
         The number of features seen during fit.
     feature_names_in_ : FeatureNamesInType of shape (`n_features_in_`,)
-        Names of features seen during fit. Defined only when X is passed
-        in a container that has feature names and the feature names are
-        all strings. If accessed when not defined, MCT will raise an
-        AttributeError.
+        Names of features seen during fit. Defined only when `X` is
+        passed in a container that has feature names and the feature
+        names are all strings. If accessed when not defined, MCT will
+        raise an AttributeError.
     original_dtypes_
     total_counts_by_column_
     instructions_
@@ -418,8 +420,7 @@ class MinCountTransformer(
     attributes :attr:`total_counts_by_column_` and :attr:`instructions_`.
     If you are unlucky enough to have multiple types of nan-like values
     in your data, be a pro and use pybear :class:`NanStandardizer`
-    or :func:`nan_mask` to cast them all to the same format. See
-    `ignore_nan`.
+    or `nan_mask` to cast them all to the same format. See `ignore_nan`.
 
     Concerning float features. MCT was never really intended to perform
     thresholding on float columns, but there are use cases where float
@@ -435,10 +436,12 @@ class MinCountTransformer(
     will generate an equally sized Python dictionary, which has immense
     carrying-cost, and will be a pinch-point for MCT and your RAM.
 
-    The analyst is cautioned that this transformer:
-        1) modifies data dimensionality along the example axis, and
-        2) necessarily forces such an operation on a target object,
-            which MCT methods accommodate by accepting target arguments.
+    The analyst is cautioned that this transformer
+
+        modifies data dimensionality along the example axis, and
+
+        necessarily forces such an operation on a target object,
+        which MCT methods accommodate by accepting target arguments.
 
     In supervised learning, if the data dimensionality along the example
     axis is changed, the target must also correspondingly change along
@@ -462,20 +465,22 @@ class MinCountTransformer(
     and computing the chunks of your data before passing them to
     `partial_fit` and `transform`.
 
-    Type Aliases
+    **Type Aliases**
 
     XContainer:
         Union[
-            npt.NDArray, pd.DataFrame, pl.DataFrame, ss.csr_matrix,
-            ss.csc_matrix, ss.coo_matrix, ss.dia_matrix, ss.lil_matrix,
-            ss.dok_matrix, ss.bsr_matrix, ss.csr_array, ss.csc_array,
-            ss.coo_array, ss.dia_array, ss.lil_array, ss.dok_array,
-            ss.bsr_array
+            numpy.ndarray, pandas.core.frame.DataFrame,
+            polars.dataframe.DataFrame, ss.csr_matrix, ss.csc_matrix,
+            ss.coo_matrix, ss.dia_matrix, ss.lil_matrix, ss.dok_matrix,
+            ss.bsr_matrix, ss.csr_array, ss.csc_array, ss.coo_array,
+            ss.dia_array, ss.lil_array, ss.dok_array, ss.bsr_array
         ]
 
     YContainer:
         Union[
-            npt.NDArray, pd.DataFrame, pd.Series, pl.DataFrame, pl.Series
+            numpy.ndarray, pandas.core.frame.DataFrame,
+            pandas.core.series.Series, polars.dataframe.DataFrame,
+            polars.series.Series
         ]
 
     DataType:
@@ -485,7 +490,7 @@ class MinCountTransformer(
         Union[numbers.Integral, Sequence[numbers.Integral]]
 
     OriginalDtypesType:
-        npt.NDArray[Union[Literal['bin_int', 'int', 'float', 'obj']]]
+        numpy.ndarray[Union[Literal['bin_int', 'int', 'float', 'obj']]]
 
     TotalCountsByColumnType:
         dict[int, dict[DataType, int]]
@@ -506,7 +511,7 @@ class MinCountTransformer(
         Union[None, Sequence[numbers.Integral], Sequence[str], IcHabCallable]
 
     FeatureNamesInType:
-        npt.NDArray[object]
+        numpy.ndarray[object]
 
     Examples
     --------
@@ -622,19 +627,23 @@ class MinCountTransformer(
         perform with respect to values in the column. The following
         items may be in the list:
 
-        -'INACTIVE' - ignore the column and carry it through for all
-            other operations
+        'INACTIVE'
+            ignore the column and carry it through for all other
+            operations.
 
-        -Individual values - indicates to delete the rows along the
-            example axis that contain that value in that column,
-            possibly including nan-like values.
+        Individual values
+            indicates to delete the rows along the example axis that
+            contain that value in that column, possibly including
+            nan-like values.
 
-        -'DELETE ALL' - delete every value in the column along the
-            example axis, thereby deleting all data.
+        'DELETE ALL'
+            delete every value in the column along the example axis,
+            thereby deleting all data.
 
-        -'DELETE COLUMN' - perform any individual row deletions that
-            need to take place while the column is still in the data,
-            then delete the column from the data.
+        'DELETE COLUMN'
+            perform any individual row deletions that need to take place
+            while the column is still in the data, then delete the column
+            from the data.
 
         Returns
         -------
@@ -699,20 +708,18 @@ class MinCountTransformer(
             the transformed data.
 
             If `input_features` is None:
-
-            - if `feature_names_in_` is defined, then `feature_names_in_`
+                if `feature_names_in_` is defined, then `feature_names_in_`
                 is used as the input features.
 
-            - if `feature_names_in_` is not defined, then the following
+                if `feature_names_in_` is not defined, then the following
                 input feature names are generated:
                 ["x0", "x1", ..., "x(`n_features_in_` - 1)"].
 
             If `input_features` is not None:
-
-            - if `feature_names_in_` is not defined, then `input_features`
+                if `feature_names_in_` is not defined, then `input_features`
                 is used as the input features.
 
-            - if `feature_names_in_` is defined, then `input_features`
+                if `feature_names_in_` is defined, then `input_features`
                 must exactly match the features in `feature_names_in_`.
 
         Returns
@@ -985,13 +992,14 @@ class MinCountTransformer(
 
         Returns
         -------
-        row_support : NDArray - A slicer that selects the retained rows
-            from the `X` most recently seen by `transform`. If `indices`
-            is False, this is a boolean array of shape (n_samples, ) in
-            which an element is True if its corresponding row is selected
-            for retention. If `indices` is True, this is an integer array
-            of shape (n_transformed_samples, ) whose values are indices
-            into the sample axis.
+        row_support : numpy.ndarray
+            A slicer that selects the retained rows from the `X` most
+            recently seen by `transform`. If `indices` is False, this is
+            a boolean array of shape (n_samples, ) in which an element
+            is True if its corresponding row is selected for retention.
+            If `indices` is True, this is an integer array of shape
+            (n_transformed_samples, ) whose values are indices into the
+            sample axis.
 
         """
 
@@ -1021,7 +1029,7 @@ class MinCountTransformer(
 
         Returns
         -------
-        support : NDArray
+        support : numpy.ndarray
             A mask that selects the features that are  retained during
             transform. If `indices` is False, this is a boolean vector
             of shape (`n_features_in_`,) in which an element is True if
@@ -1168,7 +1176,7 @@ class MinCountTransformer(
         """Dummy method to spoof dask_ml Incremental and ParallelPostFit
         wrappers.
 
-        As of 25_06_17 no longer designing for dask_ml wrappers.
+        As of first release no longer designing for dask_ml wrappers.
 
         Parameters
         ----------

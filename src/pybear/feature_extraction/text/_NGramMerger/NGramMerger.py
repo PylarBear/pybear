@@ -60,25 +60,27 @@ class NGramMerger(
     with each other. So you decide that it might be meaningful to conduct
     your analysis as if those terms were a single unit.
 
-    That's where NGramMerger comes in. NGramMerger (NGM) is a tool that
-    will find blocks of words that you specify and join them by a
-    separator of your choosing to create a single contiguous string.
+    That's where `NGramMerger` comes in. `NGramMerger` (NGM) is a tool
+    that finds specified series of adjacent words (n-grams) and joins
+    them to create a single contiguous string.
 
-    NGM accepts n-gram patterns in Python sequences passed to the
-    `ngrams` parameter. In each position of the sequence(s), specify the
+    NGM accepts n-gram patterns in Python sequences passed to the `ngrams`
+    parameter. In each position of the n-gram sequence(s), specify the
     whole-string pattern for each individual string to be searched for
     in your text. NGM always looks for full matches against tokens, it
-    does not do partial matches.
+    does not do partial matches. Valid examples of NGM n-grams are
+    [('three', 'blind', 'mice')] and [('a', 'b'), ('1', '2', '3', '4')].
 
-    N-grams can be searched using literal strings or regular expressions.
-    For those of you who do not know regex, you can safely ignore any
-    references to flags, re.compile, or re.Pattern, and just use literal
-    strings. Provide literal strings and/or re.compile objects containing
-    your regex patterns intended to match full strings. DO NOT PASS A
-    REGEX PATTERN AS A LITERAL STRING. YOU WILL NOT GET THE CORRECT
-    RESULT. ALWAYS PASS REGEX PATTERNS IN A re.compile OBJECT. DO
-    NOTESCAPE LITERAL STRINGS, NGM WILL DO THAT FOR YOU. If you don't
-    know what any of that means, then you don't need to worry about it.
+    The search for n-grams can be done using literal strings or regular
+    expressions. For those of you who do not know regex, you can safely
+    ignore any references to flags, re.compile, or re.Pattern, and just
+    use literal strings. The examples above show literal strings. Provide
+    literal strings and/or re.compile objects containing your regex
+    patterns intended to match full strings. DO NOT PASS A REGEX PATTERN
+    AS A LITERAL STRING. YOU WILL NOT GET THE CORRECT RESULT. ALWAYS
+    PASS REGEX PATTERNS IN A re.compile OBJECT. DO NOT ESCAPE LITERAL
+    STRINGS, NGM WILL DO THAT FOR YOU. If you don't know what any of
+    that means, then you don't need to worry about it.
 
     N-gram searches always default to case-sensitive, but can be made
     to be case-insensitive. You can globally set this behavior via the
@@ -477,7 +479,7 @@ class NGramMerger(
         X:XContainer,
         copy:Optional[bool] = False
     ) -> XWipContainer:
-        """Merge N-grams in a (possibly ragged) 2D array-like of strings.
+        """Merge n-grams in a (possibly ragged) 2D array-like of strings.
 
         Parameters
         ----------

@@ -106,16 +106,16 @@ class InterceptManager(
 
     The computation for numerical columns is slightly more complex.
     IM calculates the mean of the column then compares it against the
-    individual values via numpy.allclose. allclose has 'rtol' and 'atol'
-    parameters that give latitude to the definition of 'equal'. They
-    provide a tolerance window whereby numerical data that are not
+    individual values via `numpy.allclose`. allclose has 'rtol' and
+    'atol' parameters that give latitude to the definition of 'equal'.
+    They provide a tolerance window whereby numerical data that are not
     exactly equal are considered equal if their difference falls within
     the tolerance. IM affords some flexibility in defining 'equal'
     when identifying constants by providing direct access to the
-    numpy.allclose 'rtol' and 'atol' parameters via its own, identically
+    `numpy.allclose` 'rtol' and 'atol' parameters via its own, identically
     named, `rtol` and `atol` parameters. IM requires that `rtol` and
     `atol` be non-boolean, non-negative real numbers, in addition to any
-    other restrictions enforced by numpy.allclose. See the numpy docs
+    other restrictions enforced by `numpy.allclose`. See the numpy docs
     for clarification of the technical details.
 
     The `equal_nan` parameter controls how IM handles nan-like values.
@@ -326,18 +326,19 @@ class InterceptManager(
         handling of nan values.
     rtol : Optional[numbers.Real], default=1e-5
         The relative difference tolerance for equality. Must be a
-        non-boolean, non-negative, real number. See numpy.allclose.
+        non-boolean, non-negative, real number. See `numpy.allclose`.
     atol : Optional[numbers.Real], default=1e-8
         The absolute difference tolerance for equality. Must be a
-        non-boolean, non-negative, real number. See numpy.allclose.
+        non-boolean, non-negative, real number. See `numpy.allclose`.
 
     Attributes
     ----------
     n_features_in_ : int
         Number of features in the fitted data before transform.
-    feature_names_in_ : NDArray[object] - The feature names seen during
-        fitting. Only accessible if `X` is passed to :meth:`partial_fit`
-        or :meth:`fit` as a pandas or polars dataframe that has a header.
+    feature_names_in_ : numpy.ndarray[object]
+        The feature names seen during fitting. Only accessible if `X`
+        is passed to :meth:`partial_fit` or :meth:`fit` as a pandas or
+        polars dataframe that has a header.
     constant_columns_
     kept_columns_
     removed_columns_
@@ -351,7 +352,7 @@ class InterceptManager(
     extracted from the source data as numpy arrays (see below for more
     detail about how scipy sparse is handled.) After the conversion
     to numpy array and prior to calculating the mean and applying
-    numpy.allclose, IM identifies any nan-like representations in the
+    `numpy.allclose`, IM identifies any nan-like representations in the
     numpy array and standardizes all of them to numpy.nan. The user
     needs to be wary that whatever is used to indicate 'not-a-number'
     in the original data must first survive the conversion to numpy
@@ -380,9 +381,9 @@ class InterceptManager(
 
     XContainer:
         Union[
-            npt.NDArray,
-            pd.DataFrame,
-            pl.DataFrame,
+            numpy.ndarray,
+            pandas.core.frame.DataFrame,
+            polars.dataframe.DataFrame,
             ss._csr.csr_matrix,
             ss._csc.csc_matrix,
             ss._coo.coo_matrix,
@@ -418,13 +419,13 @@ class InterceptManager(
         dict[int, Any]
 
     ColumnMaskType:
-        npt.NDArray[bool]
+        numpy.ndarray[bool]
 
     NFeaturesInType:
         int
 
     FeatureNamesInType:
-        npt.NDArray[str]
+        numpy.ndarray[str]
 
     See Also
     --------
@@ -581,7 +582,7 @@ class InterceptManager(
 
         Returns
         -------
-        column_mask_ : NDArray[bool] of shape (n_features,)
+        column_mask_ : numpy.ndarray[bool] of shape (n_features,)
             Indicates which columns of the fitted data are kept (True)
             and which are removed (False) during transform.
 
@@ -642,20 +643,18 @@ class InterceptManager(
             the transformed data.
 
             If `input_features` is None:
-
-            - if `feature_names_in_` is defined, then `feature_names_in_`
+                if `feature_names_in_` is defined, then `feature_names_in_`
                 is used as the input features.
 
-            - if `feature_names_in_` is not defined, then the following
+                if `feature_names_in_` is not defined, then the following
                 input feature names are generated:
                 ["x0", "x1", ..., "x(`n_features_in_` - 1)"].
 
             If `input_features` is not None:
-
-            - if `feature_names_in_` is not defined, then `input_features`
+                if `feature_names_in_` is not defined, then `input_features`
                 is used as the input features.
 
-            - if `feature_names_in_` is defined, then `input_features`
+                if `feature_names_in_` is defined, then `input_features`
                 must exactly match the features in `feature_names_in_`.
 
         Returns

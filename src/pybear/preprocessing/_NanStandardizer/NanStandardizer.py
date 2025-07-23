@@ -44,8 +44,8 @@ class NanStandardizer(
     by this transformer include, at least, np.nan, pandas.NA, None (of
     type None, not string "None"), and string representations of "nan".
 
-    For details, see the docs for :func:`nan_mask_numerical`
-    and :func:`nan_mask_string`.
+    For details, see the docs for `nan_mask_numerical` and
+    `nan_mask_string`.
 
     This transformer accepts Python built-ins, numpy arrays, pandas
     dataframes/series, and polars dataframes/series of shape (n_samples,
@@ -64,9 +64,7 @@ class NanStandardizer(
     wrappers. NS is technically always in a fitted state because it does
     not to need to learn anything from data to do transformations, it
     knows everything it needs to know from its parameters. Tests for
-    fittedness of a NS instance will always return True. Because the
-    instance is always fitted, the `fit` and `partial_fit` methods are
-    no-ops.
+    fittedness of a NS instance will always return True.
 
     NS does not track the number of features in the data or the feature
     names. Attributes like `n_features_in_`, `feature_names_in_` and
