@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pybear"
-version = "0.1.22"
+version = "0.1.23"
 description = "Python modules for miscellaneous data analytics applications"
 license = "BSD-3-clause"
 authors = ["Bill Sousa <WKSJR99@msn.com>"]
@@ -67,7 +67,8 @@ pytest-html = "*"
 
 
 [tool.poetry.urls]
-# If you publish your package on PyPI, they will appear in the Project Links section.
+Homepage = "https://github.com/PylarBear/pybear"
+Documentation = "https://pybear.readthedocs.io/en/stable/"
 
 
 [tool.coverage.run]
