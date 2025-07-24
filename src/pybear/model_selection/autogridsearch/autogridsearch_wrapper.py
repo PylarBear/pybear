@@ -295,16 +295,16 @@ def autogridsearch_wrapper(GridSearchParent):
             Parameters
             ----------
             deep : Optional[bool], default=True
-                deep=False will only return the parameters for the
+                `deep=False` will only return the parameters for the
                 wrapping `AutoGridSearch` class not the nested
-                estimator. When deep=True, this method returns the
+                estimator. When `deep=True`, this method returns the
                 parameters of the `AutoGridSearch` instance as well
                 as the parameters of the nested estimator. If the nested
                 estimator is a pipeline, the parameters of the pipeline
                 and the parameters of each of the steps in the pipeline
                 are returned in addition to the parameters of the
                 `AutoGridSearch` instance. The estimator's parameters
-                are prefixed with 'estimator__'.
+                are prefixed with `estimator__`.
 
             Returns
             -------

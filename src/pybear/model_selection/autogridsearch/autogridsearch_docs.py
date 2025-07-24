@@ -11,7 +11,7 @@ spaces to find increasingly precise estimates of the best value for each
 hyperparameter.
 
 For a quick start to using `AutoGridSearch`, skip to the 'Params
-Parameter section of the docs.
+Parameter' section of the docs.
 
 'Best' values are those hyperparameter values within the given search
 space that minimize the average loss (or maximize the average score)
@@ -40,7 +40,7 @@ On the first pass of an `AutoGridSearch` session, the first search grids
 are constructed from the instructions in the `params` parameter. The
 first grids are then passed to the parent GridSearch's 'param_grid'
 parameter (or a different parameter such as 'parameters' for some
-GridSearch modules) and fit is called on the parent. Once the first
+GridSearch modules) and `fit` is called on the parent. Once the first
 search is complete and the `best_params_` attribute is retrieved, new
 search grids for the next pass are constructed based on:
 
@@ -57,7 +57,7 @@ returning increasingly precise estimates of the true best hyperparameter
 values for the given estimator, dataset, and restrictions imposed in
 the `params` parameter.
 
-An example `param_grid` for a parent GridSearch module:
+An example 'param_grid' for a parent GridSearch module:
 
 {'C': [0,5,10], 'l1_ratio': [0, 0.5, 1], 'solver': ['lbfgs', 'saga']}
 
@@ -90,9 +90,9 @@ this work-in-process object. Events that alter the originally-passed
 later in the docs.
 
 `AutoGridSearch` leaves the API of the parent `GridSearchCV` module
-intact, and all the parent module's attributes and methods (except fit)
+intact, and all the parent module's attributes and methods (except `fit`)
 are accessible via the `AutoGridSearch` instance. `AutoGridSearch`
-is in fact an instance of the parent GridSearch, just with a new fit
+is in fact an instance of the parent GridSearch, just with a new `fit`
 method and some new parameters. So methods like :meth:`set_params`,
 :meth:`get_params`, etc., are accessible just as they would be in a
 stand-alone instance of the parent GridSearch.
@@ -103,13 +103,17 @@ The parameters of the `AutoGridSearch` instance (`total_passes`,
 >>> from pybear.model_selection import autogridsearch_wrapper
 >>> from sklearn.model_selection import GridSearchCV
 >>> from sklearn.linear_model import LogisticRegression
+>>> # This shows constructing AutoGridSearch from the wrapper.
+>>> # The pre-packaged pybear AutoGridSearch modules are already wrapped.
 >>> AutoGSCV = autogridsearch_wrapper(GridSearchCV)
 >>> estimator = LogisticRegression()
 >>> params = {'C': [[1e3, 1e4, 1e5], [3, 11, 11], 'soft_float']}
 >>> agscv = AutoGSCV(estimator, params, total_passes=3, max_shifts=1,
 ...     total_passes_is_hard=True)
+>>> # Verify 'total_passes_is_hard' parameter is True
 >>> agscv.total_passes_is_hard
 True
+>>> # Set 'total_passes_is_hard' to False and verify parameter
 >>> agscv.total_passes_is_hard = False
 >>> agscv.total_passes_is_hard
 False
@@ -123,10 +127,10 @@ place to prevent against invalid parameters being set.
 Definitions for terms found in the autogridsearch docs.
 
 'linspace' - a search space with intervals that are equal in linear
-space, e.g. [1,2,3]. See numpy.linspace.
+space, e.g. [1,2,3]. See `numpy.linspace`.
 
 'logspace' - a search space whose log10 intervals are equal, e.g.
-[1, 10, 100]. See numpy.logspace.
+[1, 10, 100]. See `numpy.logspace`.
 
 'boolean' (or 'fixed_bool') - True or False
 
@@ -427,11 +431,13 @@ scikit-learn `GridSearchCV` can accomodate multiple param_grids.
 
 The required parameter `params` must be of the following form:
 
-dict('estimator hyperparameter name as string': list-like(...),
+dict(
+    'estimator hyperparameter name as string': list-like(...),
 
     'another estimator hyperparameter name as string': list-like(...),
 
-    ...)
+    ...
+)
 
 The list-like field is identical in construction for string, boolean,
 and numerical hyperparameters.

@@ -13,3 +13,4 @@ API
 
 .. autosummary::
    :template: autosummary/class.rst
+

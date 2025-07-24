@@ -19,8 +19,6 @@ import numpy.typing as npt
 
 import numbers
 
-from ._shared._type_aliases import XContainer
-
 from .._Lexicon.Lexicon import Lexicon
 
 from ....base import (

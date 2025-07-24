@@ -65,10 +65,11 @@ class GSTCV(_GSTCVMixin):
     those that maximize the average score (and minimize the average
     loss) of the held-out data (test sets).
 
-    pybear `GSTCV` is intended to closely parallel the interface and
-    user-experience of scikit-learn `GridSearchCV`. Users who are
-    familiar with that GridSearch implementation should find that `GSTCV`
-    differs with respect to 4 things:
+    pybear `GSTCV` (grid search threshold CV) is intended to closely
+    parallel the interface and user-experience of scikit-learn
+    `GridSearchCV`. Users who are familiar with that GridSearch
+    implementation should find that `GSTCV` differs with respect to 4
+    things:
 
     1) the init parameter `thresholds` (which can also be passed as a
     parameter to `param_grid`)
@@ -108,7 +109,7 @@ class GSTCV(_GSTCVMixin):
 
         `GSTCV` deliberately blocks dask classifiers (including, but not
         limited to, dask_ml, xgboost, and lightGBM dask classifiers.) To
-        use dask classifiers, use `GSTCVDask`.
+        use dask classifiers, use pybear-dask`GSTCVDask`.
     param_grid : Union[ParamGridInputType, ParamGridsInputType]
         Required. A dictionary with hyperparameters names (str) as keys
         and list-likes of respective settings to try as values. Can also
@@ -127,7 +128,7 @@ class GSTCV(_GSTCVMixin):
         a single number from 0 to 1 (inclusive) or a list-like of such
         numbers. If None, (and thresholds are not passed directly inside
         the param grid(s)), the default threshold grid is used,
-        numpy.linspace(0, 1, 21).
+        `numpy.linspace(0, 1, 21)`.
 
         Thresholds may also be passed to individual param grids via a
         'thresholds' key. However, when passed directly to a param grid,
@@ -511,7 +512,7 @@ class GSTCV(_GSTCVMixin):
     >>> from pybear.model_selection import GSTCV
     >>> from sklearn.linear_model import LogisticRegression
     >>> from sklearn.datasets import make_classification
-
+    >>>
     >>> clf = LogisticRegression(
     ...     solver='saga',
     ...     penalty='elasticnet'
@@ -541,10 +542,10 @@ class GSTCV(_GSTCVMixin):
                       'l1_ratio': array([0.  , 0.25, 0.5 , 0.75, 1.  ])},
           refit=False, scoring='balanced_accuracy',
           thresholds=array([0.  , 0.25, 0.5 , 0.75, 1.  ]))
-
+    >>>
     >>> gstcv.best_params_
     {'C': 0.001, 'l1_ratio': 0.25}
-
+    >>>
     >>> gstcv.best_threshold_
     0.5
 
@@ -844,6 +845,10 @@ class GSTCV(_GSTCVMixin):
 
 
         return TRAIN_SCORER_OUT
+
+
+
+
 
 
 
