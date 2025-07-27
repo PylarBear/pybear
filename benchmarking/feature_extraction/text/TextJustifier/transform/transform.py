@@ -6,6 +6,8 @@
 
 
 
+import re
+
 from pybear.feature_extraction.text._TextJustifier._transform._transform import \
     _transform
 
@@ -55,13 +57,13 @@ text = [
 ]
 
 
-n_chars = 80
+n_chars = 40
 
 out = _transform(
     text,
     _n_chars=n_chars,
-    _sep=' ',
-    _line_break=set(),
+    _sep=(re.compile(' '), ),
+    _line_break=None,
     _backfill_sep=' '
 )
 

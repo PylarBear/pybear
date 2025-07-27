@@ -32,29 +32,25 @@ pybear
    :target: https://pybear.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
 
-|PyPI Build Status|
 |TestPyPI Build Status|
-
-.. |PyPI Build Status| image:: https://github.com/PylarBear/pybear/actions/workflows/pypi-publish.yml/badge.svg
-   :target: https://github.com/PylarBear/pybear/actions/workflows/pypi-publish.yml
 
 .. |TestPyPI Build Status| image:: https://github.com/PylarBear/pybear/actions/workflows/testpypi-publish.yml/badge.svg
    :target: https://github.com/PylarBear/pybear/actions/workflows/testpypi-publish.yml
 
+|PyPI Build Status|
+|Version|
 |PyPI Downloads|
 
-.. |PyPI Downloads| image:: https://img.shields.io/pypi/dm/pybear.svg?label=PyPI%20downloads
-   :target: https://pypi.org/project/pybear/
+.. |PyPI Build Status| image:: https://github.com/PylarBear/pybear/actions/workflows/pypi-publish.yml/badge.svg
+   :target: https://github.com/PylarBear/pybear/actions/workflows/pypi-publish.yml
 
-|Version Status|
-
-.. |Version Status| image:: https://img.shields.io/pypi/v/pybear.svg
-   :target: https://pypi.python.org/pypi/pybear/
-
-|PyPi|
-
-.. |PyPi| image:: https://img.shields.io/pypi/v/pybear
+.. |Version| image:: https://img.shields.io/pypi/v/pybear
    :target: https://pypi.org/project/pybear
+   :alt: PyPI Version
+
+.. |PyPI Downloads| image:: https://static.pepy.tech/badge/pybear
+   :target: https://pepy.tech/project/pybear
+   :alt: PyPI Downloads
 
 .. _documentation: https://pybear.readthedocs.io/
 
@@ -105,26 +101,12 @@ pybear requires:
 - scipy (|ScipyVersion|)
 - typing_extensions (|TypingExtensionsVersion|)
 
-pybear 0.2 is tested via GitHub Actions to run on Linux, Windows, and MacOS,
-with Python versions 3.10, 3.11, 3.12, and 3.13. pybear is not tested on earlier
-versions, but some features may work.
-
-If you want to test pybear yourself, you will need:
-
-- pytest (|PytestVersion|)
-
 User installation
 ~~~~~~~~~~~~~~~~~
 
-pybear has not been released to PyPI yet. First publish to PyPI is
-anticipated to be July 2025. If you really want to try it out, the only way to
-install pybear is from TestPyPI using ``pip``::
+Install pybear from the online PyPI package repository using ``pip``::
 
-   pip install -i https://test.pypi.org/simple/ pybear
-
-In the future, pip install from PyPI using ``pip``::
-
-   pip install pybear
+   (your-env) $ pip install pybear
 
 Conda distributions are expected to be made available sometime after release to
 PyPI.
@@ -208,7 +190,7 @@ Identify and selectively remove duplicate columns in numerical or categorical
 data. Fully compliant with the scikit-learn transformer API, with fit,
 transform, and partial_fit methods. Perfect for removing duplicate columns from
 one-hot encoded data in a scikit-learn pipeline. Also fits and transforms data 
-batch-wise, such as with dask-ml Incremental and ParallelPostFit wrappers.
+batch-wise, such as with dask_ml Incremental and ParallelPostFit wrappers.
 
 - Access via pybear.preprocessing.ColumnDeduplicator.
 
@@ -265,7 +247,7 @@ The modules include:
 
 Related Resources
 -----------------
-pybear has a sister package called pybear-dask. A few of the pybear modules
+pybear has a sister package called pybear_dask. A few of the pybear modules
 have a corresponding twin in pybear-dask. You can pip install pybear-dask
 from PyPI in the same way as pybear. There is no Read The Docs website for
 pybear-dask, but it does have a GitHub repo.
@@ -310,10 +292,24 @@ pybear is not ready for contributions at this time!
 Testing
 ~~~~~~~
 
-After installation, you can launch the test suite from outside the pybear
-root directory (you will need to have pytest installed in your environment)::
+pybear 0.2 is tested via GitHub Actions to run on Linux, Windows, and MacOS,
+with Python versions 3.10, 3.11, 3.12, and 3.13. pybear is not tested on earlier
+versions, but some features may work.
 
-    pytest pybear
+If you want to test pybear yourself, you will need:
+
+- pytest (|PytestVersion|)
+
+The tests are not available in the PyPI pip installation. You can get
+the tests by downloading the tarball from the pybear project page on
+`pypi.org <https://pypi.org/project/pybear/>`_ or cloning the pybear repo from
+`GitHub <https://github.com/PylarBear/pybear>`_. Once you have the source files
+in a local project folder, create a poetry environment for the project and
+install the test dependencies. After installation, open the poetry environment
+shell and you can launch the test suite from the root of your pybear project
+folder with::
+
+    (your-pybear-env) you@your_computer:/path/to/pybear/project$ pytest tests/
 
 Project History
 ---------------
