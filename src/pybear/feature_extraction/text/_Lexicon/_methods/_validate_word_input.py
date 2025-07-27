@@ -12,7 +12,7 @@ from typing import (
 )
 from typing_extensions import Union
 
-from ...alphanumeric_str import alphabet_str
+import string
 
 import numpy as np
 
@@ -96,7 +96,7 @@ def _validate_word_input(
         for _word in _WORDS:
             for _char in _word:
 
-                if _char not in alphabet_str():
+                if _char not in string.ascii_letters:
                     raise ValueError(
                         f"when 'character_validation' is True, only the "
                         f"26 characters of the English alphabet are "

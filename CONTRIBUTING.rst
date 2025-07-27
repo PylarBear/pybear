@@ -136,7 +136,41 @@ cases and edge cases. If the module takes various types of data containers,
 all of them must be tested. Test for correct handling of invalid inputs, not 
 just valid inputs. pybear uses pytest-cov to calculate coverage and does not 
 use # pragma: no cover. At first release test coverage was 93% and going forward 
-this number should stay over 90%. 
+this number should stay over 90%. pybear was/is developed on Linux, but is
+tested for operability on Linux, Windows, and Mac operating systems. All
+must be pass all the test. It should be develop on any of these systems, as
+long as the tests pass on all three.
+
+
+How To Get The Source Code
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can get the source code by cloning the pybear repo from
+`GitHub <https://github.com/PylarBear/pybear>`_. Create a local project folder
+for pybear and from the terminal in that folder run:
+
+.. code-block:: bash
+    git clone https://github.com/PylarBear/pybear.git
+
+Do not use the source files on pypi.org.
+
+
+How To Manage Project Dependencies
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once you have the source files in a local project folder, you can use poetry
+to manage the project dependencies. To use poetry, you need the pyproject.toml
+file and a local install of poetry. The pyproject.toml file should be included
+in the clone of the online repo. To install poetry, pip install it into any of
+your local Python environments (see the Python versions that are currently
+supported by pybear) and be sure to use that Python version when you run the
+following command. From the root of the project folder, install all the
+dependencies, including dev and test:
+
+.. code-block:: bash
+    poetry install --with dev,test
+
+This will install all the dependencies you need to develop pybear.
 
 
 How To Submit

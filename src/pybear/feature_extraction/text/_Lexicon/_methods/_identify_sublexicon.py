@@ -12,9 +12,10 @@ from typing import (
 )
 from typing_extensions import Union
 
+import string
+
 import numpy as np
 
-from ...alphanumeric_str import alphabet_str
 from ._validate_word_input import _validate_word_input
 
 
@@ -63,7 +64,7 @@ def _identify_sublexicon(
 
         for _char in _unq_first_chars:
 
-            if _char not in alphabet_str():
+            if _char not in string.ascii_letters:
                 raise ValueError(
                     f"when looking for sub-lexicons to update, all first "
                     f"characters of words must be one of the 26 letters in "

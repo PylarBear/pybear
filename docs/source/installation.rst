@@ -3,19 +3,14 @@
 Installation
 ============
 
-pybear is currently only available on testpypi.
-To use pybear, first install it into your Python environment using pip:
-
-.. code-block:: bash
-
-   (your-env) $ pip install -i https://test.pypi.org/simple/ pybear
-
-When pybear is released to PyPI, you will be able to install it into 
-your Python environment using pip:
+Install pybear from the online PyPI package repository using pip
 
 .. code-block:: bash
 
    (your-env) $ pip install pybear
+
+Conda distributions are expected to be made available sometime after release to
+PyPI.
 
 
 .. toctree::
