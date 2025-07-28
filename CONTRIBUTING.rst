@@ -135,24 +135,22 @@ submit tests with it. Every module must be tested comprehensively for center
 cases and edge cases. If the module takes various types of data containers, 
 all of them must be tested. Test for correct handling of invalid inputs, not 
 just valid inputs. pybear uses pytest-cov to calculate coverage and does not 
-use # pragma: no cover. At first release test coverage was 93% and going forward 
-this number should stay over 90%. pybear was/is developed on Linux, but is
-tested for operability on Linux, Windows, and Mac operating systems. All
-must be pass all the test. It should be develop on any of these systems, as
-long as the tests pass on all three.
+use # pragma: no cover. At first release test coverage was 93% and going
+forward this number should stay over 90%. pybear is tested on Linux, Windows,
+and Mac operating systems, for all Python versions that pybear supports. All
+tests must pass on each operating system and Python version.
 
 
 How To Get The Source Code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can get the source code by cloning the pybear repo from
-`GitHub <https://github.com/PylarBear/pybear>`_. Create a local project folder
-for pybear and from the terminal in that folder run:
+pybear uses GitHub to manage versions. If you want to contribute, you will
+need to use GitHub to get the source code and make your contribution. See the
+`pybear GitHub homepage <https://github.com/PylarBear/pybear>`__ on GitHub.
 
-.. code-block:: bash
-    git clone https://github.com/PylarBear/pybear.git
-
-Do not use the source files on pypi.org.
+Fork the pybear repo to your own GitHub account then clone your fork to your
+local device. Use internet resources (such as GitHub’s documentation or
+community tutorials) for more help with this process.
 
 
 How To Manage Project Dependencies
@@ -161,13 +159,14 @@ How To Manage Project Dependencies
 Once you have the source files in a local project folder, you can use poetry
 to manage the project dependencies. To use poetry, you need the pyproject.toml
 file and a local install of poetry. The pyproject.toml file should be included
-in the clone of the online repo. To install poetry, pip install it into any of
-your local Python environments (see the Python versions that are currently
-supported by pybear) and be sure to use that Python version when you run the
-following command. From the root of the project folder, install all the
-dependencies, including dev and test:
+in the clone of the online repo. To install poetry, pip install it into any
+of your local Python environments and be sure to use that Python version when
+you run the following command. (See elsewhere in the pybear documentation for
+the Python versions that are currently supported by pybear.) From the root of
+the project folder, install all the dependencies, including dev and test:
 
 .. code-block:: bash
+
     poetry install --with dev,test
 
 This will install all the dependencies you need to develop pybear.
@@ -176,13 +175,9 @@ This will install all the dependencies you need to develop pybear.
 How To Submit
 ~~~~~~~~~~~~~
 
-pybear uses GitHub to manage versions. See the
-`pybear homepage <https://github.com/PylarBear/pybear>`__ on GitHub. Fork the
-pybear repo or clone pybear to your local device. Use internet resources (such 
-as GitHub’s documentation or community tutorials) for details about how to get 
-the source code from GitHub. Follow the above guidelines and make your changes. 
-Create a pull request, explain what changes you have made in detail, and ask 
-for a review.
+Get the source code, follow the writing guidelines, and make your changes.
+Keep your fork up to date with main. Create a pull request from your fork,
+explain what changes you have made in detail, and ask for a review.
 
 
 
