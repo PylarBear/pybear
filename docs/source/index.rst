@@ -18,9 +18,6 @@ See the :doc:`api` section for further information on the available modules.
 
 View on `GitHub <https://github.com/PylarBear/pybear>`_
 
-.. note::
-
-   This project is under active development.
 
 Mission Statement
 =================

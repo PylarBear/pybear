@@ -6,7 +6,7 @@
 
 
 
-# See the file in benchmarking for an interactive assessment of display
+# See the sandbox file for an interactive assessment of display
 
 
 import pytest
