@@ -26,7 +26,7 @@ subfolders are *base*, *feature_extraction*, *model_selection*, *new_numpy*,
 You can import pybear's packages in the same way you would with scikit. Here
 are a few examples of how you could import and use pybear modules:
 
-.. code-block:: console
+.. code-block:: bash
 
     from pybear.preprocessing import InterceptManager as IM
 
