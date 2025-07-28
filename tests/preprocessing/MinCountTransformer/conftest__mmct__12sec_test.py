@@ -257,7 +257,7 @@ class TestHandleAsBool_1:
             _count_threshold = 2 * _mmct_test_thresh
         elif _trial == 'trial_2':
             _handle_as_bool = [1]
-            _count_threshold = _mmct_test_thresh // 2 - 1
+            _count_threshold = 2
         elif _trial == 'trial_3':
             _handle_as_bool = [1]
             _count_threshold = 2 * _mmct_test_thresh
@@ -283,14 +283,14 @@ class TestHandleAsBool_1:
                 f'handle_as_bool test column delete did not delete rows'
             del __
 
-        elif _handle_as_bool == [1] and \
-                _count_threshold == _mmct_test_thresh // 2 - 1:
+        elif _handle_as_bool == [1] and _count_threshold == 2:
             # column 0 is flt, column 1 is nbi
             # delete_axis_0 ON NBI WHEN handle_as_bool w low thresh
             # SHOULD NOT DELETE
-            # same for delete_axis_0 True and False
+            # is the same for delete_axis_0 True and False
             assert TRFM_X.shape[1] == 2, \
-                f'handle_as_bool test column was removed'
+                (f'handle_as_bool test column was removed '
+                 f'(count_threshold = {_count_threshold}')
             assert TRFM_X.shape[0] == _mmct_test_rows, \
                 f'handle_as_bool test deleted rows'
             assert np.array_equiv(TRFM_X, NEW_X)
@@ -310,6 +310,8 @@ class TestHandleAsBool_1:
                 assert np.array_equiv(TRFM_X, MOCK_X_FLT)
                 assert TRFM_X.shape[0] == _mmct_test_rows, \
                     f'handle_as_bool test deleted rows'
+        else:
+            raise Exception
 
 
 class TestIgnoreNan:
