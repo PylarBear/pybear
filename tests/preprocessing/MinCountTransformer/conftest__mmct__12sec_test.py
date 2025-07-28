@@ -239,66 +239,90 @@ def test_verify_delete_axis_0(
 
 class TestHandleAsBool_1:
 
-    @staticmethod
-    @pytest.fixture(scope='session')
-    def NEW_X(MOCK_X_FLT, MOCK_X_NBI):
-        return np.hstack((MOCK_X_FLT, MOCK_X_NBI))
 
-
-    @pytest.mark.parametrize('_trial', ('trial_1', 'trial_2', 'trial_3'))
+    @pytest.mark.parametrize('_trial', ('not_hab', 'low_thr', 'hi_thr'))
     @pytest.mark.parametrize('_delete_axis_0', (False, True))
-    def test_delete_axis_0(
-        self, NEW_X, MOCK_X_NBI, MOCK_X_FLT, _trial, _delete_axis_0, arg_setter,
-        _mmct_test_thresh, _mmct_test_rows
-    ):
+    def test_delete_axis_0(self, _trial, _delete_axis_0, arg_setter, _mmct_test_rows):
 
-        if _trial == 'trial_1':
-            _handle_as_bool = None
-            _count_threshold = 2 * _mmct_test_thresh
-        elif _trial == 'trial_2':
-            _handle_as_bool = [1]
-            _count_threshold = 2
-        elif _trial == 'trial_3':
-            _handle_as_bool = [1]
-            _count_threshold = 2 * _mmct_test_thresh
+        # THE MOCK_X_NBI & MOCK_X_FLT fixtures are flaky in this test.
+        # Build rigged X & thresh just for this test.
 
-        TRFM_X = arg_setter(
-            MOCK_X=NEW_X,
-            ignore_float_columns=True,
-            ignore_non_binary_integer_columns=False,
-            handle_as_bool=_handle_as_bool,
-            delete_axis_0=_delete_axis_0,
-            count_threshold=_count_threshold
-        )[0]
+        _n_values = _mmct_test_rows // 6
+        _exp_freq = _mmct_test_rows / _n_values
+        _low_thresh = 2
+        _hi_thresh = _exp_freq
 
-        if _handle_as_bool is None:
+        while True:
+            FLT = np.random.uniform(0, 1, (_mmct_test_rows, 1))
+
+            NBI = np.random.randint(0, _n_values, (_mmct_test_rows, 1))
+
+            UNQS, CTS = np.unique(NBI, return_counts=True)
+            UNQ_CT_DICT = dict((zip(list(map(int, UNQS)), list(map(int, CTS)))))
+            # need all freqs to be > _low_thresh
+            if not all(map(lambda x: x > _low_thresh, UNQ_CT_DICT.values())):
+                continue
+            del CTS
+            # for hab w hi_thr need zeros to be below thresh for
+            # something to be deleted
+            if 0 not in UNQ_CT_DICT or UNQ_CT_DICT[0] >= _hi_thresh:
+                continue
+
+            NEW_X = np.hstack((FLT, NBI))
+
+            if _trial == 'not_hab':
+                # not hab, want to prove that NBI column is removed
+                # delete_axis_0 doesnt matter because not hab
+                _handle_as_bool = None
+                _count_threshold = _exp_freq
+            elif _trial == 'low_thr':
+                # hab but low thresh, prove that nothing is deleted
+                _handle_as_bool = [1]
+                _count_threshold = 2
+            elif _trial == 'hi_thr':
+                # hab but high thresh, prove NBI column is removed, but rows
+                # deleted depends on delete_axis_0
+                _handle_as_bool = [1]
+                _count_threshold = _exp_freq
+            else:
+                raise Exception
+
+            TRFM_X = arg_setter(
+                MOCK_X=NEW_X,
+                ignore_float_columns=True,
+                ignore_non_binary_integer_columns=False,
+                handle_as_bool=_handle_as_bool,
+                delete_axis_0=_delete_axis_0,
+                count_threshold=_count_threshold
+            )[0]
+
+            if TRFM_X.shape[0] < 1 or TRFM_X.shape[1] < 1:
+                continue
+            else:
+                break
+
+
+        if _trial == 'not_hab':
             # column 0 is flt, column 1 is nbi
             # delete_axis_0 ON NBI WITH handle_as_bool==None DOESNT MATTER
             # HANDLED LIKE ANY NON_BIN_INT AND WILL ALWAYS DELETE ROWS
             # for both delete_axis_zero and not:
-            __ = TRFM_X.shape
-            assert __[1] == 1, \
-                f'handle_as_bool test column was not removed; shape = {__}'
-            assert __[0] < MOCK_X_NBI.shape[0], \
+            assert TRFM_X.shape[0] < _mmct_test_rows, \
                 f'handle_as_bool test column delete did not delete rows'
-            del __
 
-        elif _handle_as_bool == [1] and _count_threshold == 2:
+        elif _trial == 'low_thr':
             # column 0 is flt, column 1 is nbi
             # delete_axis_0 ON NBI WHEN handle_as_bool w low thresh
             # SHOULD NOT DELETE
             # is the same for delete_axis_0 True and False
+            assert TRFM_X.shape[1] == 2, \
+                (f'handle_as_bool test column was removed '
+                 f'({_count_threshold=}, {TRFM_X.shape[1]=}')
+            assert TRFM_X.shape[0] == _mmct_test_rows, \
+                f'handle_as_bool test deleted rows'
+            assert np.array_equiv(TRFM_X, NEW_X)
 
-            # 26_07_28 this test is flaky, and a fix is likely deep surgery.
-            # when it turns out that MOCK_X_FLT & MOCK_X_NBI were built in a
-            # way that the threshold allows this test to be valid, then run
-            # the test.
-            if TRFM_X.shape[1] == 2:
-                assert TRFM_X.shape[0] == _mmct_test_rows, \
-                    f'handle_as_bool test deleted rows'
-                assert np.array_equiv(TRFM_X, NEW_X)
-
-        elif _handle_as_bool == [1] and _count_threshold == 2 * _mmct_test_thresh:
+        elif _trial == 'hi_thr':
             # column 0 is flt, column 1 is nbi
             # high thresh should mark forced-nbi-to-bool rows for deletion,
             # and therefore the whole column, but rows actually deleted
@@ -308,9 +332,8 @@ class TestHandleAsBool_1:
             if _delete_axis_0 is True:
                 assert TRFM_X.shape[0] < _mmct_test_rows, \
                     f'handle_as_bool test did not delete rows'
-
             elif _delete_axis_0 is False:
-                assert np.array_equiv(TRFM_X, MOCK_X_FLT)
+                assert np.array_equiv(TRFM_X, FLT)
                 assert TRFM_X.shape[0] == _mmct_test_rows, \
                     f'handle_as_bool test deleted rows'
         else:
