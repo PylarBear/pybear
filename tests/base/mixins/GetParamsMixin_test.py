@@ -15,7 +15,6 @@ import numpy as np
 
 
 """
-FROM benchmarking.GSCV_GSTCV__another_get_params_comparator
 
 estimator is a pipeline with sk OneHotEncoder & sk LogisticRegression
 

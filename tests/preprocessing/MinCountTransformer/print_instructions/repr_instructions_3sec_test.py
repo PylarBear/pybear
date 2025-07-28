@@ -8,7 +8,7 @@
 
 # Test basic validation and accuracy for some rigged test cases. For the
 # actual appearance of the printouts, see the sandbox file
-# _repr_instructions_sandbox in benchmarking.
+# _repr_instructions_sandbox.
 
 
 import pytest
