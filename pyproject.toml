@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pybear"
-version = "0.2.0"
+version = "0.2.1"
 description = "Python modules for miscellaneous data analytics applications"
 license = "BSD-3-clause"
 authors = ["Bill Sousa <WKSJR99@msn.com>"]
@@ -48,16 +48,13 @@ pyarrow = ">=18.0.0"
 pydata-sphinx-theme = "*"
 sphinx = "*"
 sphinx-autobuild = "*"
+sphinx-sitemap = "*"
 
 
 [tool.poetry.group.test.dependencies]
 pytest = ">=7.0.0"
 pytest-cov = "*"
 pytest-html = "*"
-
-
-[tool.poetry.group.docs.dependencies]
-sphinx-sitemap = "*"
 
 
 [tool.poetry.extras]
