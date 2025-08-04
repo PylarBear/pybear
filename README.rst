@@ -52,9 +52,15 @@ pybear
    :target: https://pepy.tech/project/pybear
    :alt: PyPI Downloads
 
+|DOI|
+
+.. |DOI| image:: https://zenodo.org/badge/780637275.svg
+   :target: https://doi.org/10.5281/zenodo.16547172
+   :alt: DOI
+
 .. _documentation: https://pybear.readthedocs.io/
 
-.. |PythonVersion| replace:: >=3.10, <3.14
+.. |PythonVersion| replace:: >=3.10
 .. |JoblibVersion| replace:: >=1.3.0
 .. |NumpyVersion| replace:: >=2.1.0
 .. |PandasVersion| replace:: >=2.2.3

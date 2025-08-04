@@ -76,7 +76,7 @@ class AutoTextCleaner(
 
     AutoTextCleaner (ATC) combines the functionality of the pybear
     text transformers into one module. In one shot you can strip,
-    normalize, replace, remove, and justifiy text. You can also
+    normalize, replace, remove, and justify text. You can also
     cross-reference the text against the pybear :class:`Lexicon`, handle
     unknown words, remove stops, and merge n-grams. All the while,
     ATC is capable of compiling statistics about the incoming and
