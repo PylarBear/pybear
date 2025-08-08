@@ -21,7 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - None
 
 ### Fixed
-- None
+- feature_extraction.text all modules except Lexicon and TextStatistics
+    Fix conversion of pandas dataframes to list[list[str]]. Fix handling 
+    and casting of nan-likes; now all cast to str('nan').
 
 ### Security
 - None
