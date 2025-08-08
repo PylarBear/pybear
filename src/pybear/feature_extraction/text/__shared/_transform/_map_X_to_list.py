@@ -13,6 +13,7 @@ from typing_extensions import (
 )
 import numpy.typing as npt
 
+import numpy as np
 import pandas as pd
 import polars as pl
 
@@ -102,15 +103,50 @@ def _map_X_to_list(
     """
 
 
-    if all(map(isinstance, _X, (str for _ in _X))):
-        _X = list(_X)
-    else:
+    if hasattr(_X, 'shape'):
         if isinstance(_X, pd.DataFrame):
-            _X = list(map(list, _X.values))
-        elif isinstance(_X, pl.DataFrame):
-            _X = list(map(list, _X.rows()))
-        else:
+            # let np cast nan-likes
+            _X = _X.to_numpy().astype(str)
             _X = list(map(list, _X))
+        elif isinstance(_X, pl.DataFrame):
+            # let  np cast nan-likes
+            _X = _X.to_numpy().astype(str)
+            _X = list(map(list, _X))
+        elif len(_X.shape) == 1:
+            _X = np.array(list(_X)).astype(str).tolist()
+        elif len(_X.shape) == 2:
+            _X = list(map(list,  np.array(list(_X)).astype(str)))
+        else:
+            raise ValueError(
+                f'disallowed data container dimensions ({len(_X.shape)}) '
+                f'in _map_X_to_list()'
+            )
+    else:
+        # does not have 'shape' attribute. must be py built-in.
+        # could have nans in it.
+        # if can cast to ndarray must be 1D or non-ragged 2D.
+        try:
+            # if it does cast, it should coerce any nans, then convert it
+            # back to py list
+            _X = np.array(list(_X)).astype(str)
+            if len(_X.shape) == 1:
+                _X = _X.tolist()
+            elif len(_X.shape) == 2:
+                _X = list(map(list, _X))
+            else:
+                raise ValueError(
+                    f'disallowed data container dimensions ({len(_X.shape)}) '
+                    f'in _map_X_to_list()'
+                )
+        except:
+            # must be ragged 2D py
+            # loop over the inner vectors, convert to np.ndarray to let it
+            # coerce any nan-likes, then covert back to lists
+
+            _X = list(_X)
+
+            for idx in range(len(_X)):
+                _X[idx] = np.array(list(_X[idx])).astype(str).tolist()
 
 
     return _X

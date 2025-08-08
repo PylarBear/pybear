@@ -121,7 +121,10 @@ class TestTextJoiner:
         TestCls.fit_transform(tuple(map(tuple, _base_X)))
 
         # ndarray ragged
-        TestCls.fit_transform(_ndarray_ragged)
+        # after ver0.2.1 overhaul of _map_X_to_list, it now raises a
+        # error via numpy in for inhomogenous shape
+        with pytest.raises(Exception):
+            TestCls.fit_transform(_ndarray_ragged)
 
         # ndarray
         TestCls.fit_transform(_ndarray)
