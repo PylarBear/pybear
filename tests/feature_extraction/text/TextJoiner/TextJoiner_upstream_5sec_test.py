@@ -48,6 +48,13 @@ class TestUpstreamImpactOnLaterModules:
         pass
 
 
+    def test_text_joiner(self):
+
+        # TextJoiner requires 2D and puts out 1D. A second TextJoiner
+        # requires 2D, so TJ could never directly feed itself.
+        pass
+
+
     def test_text_justifier(self):
 
         TJ = TextJoiner(sep=' ')
