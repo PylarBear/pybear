@@ -113,9 +113,9 @@ def _map_X_to_list(
             _X = _X.to_numpy().astype(str)
             _X = list(map(list, _X))
         elif len(_X.shape) == 1:
-            _X = np.array(list(_X)).astype(str).tolist()
+            _X = list(map(str, np.array(list(_X)).astype(str).tolist()))
         elif len(_X.shape) == 2:
-            _X = list(map(list,  np.array(list(_X)).astype(str)))
+            _X = list(map(lambda x: list(map(str, x)), _X))
         else:
             raise ValueError(
                 f'disallowed data container dimensions ({len(_X.shape)}) '
@@ -130,9 +130,9 @@ def _map_X_to_list(
             # back to py list
             _X = np.array(list(_X)).astype(str)
             if len(_X.shape) == 1:
-                _X = _X.tolist()
+                _X = list(map(str, _X.tolist()))
             elif len(_X.shape) == 2:
-                _X = list(map(list, _X))
+                _X = list(map(lambda x: list(map(str, x)), _X))
             else:
                 raise ValueError(
                     f'disallowed data container dimensions ({len(_X.shape)}) '
@@ -146,7 +146,7 @@ def _map_X_to_list(
             _X = list(_X)
 
             for idx in range(len(_X)):
-                _X[idx] = np.array(list(_X[idx])).astype(str).tolist()
+                _X[idx] = list(map(str, np.array(list(_X[idx])).astype(str).tolist()))
 
 
     return _X

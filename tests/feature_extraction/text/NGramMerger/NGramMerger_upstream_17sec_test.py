@@ -34,6 +34,19 @@ from pybear.feature_extraction.text._TextStripper.TextStripper import TextStripp
 class TestUpstreamImpactOnLaterModules:
 
 
+    def test_ngram_merger(self):
+
+        NGM = NGramMerger(ngrams=(('DEEP', 'FRIED', 'EGG'),), sep='_')
+        out = NGM.fit_transform([['DEEP', 'FRIED', 'EGG', 'SALAD', 'SHOOTER']])
+
+        assert np.array_equal(out[0], ['DEEP_FRIED_EGG', 'SALAD', 'SHOOTER'])
+
+        TestCls = NGramMerger(ngrams=(('DEEP_FRIED_EGG', 'SALAD'),), sep='_')
+        out2 = TestCls.fit_transform(out)
+
+        assert np.array_equal(out2[0], ['DEEP_FRIED_EGG_SALAD', 'SHOOTER'])
+
+
     def test_stop_remover(self):
 
         NGM = NGramMerger(ngrams=(('DEEP', 'FRIED', 'EGG'),), sep='_')

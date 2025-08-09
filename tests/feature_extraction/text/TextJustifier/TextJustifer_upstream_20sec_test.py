@@ -80,6 +80,22 @@ class TestUpstreamImpactOnLaterModules:
         assert out2[1] == 'WORDS'
 
 
+    def test_text_justifier(self):
+
+        TJ = TextJustifier(n_chars=20)
+        out = TJ.fit_transform([['ANOTHER', 'LIST', 'OF', 'WORDS']])
+
+        assert np.array_equal(out[0], ['ANOTHER', 'LIST', 'OF'])
+        assert np.array_equal(out[1], ['WORDS'])
+
+        TestCls = TextJustifier(n_chars=10)
+        out2 = TestCls.fit_transform(out)
+
+        assert np.array_equal(out2[0], ['ANOTHER'])
+        assert np.array_equal(out2[1], ['LIST', 'OF'])
+        assert np.array_equal(out2[2], ['WORDS'])
+
+
     def test_text_lookup(self):
 
         TJ = TextJustifier(n_chars=15)

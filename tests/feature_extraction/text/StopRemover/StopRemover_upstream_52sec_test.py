@@ -48,6 +48,20 @@ class TestUpstreamImpactOnLaterModules:
         assert np.array_equal(out2[0], ['SORRY', 'LIST_WORDS'])
 
 
+    def test_stop_remover(self):
+
+        SR = StopRemover(n_jobs=1)
+        out = SR.fit_transform([['A', 'SORRY', 'LIST', 'OF', 'WORDS']])
+
+        assert np.array_equal(out[0], ['SORRY', 'LIST', 'WORDS'])
+
+        TestClass = StopRemover(n_jobs=1, supplemental=['SORRY', 'LIST'])
+
+        out2 = TestClass.fit_transform(out)
+
+        assert np.array_equal(out2[0], ['WORDS'])
+
+
     def test_text_joiner(self):
 
         SR = StopRemover(n_jobs=1)
