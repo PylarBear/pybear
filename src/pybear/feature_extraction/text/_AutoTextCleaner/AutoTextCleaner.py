@@ -634,7 +634,7 @@ class AutoTextCleaner(
 
         Returns
         -------
-        _after_statistics : instance TextLookupRealTime
+        _lexicon_lookup : instance TextLookupRealTime
             A `TextLookupRealTime` instance that contains information
             about the text-lookup process, if applicable.
 
