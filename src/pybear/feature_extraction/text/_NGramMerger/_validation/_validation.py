@@ -76,7 +76,7 @@ def _validation(
     """
 
 
-    _val_2D_X(_X, _require_all_finite=True)
+    _val_2D_X(_X, _require_all_finite=False)
 
     _val_ngrams(_ngrams)
 

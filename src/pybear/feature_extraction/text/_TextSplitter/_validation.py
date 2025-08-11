@@ -61,7 +61,7 @@ def _validation(
     """
 
 
-    _val_1D_X(_X, _require_all_finite=True)
+    _val_1D_X(_X, _require_all_finite=False)
 
     _n_rows = _X.shape[0] if hasattr(_X, 'shape') else len(_X)
 
