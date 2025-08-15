@@ -17,8 +17,8 @@ from pybear.preprocessing._ColumnDeduplicator._partial_fit. \
 
 # def _lock_in_random_idxs(
 #     _duplicates: list[list[int]],
-#     _do_not_drop: Union[Sequence[int], Sequence[str], None],
-#     _columns: Union[Sequence[str], None]
+#     _do_not_drop: Sequence[int] | Sequence[str] | None,
+#     _columns: Sequence[str] | None
 # ) -> tuple[int]:
 
 

@@ -2069,50 +2069,6 @@ xlsx2csv = ["xlsx2csv (>=0.8.0)"]
 xlsxwriter = ["xlsxwriter"]
 
 [[package]]
-name = "polars-lts-cpu"
-version = "1.32.2"
-description = "Blazingly fast DataFrame library"
-optional = false
-python-versions = ">=3.9"
-groups = ["main"]
-files = [
-    {file = "polars_lts_cpu-1.32.2-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:10e43de31bc2abcce044e8227047f9124826c25cc21ed3e72a81a6e825771551"},
-    {file = "polars_lts_cpu-1.32.2-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:0e7bf53559adb7bc64b1e64ba72cc126c3689e987761b809afc7bfa410ac2304"},
-    {file = "polars_lts_cpu-1.32.2-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:acb0d2eca691a23297479fb755635bc201a778a6655808b25c803af8959fc550"},
-    {file = "polars_lts_cpu-1.32.2-cp39-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:9c8cff828ad5dcf86fce451b2c7fd5ea17d6f7c53f57c4283e05e8c3b7cff1de"},
-    {file = "polars_lts_cpu-1.32.2-cp39-abi3-win_amd64.whl", hash = "sha256:f60f807d418ff7f22d2813961c9173399b2e5cba89cb554bc7af35763db25f1d"},
-    {file = "polars_lts_cpu-1.32.2-cp39-abi3-win_arm64.whl", hash = "sha256:9b961980067021f145c9db399eadc20cbae256ffcb7d759ed8235cf20875b0cd"},
-    {file = "polars_lts_cpu-1.32.2.tar.gz", hash = "sha256:a2e22e642fe9f3bfe29e626b2156a5af197bb856e0e08b6d92a1d0e0340deaab"},
-]
-
-[package.extras]
-adbc = ["adbc-driver-manager[dbapi]", "adbc-driver-sqlite[dbapi]"]
-all = ["polars-lts-cpu[async,cloudpickle,database,deltalake,excel,fsspec,graph,iceberg,numpy,pandas,plot,pyarrow,pydantic,style,timezone]"]
-async = ["gevent"]
-calamine = ["fastexcel (>=0.9)"]
-cloudpickle = ["cloudpickle"]
-connectorx = ["connectorx (>=0.3.2)"]
-database = ["polars-lts-cpu[adbc,connectorx,sqlalchemy]"]
-deltalake = ["deltalake (>=1.0.0)"]
-excel = ["polars-lts-cpu[calamine,openpyxl,xlsx2csv,xlsxwriter]"]
-fsspec = ["fsspec"]
-gpu = ["cudf-polars-cu12"]
-graph = ["matplotlib"]
-iceberg = ["pyiceberg (>=0.7.1)"]
-numpy = ["numpy (>=1.16.0)"]
-openpyxl = ["openpyxl (>=3.0.0)"]
-pandas = ["pandas", "polars-lts-cpu[pyarrow]"]
-plot = ["altair (>=5.4.0)"]
-polars-cloud = ["polars-cloud (>=0.0.1a1)"]
-pyarrow = ["pyarrow (>=7.0.0)"]
-pydantic = ["pydantic"]
-sqlalchemy = ["polars-lts-cpu[pandas]", "sqlalchemy"]
-style = ["great-tables (>=0.8.0)"]
-timezone = ["tzdata ; platform_system == \"Windows\""]
-xlsx2csv = ["xlsx2csv (>=0.8.0)"]
-xlsxwriter = ["xlsxwriter"]
-
-[[package]]
 name = "prometheus-client"
 version = "0.22.1"
 description = "Python client for the Prometheus monitoring system."
@@ -3948,4 +3904,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10"
-content-hash = "559f2b390f4168a859ed0b57155fb9868b5b4df62c17312a3bb9b087740b6405"
+content-hash = "88aeb767f290111248a8e6e8005aee78bcbe63fc38c3496a3be15ff6362d409b"

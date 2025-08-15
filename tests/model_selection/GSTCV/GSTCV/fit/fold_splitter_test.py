@@ -20,7 +20,7 @@ class TestSKFoldSplitter:
     # def _fold_splitter(
     #     train_idxs: SKSlicerType,
     #     test_idxs: SKSlicerType,
-    #     *data_objects: Union[SKXType, SKYType]
+    #     *data_objects: SKXType | SKYTypes
     # ) -> tuple[SKSplitType, ...]:
 
 

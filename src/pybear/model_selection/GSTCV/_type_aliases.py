@@ -7,19 +7,19 @@
 
 
 from typing import (
-    Iterable,
-    Sequence,
-    Literal,
+    Any,
     Callable,
+    Iterable,
+    Literal,
+    Protocol,
+    Sequence,
+    TypeAlias,
     TypedDict,
-    Protocol
+    Union
 )
 from typing_extensions import (
-    Any,
-    Self,
-    TypeAlias,
-    Union,
-    NotRequired
+    NotRequired,
+    Self
 )
 import numpy.typing as npt
 

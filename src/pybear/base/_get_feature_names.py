@@ -6,7 +6,7 @@
 
 
 
-from typing_extensions import Any
+from typing import Any
 
 import warnings
 
@@ -43,7 +43,7 @@ def get_feature_names(X: Any):
 
     Returns
     -------
-    feature_names : Union[numpy.ndarray[object], None]
+    feature_names : numpy.ndarray[object] | None
         The feature names of `X`. Unrecognized array containers return
         None.
 

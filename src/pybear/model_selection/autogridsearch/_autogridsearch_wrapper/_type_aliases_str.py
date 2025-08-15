@@ -9,9 +9,6 @@
 from typing import (
     Literal,
     Sequence,
-    Tuple
-)
-from typing_extensions import (
     TypeAlias,
     Union
 )
@@ -31,7 +28,7 @@ PointsType: TypeAlias = list[numbers.Integral]
 
 StrTypeType: TypeAlias = Literal['fixed_string']
 
-InStrParamType: TypeAlias = Sequence[Tuple[InStrGridType, InPointsType, StrTypeType]]
+InStrParamType: TypeAlias = Sequence[tuple[InStrGridType, InPointsType, StrTypeType]]
 StrParamType: TypeAlias = list[StrGridType, PointsType, StrTypeType] # ParamType sub
 
 

@@ -7,12 +7,10 @@
 
 
 from typing import (
+    Any,
     Optional,
     Sequence,
-    Tuple
-)
-from typing_extensions import (
-    Any,
+    Tuple,
     Union
 )
 

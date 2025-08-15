@@ -8,9 +8,6 @@
 
 from typing import (
     Sequence,
-    Tuple
-)
-from typing_extensions import (
     TypeAlias,
     TypeVar,
     Union
@@ -43,7 +40,7 @@ PointsType: TypeAlias = list[numbers.Integral]
 
 NumTypeType: TypeAlias = Union[IntTypeType, FloatTypeType]
 
-InNumParamType: TypeAlias = Sequence[Tuple[InNumGridType, InPointsType, NumTypeType]]
+InNumParamType: TypeAlias = Sequence[tuple[InNumGridType, InPointsType, NumTypeType]]
 NumParamType: TypeAlias = list[NumGridType, PointsType, NumTypeType]
 
 

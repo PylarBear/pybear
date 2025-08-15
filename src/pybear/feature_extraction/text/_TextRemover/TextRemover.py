@@ -6,11 +6,11 @@
 
 
 
-from typing import Optional
-from typing_extensions import (
+from typing import (
     Any,
-    Self
+    Optional
 )
+from typing_extensions import Self
 import numpy.typing as npt
 from ._type_aliases import (
     XContainer,
@@ -184,43 +184,43 @@ class TextRemover(
     **Type Aliases**
 
     PythonTypes:
-        Union[Sequence[str], Sequence[Sequence[str]], set[str]]
+        Sequence[str] | Sequence[Sequence[str]] | set[str]
 
     NumpyTypes:
         numpy.ndarray[str]
 
     PandasTypes:
-        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+        pandas.Series | pandas.DataFrame
 
     PolarsTypes:
-        Union[polars.series.Series, polars.dataframe.DataFrame]
+        polars.Series | polars.DataFrame
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+        PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 
     XWipContainer:
-        Union[list[str], list[list[str]]]
+        list[str] | list[list[str]]
 
     PatternType:
-        Union[None, str, re.Pattern[str], tuple[Union[str, re.Pattern[str]], ...]]
+        None | str | re.Pattern[str] | tuple[str | re.Pattern[str], ...]
     RemoveType:
-        Optional[Union[PatternType, list[PatternType]]]
+        Optional[PatternType | list[PatternType]]
 
     WipPatternType:
-        Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]
+        None | re.Pattern[str] | tuple[re.Pattern[str], ...]
     WipRemoveType:
-        Optional[Union[WipPatternType, list[WipPatternType]]]
+        Optional[WipPatternType | list[WipPatternType]]
 
     CaseSensitiveType:
-        Optional[Union[bool, list[Union[bool, None]]]]
+        Optional[bool | list[bool | None]]
 
     RemoveEmptyRowsType:
         Optional[bool]
 
     FlagType:
-        Union[None, numbers.Integral]
+        None | numbers.Integral
     FlagsType:
-        Optional[Union[FlagType, list[FlagType]]]
+        Optional[FlagType | list[FlagType]]
 
     RowSupportType:
         numpy.ndarray[bool]
@@ -463,7 +463,7 @@ class TextRemover(
         ----------
         X : XContainer
             The data. Ignored.
-        y : Optional[Union[any, None]], default=None
+        y : Optional[Any | None], default=None
             The target for the data. Ignored.
 
         Returns

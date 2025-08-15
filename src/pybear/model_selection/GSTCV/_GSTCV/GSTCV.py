@@ -7,12 +7,10 @@
 
 
 from typing import (
+    Any,
     Callable,
     Iterable,
-    Optional
-)
-from typing_extensions import (
-    Any,
+    Optional,
     Union
 )
 from ._type_aliases import (

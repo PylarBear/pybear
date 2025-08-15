@@ -20,7 +20,7 @@ class TestOriginalDtypesMerger:
 
     # def _original_dtypes_merger(
     #     _col_dtypes: OriginalDtypesType,
-    #     _previous_col_dtypes: Union[OriginalDtypesType, None],
+    #     _previous_col_dtypes: OriginalDtypesType | None,
     #     _n_features_in: int
     # ) -> OriginalDtypesType:
 

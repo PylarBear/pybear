@@ -7,12 +7,9 @@
 
 
 from typing import (
-    Literal,
-    Sequence
-)
-from typing_extensions import (
     Any,
-    Union
+    Literal,
+    Sequence,
 )
 
 import scipy.sparse as ss
@@ -21,11 +18,10 @@ import scipy.sparse as ss
 
 def check_scipy_sparse(
     X: Any,
-    allowed: Union[
-        Literal[False],
-        None,
-        Sequence[Literal["csr", "csc", "coo", "dia", "lil", "dok", "bsr"]]
-    ]
+    allowed: (
+        Literal[False] | None
+        | Sequence[Literal["csr", "csc", "coo", "dia", "lil", "dok", "bsr"]]
+    )
 ) -> None:
     """Check whether a passed data container is a scipy sparse matrix /
     array.
@@ -44,7 +40,7 @@ def check_scipy_sparse(
         matrix / array. This parameter is not checked for being a valid
         data container. It only undergoes checks if it is a scipy sparse
         container.
-    allowed : Union[Literal[False], None, Sequence[str]]
+    allowed : Literal[False] | None | Sequence[str]
         If None or False, disallow any scipy sparse containers. Otherwise,
         a vector-like sequence of literals indicating the types of scipy
         sparse matrices / arrays that are allowed.  Valid literals are

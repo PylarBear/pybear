@@ -19,21 +19,21 @@ class TestFlagMaker:
 
 
     # def _flag_maker(
-    #     _remove: list[Union[list[None], list[re.Pattern]]],
+    #     _remove: list[list[None] | list[re.Pattern]],
     #     _case_sensitive: CaseSensitiveType,
     #     _flags: FlagsType
-    # ) -> list[Union[list[None], list[re.Pattern]]]:
+    # ) -> list[list[None] | list[re.Pattern]]:
 
 
-    # _remove must be list[Union[list[None], list[re.Pattern]]]
-    # _case_sensitive can be Union[bool, list[Union[None, bool]]]
-    # _flags can be Union[None, int, list[Union[None, int]]]
+    # _remove must be list[list[None] | list[re.Pattern]]
+    # _case_sensitive can be bool | list[None | bool]
+    # _flags can be None | int | list[None | int]
 
     # minimal validation
 
 
-    # _case_sensitive can be Union[bool, list[Union[None, bool]]]
-    # _flags can be Union[None, int, list[Union[None, int]]]
+    # _case_sensitive can be bool | list[None | bool]
+    # _flags can be None | int | list[None | int]
     @pytest.mark.parametrize('_cs', (True, False, [True, None, False, None]))
     @pytest.mark.parametrize('_flags', (None, re.I, [None, re.M, None, None]))
     def test_accuracy(self, _cs, _flags):

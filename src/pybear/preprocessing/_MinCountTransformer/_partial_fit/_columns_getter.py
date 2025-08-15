@@ -6,7 +6,7 @@
 
 
 
-from typing_extensions import Union
+from typing import Union
 import numpy.typing as npt
 from .._type_aliases import InternalXContainer
 
@@ -50,7 +50,7 @@ def _columns_getter(
 
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    assert isinstance(_X, (np.ndarray, pd.core.frame.DataFrame,
+    assert isinstance(_X, (np.ndarray, pd.DataFrame,
         pl.DataFrame, ss.csc_array, ss.csc_matrix))
 
     assert isinstance(_col_idxs, (int, tuple))
@@ -66,7 +66,7 @@ def _columns_getter(
 
     if isinstance(_X, np.ndarray):
         _columns = _X[:, _col_idxs]
-    elif isinstance(_X, pd.core.frame.DataFrame):
+    elif isinstance(_X, pd.DataFrame):
         _columns = _X.iloc[:, _col_idxs].to_numpy()
     elif isinstance(_X, pl.DataFrame):
         _columns = _X[:, _col_idxs].to_numpy()

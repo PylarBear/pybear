@@ -6,9 +6,9 @@
 
 
 
-from typing import Literal
-from typing_extensions import (
+from typing import (
     Any,
+    Literal,
     Union
 )
 from .._type_aliases import (

@@ -6,8 +6,10 @@
 
 
 
-from typing import Type
-from typing_extensions import Union
+from typing import (
+    Type,
+    Union
+)
 from ...._type_aliases import (
     ParamGridsWIPType,
     ScorerWIPType,

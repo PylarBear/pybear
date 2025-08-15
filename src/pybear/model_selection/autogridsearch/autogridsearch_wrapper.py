@@ -6,12 +6,12 @@
 
 
 
-from typing import Optional
-from typing_extensions import (
+from typing import (
     Any,
-    Self,
+    Optional,
     Union
 )
+from typing_extensions import Self
 from ._autogridsearch_wrapper._type_aliases import (
     ParamsType,
     GridsType,

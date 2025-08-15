@@ -19,11 +19,11 @@ class TestValIgnColsHabCallable:
 
 
     # def _val_ign_cols_hab_callable(
-    #     _fxn_output: Union[Sequence[str], Sequence[numbers.Integral]],
-    #     _first_fxn_output: Union[Sequence[str], Sequence[numbers.Integral], None],
+    #     _fxn_output: Sequence[str] | Sequence[numbers.Integral],
+    #     _first_fxn_output: Sequence[str] | Sequence[numbers.Integral] | None,
     #     _name: Literal['ignore_columns', 'handle_as_bool'],
     #     _n_features_in: int,
-    #     _feature_names_in: Union[FeatureNamesInType, None]
+    #     _feature_names_in: FeatureNamesInType | None
     # ) -> None:
 
 

@@ -6,10 +6,9 @@
 
 
 
-from typing import Literal
-from typing_extensions import (
+from typing import (
     Any,
-    Union
+    Literal
 )
 from .._type_aliases import (
     KeepType,
@@ -33,7 +32,7 @@ def _manage_keep(
     _n_features_in: int,
     _feature_names_in: FeatureNamesInType,
     _rand_idx: int
-) -> Union[Literal['none'], dict[str, Any], int]:
+) -> Literal['none'] | dict[str, Any] | int:
     """Before going into `_make_instructions`, process some of the
     mapping of `keep` to a column index and validate against
     `_constant_columns`.
@@ -113,7 +112,7 @@ def _manage_keep(
         fits.
     _n_features_in : int
         Number of features in the fitted data before transform.
-    _feature_names_in : Union[npt.NDArray[str], None]
+    _feature_names_in : npt.NDArray[str] | None
         The names of the features as seen during fitting. Only accessible
         if `X` is passed to `fit` or `partial_fit` in a container that
         has a header.
@@ -124,7 +123,7 @@ def _manage_keep(
 
     Returns
     -------
-    __keep : Union[dict[int, Any], int, Literal['none']]
+    __keep : dict[int, Any] | int | Literal['none']
         `_keep` converted to integer for callable, 'first', 'last',
         'random', or feature name. `__keep` can only return as an
         integer, dict, or Literal['none']
@@ -138,7 +137,7 @@ def _manage_keep(
     # after _validate in both partial_fit and transform (the only places
     # where this is called)
 
-    assert isinstance(_X, (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame)) \
+    assert isinstance(_X, (np.ndarray, pd.DataFrame, pl.DataFrame)) \
         or hasattr(_X, 'toarray')
 
     assert isinstance(_n_features_in, int)

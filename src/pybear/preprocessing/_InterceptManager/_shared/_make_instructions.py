@@ -32,9 +32,9 @@ def _make_instructions(
 
     The form of the dictionary is:
     {
-        'keep': Union[None, list[constant column indices to keep]],
-        'delete': Union[None, list[constant column indices to delete]],
-        'add': Union[None, dict['{new column name}', fill value]]
+        'keep': None | list[constant column indices to keep],
+        'delete': None | list[constant column indices to delete],
+        'add': None | dict['{new column name}', fill value]
     }
 
     if `keep` == 'none', keep none, add none, delete all.
@@ -49,7 +49,7 @@ def _make_instructions(
 
     Parameters
     ----------
-    _keep : Union[int, Literal['none'], dict[str, Any]]
+    _keep : int | Literal['none'] | dict[str, Any]]
         The strategy for handling the constant columns. See 'The keep
         Parameter' section for a lengthy explanation of the `keep`
         parameter.

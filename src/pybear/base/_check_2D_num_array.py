@@ -9,11 +9,8 @@
 from typing import (
     Iterable,
     Optional,
-    Sequence
-)
-from typing_extensions import (
-    TypeAlias,
-    Union
+    Sequence,
+    TypeAlias
 )
 from .__type_aliases import (
     Python2DTypes,
@@ -34,7 +31,7 @@ from ._check_1D_num_sequence import check_1D_num_sequence
 
 
 XContainer: TypeAlias = \
-    Union[Python2DTypes, Numpy2DTypes, Pandas2DTypes, Polars2DTypes, ScipySparseTypes]
+    Python2DTypes | Numpy2DTypes | Pandas2DTypes | Polars2DTypes | ScipySparseTypes
 
 
 
@@ -78,30 +75,26 @@ def check_2D_num_array(
     **Type Aliases**
 
     Python2DTypes:
-        Union[list[list], tuple[tuple]]
+        list[list] | tuple[tuple]
 
     Numpy2DTypes:
         numpy.ndarray
 
     Pandas2DTypes:
-        pandas.core.frame.DataFrame
+        pandas.DataFrame
 
     Polars2DTypes:
-        polars.dataframe.DataFrame
+        polars.DataFrame
 
     ScipySparseTypes:
-        Union[
-            ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
-            ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
-            ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
-            ss.bsr_matrix, ss.bsr_array
-        ]
+        ss.csc_matrix | ss.csc_array | ss.csr_matrix | ss.csr_array
+        | ss.coo_matrix | ss.coo_array | ss.dia_matrix | ss.dia_array
+        | ss.lil_matrix | ss.lil_array | ss.dok_matrix | ss.dok_array
+        | ss.bsr_matrix | ss.bsr_array
 
     XContainer:
-        Union[
-            Python2DTypes, Numpy2DTypes, Pandas2DTypes, Polars2DTypes,
-            ScipySparseTypes
-        ]
+        Python2DTypes | Numpy2DTypes | Pandas2DTypes | Polars2DTypes
+        | ScipySparseTypes
 
     Examples
     --------

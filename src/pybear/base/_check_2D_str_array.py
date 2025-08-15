@@ -9,11 +9,8 @@
 from typing import (
     Iterable,
     Optional,
-    Sequence
-)
-from typing_extensions import (
-    TypeAlias,
-    Union
+    Sequence,
+    TypeAlias
 )
 from .__type_aliases import (
     Python2DTypes,
@@ -30,7 +27,7 @@ from ._check_1D_str_sequence import check_1D_str_sequence
 
 
 XContainer: TypeAlias = \
-    Union[Python2DTypes, Numpy2DTypes, Pandas2DTypes, Polars2DTypes]
+    Python2DTypes | Numpy2DTypes | Pandas2DTypes | Polars2DTypes
 
 
 
@@ -73,19 +70,19 @@ def check_2D_str_array(
     **Type Aliases**
 
     Python2DTypes:
-        Union[list[list], tuple[tuple]]
+        list[list] | tuple[tuple]
 
     Numpy2DTypes:
         numpy.ndarray
 
     Pandas2DTypes:
-        pandas.core.frame.DataFrame
+        pandas.DataFrame
 
     Polars2DTypes:
-        polars.dataframe.DataFrame
+        polars.DataFrame
 
     XContainer:
-        Union[Python2DTypes, Numpy2DTypes, Pandas2DTypes, Polars2DTypes]
+        Python2DTypes | Numpy2DTypes | Pandas2DTypes | Polars2DTypes
 
     Examples
     --------

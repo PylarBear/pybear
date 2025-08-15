@@ -24,8 +24,8 @@ class TestIsFitted:
 
     # def _is_fitted(
     #     estimator,
-    #     attributes: Union[str, Iterable[str], None] = None,
-    #     all_or_any: Union[Literal[any, all]] = all
+    #     attributes: str | Iterable[str] | None = None,
+    #     all_or_any: Literal[Any, all] = all
     # ):
 
 

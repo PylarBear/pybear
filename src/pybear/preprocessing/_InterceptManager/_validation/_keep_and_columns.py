@@ -6,8 +6,10 @@
 
 
 
-from typing import Sequence
-from typing_extensions import Union
+from typing import (
+    Sequence,
+    Union
+)
 from .._type_aliases import KeepType
 from ...__shared._type_aliases import XContainer
 
@@ -17,8 +19,8 @@ import warnings
 
 def _val_keep_and_columns(
     _keep: KeepType,
-    _columns: Union[Sequence[str], None],
-    _X: XContainer
+    _columns: Sequence[str] | None,
+    _X: XContainer    # pizza
 ) -> None:
     """Validate `keep` and `columns`.
 

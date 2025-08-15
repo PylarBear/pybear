@@ -24,10 +24,10 @@ class TestSlider:
 
     # def _replacer(
     #     _line: list[str],
-    #     _ngram: Sequence[Union[str, re.Pattern]],
+    #     _ngram: Sequence[str | re.Pattern],
     #     _hits: Sequence[int],
-    #     _ngcallable: Union[Callable[[Sequence[str]], str], None],
-    #     _sep: Union[str, None]
+    #     _ngcallable: Callable[[Sequence[str]], str] | None,
+    #     _sep: str | None
     # ) -> list[str]:
 
 

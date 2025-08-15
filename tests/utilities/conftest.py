@@ -9,12 +9,10 @@
 import pytest
 
 from typing import (
+    Any,
     Iterable,
-    Literal
-)
-from typing_extensions import (
-    TypeAlias,
-    Union
+    Literal,
+    TypeAlias
 )
 import numpy.typing as npt
 
@@ -67,14 +65,14 @@ def _X_factory(_shape):
 
 
     def foo(
-        _dupl:list[list[int]]=None,
-        _has_nan:Union[int, bool]=False,
-        _format:XContainer='np',
-        _dtype:Literal['flt','int','str','obj','hybrid']='flt',
-        _columns:Union[Iterable[str], None]=None,
-        _zeros:Union[float,None]=0,
-        _shape:tuple[int,int]=(20,5)
-    ) -> npt.NDArray[any]:
+        _dupl:list[list[int]] = None,
+        _has_nan:int | bool = False,
+        _format:XContainer = 'np',
+        _dtype:Literal['flt','int','str','obj','hybrid'] = 'flt',
+        _columns:Iterable[str] | None = None,
+        _zeros:float | None = 0,
+        _shape:tuple[int,int] = (20,5)
+    ) -> npt.NDArray[Any]:
 
         # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
         assert isinstance(_dupl, (list, type(None)))

@@ -6,12 +6,12 @@
 
 
 
-from typing import Optional
-from typing_extensions import (
+from typing import (
     Any,
-    Self,
+    Optional,
     Union
 )
+from typing_extensions import Self
 from ._type_aliases import (
     XContainer,
     XWipContainer
@@ -145,10 +145,10 @@ class TextPadder(
         numpy.ndarray[str]
 
     PandasTypes:
-        pandas.core.frame.DataFrame
+        pandas.DataFrame
 
     PolarsTypes:
-        polars.dataframe.DataFrame
+        polars.DataFrame
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]

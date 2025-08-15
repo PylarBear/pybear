@@ -6,8 +6,8 @@
 
 
 
-from typing import Sequence
-from typing_extensions import (
+from typing import (
+    Sequence,
     TypeAlias,
     Union
 )
@@ -77,10 +77,10 @@ def _map_X_to_list(
         numpy.ndarray[str]
 
     Pandas1DTypes:
-        pandas.core.series.Series
+        pandas.Series
 
     Polars1DTypes:
-        polars.series.Series
+        polars.Series
 
     Dim1Types:
         Union[Python1DTypes, Numpy1DTypes, Pandas1DTypes, Polars1DTypes]
@@ -92,10 +92,10 @@ def _map_X_to_list(
         numpy.ndarray[str]
 
     Pandas2DTypes:
-        pandas.core.frame.DataFrame
+        pandas.DataFrame
 
     Polars2DTypes:
-        polars.dataframe.DataFrame
+        polars.DataFrame
 
     Dim2Types:
         Union[Python2DTypes, Numpy2DTypes, Pandas2DTypes, Polars2DTypes]

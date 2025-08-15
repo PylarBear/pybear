@@ -43,7 +43,7 @@ class TestValPatternHolder:
          (lambda x: x,), ('abc', 1), (None, list('abc')))
     )
     def test_rejects_junk_tuple_remove(self, junk_tuple_remove):
-        # could be tuple[Union[str, re.Pattern]]
+        # could be tuple[str | re.Pattern]
         with pytest.raises(TypeError):
             _val_pattern_holder(junk_tuple_remove, 5)
 
@@ -53,7 +53,7 @@ class TestValPatternHolder:
          ('abc', re.compile('^[0-9]+$'), re.compile('xyz')))
     )
     def test_accepts_good_tuple_remove(self, good_tuple_remove):
-        # could be tuple[Union[str, re.Pattern]]
+        # could be tuple[str | re.Pattern]
 
         _val_pattern_holder(good_tuple_remove, 5)
 

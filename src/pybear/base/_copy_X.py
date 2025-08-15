@@ -6,7 +6,7 @@
 
 
 
-from typing_extensions import (
+from typing import (
     TypeAlias,
     Union
 )
@@ -22,22 +22,20 @@ import polars as pl
 
 
 
-PythonTypes: TypeAlias = Union[list, tuple, set]
-NumpyTypes: TypeAlias = \
-    Union[npt.NDArray[Union[numbers.Number, str]], np.ma.MaskedArray]
+PythonTypes: TypeAlias = list | tuple | set
+NumpyTypes: TypeAlias = npt.NDArray[numbers.Number | str] | np.ma.MaskedArray # pizza
+# pizza keep Union, PyCharm linter likes it for pd but doesnt like pipe
 PandasTypes: TypeAlias = Union[pd.Series, pd.DataFrame]
 PolarsTypes: TypeAlias = Union[pl.Series, pl.DataFrame]
-SparseTypes: TypeAlias = Union[
-    ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
-    ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
-    ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
-    ss.bsr_matrix, ss.bsr_array
-]
+SparseTypes: TypeAlias = (
+    ss.csc_matrix | ss.csc_array | ss.csr_matrix | ss.csr_array
+    | ss.coo_matrix | ss.coo_array | ss.dia_matrix | ss.dia_array
+    | ss.lil_matrix | ss.lil_array | ss.dok_matrix | ss.dok_array
+    | ss.bsr_matrix | ss.bsr_array
+)
 
 XContainer: TypeAlias = \
-    Union[
-        PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, SparseTypes
-    ]
+    PythonTypes | NumpyTypes | PandasTypes | PolarsTypes | SparseTypes
 
 
 
@@ -65,27 +63,25 @@ def copy_X(
     **Type Aliases**
 
     PythonTypes:
-        Union[list, tuple, set]
+        list | tuple | set
 
     NumpyTypes:
-        Union[numpy.ndarray, numpy.ma.MaskedArray]
+        numpy.ndarray | numpy.ma.MaskedArray
 
     PandasTypes:
-        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+        pandas.Series | pandas.DataFrame
 
     PolarsTypes:
-        Union[polars.series.Series, polars.dataframe.DataFrame]
+        polars.Series | polars.DataFrame
 
     SparseTypes:
-        Union[
-            ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
-            ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
-            ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
-            ss.bsr_matrix, ss.bsr_array
-        ]
+        ss.csc_matrix | ss.csc_array | ss.csr_matrix | ss.csr_array
+        | ss.coo_matrix | ss.coo_array | ss.dia_matrix | ss.dia_array
+        | ss.lil_matrix | ss.lil_array | ss.dok_matrix | ss.dok_array
+        | ss.bsr_matrix | ss.bsr_array
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, SparseTypes]
+        PythonTypes | NumpyTypes | PandasTypes | PolarsTypes | SparseTypes
 
     Examples
     --------

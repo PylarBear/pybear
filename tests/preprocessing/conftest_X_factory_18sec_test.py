@@ -28,8 +28,8 @@ class TestXFactory:
     # def _X_factory():
     #
     #     def foo(
-    #         _dupl:list[list[int]]=None,
-    #         _has_nan:Union[int, bool]=False,
+    #         _dupl:list[list[int]] = None,
+    #         _has_nan:int | bool = False,
     #         _format:Literal[
     #             'np','pd','pl',
     #             'csc_array', 'csr_array', 'coo_array', 'dia_array', 'lil_array',
@@ -38,12 +38,12 @@ class TestXFactory:
     #             'dok_matrix', 'bsr_matrix'
     #         ]='np',
     #         _dtype:Literal['flt','int','str','obj','hybrid']='flt',
-    #         _columns:Union[Sequence[str], None]=None,
-    #         _constants:Union[dict[int, Any], None]=None,
+    #         _columns:Sequence[str] | None = None,
+    #         _constants:dict[int, Any] | None =None,
     #         _noise:float=0,
-    #         _zeros:Union[float,None]=0,
+    #         _zeros:float | None=0,
     #         _shape:tuple[int,int]=(20,5)
-    #     ) -> npt.NDArray[any]:
+    #     ) -> npt.NDArray[Any]:
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
@@ -281,7 +281,7 @@ class TestXFactory:
         if _format == 'np':
             assert isinstance(out, np.ndarray)
         elif _format == 'pd':
-            assert isinstance(out, pd.core.frame.DataFrame)
+            assert isinstance(out, pd.DataFrame)
         elif _format == 'pl':
             assert isinstance(out, pl.DataFrame)
         elif _format == 'csc_array':
@@ -331,7 +331,7 @@ class TestXFactory:
             elif _dtype == 'hybrid':
                 assert out.dtype == object
         elif _format == 'pd':
-            assert isinstance(out, pd.core.frame.DataFrame)
+            assert isinstance(out, pd.DataFrame)
             if _dtype == 'flt':
                 assert all([__ == np.float64 for __ in out.dtypes])
             elif _dtype == 'int':
@@ -449,7 +449,7 @@ class TestXFactory:
 
         if isinstance(out, np.ndarray):
             pass
-        elif isinstance(out, (pd.core.frame.DataFrame, pl.DataFrame)):
+        elif isinstance(out, (pd.DataFrame, pl.DataFrame)):
             out = out.to_numpy()
         else:
             out = out.toarray()

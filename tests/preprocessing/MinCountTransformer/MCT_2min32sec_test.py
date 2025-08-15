@@ -1653,8 +1653,8 @@ class TestTransform:
     #         self,
     #         X: XContainer,
     #         y: Optional[YContainer]=None,
-    #         copy: Optional[Union[bool, None]]=None
-    #     ) -> Union[tuple[XContainer, YContainer], XContainer]:
+    #         copy: Optional[bool | None]=None
+    #     ) -> tuple[XContainer, YContainer] | XContainer:
 
     # - num columns must equal num columns seen during fit
     # - must have at least 3 samples
@@ -1790,7 +1790,7 @@ class TestTransform:
         # if 'pandas' or 'polars', should return pd/pl df no matter what given
         _output_type_dict = {
             None: type(_X_wip), 'default': np.ndarray, 'polars': pl.DataFrame,
-            'pandas': pd.core.frame.DataFrame
+            'pandas': pd.DataFrame
         }
         assert isinstance(TRFM_X, _output_type_dict[output_type]), \
             (f"X input type {type(_X_wip)}, X output type {type(TRFM_X)}, "
@@ -2599,7 +2599,7 @@ class TestFitTransform:
         # if  'pandas' or 'polars', should return pd/pl df no matter what given
         _output_type_dict = {
             None: type(_X_wip), 'default': np.ndarray, 'polars': pl.DataFrame,
-            'pandas': pd.core.frame.DataFrame
+            'pandas': pd.DataFrame
         }
         assert isinstance(TRFM_X, _output_type_dict[output_type]), \
             (f"X input type {type(_X_wip)}, X output type {type(TRFM_X)}, "

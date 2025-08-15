@@ -8,9 +8,9 @@
 
 from typing import (
     Callable,
-    Sequence
+    Sequence,
+    Union
 )
-from typing_extensions import Union
 from .._type_aliases import XContainer
 
 import numbers

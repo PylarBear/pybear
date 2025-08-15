@@ -10,13 +10,13 @@ from typing import (
     Callable,
     Literal,
     Sequence,
-    TypedDict
+    TypeAlias,
+    TypedDict,
+    Union
 )
 from typing_extensions import (
     NotRequired,
-    Required,
-    TypeAlias,
-    Union
+    Required
 )
 
 import numpy.typing as npt

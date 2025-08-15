@@ -6,12 +6,11 @@
 
 
 
-from typing import Optional
-from typing_extensions import (
+from typing import (
     Any,
-    Self,
-    Union
+    Optional
 )
+from typing_extensions import Self
 import numpy.typing as npt
 from ._type_aliases import (
     XContainer,
@@ -160,7 +159,7 @@ class AutoTextCleaner(
         etc., are case-sensitive. This generally controls case-senstivity
         globally, but for those of you that know regex, an IGNORECASE
         flag passed to `global_flags` will always overrule this parameter.
-    global_flags : Optional[Union[numbers.Integral, None]], default=None
+    global_flags : Optional[numbers.Integral | None], default=None
         The regex flags for operations that do searches within the text,
         like replace and remove. If you do not know regex, then you
         don't need to worry about this, just pass literal strings to
@@ -197,10 +196,10 @@ class AutoTextCleaner(
         each pattern is searched against all the strings in the
         data and any exact matches are removed. See the docs for
         pybear :class:`TextRemover` for more information.
-    normalize : Optional[Union[bool, None]], default=None
+    normalize : Optional[bool | None], default=None
         If True, convert all text in `X` to upper-case; if False, convert
         to lower-case; if None, do a no-op.
-    lexicon_lookup : Optional[Union[LexiconLookupType, None]], default=None
+    lexicon_lookup : Optional[LexiconLookupType | None], default=None
         Remember that the pybear `Lexicon` is majuscule, so your text
         should be also if you choose to use this. When None, skip the
         `Lexicon` lookup process. Otherwise, must be a dictionary of
@@ -212,7 +211,7 @@ class AutoTextCleaner(
         about the parameters and the `Lexicon` lookup process.
     remove_stops : Optional[bool], default=False
         Whether to remove pybear-defined stop words from the text.
-    ngram_merge : Optional[Union[None, NGramsType]], default=None
+    ngram_merge : Optional[None | NGramsType], default=None
         When None, do not merge ngrams. To pass parameters to this,
         pass a dictionary with the keys 'ngrams' and 'wrap'. Set the
         value of 'ngrams' with a sequence of sequences, where each inner
@@ -223,12 +222,12 @@ class AutoTextCleaner(
         around the beginnings and ends of adjacent lines, False will
         only look for ngrams within the contiguous text of one line.
         See pybear :class:`NGramMerger` for more information.
-    justify : Optional[Union[numbers.Integral, None]], default=None
+    justify : Optional[numbers.Integral | None], default=None
         When None do not justify the text. Otherwise, pass an integer
         to indicate to ATC to justify the data to that character width.
         When this is not None, i.e., an integer is passed, ATC does not
         expose the :attr:`row_support_` attribute.
-    get_statistics : Optional[Union[None, GetStatisticsType]]
+    get_statistics : Optional[None | GetStatisticsType]
         None or a dictionary keyed with 'before' and 'after'. When None,
         do not accumulate statistics about the incoming and outgoing
         text. When passed as a dictionary, both keys must be present.
@@ -260,40 +259,40 @@ class AutoTextCleaner(
     **Type Aliases**
 
     PythonTypes:
-        Union[Sequence[str], set[str], Sequence[Sequence[str]]]
+        Sequence[str] | set[str] | Sequence[Sequence[str]]
 
     NumpyTypes:
         numpy.ndarray[str]
     
     PandasTypes:
-        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+        pandas.Series | pandas.DataFrame
     
     PolarsTypes:
-        Union[polars.series.Series, polars.dataframe.DataFrame]
+        polars.Series | polars.DataFrame
     
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+        PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
     
     XWipContainer:
-        Union[list[str], list[list[str]]]
+        list[str] | list[list[str]]
     
     ReturnDimType:
-        Union[None, Literal[1, 2]]
+        None | Literal[1, 2]
     
     FindType:
-        Union[str, re.Pattern[str]]
+        str | re.Pattern[str]
     
     SubstituteType:
-        Union[str, Callable[[str], str]]
+        str | Callable[[str], str]
     
     PairType:
         tuple[FindType, SubstituteType]
     
     ReplaceType:
-        Union[None, PairType, tuple[PairType, ...]]
+        None | PairType | tuple[PairType, ...]
     
     RemoveType:
-        Union[None, FindType, tuple[FindType, ...]]
+        None | FindType | tuple[FindType, ...]
 
     class LexiconLookupType(TypedDict):
         update_lexicon: NotRequired[bool]
@@ -306,13 +305,13 @@ class AutoTextCleaner(
 
         auto_delete: NotRequired[bool]
 
-        DELETE_ALWAYS: NotRequired[Union[Sequence[str], None]]
+        DELETE_ALWAYS: NotRequired[Sequence[str] | None]
 
-        REPLACE_ALWAYS: NotRequired[Union[dict[str, str], None]]
+        REPLACE_ALWAYS: NotRequired[dict[str, str] | None]
 
-        SKIP_ALWAYS: NotRequired[Union[Sequence[str], None]]
+        SKIP_ALWAYS: NotRequired[Sequence[str] | None]
 
-        SPLIT_ALWAYS: NotRequired[Union[dict[str, Sequence[str]], None]]
+        SPLIT_ALWAYS: NotRequired[dict[str, Sequence[str]] | None]
 
         remove_empty_rows: NotRequired[bool]
 
@@ -323,8 +322,8 @@ class AutoTextCleaner(
         wrap: Required[bool]
     
     class GetStatisticsType(TypedDict):
-        before: Required[Union[None, bool]]
-        after: Required[Union[None, bool]]
+        before: Required[None | bool]
+        after: Required[None | bool]
 
     Examples
     --------
@@ -355,19 +354,19 @@ class AutoTextCleaner(
         *,
         global_sep:Optional[str] = ' ',
         case_sensitive:Optional[bool] = True,
-        global_flags:Optional[Union[numbers.Integral, None]] = None,
+        global_flags:Optional[numbers.Integral | None] = None,
         remove_empty_rows:Optional[bool] = False,
         return_dim:Optional[ReturnDimType] = None,
         ############
         strip:Optional[bool] = False,
         replace:Optional[ReplaceType] = None,
         remove:Optional[RemoveType] = None,
-        normalize:Optional[Union[bool, None]] = None,
-        lexicon_lookup:Optional[Union[LexiconLookupType, None]] = None,
+        normalize:Optional[bool | None] = None,
+        lexicon_lookup:Optional[LexiconLookupType | None] = None,
         remove_stops:Optional[bool] = False,
-        ngram_merge:Optional[Union[None, NGramsType]] = None,
-        justify:Optional[Union[numbers.Integral, None]] = None,
-        get_statistics:Optional[Union[None, GetStatisticsType]] = None
+        ngram_merge:Optional[None | NGramsType] = None,
+        justify:Optional[numbers.Integral | None] = None,
+        get_statistics:Optional[None | GetStatisticsType] = None
     ):
         """Initialize the AutoTextCleaner instance."""
 
@@ -785,7 +784,7 @@ class AutoTextCleaner(
 
         Returns
         -------
-        X_tr : Union[list[str], list[list[str]]
+        X_tr : list[str] | list[list[str]]
             The processed data.
 
         """

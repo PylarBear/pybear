@@ -6,7 +6,7 @@
 
 
 
-from typing_extensions import (
+from typing import (
     Any,
     Union
 )
@@ -55,7 +55,7 @@ def _columns_getter(
 
     # validation & conditioning ** * ** * ** * ** * ** * ** * ** * ** *
     assert isinstance(_X,
-        (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_array,
+        (np.ndarray, pd.DataFrame, pl.DataFrame, ss.csc_array,
          ss.csc_matrix)
     )
 
@@ -74,7 +74,7 @@ def _columns_getter(
 
     if isinstance(_X, np.ndarray):
         _columns = _X[:, _col_idxs]
-    elif isinstance(_X, pd.core.frame.DataFrame):
+    elif isinstance(_X, pd.DataFrame):
         _columns = _X.iloc[:, _col_idxs].to_numpy()
     elif isinstance(_X, pl.DataFrame):
         _columns = _X[:, _col_idxs].to_numpy()

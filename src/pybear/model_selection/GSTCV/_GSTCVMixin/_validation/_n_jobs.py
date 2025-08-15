@@ -6,7 +6,7 @@
 
 
 
-from typing_extensions import Union
+from typing import Union
 
 import numbers
 

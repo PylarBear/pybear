@@ -6,11 +6,11 @@
 
 
 
-from typing import Optional
-from typing_extensions import (
+from typing import (
     Any,
-    Self
+    Optional
 )
+from typing_extensions import Self
 from ._type_aliases import (
     XContainer,
     XWipContainer,
@@ -194,48 +194,48 @@ class TextReplacer(
     **Type Aliases**
 
     PythonTypes:
-        Union[Sequence[str], Sequence[Sequence[str]], set[str]]
+        Sequence[str] | Sequence[Sequence[str]] | set[str]]
 
     NumpyTypes:
         numpy.ndarray[str]
 
     PandasTypes:
-        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+        pandas.Series | pandas.DataFrame
 
     PolarsTypes:
-        Union[polars.series.Series, polars.dataframe.DataFrame]
+        polars.Series | polars.DataFrame
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+        PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 
     XWipContainer:
-        Union[list[str], list[list[str]]]
+        list[str] | list[list[str]]
 
     FindType:
-        Union[str, re.Pattern[str]]
+        str | re.Pattern[str]
     SubstituteType:
-        Union[str, Callable[[str], str]]
+        str | Callable[[str], str]
     PairType:
         tuple[FindType, SubstituteType]
     ReplaceSubType:
-        Union[None, PairType, tuple[PairType, ...]]
+        None | PairType | tuple[PairType, ...]
     ReplaceType:
-        Optional[Union[ReplaceSubType, list[ReplaceSubType]]]
+        Optional[ReplaceSubType | list[ReplaceSubType]]
 
     WipPairType:
         tuple[re.Pattern[str], SubstituteType]
     WipReplaceSubType:
-        Union[None, WipPairType, tuple[WipPairType, ...]]
+        None | WipPairType | tuple[WipPairType, ...]
     WipReplaceType:
-        Optional[Union[WipReplaceSubType, list[WipReplaceSubType]]]
+        Optional[WipReplaceSubType | list[WipReplaceSubType]]
 
     CaseSensitiveType:
-        Optional[Union[bool, list[Union[bool, None]]]]
+        Optional[bool | list[bool | None]]
 
     FlagType:
-        Union[None, numbers.Integral]
+        None | numbers.Integral
     FlagsType:
-        Optional[Union[FlagType, list[FlagType]]]
+        Optional[FlagType | list[FlagType]]
 
     See Also
     --------

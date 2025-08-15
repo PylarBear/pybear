@@ -191,7 +191,7 @@ class TestEnsure2D:
 
         if X_format == 'pd':
             # anything 2D in pandas is always DF
-            assert isinstance(out, pd.core.frame.DataFrame)
+            assert isinstance(out, pd.DataFrame)
         elif X_format == 'pl':
             # anything 2D in polars is always DF
             assert isinstance(out, pl.DataFrame)

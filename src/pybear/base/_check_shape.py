@@ -6,10 +6,9 @@
 
 
 
-from typing import Sequence
-from typing_extensions import (
+from typing import (
+    Sequence,
     TypeAlias,
-    Union
 )
 from .__type_aliases import (
     NumpyTypes,
@@ -25,16 +24,16 @@ from ._num_samples import num_samples
 
 
 XContainer: TypeAlias = \
-    Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+    NumpyTypes | PandasTypes | PolarsTypes | ScipySparseTypes
 
 
 
 def check_shape(
     X: XContainer,
     min_features: numbers.Integral=1,
-    max_features: Union[numbers.Integral, None]=None,
+    max_features: int | None = None,
     min_samples: numbers.Integral=1,
-    sample_check: Union[numbers.Integral, None]=None,
+    sample_check: int | None = None,
     allowed_dimensionality: Sequence[numbers.Integral] = (1, 2)
 ) -> tuple[int, ...]:
     """Check the shape of a data-bearing object against user-defined
@@ -67,14 +66,14 @@ def check_shape(
     min_features : numbers.Integral
         The minimum number of features required in `X`; must be greater
         than or equal to zero.
-    max_features : Union[numbers.Integral, None]
+    max_features : int | None
         The maximum number of features allowed in `X`; if not None, must
         be greater than or equal to `min_features`. If None, then there
         is no restriction on the maximum number of features in `X`.
     min_samples : numbers.Integral
         The minimum number of samples required in `X`; must be greater
         than or equal to zero. Ignored if `sample_check` is not None.
-    sample_check : Union[numbers.Integral, None]
+    sample_check : int | None
         The exact number of samples allowed in `X`. If not None, must be
         a non-negative integer. Use this to check, for example, that the
         number of samples in y equals the number of samples in `X`. If
@@ -111,21 +110,19 @@ def check_shape(
         numpy.ndarray
 
     PandasTypes:
-        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+        pandas.Series | pandas.DataFrame
 
     PolarsTypes:
-        Union[polars.series.Series, polars.dataframe.DataFrame]
+        polars.Series | polars.DataFrame
 
     ScipySparseTypes:
-        Union[
-            ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
-            ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
-            ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
-            ss.bsr_matrix, ss.bsr_array
-        ]
+        ss.csc_matrix | ss.csc_array | ss.csr_matrix | ss.csr_array
+        | ss.coo_matrix | ss.coo_array | ss.dia_matrix | ss.dia_array
+        | ss.lil_matrix | ss.lil_array | ss.dok_matrix | ss.dok_array
+        | ss.bsr_matrix | ss.bsr_array
 
     XContainer:
-        Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+        NumpyTypes | PandasTypes | PolarsTypes | ScipySparseTypes
 
     Examples
     --------

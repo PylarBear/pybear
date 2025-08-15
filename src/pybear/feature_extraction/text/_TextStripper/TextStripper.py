@@ -6,16 +6,15 @@
 
 
 
-from typing import Optional
-from typing_extensions import (
+from typing import (
     Any,
-    Self
+    Optional
 )
+from typing_extensions import Self
 from ._type_aliases import (
     XContainer,
     XWipContainer
 )
-
 
 from pybear.base import (
     FitTransformMixin,
@@ -82,10 +81,10 @@ class TextStripper(
         numpy.ndarray[str]
 
     PandasTypes:
-        Union[panda.core.series.Series, pandas.core.frame.DataFrame]
+        Union[pandas.Series, pandas.DataFrame]
 
     PolarsTypes:
-        Union[polars.series.Series, polars.dataframe.DataFrame]
+        Union[polars.Series, polars.DataFrame]
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]

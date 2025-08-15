@@ -42,20 +42,16 @@ class TestInitValidation:
     #     def __init__(
     #         self,
     #         estimator: ClassifierProtocol,
-    #         param_grid: Union[ParamGridInputType, ParamGridsInputType],
+    #         param_grid: ParamGridInputType | ParamGridsInputType,
     #         *,
-    #         thresholds: Optional[Union[None, numbers.Real, Sequence[numbers.Real]]]=None,
-    #         scoring: Optional[
-    #             Union[str, Sequence[str], Callable, dict[str, Callable]]
-    #         ]='accuracy',
-    #         n_jobs: Optional[Union[numbers.Integral, None]]=None,
-    #         refit: Optional[Union[bool, str, Callable]]=True,
-    #         cv: Optional[Union[numbers.Integral, Iterable, None]]=None,
+    #         thresholds: Optional[None | numbers.Real | Sequence[numbers.Real]]=None,
+    #         scoring: Optional[str | Sequence[str] | Callable | dict[str, Callable]]='accuracy',
+    #         n_jobs: Optional[numbers.Integral | None]=None,
+    #         refit: Optional[bool | str | Callable]=True,
+    #         cv: Optional[numbers.Integral | Iterable | None]=None,
     #         verbose: Optional[numbers.Real]=0,
-    #         pre_dispatch: Optional[
-    #             Union[Literal['all'], str, numbers.Integral]
-    #         ]='2*n_jobs',
-    #         error_score: Optional[Union[Literal['raise'], numbers.Real]]='raise',
+    #         pre_dispatch: Optional[Literal['all'] | str | numbers.Integral]='2*n_jobs',
+    #         error_score: Optional[Literal['raise'] | numbers.Real]='raise',
     #         return_train_score: Optional[bool]=False
     #     ) -> None:
 
@@ -212,7 +208,7 @@ class TestInitValidation:
     # joint param_grid & thresholds v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
     # param_grid: dict[str, list[Any]] or list[dict[str, list[Any]]]
-    # thresholds: Optional[Union[Sequence[numbers.Real], numbers.Real, None]]=None
+    # thresholds: Optional[Sequence[numbers.Real] | numbers.Real | None]=None
 
 
     @staticmethod
@@ -367,7 +363,7 @@ class TestInitValidation:
 
 
     # cv v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-    # cv: Optional[Union[int, Iterable, None]] = None
+    # cv: Optional[int | Iterable | None] = None
 
     @pytest.mark.parametrize('junk_cv',
         (-1, 0, 1, 3.14, [0, 1], (0, 1), {0, 1}, True, False, 'trash', min,
@@ -453,7 +449,7 @@ class TestInitValidation:
 
 
     # error_score v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-    # Optional[Union[Literal['raise'], numbers.Real]] = 'raise'
+    # Optional[Literal['raise'] | numbers.Real] = 'raise'
 
     @pytest.mark.parametrize('junk_error_score',
         (True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
@@ -836,7 +832,7 @@ class TestInitValidation:
 
 
     # n_jobs v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-    # n_jobs: Optional[Union[int,None]]=None
+    # n_jobs: Optional[int | None]=None
 
     @pytest.mark.parametrize('junk_n_jobs',
         (-2, 0, 3.14, True, False, 'trash', min, [0, 1], (0, 1), {0, 1},

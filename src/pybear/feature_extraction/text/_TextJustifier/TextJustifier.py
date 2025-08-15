@@ -6,14 +6,12 @@
 
 
 
-from typing import Optional
-
-import numpy as np
-from typing_extensions import (
+from typing import (
     Any,
-    Self,
+    Optional,
     Union
 )
+from typing_extensions import Self
 from ._type_aliases import (
     XContainer,
     XWipContainer,
@@ -27,6 +25,8 @@ from ._type_aliases import (
 
 import numbers
 import re
+
+import numpy as np
 
 from ._transform._sep_lb_finder import _sep_lb_finder
 from ._transform._transform import _transform
@@ -298,10 +298,10 @@ class TextJustifier(
         numpy.ndarray
 
     PandasTypes:
-        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+        Union[pandas.Series, pandas.DataFrame]
 
     PolarsTypes:
-        Union[polars.series.Series, polars.dataframe.DataFrame]
+        Union[polars.Series, polars.DataFrame]
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]

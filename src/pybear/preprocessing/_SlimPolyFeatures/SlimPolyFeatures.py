@@ -7,15 +7,13 @@
 
 
 from typing import (
+    Any,
     Literal,
     Optional,
-    Sequence
-)
-from typing_extensions import (
-    Any,
-    Self,
+    Sequence,
     Union
 )
+from typing_extensions import Self
 import numpy.typing as npt
 from ._type_aliases import (
     PolyDuplicatesType,
@@ -445,16 +443,12 @@ class SlimPolyFeatures(
     **Type Aliases**
 
     XContainer:
-        Union[
-            numpy.ndarray,
-            pandas.core.frame.DataFrame,
-            polars.dataframe.DataFrame,
-            ss._csr.csr_matrix, ss._csc.csc_matrix, ss._coo.coo_matrix,
-            ss._dia.dia_matrix, ss._lil.lil_matrix, ss._dok.dok_matrix,
-            ss._bsr.bsr_matrix, ss._csr.csr_array, ss._csc.csc_array,
-            ss._coo.coo_array, ss._dia.dia_array, ss._lil.lil_array,
-            ss._dok.dok_array, ss._bsr.bsr_array
-        ]
+        numpy.ndarray | pandas.DataFrame | polars.DataFrame
+        | ss._csr.csr_matrix | ss._csc.csc_matrix | ss._coo.coo_matrix
+        | ss._dia.dia_matrix | ss._lil.lil_matrix | ss._dok.dok_matrix
+        | ss._bsr.bsr_matrix | ss._csr.csr_array | ss._csc.csc_array
+        | ss._coo.coo_array | ss._dia.dia_array | ss._lil.lil_array
+        | ss._dok.dok_array | ss._bsr.bsr_array
 
     FeatureNameCombinerType:
         Union[
@@ -483,7 +477,7 @@ class SlimPolyFeatures(
     See Also
     --------
     numpy.ndarray
-    pandas.core.frame.DataFrame
+    pandas.DataFrame
     polars.DataFrame
     scipy.sparse
     numpy.allclose
@@ -1465,7 +1459,7 @@ class SlimPolyFeatures(
             X = X.tocsc()
 
         # pd df with funky nan-likes that np and ss dont like
-        if self.min_degree == 1 and isinstance(X, pd.core.frame.DataFrame):
+        if self.min_degree == 1 and isinstance(X, pd.DataFrame):
             try:
                 X.astype(np.float64)
                 # if excepts, there are pd nan-likes that arent recognized
@@ -1562,7 +1556,7 @@ class SlimPolyFeatures(
             if _og_format is np.ndarray:
                 return np.ascontiguousarray(X_tr)
 
-            elif _og_format is pd.core.frame.DataFrame:
+            elif _og_format is pd.DataFrame:
                 return pd.DataFrame(
                     data=X_tr,
                     columns=self.get_feature_names_out()

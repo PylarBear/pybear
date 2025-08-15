@@ -6,7 +6,7 @@
 
 
 
-from typing_extensions import Union
+from typing import Union
 from .._type_aliases import (
     InternalXContainer,
     RemovedColumnsType,
@@ -54,7 +54,7 @@ def _inverse_transform(
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
     assert isinstance(_X,
-        (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_matrix,
+        (np.ndarray, pd.DataFrame, pl.DataFrame, ss.csc_matrix,
         ss.csc_array)
     )
     assert isinstance(_removed_columns, dict)
@@ -72,7 +72,7 @@ def _inverse_transform(
     _og_X_format = type(_X)
 
     # if data is a pd/pl df, convert to numpy
-    if isinstance(_X, (pd.core.frame.DataFrame, pl.DataFrame)):
+    if isinstance(_X, (pd.DataFrame, pl.DataFrame)):
         # remove any header that may be on this df, feature_names_in
         # will go on if available, otherwise container default header
         _X = _X.to_numpy()
@@ -123,7 +123,7 @@ def _inverse_transform(
 
     # if was a dataframe and feature names are available, reattach
     if _feature_names_in is not None \
-            and _og_X_format in [pd.core.frame.DataFrame, pl.DataFrame]:
+            and _og_X_format in [pd.DataFrame, pl.DataFrame]:
         _X.columns = _feature_names_in
 
 

@@ -6,9 +6,8 @@
 
 
 
-from typing_extensions import (
+from typing import (
     TypeAlias,
-    Union
 )
 from .__type_aliases import (
     NumpyTypes,
@@ -21,13 +20,13 @@ from ._num_features import num_features
 
 
 XContainer: TypeAlias = \
-    Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+    NumpyTypes | PandasTypes | PolarsTypes | ScipySparseTypes
 
 
 
 def check_n_features(
     X: XContainer,
-    n_features_in_: Union[int, None],
+    n_features_in_: int | None,
     reset: bool
 ) -> int:
     """Set the `n_features_in_` attribute, or check against it.
@@ -40,7 +39,7 @@ def check_n_features(
     ----------
     X : XContainer of shape (n_samples, n_features) or (n_samples,)
         The input data, with a 'shape' attribute.
-    n_features_in_ : Union[int, None]
+    n_features_in_ : int | None
         The number of features in the data. If this attribute exists,
         it is an integer. If it does not exist, it is None.
     reset : bool
@@ -74,21 +73,19 @@ def check_n_features(
         numpy.ndarray
 
     PandasTypes:
-        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+        pandas.Series | pandas.DataFrame
 
     PolarsTypes:
-        Union[polars.series.Series, polars.dataframe.DataFrame]
+        polars.Series | polars.DataFrame
 
     ScipySparseTypes:
-        Union[
-            ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
-            ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
-            ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
-            ss.bsr_matrix, ss.bsr_array
-        ]
+        ss.csc_matrix | ss.csc_array | ss.csr_matrix | ss.csr_array
+        | ss.coo_matrix | ss.coo_array | ss.dia_matrix | ss.dia_array
+        | ss.lil_matrix | ss.lil_array | ss.dok_matrix | ss.dok_array
+        | ss.bsr_matrix | ss.bsr_array
 
     XContainer:
-        Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+        NumpyTypes | PandasTypes | PolarsTypes | ScipySparseTypes
 
     Examples
     --------

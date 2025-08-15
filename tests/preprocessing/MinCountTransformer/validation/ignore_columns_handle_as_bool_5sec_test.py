@@ -22,13 +22,13 @@ from pybear.preprocessing._MinCountTransformer._validation. \
 class TestValIgnoreColumns:
 
     # def _val_ignore_columns_handle_as_bool(
-    #     _value: Union[IgnoreColumnsType, HandleAsBoolType],
+    #     _value: IgnoreColumnsType | HandleAsBoolType,
     #     _name: Literal['ignore_columns', 'handle_as_bool'],
-    #     _allowed: Sequence[Union[Literal[
+    #     _allowed: Sequence[Literal[
     #         'callable', 'Sequence[str]', 'Sequence[int]', 'None'
-    #     ]]],
+    #     ]],
     #     _n_features_in: int,
-    #     _feature_names_in: Optional[Union[FeatureNamesInType, None]]=None
+    #     _feature_names_in: Optional[FeatureNamesInType | None]=None
     # ) -> None:
 
 

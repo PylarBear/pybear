@@ -6,8 +6,10 @@
 
 
 
-from typing import Callable
-from typing_extensions import Union
+from typing import (
+    Callable,
+    Union
+)
 import numpy.typing as npt
 
 import numbers

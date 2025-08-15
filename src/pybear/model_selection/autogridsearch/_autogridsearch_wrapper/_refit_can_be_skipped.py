@@ -8,9 +8,9 @@
 
 from typing import (
     Callable,
-    Literal
+    Literal,
+    Union
 )
-from typing_extensions import Union
 
 from sklearn.model_selection import (
     GridSearchCV as SklearnGridSearchCV,

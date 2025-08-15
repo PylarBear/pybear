@@ -6,10 +6,9 @@
 
 
 
-from typing import Iterable
-from typing_extensions import (
-    TypeAlias,
-    Union
+from typing import (
+    Iterable,
+    TypeAlias
 )
 import numpy.typing as npt
 from .__type_aliases import (
@@ -27,15 +26,15 @@ import scipy.sparse as ss
 
 
 # dok & lil intentionally omitted
-ScipySparseTypes: TypeAlias = Union[
-    ss._csr.csr_matrix, ss._csc.csc_matrix, ss._coo.coo_matrix,
-    ss._dia.dia_matrix, ss._bsr.bsr_matrix, ss._csr.csr_array,
-    ss._csc.csc_array, ss._coo.coo_array, ss._dia.dia_array,
-    ss._bsr.bsr_array
-]
+ScipySparseTypes: TypeAlias = (
+    ss._csr.csr_matrix | ss._csc.csc_matrix | ss._coo.coo_matrix
+    | ss._dia.dia_matrix | ss._bsr.bsr_matrix | ss._csr.csr_array
+    | ss._csc.csc_array | ss._coo.coo_array | ss._dia.dia_array
+    | ss._bsr.bsr_array
+)
 
 XContainer: TypeAlias = \
-    Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+    PythonTypes | NumpyTypes | PandasTypes | PolarsTypes | ScipySparseTypes
 
 
 
@@ -121,27 +120,25 @@ def inf_mask(
     **Type Aliases**
 
     PythonTypes:
-        Union[list, tuple, set, list[list], tuple[tuple]]
+        list | tuple | set | list[list] | tuple[tuple]]
 
     NumpyTypes:
         numpy.ndarray
 
     PandasTypes:
-        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+        pandas.Series | pandas.DataFrame
 
     PolarsTypes:
-        Union[polars.series.Series, polars.dataframe.DataFrame]
+        polars.Series | polars.DataFrame
 
     ScipySparseTypes:
-        Union[
-            ss._csr.csr_matrix, ss._csc.csc_matrix, ss._coo.coo_matrix,
-            ss._dia.dia_matrix, ss._bsr.bsr_matrix, ss._csr.csr_array,
-            ss._csc.csc_array, ss._coo.coo_array, ss._dia.dia_array,
-            ss._bsr.bsr_array
-        ]
+        ss._csr.csr_matrix | ss._csc.csc_matrix | ss._coo.coo_matrix
+        | ss._dia.dia_matrix | ss._bsr.bsr_matrix | ss._csr.csr_array
+        | ss._csc.csc_array | ss._coo.coo_array | ss._dia.dia_array
+        | ss._bsr.bsr_array
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+        PythonTypes | NumpyTypes | PandasTypes | PolarsTypes | ScipySparseTypes
 
     See Also
     --------

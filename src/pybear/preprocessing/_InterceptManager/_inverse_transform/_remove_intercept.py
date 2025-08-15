@@ -58,7 +58,7 @@ def _remove_intercept(
 
 
     assert isinstance(_X_inv,
-        (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_array,
+        (np.ndarray, pd.DataFrame, pl.DataFrame, ss.csc_array,
          ss.csc_matrix)
     )
 
@@ -98,7 +98,7 @@ def _remove_intercept(
         if _are_equal:
             if isinstance(_X_inv, np.ndarray):
                 _X_inv = np.delete(_X_inv, -1, axis=1)
-            elif isinstance(_X_inv, pd.core.frame.DataFrame):
+            elif isinstance(_X_inv, pd.DataFrame):
                 _X_inv = _X_inv.drop(columns=[_key])
             elif isinstance(_X_inv, pl.DataFrame):
                 _X_inv = _X_inv.drop(_key)

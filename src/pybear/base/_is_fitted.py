@@ -9,11 +9,8 @@
 from typing import (
     Callable,
     Iterable,
-    Sequence
-)
-from typing_extensions import (
-    TypeAlias,
-    Union
+    Sequence,
+    TypeAlias
 )
 
 AllFunc: TypeAlias = Callable[[Iterable], bool]
@@ -23,8 +20,8 @@ AnyFunc: TypeAlias = Callable[[Iterable], bool]
 
 def is_fitted(
     estimator,
-    attributes: Union[str, Sequence[str], None]=None,
-    all_or_any: Union[AllFunc, AnyFunc]=all
+    attributes: str | Sequence[str] | None = None,
+    all_or_any: AllFunc | AnyFunc = all
 ) -> bool:
     """Determine if an estimator/transformer is fitted and return a
     boolean.
@@ -45,7 +42,7 @@ def is_fitted(
     ----------
     estimator : object
         Estimator/transformer instance for which the check is performed.
-    attributes : Union[str, Sequence[str], None], default=None
+    attributes : str | Sequence[str] | None, default=None
         Attribute name(s) given as string or a list/tuple of strings
         Eg.: '`coef_`' or ['`coef_`', '`estimator_`', ...]
     all_or_any : callable, {all, any}, default=all

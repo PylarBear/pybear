@@ -6,8 +6,9 @@
 
 
 
-from typing import Literal
-from typing_extensions import Union
+from typing import (
+    Literal,
+)
 
 import inspect
 from functools import wraps
@@ -35,14 +36,14 @@ class SetOutputMixin:
 
     def set_output(
         self,
-        transform: Union[Literal['default', 'pandas', 'polars'], None] = None
+        transform: Literal['default', 'pandas', 'polars'] | None = None
     ):
         """Set the output container when the `transform` and
         `fit_transform` methods of the transformer are called.
 
         Parameters
         ----------
-        transform : Union[Literal['default', 'pandas', 'polars'], None],
+        transform : Literal['default', 'pandas', 'polars'] | None,
 
             The default value for the `transform` parameter is None.
 
@@ -132,9 +133,9 @@ class SetOutputMixin:
             elif output_container == 'default':
                 if isinstance(X, np.ndarray):
                     pass
-                elif isinstance(X, pd.core.frame.DataFrame):
+                elif isinstance(X, pd.DataFrame):
                     X = X.to_numpy()
-                elif isinstance(X, pl.dataframe.frame.DataFrame):
+                elif isinstance(X, pl.DataFrame):
                     X = X.to_numpy()
                 elif hasattr(X, 'toarray'):
                     X = X.toarray()
@@ -147,9 +148,9 @@ class SetOutputMixin:
                     _columns = range(X.shape[1])
                 if isinstance(X, np.ndarray):
                     X = pd.DataFrame(X, columns=_columns)
-                elif isinstance(X, pd.core.frame.DataFrame):
+                elif isinstance(X, pd.DataFrame):
                     pass
-                elif isinstance(X, pl.dataframe.frame.DataFrame):
+                elif isinstance(X, pl.DataFrame):
                     X = X.to_pandas()
                 elif hasattr(X, 'toarray'):
                     # as of 25_01_24, pandas can only convert csc & csr directly
@@ -174,9 +175,9 @@ class SetOutputMixin:
                         X[_NAN_MASK] = None
                     del _NAN_MASK
                     X = pl.DataFrame(X, orient='row')
-                elif isinstance(X, pd.core.frame.DataFrame):
+                elif isinstance(X, pd.DataFrame):
                     X = pl.from_pandas(X)
-                elif isinstance(X, pl.dataframe.frame.DataFrame):
+                elif isinstance(X, pl.DataFrame):
                     pass
                 elif hasattr(X, 'toarray'):
                     # unfortunately X must have a .data attribute to

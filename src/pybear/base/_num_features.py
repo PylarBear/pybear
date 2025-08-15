@@ -6,9 +6,8 @@
 
 
 
-from typing_extensions import (
+from typing import (
     TypeAlias,
-    Union
 )
 from .__type_aliases import (
     NumpyTypes,
@@ -18,7 +17,7 @@ from .__type_aliases import (
 )
 
 XContainer: TypeAlias = \
-    Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+    NumpyTypes | PandasTypes | PolarsTypes | ScipySparseTypes
 
 
 
@@ -55,21 +54,19 @@ def num_features(X: XContainer) -> int:
         numpy.ndarray
 
     PandasTypes:
-        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+        pandas.Series | pandas.DataFrame
 
     PolarsTypes:
-        Union[polars.series.Series, polars.dataframe.DataFrame]
+        polars.Series | polars.DataFrame
 
     ScipySparseTypes:
-        Union[
-            ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
-            ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
-            ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
-            ss.bsr_matrix, ss.bsr_array
-        ]
+        ss.csc_matrix | ss.csc_array | ss.csr_matrix | ss.csr_array
+        | ss.coo_matrix | ss.coo_array | ss.dia_matrix | ss.dia_array
+        | ss.lil_matrix | ss.lil_array | ss.dok_matrix | ss.dok_array
+        | ss.bsr_matrix | ss.bsr_array
 
     XContainer:
-        Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+        NumpyTypes | PandasTypes | PolarsTypes | ScipySparseTypes
 
     """
 

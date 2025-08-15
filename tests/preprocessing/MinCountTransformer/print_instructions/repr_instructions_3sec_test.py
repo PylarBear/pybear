@@ -26,7 +26,7 @@ class TestReprInstructions:
     #     _total_counts_by_column: TotalCountsByColumnType,
     #     _thresholds: CountThresholdType,
     #     _n_features_in: int,
-    #     _feature_names_in: Union[FeatureNamesInType, None],
+    #     _feature_names_in: FeatureNamesInType | None,
     #     _clean_printout: bool,
     #     _max_char: Optional[numbers.Integral] = 99
     # ) -> list[str]:

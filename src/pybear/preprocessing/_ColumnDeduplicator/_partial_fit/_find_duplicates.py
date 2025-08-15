@@ -6,7 +6,7 @@
 
 
 
-from typing_extensions import Union
+from typing import Union
 from .._type_aliases import (
     InternalXContainer,
     DuplicatesType
@@ -88,7 +88,7 @@ def _find_duplicates(
 
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
-    assert isinstance(_X, (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame,
+    assert isinstance(_X, (np.ndarray, pd.DataFrame, pl.DataFrame,
         ss.csc_array, ss.csc_matrix))
     assert isinstance(_rtol, numbers.Real) and _rtol >= 0
     assert isinstance(_atol, numbers.Real) and _atol >= 0

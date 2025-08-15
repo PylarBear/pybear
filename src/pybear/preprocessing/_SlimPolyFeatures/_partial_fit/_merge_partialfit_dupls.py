@@ -6,7 +6,6 @@
 
 
 
-from typing_extensions import Union
 from .._type_aliases import PolyDuplicatesType
 
 import itertools
@@ -17,7 +16,7 @@ from ....utilities._union_find import union_find
 
 
 def _merge_partialfit_dupls(
-    _old_duplicates: Union[PolyDuplicatesType, None],
+    _old_duplicates: PolyDuplicatesType | None,
     _new_duplicates: PolyDuplicatesType,
 ) -> PolyDuplicatesType:
     """Compare the newest duplicates found in the current partial fit
@@ -49,7 +48,7 @@ def _merge_partialfit_dupls(
 
     Parameters
     ----------
-    _old_duplicates : Union[PolyDuplicatesType, None]
+    _old_duplicates : PolyDuplicatesType | None
         The duplicate combos carried over from the previous partial fits.
         Is None if on the first partial fit.
     _new_duplicates : PolyDuplicatesType

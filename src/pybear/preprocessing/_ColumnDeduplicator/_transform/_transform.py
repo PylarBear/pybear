@@ -47,7 +47,7 @@ def _transform(
 
     assert isinstance(
         _X,
-        (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_array,
+        (np.ndarray, pd.DataFrame, pl.DataFrame, ss.csc_array,
          ss.csc_matrix)
     )
     assert isinstance(_column_mask, np.ndarray)
@@ -56,7 +56,7 @@ def _transform(
     # END validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
 
-    if isinstance(_X, pd.core.frame.DataFrame):
+    if isinstance(_X, pd.DataFrame):
         return _X.loc[:, _column_mask]
     else:
         return _X[:, _column_mask]

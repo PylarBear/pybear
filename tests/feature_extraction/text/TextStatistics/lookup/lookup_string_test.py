@@ -21,10 +21,10 @@ class TestLookupString:
 
 
     # def _lookup_string(
-    #     _pattern: Union[str, re.Pattern],
+    #     _pattern: str | re.Pattern,
     #     _uniques: Sequence[str],
     #     _case_sensitive: Optional[bool] = True
-    # ) -> Union[str, list[str], None]:
+    # ) -> str | list[str] | None:
 
 
     @staticmethod

@@ -324,10 +324,10 @@ class TestSetOutputMixin:
             assert isinstance(TRFM_X, np.ndarray)
             assert TRFM_X.shape == _X.shape
         elif output_container == 'pandas':
-            assert isinstance(TRFM_X, pd.core.frame.DataFrame)
+            assert isinstance(TRFM_X, pd.DataFrame)
             assert TRFM_X.shape == _X.shape
         elif output_container == 'polars':
-            assert isinstance(TRFM_X, pl.dataframe.frame.DataFrame)
+            assert isinstance(TRFM_X, pl.DataFrame)
             assert TRFM_X.shape == _X.shape
         else:
             raise Exception
@@ -383,10 +383,10 @@ class TestSetOutputMixin:
             assert isinstance(TRFM_X, np.ndarray)
             assert TRFM_X.shape == _X.shape
         elif output_container == 'pandas':
-            assert isinstance(TRFM_X, pd.core.frame.DataFrame)
+            assert isinstance(TRFM_X, pd.DataFrame)
             assert TRFM_X.shape == _X.shape
         elif output_container == 'polars':
-            assert isinstance(TRFM_X, pl.dataframe.frame.DataFrame)
+            assert isinstance(TRFM_X, pl.DataFrame)
             assert TRFM_X.shape == _X.shape
         else:
             raise Exception
@@ -444,10 +444,10 @@ class TestSetOutputMixin:
             assert isinstance(TRFM_X, np.ndarray)
             assert TRFM_X.shape == _X.shape
         elif output_container == 'pandas':
-            assert isinstance(TRFM_X, pd.core.frame.DataFrame)
+            assert isinstance(TRFM_X, pd.DataFrame)
             assert TRFM_X.shape == _X.shape
         elif output_container == 'polars':
-            assert isinstance(TRFM_X, pl.dataframe.frame.DataFrame)
+            assert isinstance(TRFM_X, pl.DataFrame)
             assert TRFM_X.shape == _X.shape
         else:
             raise Exception
@@ -514,10 +514,10 @@ class TestSetOutputMixin:
             assert isinstance(TRFM_X, np.ndarray)
             assert TRFM_X.shape == _X.shape
         elif output_container == 'pandas':
-            assert isinstance(TRFM_X, pd.core.frame.DataFrame)
+            assert isinstance(TRFM_X, pd.DataFrame)
             assert TRFM_X.shape == _X.shape
         elif output_container == 'polars':
-            assert isinstance(TRFM_X, pl.dataframe.frame.DataFrame)
+            assert isinstance(TRFM_X, pl.DataFrame)
             assert TRFM_X.shape == _X.shape
         else:
             raise Exception

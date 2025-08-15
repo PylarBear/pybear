@@ -9,9 +9,6 @@
 from typing import (
     Literal,
     Sequence,
-    Tuple
-)
-from typing_extensions import (
     TypeAlias,
     Union
 )
@@ -32,7 +29,7 @@ PointsType: TypeAlias = list[numbers.Integral]
 BoolTypeType: TypeAlias = Literal['fixed_bool']
 
 InBoolParamType: TypeAlias = \
-    Sequence[Tuple[InBoolGridType, InPointsType, BoolTypeType]]
+    Sequence[tuple[InBoolGridType, InPointsType, BoolTypeType]]
 BoolParamType: TypeAlias = list[BoolGridType, PointsType, BoolTypeType] # ParamType sub
 
 

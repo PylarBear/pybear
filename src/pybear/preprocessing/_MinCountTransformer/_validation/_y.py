@@ -41,7 +41,7 @@ def _val_y(
 
     if not isinstance(
         _y,
-        (type(None), np.ndarray, pd.core.frame.DataFrame, pd.core.series.Series,
+        (type(None), np.ndarray, pd.DataFrame, pd.Series,
         pl.DataFrame, pl.Series)
     ):
         raise TypeError(f'invalid data container for y, {type(_y)}.')

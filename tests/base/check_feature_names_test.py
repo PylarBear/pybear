@@ -21,9 +21,9 @@ class TestCheckFeatureNames:
 
     # def check_feature_names(
     #     X,
-    #     feature_names_in_: Union[npt.NDArray[object], None],
+    #     feature_names_in_: npt.NDArray[object] | None,
     #     reset: bool
-    # ) -> Union[npt.NDArray[object], None]:
+    # ) -> npt.NDArray[object] | None:
 
 
     # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *

@@ -32,7 +32,7 @@ class TestParallelizedScorer:
     #     _f_idx: int,
     #     _SCORER_DICT: ScorerWIPType,
     #     _BEST_THRESHOLDS_BY_SCORER: NDArrayHolderType,
-    #     _error_score: Union[numbers.Real, None],
+    #     _error_score: numbers.Real | None,
     #     _verbose: int
     # ) -> MaskedHolderType:
 

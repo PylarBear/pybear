@@ -26,7 +26,7 @@ class TestValSep:
     )
     def test_junk_sep(self, junk_sep):
 
-        # must be Union[re.compile, Sequence[re.compile]]
+        # must be re.compile | Sequence[re.compile]
 
         with pytest.raises(TypeError):
             _val_sep_or_line_break(junk_sep, _name='sep', _mode='regex')

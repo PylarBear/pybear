@@ -14,9 +14,9 @@
 
 import pytest
 
-from typing_extensions import (
-    Callable,
-    Union
+from typing import (
+    Any,
+    Callable
 )
 import numpy.typing as npt
 
@@ -107,7 +107,7 @@ def _args(_mct_rows):
 
 @pytest.fixture(scope='module')
 def DEFAULT_ARGS(MOCK_X_STR, MOCK_Y, _mmct_test_thresh) -> dict[
-    str, Union[np.ndarray, None, bool, int]
+    str, np.ndarray | None | bool | int
 ]:
     return {
         'MOCK_X': MOCK_X_STR,
@@ -125,9 +125,7 @@ def DEFAULT_ARGS(MOCK_X_STR, MOCK_Y, _mmct_test_thresh) -> dict[
 @pytest.fixture(scope='module')
 def arg_setter(mmct, DEFAULT_ARGS) -> Callable:
 
-    def foo(**new_args) -> Union[
-        tuple[npt.NDArray[any], npt.NDArray[int]], npt.NDArray[any]
-    ]:
+    def foo(**new_args) -> tuple[npt.NDArray[Any], npt.NDArray[int]] | npt.NDArray[Any]:
 
         NEW_DICT = deepcopy(DEFAULT_ARGS)
         ALLOWED = [

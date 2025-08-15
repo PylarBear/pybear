@@ -6,8 +6,9 @@
 
 
 
-from typing import Literal
-from typing_extensions import Union
+from typing import (
+    Literal,
+)
 from .._type_aliases import FeatureNameCombinerType
 from ...__shared._type_aliases import XContainer
 
@@ -41,7 +42,7 @@ def _validation(
     _rtol: numbers.Real,
     _atol: numbers.Real,
     _equal_nan: bool,
-    _n_jobs: Union[numbers.Integral, None],
+    _n_jobs: int | None,
     _job_size: numbers.Integral
 ) -> None:
     """Centralized hub for performing parameter validation.
@@ -76,7 +77,7 @@ def _validation(
         The absolute difference tolerance for equality.
     _equal_nan : bool
         How to handle nans in equality comparisons.
-    _n_jobs : Union[numbers.Integral, None]
+    _n_jobs : int | None
         The number of joblib Parallel jobs to use when scanning for
         duplicate columns.
     _job_size : numbers.Integral

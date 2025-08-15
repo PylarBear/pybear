@@ -6,8 +6,10 @@
 
 
 
-from typing import Optional
-from typing_extensions import Union
+from typing import (
+    Optional,
+    Union
+)
 from .._type_aliases import FeatureNamesInType
 
 from ...__shared._validation._any_integer import _val_any_integer

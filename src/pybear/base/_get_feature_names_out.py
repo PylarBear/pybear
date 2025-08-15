@@ -6,8 +6,9 @@
 
 
 
-from typing import Sequence
-from typing_extensions import Union
+from typing import (
+    Sequence,
+)
 
 import numpy.typing as npt
 import numpy as np
@@ -17,8 +18,8 @@ import numbers
 
 
 def get_feature_names_out(
-    input_features: Union[Sequence[str], None],
-    feature_names_in_: Union[npt.NDArray[object], None],
+    input_features: Sequence[str] | None,
+    feature_names_in_: npt.NDArray[object] | None,  # pizza come back to this
     n_features_in_: numbers.Integral
 ) -> npt.NDArray[object]:
     """Return the feature name vector for the output of a pybear
@@ -33,9 +34,9 @@ def get_feature_names_out(
 
     Parameters
     ----------
-    input_features : Union[Sequence[str], None]
+    input_features : Sequence[str] | None
         Input features.
-    feature_names_in_ : Union[numpy.ndarray[object], None]
+    feature_names_in_ : numpy.ndarray[object] | None
         The names of the features as seen during fitting. Only available
         if `X` is passed to `partial_fit` or `fit` in a container that
         has a header.

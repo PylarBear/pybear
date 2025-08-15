@@ -8,8 +8,9 @@
 
 import pytest
 
-from typing import Literal
-from typing_extensions import Union
+from typing import (
+    Literal
+)
 
 from uuid import uuid4
 import warnings
@@ -56,7 +57,7 @@ def _nan_factory(_X_factory, _shape, _constant_col):
     def foo(
         _format: Literal['np', 'pd', 'coo', 'csc', 'csr'],
         _dtype: Literal['flt', 'int', 'str', 'obj'],
-        _nan_type: Union[Literal['np', 'pd', 'str', 'None'], None]
+        _nan_type: Literal['np', 'pd', 'str', 'None'] | None
     ):
 
         # block impossible ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -92,7 +93,7 @@ def _nan_factory(_X_factory, _shape, _constant_col):
             {'flt':np.float64, 'int':np.int32, 'str':str, 'obj':object}[_dtype]
         )
 
-        # _nan_type:Union[Literal['np','pd','str','None'], None]
+        # _nan_type:Literal['np','pd','str','None'] | None
         _nan_dict = {'np':np.nan, 'pd': pd.NA, 'str': 'nan', 'None': None}
         # when _nan_type is None (not str 'None'), shouldnt need to
         # declare _nan_value, is bypassed

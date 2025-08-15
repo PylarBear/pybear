@@ -6,11 +6,11 @@
 
 
 
-from typing import Optional
-from typing_extensions import (
+from typing import (
     Any,
-    Self
+    Optional
 )
+from typing_extensions import Self
 from ._type_aliases import XContainer
 
 import numpy as np
@@ -87,26 +87,26 @@ class NanStandardizer(
     **Type Aliases**
 
     PythonTypes:
-        Union[Sequence, Sequence[Sequence]]
+        Sequence | Sequence[Sequence]
 
     NumpyTypes:
         numpy.ndarray
 
     PandasTypes:
-        Union[pandas.core.frame.DataFrame, pandas.core.series.Series]
+        pandas.DataFrame | pandas.Series
 
     PolarsTypes:
-        Union[polars.dataframe.DataFrame, polars.series.Series]
+        polars.DataFrame | polars.Series
 
-    SparseTypes: Union[
-        ss._csr.csr_matrix, ss._csc.csc_matrix, ss._coo.coo_matrix,
-        ss._dia.dia_matrix, ss._bsr.bsr_matrix, ss._csr.csr_array,
-        ss._csc.csc_array, ss._coo.coo_array, ss._dia.dia_array,
-        ss._bsr.bsr_array
-    ]
+    SparseTypes: (
+        ss._csr.csr_matrix | ss._csc.csc_matrix | ss._coo.coo_matrix
+        | ss._dia.dia_matrix | ss._bsr.bsr_matrix | ss._csr.csr_array
+        | ss._csc.csc_array | ss._coo.coo_array | ss._dia.dia_array
+        | ss._bsr.bsr_array
+    )
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasType, PolarsType, SparseTypes]
+        PythonTypes | NumpyTypes | PandasType | PolarsType | SparseTypes
 
     See Also
     --------

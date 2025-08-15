@@ -6,20 +6,14 @@
 
 
 
-from typing_extensions import Union
-
-import numbers
-
-
-
 def _val_n_jobs(
-    _n_jobs: Union[numbers.Integral, None]
+    _n_jobs: int | None
 ) -> None:
     """Validate `n_jobs` is None, -1, or integer >= 1.
 
     Parameters
     ----------
-    _n_jobs : Union[numbers.Integral, None]
+    _n_jobs : int | None
         The number of processors/threads to use for CPU bound tasks.
 
     Return

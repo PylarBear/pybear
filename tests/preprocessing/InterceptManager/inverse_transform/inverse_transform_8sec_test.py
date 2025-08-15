@@ -181,7 +181,7 @@ class TestInverseTransform:
             if isinstance(_X_wip, np.ndarray):
                 _og_col = _X_wip[:, _og_idx]
                 _out_col = out[:, _og_idx]
-            elif isinstance(_X_wip, pd.core.frame.DataFrame):
+            elif isinstance(_X_wip, pd.DataFrame):
                 _og_col = _X_wip.iloc[:, _og_idx].to_numpy()
                 _out_col = out.iloc[:, _og_idx].to_numpy()
             elif isinstance(_X_wip, pl.DataFrame):

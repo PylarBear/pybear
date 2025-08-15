@@ -28,10 +28,10 @@ class TestIsFitted:
 
     # def check_is_fitted(
     #     estimator,
-    #     attributes:Union[str, Iterable[str], None]=None,
+    #     attributes:str | Iterable[str] | None = None,
     #     *,
-    #     msg: Union[str, None]=None,
-    #     all_or_any: Union[AllFunc, AnyFunc]=all
+    #     msg: str | None = None,
+    #     all_or_any: AllFunc | AnyFunc = all
     # ):
 
 

@@ -52,7 +52,7 @@ def _build_poly(
 
     # validation - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     assert isinstance(_X,
-        (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_array,
+        (np.ndarray, pd.DataFrame, pl.DataFrame, ss.csc_array,
          ss.csc_matrix)
     )
 

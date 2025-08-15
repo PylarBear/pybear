@@ -22,9 +22,9 @@ class TestTransformNoWrap:
 
     # def _transform(
     #     _X: list[list[str]],
-    #     _ngrams: Sequence[Sequence[Union[str, re.Pattern]]],
-    #     _ngcallable: Union[Callable[[Sequence[str]], str], None],
-    #     _sep: Union[str, None]
+    #     _ngrams: Sequence[Sequence[str | re.Pattern]],
+    #     _ngcallable: Callable[[Sequence[str]], str] | None,
+    #     _sep: str | None
     # ) -> list[list[str]]:
 
 

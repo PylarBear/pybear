@@ -8,11 +8,8 @@
 
 from typing import (
     Iterable,
-    Optional
-)
-from typing_extensions import (
-    TypeAlias,
-    Union
+    Optional,
+    TypeAlias
 )
 from .__type_aliases import (
     Python1DTypes,
@@ -31,7 +28,7 @@ from ..utilities._inf_masking import inf_mask
 
 
 XContainer: TypeAlias = \
-    Union[Python1DTypes, Numpy1DTypes, Pandas1DTypes, Polars1DTypes]
+    Python1DTypes | Numpy1DTypes | Pandas1DTypes | Polars1DTypes
 
 
 
@@ -74,19 +71,19 @@ def check_1D_str_sequence(
     **Type Aliases**
 
     Python1DTypes:
-        Union[list, tuple, set]
+        list | tuple | set
 
     Numpy1DTypes:
         numpy.ndarray
 
     Pandas1DTypes:
-        pandas.core.series.Series
+        pandas.Series
 
     Polars1DTypes:
-        polars.series.Series
+        polars.Series
 
     XContainer:
-        Union[Python1DTypes, Numpy1DTypes, Pandas1DTypes, Polars1DTypes]
+        Python1DTypes | Numpy1DTypes | Pandas1DTypes | Polars1DTypes
 
     Examples
     --------

@@ -19,8 +19,10 @@ class TestValCompileHolder:
 
 
     # def _val_compile_holder(
-    #     _ch: Union[None, re.Pattern[str], tuple[re.Pattern[str], ...],
-    #             list[Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]]],
+    #     _ch: (
+    #           None | re.Pattern[str] | tuple[re.Pattern[str], ...]
+    #           | list[None | re.Pattern[str] | tuple[re.Pattern[str], ...]]
+    #     ),
     #     _n_rows: numbers.Integral,
     #     _name: Optional[str] = 'unnamed compile holder'
     # ) -> None:
@@ -90,10 +92,6 @@ class TestValCompileHolder:
     def test_accepts_good_ch(self, good_ch):
 
         assert _val_compile_holder(good_ch, 3) is None
-
-
-
-
 
 
 

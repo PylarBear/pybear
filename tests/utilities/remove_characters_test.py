@@ -13,10 +13,10 @@ from pybear.utilities._remove_characters import remove_characters
 
 
 # def remove_characters(
-#     X: Union[list[str], list[list[str]], npt.NDArray[str]],
-#     allowed_chars: Union[str, None],
-#     disallowed_chars: Union[str, None]
-# ) -> Union[list[str], list[list[str]], npt.NDArray[str]]:
+#     X: list[str] | list[list[str]] | npt.NDArray[str],
+#     allowed_chars: str | None,
+#     disallowed_chars: str | None
+# ) -> list[str] | list[list[str]] | npt.NDArray[str]:
 
 
 

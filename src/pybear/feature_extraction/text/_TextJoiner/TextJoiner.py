@@ -7,14 +7,12 @@
 
 
 from typing import (
-    Optional,
-    Sequence
-)
-from typing_extensions import (
     Any,
-    Self,
+    Optional,
+    Sequence,
     Union
 )
+from typing_extensions import Self
 from ._type_aliases import (
     XContainer,
     XWipContainer
@@ -103,10 +101,10 @@ class TextJoiner(
         numpy.ndarray[str]
 
     PandasTypes:
-        pandas.core.frame.DataFrame
+        pandas.DataFrame
 
     PolarsTypes:
-        polars.dataframe.DataFrame
+        polars.DataFrame
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]

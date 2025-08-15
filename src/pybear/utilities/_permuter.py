@@ -6,8 +6,10 @@
 
 
 
-from typing import Sequence
-from typing_extensions import Any
+from typing import (
+    Any,
+    Sequence
+)
 
 import numpy as np
 

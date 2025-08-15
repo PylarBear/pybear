@@ -6,8 +6,8 @@
 
 
 
-from typing import Sequence
-from typing_extensions import (
+from typing import (
+    Sequence,
     TypeAlias,
     Union
 )

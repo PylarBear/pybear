@@ -14,11 +14,8 @@ from inspect import isclass
 from typing import (
     Callable,
     Iterable,
-    Sequence
-)
-from typing_extensions import (
-    TypeAlias,
-    Union
+    Sequence,
+    TypeAlias
 )
 
 AllFunc: TypeAlias = Callable[[Iterable], bool]
@@ -28,10 +25,10 @@ AnyFunc: TypeAlias = Callable[[Iterable], bool]
 
 def check_is_fitted(
     estimator,
-    attributes:Union[str, Sequence[str], None]=None,
+    attributes:str | Sequence[str] | None = None,
     *,
-    msg: Union[str, None]=None,
-    all_or_any: Union[AllFunc, AnyFunc]=all
+    msg: str | None = None,
+    all_or_any: AllFunc | AnyFunc = all
 ) -> None:
     """Perform `_is_fitted` validation on an estimator/transformer.
 
@@ -57,7 +54,7 @@ def check_is_fitted(
     estimator : object
         Estimator/tranformer instance for which the validation is
         performed.
-    attributes : Union[str, Sequence[str], None], default=None
+    attributes : str | Sequence[str] | None, default=None
         Attribute name(s) given as string or a list/tuple of strings
         Eg.: '`coef_`' or ['`coef_`', '`estimator_`', ...].
     msg : str, default=None

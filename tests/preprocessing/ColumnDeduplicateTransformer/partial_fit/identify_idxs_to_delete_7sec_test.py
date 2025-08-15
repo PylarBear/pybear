@@ -21,8 +21,8 @@ from pybear.preprocessing._ColumnDeduplicator._partial_fit. \
 # def _identify_idxs_to_delete(
 #     _duplicates: list[list[int]],
 #     _keep: Literal['first', 'last', 'random'],
-#     _do_not_drop: Union[Sequence[int], Sequence[str], None],
-#     _columns: Union[Sequence[str], None],
+#     _do_not_drop: Sequence[int] | Sequence[str] | None,
+#     _columns: Sequence[str] | None,
 #     _conflict: Literal['raise', 'ignore'],
 #     _rand_idxs: tuple[int]
 # ) -> dict[int, int]:

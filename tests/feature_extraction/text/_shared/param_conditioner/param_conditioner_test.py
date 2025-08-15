@@ -26,10 +26,10 @@ class TestParamConditioner:
     #     _order_matters: bool,
     #     _n_rows: numbers.Integral,
     #     _name: Optional[str] = 'unnamed pattern holder'
-    # ) -> Union[
-    #         None, re.Pattern[str], tuple[re.Pattern, ...],
-    #         list[Union[None, re.Pattern[str], tuple[re.Pattern, ...]]]
-    #     ]:
+    # ) -> (
+    #          None | re.Pattern[str] | tuple[re.Pattern, ...],
+    #          list[None | re.Pattern[str] | tuple[re.Pattern, ...]]
+    #      ):
 
     # no validation
 

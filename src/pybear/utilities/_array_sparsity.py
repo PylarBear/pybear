@@ -6,9 +6,8 @@
 
 
 
-from typing_extensions import (
+from typing import (
     TypeAlias,
-    Union
 )
 from .__type_aliases import (
     NumpyTypes,
@@ -23,17 +22,17 @@ import scipy.sparse as ss
 
 
 
-PythonTypes: TypeAlias = Union[list, tuple, list[list], tuple[tuple]]
+PythonTypes: TypeAlias = list | tuple | list[list] | tuple[tuple]
 
-ScipySparseTypes: TypeAlias = Union[
-    ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
-    ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
-    ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array
-]
+ScipySparseTypes: TypeAlias = (
+    ss.csc_matrix | ss.csc_array | ss.csr_matrix | ss.csr_array
+    | ss.coo_matrix | ss.coo_array | ss.dia_matrix | ss.dia_array
+    | ss.lil_matrix | ss.lil_array | ss.dok_matrix | ss.dok_array
+)
 
-Container: TypeAlias = Union[
-    PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes
-]
+Container: TypeAlias = \
+    PythonTypes | NumpyTypes | PandasTypes | PolarsTypes | ScipySparseTypes
+
 
 
 
@@ -70,26 +69,24 @@ def array_sparsity(a: Container) -> float:
     **Type Aliases**
 
     PythonTypes
-        Union[list, tuple, list[list], tuple[tuple]]
+        list | tuple | list[list] | tuple[tuple]]
 
     NumpyTypes
         numpy.ndarray
 
     PandasTypes
-        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+        pandas.Series | pandas.DataFrame
 
     PolarsTypes
-        Union[polars.series.Series, polars.dataframe.DataFrame]
+        polars.Series | polars.DataFrame
 
     ScipySparseTypes
-        Union[
-            ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
-            ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
-            ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array
-        ]
+        ss.csc_matrix | ss.csc_array | ss.csr_matrix | ss.csr_array
+        | ss.coo_matrix | ss.coo_array | ss.dia_matrix | ss.dia_array
+        | ss.lil_matrix | ss.lil_array | ss.dok_matrix | ss.dok_array
 
     Container:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+        PythonTypes | NumpyTypes | PandasTypes | PolarsTypes | ScipySparseTypes
 
     """
 
@@ -120,13 +117,13 @@ def array_sparsity(a: Container) -> float:
     if isinstance(a, np.ndarray):
         _non_zero = (a == 0).astype(np.int8).sum()
         _size = a.size
-    elif isinstance(a, (pd.core.series.Series, pd.core.frame.DataFrame)):
+    elif isinstance(a, (pd.Series, pd.DataFrame)):
         _non_zero = (a == 0).astype(np.int8).values.sum()
         _size = a.size
-    elif isinstance(a, pl.series.Series):
+    elif isinstance(a, pl.Series):
         _non_zero = (a == 0).cast(pl.Int8).sum()
         _size = np.prod(a.shape)
-    elif isinstance(a, pl.dataframe.DataFrame):
+    elif isinstance(a, pl.DataFrame):
         _non_zero = (a == 0).cast(pl.Int8).sum().sum_horizontal()[0]
         _size = np.prod(a.shape)
     elif hasattr(a, 'toarray'):

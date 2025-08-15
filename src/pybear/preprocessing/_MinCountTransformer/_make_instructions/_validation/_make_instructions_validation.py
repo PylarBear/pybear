@@ -14,7 +14,7 @@ from ..._type_aliases import (
     TotalCountsByColumnType,
     FeatureNamesInType
 )
-from typing_extensions import Union
+from typing import Union
 
 from ..._validation._count_threshold import _val_count_threshold
 from ..._validation._ignore_columns_handle_as_bool import \

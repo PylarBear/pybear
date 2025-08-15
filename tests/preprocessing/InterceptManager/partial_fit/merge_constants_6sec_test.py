@@ -8,7 +8,7 @@
 
 import pytest
 
-from typing_extensions import Any
+from typing import Any
 
 import numpy as np
 
@@ -168,7 +168,7 @@ class TestMergeConstants:
 
 
     # def _merge_constants(
-    #     _old_constants: Union[ConstantColumnsType, None],
+    #     _old_constants: ConstantColumnsType | None,
     #     _new_constants: ConstantColumnsType,
     #     _rtol: numbers.Real,
     #     _atol: numbers.Real

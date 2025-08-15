@@ -6,8 +6,10 @@
 
 
 
-from typing import Callable
-from typing_extensions import Union
+from typing import (
+    Callable,
+    Union
+)
 from .._type_aliases import ReplaceType
 
 import numbers

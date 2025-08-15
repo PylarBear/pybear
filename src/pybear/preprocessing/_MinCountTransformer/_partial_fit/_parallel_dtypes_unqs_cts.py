@@ -6,7 +6,7 @@
 
 
 
-from typing_extensions import Any
+from typing import Any
 import numpy.typing as npt
 
 import numpy as np

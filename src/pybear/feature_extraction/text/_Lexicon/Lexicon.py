@@ -7,11 +7,9 @@
 
 
 from typing import (
-    Optional,
-    Sequence
-)
-from typing_extensions import (
     Any,
+    Optional,
+    Sequence,
     Union
 )
 

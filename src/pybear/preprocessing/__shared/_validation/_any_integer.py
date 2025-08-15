@@ -10,14 +10,13 @@ from typing import (
     Optional,
     Sequence
 )
-from typing_extensions import Union
 
 import numbers
 
 
 
 def _val_any_integer(
-    _int:Union[numbers.Integral, Sequence[numbers.Integral]],
+    _int:numbers.Integral | Sequence[numbers.Integral],
     _name:Optional[str] = 'unnamed integer',
     _min:Optional[numbers.Real] = float('-inf'),
     _max:Optional[numbers.Real] = float('inf'),
@@ -44,7 +43,7 @@ def _val_any_integer(
 
     Parameters
     ----------
-    _int : Union[numbers.Integral, Sequence[numbers.Integral]]
+    _int : numbers.Integral | Sequence[numbers.Integral]
         The number being validated as an integer.
     _min : Optional[numbers.Real], default=float('-inf')
         The minimum allowed value `_int` can take.
@@ -95,9 +94,9 @@ def _val_any_integer(
 
     # helper function -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     def _helper(
-        _int:Union[numbers.Integral, Sequence[numbers.Integral], None],
+        _int:numbers.Integral | Sequence[numbers.Integral] | None,
     ) -> None:
-
+        # pizza
         """Helper function for validating integers."""
 
         nonlocal _name, _min, _max, _disallowed, _can_be_bool, _can_be_None

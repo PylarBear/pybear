@@ -6,8 +6,8 @@
 
 
 
-from typing import Callable
-from typing_extensions import (
+from typing import (
+    Callable,
     TypeAlias,
     Union
 )

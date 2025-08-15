@@ -82,7 +82,7 @@ class TestAccuracy:
 
         # pd series accepted
         out = TestCls.transform(pd.Series(_X_num[:, 0]), copy=True)
-        assert isinstance(out, pd.core.series.Series)
+        assert isinstance(out, pd.Series)
         assert np.array_equal(out, _X_num[:, 0], equal_nan=True)
 
         # polars series accepted
@@ -107,7 +107,7 @@ class TestAccuracy:
 
         # pd DataFrame accepted
         out = TestCls.transform(pd.DataFrame(_X_num, copy=True))
-        assert isinstance(out, pd.core.frame.DataFrame)
+        assert isinstance(out, pd.DataFrame)
         assert np.array_equal(out.to_numpy(), _X_num, equal_nan=True)
 
         # polars 2D accepted

@@ -7,15 +7,12 @@
 
 
 from typing import (
+    Any,
     Literal,
     Optional,
     Sequence
 )
-from typing_extensions import (
-    Any,
-    Self,
-    Union
-)
+from typing_extensions import Self
 from ._type_aliases import (
     KeepType,
     ConstantColumnsType,
@@ -380,34 +377,16 @@ class InterceptManager(
     **Type Aliases**
 
     XContainer:
-        Union[
-            numpy.ndarray,
-            pandas.core.frame.DataFrame,
-            polars.dataframe.DataFrame,
-            ss._csr.csr_matrix,
-            ss._csc.csc_matrix,
-            ss._coo.coo_matrix,
-            ss._dia.dia_matrix,
-            ss._lil.lil_matrix,
-            ss._dok.dok_matrix,
-            ss._bsr.bsr_matrix,
-            ss._csr.csr_array,
-            ss._csc.csc_array,
-            ss._coo.coo_array,
-            ss._dia.dia_array,
-            ss._lil.lil_array,
-            ss._dok.dok_array,
-            ss._bsr.bsr_array
-        ]
+        numpy.ndarray | pandas.DataFrame | polars.DataFrame
+        | ss._csr.csr_matrix | ss._csc.csc_matrix | ss._coo.coo_matrix
+        | ss._dia.dia_matrix | ss._lil.lil_matrix | ss._dok.dok_matrix
+        | ss._bsr.bsr_matrix | ss._csr.csr_array | ss._csc.csc_array
+        | ss._coo.coo_array | ss._dia.dia_array |ss._lil.lil_array
+        | ss._dok.dok_array | ss._bsr.bsr_array
 
     KeepType:
-        Union[
-            Literal['first', 'last', 'random', 'none'],
-            dict[str, Any],
-            numbers.Integral,
-            str,
-            Callable[[XContainer], int]
-        ]
+        Literal['first', 'last', 'random', 'none'] | dict[str, Any]
+        | numbers.Integral | str | Callable[[XContainer], int]
 
     ConstantColumnsType:
         dict[int, Any]
@@ -430,7 +409,7 @@ class InterceptManager(
     See Also
     --------
     numpy.ndarray
-    pandas.core.frame.DataFrame
+    pandas.DataFrame
     polars.DataFrame
     scipy.sparse
     numpy.allclose
@@ -629,7 +608,7 @@ class InterceptManager(
 
     def get_feature_names_out(
         self,
-        input_features:Optional[Union[Sequence[str], None]]=None
+        input_features:Optional[Sequence[str] | None]=None
     ) -> FeatureNamesInType:
         """Get the feature names for the output of `transform`.
 
@@ -638,7 +617,7 @@ class InterceptManager(
 
         Parameters
         ----------
-        input_features : Optional[Union[Sequence[str], None]], default=None
+        input_features : Optional[Sequence[str] | None], default=None
             Externally provided feature names for the fitted data, not
             the transformed data.
 
@@ -838,7 +817,7 @@ class InterceptManager(
             del _og_dtype
 
 
-        _keep: Union[Literal['none'], dict[str, Any], int] = _manage_keep(
+        _keep: Literal['none'] | dict[str, Any] | int = _manage_keep(
             self.keep,
             X,
             self._constant_columns,
@@ -871,7 +850,7 @@ class InterceptManager(
     def fit(
         self,
         X: XContainer,
-        y: Optional[Union[Any, None]]=None
+        y: Optional[Any | None]=None
     ) -> Self:
         """Perform a single fitting on a dataset.
 
@@ -881,7 +860,7 @@ class InterceptManager(
         ----------
         X : XContainer of shape (n_samples, n_features)
             Required. The data to find constant columns in.
-        y : Optional[Union[Any, None]], default=None
+        y : Optional[Any | None], default=None
             Ignored. The target for the data.
 
         Returns
@@ -908,7 +887,7 @@ class InterceptManager(
     def inverse_transform(
         self,
         X:XContainer,
-        copy:Optional[Union[bool, None]] = None
+        copy:Optional[bool | None] = None
     ) -> XContainer:
         """Revert transformed data back to its original state.
 
@@ -930,7 +909,7 @@ class InterceptManager(
         ----------
         X : XContainer of shape (n_samples, n_transformed_features)
             A transformed data set.
-        copy : Optional[Union[bool, None]], default=None
+        copy : Optional[bool | None], default=None
             Whether to make a deepcopy of `X` before the inverse
             transform.
 
@@ -1048,7 +1027,7 @@ class InterceptManager(
     def transform(
         self,
         X:XContainer,
-        copy:Optional[Union[bool, None]] = None
+        copy:Optional[bool | None] = None
     ) -> XContainer:
         """Manage the constant columns in `X`.
 
@@ -1059,7 +1038,7 @@ class InterceptManager(
         ----------
         X : XContainer of shape (n_samples, n_features)
             Required. The data to be transformed.
-        copy : Optional[Union[bool, None]], default=None
+        copy : Optional[bool | None], default=None
             Whether to make a deepcopy of `X` before the transform.
 
         Returns

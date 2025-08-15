@@ -6,9 +6,8 @@
 
 
 
-from typing_extensions import (
+from typing import (
     Any,
-    Union
 )
 import numpy.typing as npt
 
@@ -23,9 +22,9 @@ from ._get_feature_names import get_feature_names
 # which is called by the _validate_data method of sklearn BaseEstimator
 def check_feature_names(
     X: Any,
-    feature_names_in_: Union[npt.NDArray[object], None],
+    feature_names_in_: npt.NDArray[object] | None,
     reset: bool
-) -> Union[npt.NDArray[object], None]:
+) -> npt.NDArray[object] | None:
     """Set or check the `feature_names_in_` attribute.
 
     pybear recommends setting `reset=True` in :meth:`fit` and in the
@@ -82,7 +81,7 @@ def check_feature_names(
 
     Returns
     -------
-    feature_names_in_ : Union[numpy.ndarray[object], None]
+    feature_names_in_ : numpy.ndarray[object] | None
         The validated feature names if feature names were seen the last
         time reset was set to True. None if the estimator/transformer
         did not see valid feature names at the first fit.
@@ -104,9 +103,9 @@ def check_feature_names(
 
 
     # passed_feature_names
-    pfn: Union[npt.NDArray[object], None] = get_feature_names(X)
+    pfn: npt.NDArray[object] | None = get_feature_names(X)
 
-    fni: Union[npt.NDArray[object], None] = feature_names_in_
+    fni: npt.NDArray[object] | None = feature_names_in_
 
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
