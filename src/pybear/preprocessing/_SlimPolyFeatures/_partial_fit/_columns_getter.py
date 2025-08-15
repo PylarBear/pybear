@@ -6,7 +6,7 @@
 
 
 
-from typing_extensions import Union
+from typing import Union
 import numpy.typing as npt
 from pybear.preprocessing._SlimPolyFeatures._type_aliases import (
     CombinationsType,
@@ -57,7 +57,7 @@ def _columns_getter(
 
     # validation & conditioning ** * ** * ** * ** * ** * ** * ** * ** *
     assert isinstance(_X,
-        (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_array,
+        (np.ndarray, pd.DataFrame, pl.DataFrame, ss.csc_array,
          ss.csc_matrix)
     )
 
@@ -94,7 +94,7 @@ def _columns_getter(
 
         if isinstance(_X, np.ndarray):
             _columns = _X[:, _poly_idxs]
-        elif isinstance(_X, pd.core.frame.DataFrame):
+        elif isinstance(_X, pd.DataFrame):
             # additional steps are taken at the bottom of this module if
             # the dataframe has funky nan-likes, causing _poly to leave
             # this step as dtype object

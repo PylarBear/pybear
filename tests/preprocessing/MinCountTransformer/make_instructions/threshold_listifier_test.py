@@ -21,7 +21,7 @@ class TestThresholdListifier:
     # def _threshold_listifier(
     #     _n_features_in: int,
     #     *_threshold: CountThresholdType
-    # ) -> Union[list[int], tuple[list[int], ...]]:
+    # ) -> list[int] | tuple[list[int], ...]:
 
 
     @pytest.mark.parametrize('junk',

@@ -8,13 +8,11 @@
 
 from typing import (
     Sequence,
-    TypedDict
-)
-from typing_extensions import (
-    Required,
     TypeAlias,
+    TypedDict,
     Union
 )
+from typing_extensions import Required
 import numpy.typing as npt
 
 import numbers

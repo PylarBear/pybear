@@ -9,9 +9,6 @@
 from typing import (
     Literal,
     Sequence,
-    Tuple
-)
-from typing_extensions import (
     TypeAlias,
     Union
 )
@@ -32,7 +29,7 @@ PointsType: TypeAlias = list[numbers.Integral]
 IntTypeType: TypeAlias = Literal['soft_integer', 'hard_integer', 'fixed_integer']
 
 InIntParamType: TypeAlias = \
-    Sequence[Tuple[InIntGridType, InPointsType, IntTypeType]]
+    Sequence[tuple[InIntGridType, InPointsType, IntTypeType]]
 IntParamType: TypeAlias = list[IntGridType, PointsType, IntTypeType]
 
 

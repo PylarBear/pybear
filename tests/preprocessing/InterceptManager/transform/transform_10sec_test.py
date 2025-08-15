@@ -149,7 +149,7 @@ class TestTransform:
 
         # retain the original dtype(s)
         _og_format = type(_X_wip)
-        if isinstance(_X_wip, (pd.core.frame.DataFrame, pl.DataFrame)):
+        if isinstance(_X_wip, (pd.DataFrame, pl.DataFrame)):
             # need to cast pl to ndarray
             _og_dtype = np.array(_X_wip.dtypes)
         else:
@@ -267,7 +267,7 @@ class TestTransform:
                 _og_col = _X_wip[:, _og_idx]
                 if _og_idx in _kept_idxs:
                     _out_col = out[:, _out_idx]
-            elif isinstance(_X_wip, pd.core.frame.DataFrame):
+            elif isinstance(_X_wip, pd.DataFrame):
                 _og_col = _X_wip.iloc[:, _og_idx].to_numpy()
                 if _og_idx in _kept_idxs:
                     _out_col = out.iloc[:, _out_idx].to_numpy()

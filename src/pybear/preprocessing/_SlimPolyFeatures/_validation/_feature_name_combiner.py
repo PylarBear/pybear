@@ -50,10 +50,8 @@ def _val_feature_name_combiner(
     **Type Aliases**
 
     FeatureNameCombinerType:
-        Union[
-            Callable[[Sequence[str], tuple[int, ...]], str],
-            Literal['as_feature_names', 'as_indices']
-        ]
+        Callable[[Sequence[str], tuple[int, ...]], str]
+        | Literal['as_feature_names', 'as_indices']
 
     """
 

@@ -6,8 +6,9 @@
 
 
 
-from typing import Sequence
-from typing_extensions import Union
+from typing import (
+    Sequence,
+)
 import numpy.typing as npt
 
 from copy import deepcopy
@@ -20,9 +21,9 @@ from ._nan_masking import nan_mask_numerical
 
 
 def feature_name_mapper(
-    feature_names: Union[Sequence[str], Sequence[int], None],
-    feature_names_in: Union[Sequence[str], None],
-    positive: Union[bool, None]=True
+    feature_names: Sequence[str] | Sequence[int] | None,
+    feature_names_in: Sequence[str] | None,
+    positive: bool | None = True
 ) -> npt.NDArray[np.int32]:
     """Map a vector of feature names `feature_names` against the full set
     of feature names provided by `feature_names_in`.
@@ -34,7 +35,7 @@ def feature_name_mapper(
 
     Parameters
     ----------
-    feature_names : Union[Sequence[str], Sequence[int], None]
+    feature_names : Sequence[str] | Sequence[int] | None
         The feature names to be mapped to index positions. If None,
         returns None. If an empty 1D sequence, returns the same. If
         passed as integers without a `feature_names_in` reference,
@@ -48,10 +49,10 @@ def feature_name_mapper(
         in the `feature_names_in` vector and mapped to all positive or
         all negative values based on `positive`. If passed as string
         values and a value is not in `feature_names_in`, raises exception.
-    feature_names_in : Union[Sequence[str], None]
+    feature_names_in : Sequence[str] | None
         If not None, a 1D list-like containing strings that are the
         feature names of a data-bearing container.
-    positive : Union[bool, None]
+    positive : bool | None
         Whether to return the mapped indices as all positive or all
         negative integers. if None, leave the indices as is.
 
@@ -83,7 +84,7 @@ def feature_name_mapper(
         if feature_names_in is None:
             raise UnicodeError
         iter(feature_names_in)
-        if isinstance(feature_names_in, (str, dict, pd.core.frame.DataFrame)):
+        if isinstance(feature_names_in, (str, dict, pd.DataFrame)):
             raise Exception
         if len(np.array(list(feature_names_in)).shape) != 1:
             raise Exception
@@ -122,7 +123,7 @@ def feature_name_mapper(
     # feature_names -- -- -- -- -- -- -- -- -- -- -- -- -- --
     try:
         iter(feature_names)
-        if isinstance(feature_names, (str, dict, pd.core.frame.DataFrame)):
+        if isinstance(feature_names, (str, dict, pd.DataFrame)):
             raise Exception
         if len(np.array(list(feature_names), dtype=object).shape) != 1:
             raise Exception

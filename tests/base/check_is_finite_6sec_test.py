@@ -277,7 +277,7 @@ class TestCheckIsFiniteAccuracy:
         if hasattr(_X_loaded, 'toarray'):
             _X_loaded = _X_loaded.toarray()
             out = out.toarray()
-        elif isinstance(_X_loaded, (pd.core.frame.DataFrame, pl.DataFrame)):
+        elif isinstance(_X_loaded, (pd.DataFrame, pl.DataFrame)):
             _X_loaded = _X_loaded.to_numpy()
             out = out.to_numpy()
         elif isinstance(_X_loaded, np.ndarray):
@@ -325,7 +325,7 @@ class TestCheckIsFiniteAccuracy:
         if hasattr(_X_clean, 'toarray'):
             _X_clean = _X_clean.toarray()
             out = out.toarray()
-        elif isinstance(_X_clean, (pd.core.frame.DataFrame, pl.DataFrame)):
+        elif isinstance(_X_clean, (pd.DataFrame, pl.DataFrame)):
             _X_clean = _X_clean.to_numpy()
             out = out.to_numpy()
         elif isinstance(_X_clean, np.ndarray):
@@ -400,7 +400,7 @@ class TestCheckIsFiniteAccuracy:
         if hasattr(_X_loaded, 'toarray'):
             _X_loaded = _X_loaded.toarray()
             out = out.toarray()
-        elif isinstance(_X_loaded, (pd.core.frame.DataFrame, pl.DataFrame)):
+        elif isinstance(_X_loaded, (pd.DataFrame, pl.DataFrame)):
             _X_loaded = _X_loaded.to_numpy()
             out = out.to_numpy()
         elif isinstance(_X_loaded, np.ndarray):
@@ -445,7 +445,7 @@ class TestCheckIsFiniteAccuracy:
         if hasattr(_X_loaded, 'toarray'):
             _X_loaded = _X_loaded.toarray()
             out = out.toarray()
-        elif isinstance(_X_loaded, (pd.core.frame.DataFrame, pl.DataFrame)):
+        elif isinstance(_X_loaded, (pd.DataFrame, pl.DataFrame)):
             _X_loaded = _X_loaded.to_numpy()
             out = out.to_numpy()
         elif isinstance(_X_loaded, np.ndarray):

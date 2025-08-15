@@ -26,7 +26,7 @@ from pybear.preprocessing._SlimPolyFeatures._partial_fit.\
 #     _equal_nan: bool,
 #     _rtol: numbers.Real,
 #     _atol: numbers.Real,
-#     _n_jobs: Union[numbers.Integral, None]
+#     _n_jobs: numbers.Integral | None
 # ) -> list[bool]:
 
 

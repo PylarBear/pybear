@@ -6,9 +6,8 @@
 
 
 
-from typing_extensions import (
+from typing import (
     TypeAlias,
-    Union
 )
 import numpy.typing as npt
 
@@ -23,20 +22,14 @@ from ._copy_X import copy_X as _copy_X
 
 
 
-SparseTypes: TypeAlias = Union[
-    ss._csr.csr_matrix,
-    ss._csc.csc_matrix,
-    ss._coo.coo_matrix,
-    ss._dia.dia_matrix,
-    ss._bsr.bsr_matrix,
-    ss._csr.csr_array,
-    ss._csc.csc_array,
-    ss._coo.coo_array,
-    ss._dia.dia_array,
-    ss._bsr.bsr_array
-]
+SparseTypes: TypeAlias = (
+    ss._csr.csr_matrix | ss._csc.csc_matrix | ss._coo.coo_matrix
+    | ss._dia.dia_matrix | ss._bsr.bsr_matrix | ss._csr.csr_array
+    | ss._csc.csc_array | ss._coo.coo_array | ss._dia.dia_array
+    | ss._bsr.bsr_array
+)
 
-XContainer: TypeAlias = Union[npt.NDArray, pd.DataFrame, SparseTypes]
+XContainer: TypeAlias = npt.NDArray | pd.DataFrame | SparseTypes
 
 
 
@@ -85,7 +78,7 @@ def check_is_finite(
 
     Returns
     -------
-    X : Union[npt.NDArray, pd.DataFrame, SparseTypes]
+    X : npt.NDArray | pd.DataFrame | SparseTypes
         The originally passed data with all checks performed and any
         replacements made.
 
@@ -95,15 +88,13 @@ def check_is_finite(
     **Type Aliases**
 
     SparseTypes:
-        Union[
-            ss._csr.csr_matrix, ss._csc.csc_matrix, ss._coo.coo_matrix,
-            ss._dia.dia_matrix, ss._bsr.bsr_matrix, ss._csr.csr_array,
-            ss._csc.csc_array, ss._coo.coo_array, ss._dia.dia_array,
-            ss._bsr.bsr_array
-        ]
+        ss._csr.csr_matrix | ss._csc.csc_matrix | ss._coo.coo_matrix
+        | ss._dia.dia_matrix | ss._bsr.bsr_matrix | ss._csr.csr_array
+        | ss._csc.csc_array | ss._coo.coo_array | ss._dia.dia_array
+        | ss._bsr.bsr_array
 
     XContainer:
-        Union[numpy.ndarray, pandas.core.frame.DataFrame, SparseTypes]
+        numpy.ndarray | pandas.DataFrame | SparseTypes
 
     Examples
     --------

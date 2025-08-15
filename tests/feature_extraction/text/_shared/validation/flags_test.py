@@ -20,7 +20,7 @@ from pybear.feature_extraction.text.__shared._validation._flags \
 class TestValFlags:
 
 
-    # must be None, numbers.Integral, list[Union[numbers.Integral, None]]
+    # must be None, numbers.Integral, list[numbers.Integral | None]
 
 
     @pytest.mark.parametrize('junk_single_flags',

@@ -69,10 +69,10 @@ def _validation(
         numpy.ndarray[str]
 
     PandasTypes
-        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+        Union[pandas.Series, pandas.DataFrame]
 
     PolarsTypes:
-        Union[polars.series.Series, polars.dataframe.DataFrame]
+        Union[polars.Series, polars.DataFrame]
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]

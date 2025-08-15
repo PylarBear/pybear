@@ -204,7 +204,7 @@ class TestCheckDtype:
         elif _format == 'pl':
             if _dim == 1:
                 _X_wip = _X_wip[:, 0]
-                assert isinstance(_X_wip, pl.series.Series)
+                assert isinstance(_X_wip, pl.Series)
         elif _format == 'csr':
             # can only be 2D
             assert isinstance(_X_wip, ss._csr.csr_array)

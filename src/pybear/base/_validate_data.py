@@ -11,7 +11,6 @@ from typing import (
     Optional,
     Sequence
 )
-from typing_extensions import Union
 
 import numbers
 
@@ -33,9 +32,10 @@ def validate_data(
     *,
     copy_X:Optional[bool] = True,
     cast_to_ndarray:Optional[bool] = False,
-    accept_sparse:Optional[Union[Sequence[Literal[
-        "csr", "csc", "coo", "dia", "lil", "dok", "bsr"
-    ]], Literal[False], None]] = \
+    accept_sparse:Optional[Sequence[
+        Literal["csr", "csc", "coo", "dia", "lil", "dok", "bsr"]
+        | Literal[False] | None
+    ]] = \
         ("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
     dtype:Optional[Literal['numeric', 'str', 'any']] = 'any',
     require_all_finite:Optional[bool] = True,
@@ -45,9 +45,9 @@ def validate_data(
     ensure_2d:Optional[bool] = True,
     order:Optional[Literal['C', 'F']] = 'C',
     ensure_min_features:Optional[numbers.Integral] = 1,
-    ensure_max_features:Optional[Union[numbers.Integral, None]] = None,
+    ensure_max_features:Optional[numbers.Integral | None] = None,
     ensure_min_samples:Optional[numbers.Integral] = 1,
-    sample_check:Optional[Union[numbers.Integral, None]] = None
+    sample_check:Optional[numbers.Integral | None] = None
 ):
     """Validate characteristics of `X` and apply some select transformative
     operations.
@@ -76,7 +76,7 @@ def validate_data(
         Whether to operate directly on the passed `X` or create a copy.
     cast_to_ndarray : Optional[bool], default=False
         If True, convert the passed `X` to numpy ndarray.
-    accept_sparse : Optional[Union[Sequence[str], Literal[False], None]]
+    accept_sparse : Optional[Sequence[str] | Literal[False] | None]
         default=("csr", "csc", "coo", "dia", "lil", "dok", "bsr").
 
         The scipy sparse matrix/array formats that are allowed. If no
@@ -120,14 +120,14 @@ def validate_data(
         may be designed for 'C' order.
     ensure_min_features : Optional[numbers.Integral], default=1
         The minimum number of features (columns) that must be in `X`.
-    ensure_max_features : Optional[Union[numbers.Integral, None]]
+    ensure_max_features : Optional[numbers.Integral | None]
         The maximum number of features allowed in `X`; if not None, must
         be greater than or equal to `ensure_min_features`. If None, then
         there is no restriction on the maximum number of features in `X`.
     ensure_min_samples : Optional[numbers.Integral], default=1
         The minimum number of samples (rows) that must be in `X`. Ignored
         if `sample_check` is not None.
-    sample_check : Optional[Union[numbers.Integral, None]]
+    sample_check : Optional[numbers.Integral | None]
         The exact number of samples allowed in `X`. If not None, must be
         a non-negative integer. Use this to check, for example, that the
         number of samples in `y` equals the number of samples in `X`. If

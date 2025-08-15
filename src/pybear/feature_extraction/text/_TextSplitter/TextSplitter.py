@@ -6,12 +6,12 @@
 
 
 
-from typing import Optional
-from typing_extensions import (
+from typing import (
     Any,
-    Self,
+    Optional,
     Union
 )
+from typing_extensions import Self
 from ._type_aliases import (
     XContainer,
     XWipContainer,
@@ -188,10 +188,10 @@ class TextSplitter(
         numpy.ndarray[str]
 
     PandasTypes:
-        pandas.core.series.Series
+        pandas.Series
 
     PolarsTypes:
-        polars.series.Series
+        polars.Series
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]

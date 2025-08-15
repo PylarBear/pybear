@@ -7,12 +7,10 @@
 
 
 from typing import (
+    Any,
     Callable,
     Literal,
-    Sequence
-)
-from typing_extensions import (
-    Any,
+    Sequence,
     TypeAlias,
     Union
 )
@@ -24,20 +22,12 @@ import scipy.sparse as ss
 
 
 
-InternalXContainer: TypeAlias = Union[
-    npt.NDArray,
-    pd.DataFrame,
-    pl.DataFrame,
-    ss._csr.csr_matrix,
-    ss._csc.csc_matrix,
-    ss._lil.lil_matrix,
-    ss._dok.dok_matrix,
-    ss._csr.csr_array,
-    ss._csc.csc_array,
-    ss._lil.lil_array,
-    ss._dok.dok_array
-]
-
+InternalXContainer: TypeAlias = (
+    npt.NDArray | pd.DataFrame | pl.DataFrame
+    | ss._csr.csr_matrix | ss._csc.csc_matrix | ss._lil.lil_matrix
+    | ss._dok.dok_matrix | ss._csr.csr_array | ss._csc.csc_array
+    | ss._lil.lil_array | ss._dok.dok_array
+)
 
 FeatureNameCombinerType: TypeAlias = \
     Union[

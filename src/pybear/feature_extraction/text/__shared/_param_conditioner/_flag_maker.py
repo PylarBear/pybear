@@ -6,7 +6,7 @@
 
 
 
-from typing_extensions import (
+from typing import (
     TypeAlias, 
     Union
 )

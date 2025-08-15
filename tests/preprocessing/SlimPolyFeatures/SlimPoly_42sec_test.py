@@ -690,7 +690,7 @@ class TestPartialFit:
     #     def partial_fit(
     #         self,
     #         X: XContainer,
-    #         y: Optional[Union[Any, None]]=None
+    #         y: Optional[Any | None] = None
     #     ) -> Self:
 
 
@@ -973,7 +973,7 @@ class TestTransform:
         # if 'pandas' or 'polars', should return pd/pl df no matter what given
         _output_type_dict = {
             None: type(_X_wip), 'default': np.ndarray, 'polars': pl.DataFrame,
-            'pandas': pd.core.frame.DataFrame
+            'pandas': pd.DataFrame
         }
         assert isinstance(TRFM_X, _output_type_dict[output_type]), \
             (f"X input type {type(_X_wip)}, X output type {type(TRFM_X)}, "
@@ -1059,7 +1059,7 @@ class TestTransform:
         )
 
         # retain original dtype(s) v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-        if isinstance(_X_wip, (pd.core.frame.DataFrame, pl.DataFrame)):
+        if isinstance(_X_wip, (pd.DataFrame, pl.DataFrame)):
             # need np.array for pl dtypes
             _og_dtype = np.array(_X_wip.dtypes)
         else:
@@ -1100,7 +1100,7 @@ class TestTransform:
 
             # need to get dtypes in 2 chunks, from the original X, and
             # poly should always be float64/Float64
-            if isinstance(TRFM_X, (pd.core.frame.DataFrame, pl.DataFrame)):
+            if isinstance(TRFM_X, (pd.DataFrame, pl.DataFrame)):
                 _og_dtypes = np.array(list(_X_wip.dtypes))
                 _trfm_dtypes = np.array(list(TRFM_X.dtypes))
                 for idx in range(TRFM_X.shape[1]):
@@ -1109,7 +1109,7 @@ class TestTransform:
                         assert _trfm_dtypes[idx] == _og_dtypes[idx]
                     else:
                         # the poly part
-                        if isinstance(TRFM_X, pd.core.frame.DataFrame):
+                        if isinstance(TRFM_X, pd.DataFrame):
                             assert _trfm_dtypes[idx] == np.float64
                         elif isinstance(TRFM_X, pl.DataFrame):
                             assert _trfm_dtypes[idx] == pl.Float64
@@ -1118,10 +1118,10 @@ class TestTransform:
 
         else:
             # min_degree > 1, only the poly part
-            if isinstance(TRFM_X, (pd.core.frame.DataFrame, pl.DataFrame)):
+            if isinstance(TRFM_X, (pd.DataFrame, pl.DataFrame)):
                 _trfm_dtypes = np.array(list(TRFM_X.dtypes))
                 for idx in range(TRFM_X.shape[1]):
-                    if isinstance(TRFM_X, pd.core.frame.DataFrame):
+                    if isinstance(TRFM_X, pd.DataFrame):
                         assert _trfm_dtypes[idx] == np.float64
                     elif isinstance(TRFM_X, pl.DataFrame):
                         assert _trfm_dtypes[idx] == pl.Float64
@@ -1133,7 +1133,7 @@ class TestTransform:
         if min_degree == 1:
             if isinstance(TRFM_X, np.ndarray):
                 assert np.array_equal(TRFM_X[:, :_X_wip.shape[1]], _X_wip)
-            elif isinstance(TRFM_X, pd.core.frame.DataFrame):
+            elif isinstance(TRFM_X, pd.DataFrame):
                 assert _X_wip.equals(TRFM_X.iloc[:, :_X_wip.shape[1]])
             elif isinstance(TRFM_X, pl.DataFrame):
                 assert np.array_equal(TRFM_X[:, :_X_wip.shape[1]], _X_wip)
@@ -1486,7 +1486,7 @@ class TestFitTransform:
         # if  'pandas' or 'polars', should return pd/pl df no matter what given
         _output_type_dict = {
             None: type(_X_wip), 'default': np.ndarray, 'polars': pl.DataFrame,
-            'pandas': pd.core.frame.DataFrame
+            'pandas': pd.DataFrame
         }
         assert isinstance(TRFM_X, _output_type_dict[output_type]), \
             (f"X input type {type(_X_wip)}, X output type {type(TRFM_X)}, "

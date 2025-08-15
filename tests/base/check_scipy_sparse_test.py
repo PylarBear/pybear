@@ -21,11 +21,11 @@ class TestCheckScipySparse:
 
     # def check_scipy_sparse(
     #     X,
-    #     allowed: Union[
+    #     allowed: (
     #         Literal[False],
-    #         None,
-    #         Iterable[Literal["csr", "csc", "coo", "dia", "lil", "dok", "bsr"]]
-    #     ]
+    #         | None,
+    #         | Iterable[Literal["csr", "csc", "coo", "dia", "lil", "dok", "bsr"]]
+    #     )
     # ) -> None:
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -21,7 +21,7 @@ class TestSlider:
 
     # def _match_finder(
     #     _line: list[str],
-    #     _ngram: Sequence[Union[str, re.Pattern]],
+    #     _ngram: Sequence[str | re.Pattern],
     # ) -> list[int]:
 
 

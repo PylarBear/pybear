@@ -6,12 +6,13 @@
 
 
 
-from typing import Optional, Sequence
-import numpy.typing as npt
-from typing_extensions import (
+from typing import (
+    Optional,
+    Sequence,
     TypeAlias,
     Union
 )
+import numpy.typing as npt
 
 import pandas as pd
 import polars as pl

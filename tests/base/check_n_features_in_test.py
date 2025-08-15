@@ -24,7 +24,7 @@ class TestCheckNFeaturesIn:
 
     # def check_n_features(
     #     X,
-    #     n_features_in_: Union[int, None],
+    #     n_features_in_: int | None,
     #     reset: bool
     # ) -> int:
 

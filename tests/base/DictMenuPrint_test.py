@@ -25,9 +25,9 @@ class TestDMPInit:
     #         self,
     #         MENU_DICT:dict[str, str],
     #         disp_width:numbers.Integral = 80,
-    #         fixed_col_width:Optional[Union[numbers.Integral, None]] = None,
-    #         allowed:Optional[Union[str, None]] = None,
-    #         disallowed:Optional[Union[str, None]] = None
+    #         fixed_col_width:Optional[numbers.Integral | None] = None,
+    #         allowed:Optional[str | None] = None,
+    #         disallowed:Optional[str | None] = None
     #     ) -> None:
 
 
@@ -220,8 +220,8 @@ class TestDMPchoose:
     #     def choose(
     #         self,
     #         prompt:str,
-    #         allowed:Optional[Union[str, None]] = None,
-    #         disallowed:Optional[Union[str, None]] = None
+    #         allowed:Optional[str | None] = None,
+    #         disallowed:Optional[str | None] = None
     #     ) -> str:
 
     # VALIDATION ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **

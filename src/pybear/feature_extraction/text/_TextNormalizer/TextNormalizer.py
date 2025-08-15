@@ -6,12 +6,12 @@
 
 
 
-from typing import Optional
-from typing_extensions import (
+from typing import (
     Any,
-    Self,
+    Optional,
     Union
 )
+from typing_extensions import Self
 from ._type_aliases import (
     XContainer,
     XWipContainer,
@@ -83,10 +83,10 @@ class TextNormalizer(
         numpy.ndarray[str]
 
     PandasTypes:
-        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+        Union[pandas.Series, pandas.DataFrame]
 
     PolarsTypes:
-        Union[polars.series.Series, polars.dataframe.DataFrame]
+        Union[polars.Series, polars.DataFrame]
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]

@@ -25,9 +25,9 @@ class TestWrapManager:
     #     _second_line: list[str],
     #     _first_hits: Sequence[numbers.Integral],
     #     _second_hits: Sequence[numbers.Integral],
-    #     _ngram: Sequence[Union[str, re.Pattern]],
-    #     _ngcallable: Union[Callable[[Sequence[str]], str], None],
-    #     _sep: Union[str, None]
+    #     _ngram: Sequence[str | re.Pattern],
+    #     _ngcallable: Callable[[Sequence[str]], str] | None,
+    #     _sep: str | None
     # ) -> tuple[list[str], list[str]]:
 
 

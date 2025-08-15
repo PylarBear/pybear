@@ -22,7 +22,7 @@ class TestTransform:
     #     _callable: Callable[[str, str], bool],
     #     _stop_words: list[str],
     #     _remove_empty_rows: bool,
-    #     _n_jobs: Union[numbers.Integral, None]
+    #     _n_jobs: numbers.Integral | None
     # ) -> tuple[list[list[str]], npt.NDArray[bool]]:
 
 

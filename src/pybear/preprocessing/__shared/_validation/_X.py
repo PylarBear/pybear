@@ -39,7 +39,7 @@ def _val_X(
     """
 
 
-    if not isinstance(_X, (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame)) \
+    if not isinstance(_X, (np.ndarray, pd.DataFrame, pl.DataFrame)) \
             and not hasattr(_X, 'toarray'):
         raise TypeError(
             f"invalid container for X: {type(_X)}. \nX must be numpy array, "

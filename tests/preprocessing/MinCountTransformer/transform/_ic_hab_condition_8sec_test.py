@@ -20,7 +20,7 @@ from pybear.preprocessing._MinCountTransformer._transform._ic_hab_condition \
 class TestIcHabCondition:
 
     # def _ic_hab_condition(
-    #     X: Union[XContainer, None],
+    #     X: XContainer | None,
     #     _ignore_columns: IgnoreColumnsType,
     #     _handle_as_bool: HandleAsBoolType,
     #     _ignore_float_columns: bool,
@@ -28,7 +28,7 @@ class TestIcHabCondition:
     #     _original_dtypes: OriginalDtypesType,
     #     _threshold: CountThresholdType,
     #     _n_features_in: int,
-    #     _feature_names_in: Union[FeatureNamesInType, None],
+    #     _feature_names_in: FeatureNamesInType | None,
     #     _raise: bool = False
     # ) -> tuple[InternalIgnoreColumnsType, InternalHandleAsBoolType]:
 
@@ -121,7 +121,7 @@ class TestIcHabCondition:
     ):
 
         # _ignore_columns must be None, callable, Sequence[str], Sequence[int]
-        # _feature_names_in: Union[npt.NDArray[str], None]
+        # _feature_names_in: npt.NDArray[str] | None
 
         _base_ic = [1, _shape[1]-1]
         if good_ignore_columns is None:
@@ -164,7 +164,7 @@ class TestIcHabCondition:
     ):
 
         # _handle_as_bool must be None, callable, Sequence[str], Sequence[int]
-        # _feature_names_in: Union[npt.NDArray[str], None]
+        # _feature_names_in: npt.NDArray[str] | None
 
 
         with pytest.raises(Exception):

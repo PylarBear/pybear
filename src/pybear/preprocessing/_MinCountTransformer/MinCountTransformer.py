@@ -7,14 +7,12 @@
 
 
 from typing import (
-    Optional,
-    Sequence
-)
-from typing_extensions import (
     Any,
-    Self,
+    Optional,
+    Sequence,
     Union
 )
+from typing_extensions import Self
 import numpy.typing as npt
 from ._type_aliases import (
     DataType,
@@ -469,8 +467,8 @@ class MinCountTransformer(
 
     XContainer:
         Union[
-            numpy.ndarray, pandas.core.frame.DataFrame,
-            polars.dataframe.DataFrame, ss.csr_matrix, ss.csc_matrix,
+            numpy.ndarray, pandas.DataFrame,
+            polars.DataFrame, ss.csr_matrix, ss.csc_matrix,
             ss.coo_matrix, ss.dia_matrix, ss.lil_matrix, ss.dok_matrix,
             ss.bsr_matrix, ss.csr_array, ss.csc_array, ss.coo_array,
             ss.dia_array, ss.lil_array, ss.dok_array, ss.bsr_array
@@ -478,9 +476,9 @@ class MinCountTransformer(
 
     YContainer:
         Union[
-            numpy.ndarray, pandas.core.frame.DataFrame,
-            pandas.core.series.Series, polars.dataframe.DataFrame,
-            polars.series.Series
+            numpy.ndarray, pandas.DataFrame,
+            pandas.Series, polars.DataFrame,
+            polars.Series
         ]
 
     DataType:
@@ -1515,7 +1513,7 @@ class MinCountTransformer(
             if isinstance(X_tr, np.ndarray):
                 X_tr = X_tr[ROW_KEEP_MASK, :]
                 X_tr = X_tr[:, COLUMN_KEEP_MASK]
-            elif isinstance(X_tr, pd.core.frame.DataFrame):
+            elif isinstance(X_tr, pd.DataFrame):
                 X_tr = X_tr.loc[ROW_KEEP_MASK, :]
                 X_tr = X_tr.loc[:, COLUMN_KEEP_MASK]
             elif isinstance(X_tr, pl.DataFrame):
@@ -1534,9 +1532,9 @@ class MinCountTransformer(
                 # y can be only np or pd, 1 or 2D
                 if isinstance(y_tr, np.ndarray):
                     y_tr = y_tr[ROW_KEEP_MASK]
-                elif isinstance(y_tr, pd.core.series.Series):
+                elif isinstance(y_tr, pd.Series):
                     y_tr = y_tr.loc[ROW_KEEP_MASK]
-                elif isinstance(y_tr, pd.core.frame.DataFrame):
+                elif isinstance(y_tr, pd.DataFrame):
                     y_tr = y_tr.loc[ROW_KEEP_MASK, :]
                 elif isinstance(y_tr, pl.Series):
                     y_tr = y_tr.filter(ROW_KEEP_MASK)

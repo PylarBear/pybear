@@ -7,7 +7,6 @@
 
 
 from typing import Optional
-from typing_extensions import Union
 
 import numbers
 
@@ -31,16 +30,16 @@ class DictMenuPrint:
         are case-sensitive.
     disp_width : Optional[numbers.Integral], default=80
         The maximum number of characters to display per line.
-    fixed_col_width : Optional[Union[numbers.Integral, None]], default=None
+    fixed_col_width : Optional[numbers.Integral | None], default=None
         Set a fixed width for each column of menu items in the display.
         DMP will determine a number of columns that causes the overall
         width of the display to be less than or equal to `disp_width`.
-    allowed : Optional[Union[str, None]], default=None
+    allowed : Optional[str | None], default=None
         Can only enter this if `disallowed` is not entered, cannot enter
         both. The action keys that are allowed to be selected from the
         full selection available in `MENU_DICT`. case-sensitive. Enter
         as a contiguous sequence of characters.
-    disallowed : Optional[Union[str, None]], default=None
+    disallowed : Optional[str | None], default=None
         Can only enter this if `allowed` is not entered, cannot enter
         both. The action keys that are not allowed to be selected from
         `MENU_DICT`. `allowed` becomes the space of action keys that are
@@ -95,9 +94,9 @@ class DictMenuPrint:
         MENU_DICT:dict[str, str],
         *,
         disp_width:Optional[numbers.Integral] = 80,
-        fixed_col_width:Optional[Union[numbers.Integral, None]] = None,
-        allowed:Optional[Union[str, None]] = None,
-        disallowed:Optional[Union[str, None]] = None
+        fixed_col_width:Optional[numbers.Integral | None] = None,
+        allowed:Optional[str | None] = None,
+        disallowed:Optional[str | None] = None
     ) -> None:
         """Initialize the DictMenuPrint instance."""
 
@@ -163,17 +162,17 @@ class DictMenuPrint:
 
     def _val_allowed_disallowed_and_get_allowed(
         self,
-        _allowed:Optional[Union[str, None]] = None,
-        _disallowed:Optional[Union[str, None]] = None
+        _allowed:Optional[str | None] = None,
+        _disallowed:Optional[str | None] = None
     ) -> str:
         """Validate `allowed` & `disallowed`, determine allowed, and
         return it.
 
         Parameters
         ----------
-        _allowed : Optional[Union[str, None]], default = None
+        _allowed : Optional[str | None], default = None
             Options in the full menu that the user is allowed to choose.
-        _disallowed : Optional[Union[str, None]], default = None
+        _disallowed : Optional[str | None], default = None
             Options in the full menu that the user is not allowed to
             choose.
 
@@ -284,8 +283,8 @@ class DictMenuPrint:
         self,
         prompt:str,
         *,
-        allowed:Optional[Union[str, None]] = None,
-        disallowed:Optional[Union[str, None]] = None
+        allowed:Optional[str | None] = None,
+        disallowed:Optional[str | None] = None
     ) -> str:
         """Displays the allowed menu options to the screen.
 
@@ -300,12 +299,12 @@ class DictMenuPrint:
 
         Parameters
         ----------
-        allowed : Optional[Union[str, None]], default=None
+        allowed : Optional[str | None], default=None
             Can only enter this if `disallowed` is not entered,
             cannot enter both. The action keys that are allowed to be
             selected from the full section available in `MENU_DICT`.
             Case-sensitive. Enter as a contiguous sequence of characters.
-        disallowed : Optional[Union[str, None]], default=None
+        disallowed : Optional[str | None], default=None
             Can only enter this if `allowed` is not entered, cannot
             enter both. The action keys that are not allowed to be
             selected from `MENU_DICT`. `allowed` becomes the space of

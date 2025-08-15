@@ -21,7 +21,7 @@ class TestLookupSubString:
 
 
     # def _lookup_substring(
-    #     _pattern: Union[str, re.Pattern],
+    #     _pattern: str | re.Pattern,
     #     _uniques: Sequence[str],
     #     _case_sensitive: Optional[bool] = True
     # ) -> list[str]:

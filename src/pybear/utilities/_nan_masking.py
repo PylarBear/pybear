@@ -6,9 +6,8 @@
 
 
 
-from typing_extensions import (
+from typing import (
     TypeAlias,
-    Union
 )
 import numpy.typing as npt
 from .__type_aliases import (
@@ -29,15 +28,15 @@ import polars as pl
 
 
 # dok and lil are left out intentionally
-ScipySparseTypes: TypeAlias = Union[
-    ss._csr.csr_matrix, ss._csc.csc_matrix, ss._coo.coo_matrix,
-    ss._dia.dia_matrix, ss._bsr.bsr_matrix, ss._csr.csr_array,
-    ss._csc.csc_array, ss._coo.coo_array, ss._dia.dia_array,
-    ss._bsr.bsr_array
-]
+ScipySparseTypes: TypeAlias = (
+    ss._csr.csr_matrix | ss._csc.csc_matrix | ss._coo.coo_matrix
+    | ss._dia.dia_matrix | ss._bsr.bsr_matrix | ss._csr.csr_array
+    | ss._csc.csc_array | ss._coo.coo_array | ss._dia.dia_array
+    | ss._bsr.bsr_array
+)
 
 XContainer: TypeAlias = \
-    Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+    PythonTypes | NumpyTypes | PandasTypes | PolarsTypes | ScipySparseTypes
 
 
 
@@ -79,27 +78,25 @@ def nan_mask_numerical(
     **Type Aliases**
 
     PythonTypes:
-        Union[list, tuple, set, list[list], tuple[tuple]]
+        list | tuple | set | list[list] | tuple[tuple]]
 
     NumpyTypes:
         numpy.ndarray
 
     PandasTypes:
-        Union[pandas.core.frame.DataFrame, pandas.core.series.Series]
+        pandas.DataFrame | pandas.Series
 
     PolarsTypes:
-        Union[polars.dataframe.DataFrame, polars.series.Series]
+        polars.DataFrame | polars.Series
 
     ScipySparseTypes:
-        Union[
-            ss._csr.csr_matrix, ss._csc.csc_matrix, ss._coo.coo_matrix,
-            ss._dia.dia_matrix, ss._bsr.bsr_matrix, ss._csr.csr_array,
-            ss._csc.csc_array, ss._coo.coo_array, ss._dia.dia_array,
-            ss._bsr.bsr_array
-        ]
+        ss._csr.csr_matrix | ss._csc.csc_matrix | ss._coo.coo_matrix
+        | ss._dia.dia_matrix | ss._bsr.bsr_matrix | ss._csr.csr_array
+        | ss._csc.csc_array | ss._coo.coo_array | ss._dia.dia_array
+        | ss._bsr.bsr_array
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+        PythonTypes | NumpyTypes | PandasTypes | PolarsTypes | ScipySparseTypes
 
     Examples
     --------
@@ -222,7 +219,7 @@ def nan_mask_numerical(
 
 
 def nan_mask_string(
-    X: Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+    X: PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 ) -> npt.NDArray[bool]:
     """In all cases, return an identically shaped boolean numpy array or
     vector indicating the locations of nan-like representations in the
@@ -242,7 +239,7 @@ def nan_mask_string(
 
     Parameters
     ----------
-    X : Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+    X : PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
         shape (n_samples, n_features) or (n_samples,)
 
         The object for which to locate nan-like representations.
@@ -259,16 +256,16 @@ def nan_mask_string(
     **Type Aliases**
 
     PythonTypes:
-        Union[list, tuple, set, list[list], tuple[tuple]]
+        list | tuple | set | list[list] | tuple[tuple]]
 
     NumpyTypes:
         numpy.ndarray
 
     PandasTypes:
-        Union[pandas.core.frame.DataFrame, pandas.core.series.Series]
+        pandas.DataFrame | pandas.Series
 
     PolarsTypes:
-        Union[polars.dataframe.DataFrame, polars.series.Series]
+        polars.DataFrame | polars.Series
 
     Examples
     --------
@@ -420,27 +417,25 @@ def nan_mask(
     Notes
     -----
     PythonTypes:
-        Union[list, tuple, set, list[list], tuple[tuple]]
+        list | tuple | set | list[list] | tuple[tuple]]
 
     NumpyTypes:
         numpy.ndarray
 
     PandasTypes:
-        Union[pandas.core.frame.DataFrame, pandas.core.series.Series]
+        pandas.DataFrame | pandas.Series]
 
     PolarsTypes:
-        Union[polars.dataframe.DataFrame, polars.series.Series]
+        polars.DataFrame | polars.Series]
 
     ScipySparseTypes:
-        Union[
-            ss._csr.csr_matrix, ss._csc.csc_matrix, ss._coo.coo_matrix,
-            ss._dia.dia_matrix, ss._bsr.bsr_matrix, ss._csr.csr_array,
-            ss._csc.csc_array, ss._coo.coo_array, ss._dia.dia_array,
-            ss._bsr.bsr_array
-        ]
+        ss._csr.csr_matrix | ss._csc.csc_matrix | ss._coo.coo_matrix
+        | ss._dia.dia_matrix | ss._bsr.bsr_matrix | ss._csr.csr_array
+        | ss._csc.csc_array | ss._coo.coo_array | ss._dia.dia_array
+        | ss._bsr.bsr_array
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+        PythonTypes | NumpyTypes | PandasTypes | PolarsTypes | ScipySparseTypes
 
     Examples
     --------

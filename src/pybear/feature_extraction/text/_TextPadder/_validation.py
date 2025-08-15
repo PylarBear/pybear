@@ -51,10 +51,10 @@ def _validation(
         numpy.ndarray[str]
 
     PandasTypes:
-        pandas.core.frame.DataFrame
+        pandas.DataFrame
 
     PolarsTypes:
-        polars.dataframe.DataFrame
+        polars.DataFrame
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]

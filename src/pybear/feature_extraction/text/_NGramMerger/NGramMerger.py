@@ -6,12 +6,12 @@
 
 
 
-from typing import Optional
-from typing_extensions import (
+from typing import (
     Any,
-    Self,
+    Optional,
     Union
 )
+from typing_extensions import Self
 import numpy.typing as npt
 from ._type_aliases import (
     XContainer,
@@ -248,10 +248,10 @@ class NGramMerger(
         numpy.ndarray[str]
 
     PandasTypes:
-        pandas.core.frame.DataFrame
+        pandas.DataFrame
 
     PolarsTypes:
-        polars.dataframe.DataFrame
+        polars.DataFrame
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]

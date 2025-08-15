@@ -5,21 +5,16 @@
 #
 
 
-from typing import Tuple
-from typing_extensions import Union
+
 import numpy as np
 
+from importlib.metadata import version as get_version
 
-try:
-    from importlib.metadata import version as get_version
-except ImportError:
-    # For older Python versions, use importlib-metadata package
-    from importlib_metadata import version as get_version
 
 
 version: str
 __version__: str
-VERSION_TUPLE = Tuple[Union[int, str], ...]
+VERSION_TUPLE = tuple[int | str, ...]
 version_tuple: VERSION_TUPLE
 __version_tuple__: VERSION_TUPLE
 

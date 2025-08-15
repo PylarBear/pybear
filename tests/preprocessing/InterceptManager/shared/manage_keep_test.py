@@ -28,7 +28,7 @@ class TestManageKeep:
     #     _n_features_in: int,
     #     _feature_names_in: FeatureNamesInType,
     #     _rand_idx: int
-    # ) -> Union[Literal['none'], dict[str, Any], int]:
+    # ) -> Literal['none'] | dict[str, Any] | int:
 
 
     # callable keep converts X to int, validated against _constant_columns

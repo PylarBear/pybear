@@ -6,8 +6,10 @@
 
 
 
-from typing import Literal
-from typing_extensions import Union
+from typing import (
+    Literal,
+    Union
+)
 
 import numbers
 

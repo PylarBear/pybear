@@ -8,9 +8,9 @@
 
 from typing import (
     Iterable,
-    Optional
+    Optional,
+    Union
 )
-from typing_extensions import Union
 from ..._type_aliases import GenericKFoldType
 
 import numbers

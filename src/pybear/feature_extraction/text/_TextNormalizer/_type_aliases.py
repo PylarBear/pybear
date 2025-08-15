@@ -8,9 +8,7 @@
 
 from typing import (
     Optional,
-    Sequence
-)
-from typing_extensions import (
+    Sequence,
     TypeAlias,
     Union
 )

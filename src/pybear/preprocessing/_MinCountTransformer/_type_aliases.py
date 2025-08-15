@@ -9,9 +9,7 @@
 from typing import (
     Callable,
     Literal,
-    Sequence
-)
-from typing_extensions import (
+    Sequence,
     TypeAlias,
     Union
 )

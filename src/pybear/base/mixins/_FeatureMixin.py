@@ -6,10 +6,9 @@
 
 
 
-from typing import Sequence
-from typing_extensions import (
-    TypeAlias,
-    Union
+from typing import (
+    Sequence,
+    TypeAlias
 )
 import numpy.typing as npt
 from ..__type_aliases import (
@@ -25,7 +24,7 @@ from .._check_feature_names import check_feature_names
 from .._check_is_fitted import check_is_fitted
 
 XContainer: TypeAlias = \
-    Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+    NumpyTypes | PandasTypes | PolarsTypes | ScipySparseTypes
 
 
 
@@ -91,21 +90,19 @@ class FeatureMixin:
             numpy.ndarray
 
         PandasTypes:
-            Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+            pandas.Series | pandas.DataFrame
 
         PolarsTypes:
-            Union[polars.series.Series, polars.dataframe.DataFrame]
+            polars.Series | polars.DataFrame
 
         ScipySparseTypes:
-            Union[
-                ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
-                ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
-                ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
-                ss.bsr_matrix, ss.bsr_array
-            ]
+            ss.csc_matrix | ss.csc_array | ss.csr_matrix | ss.csr_array
+            | ss.coo_matrix | ss.coo_array | ss.dia_matrix | ss.dia_array
+            | ss.lil_matrix | ss.lil_array | ss.dok_matrix | ss.dok_array
+            | ss.bsr_matrix | ss.bsr_array
 
         XContainer:
-            Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+            NumpyTypes | PandasTypes | PolarsTypes | ScipySparseTypes
 
         """
 
@@ -182,7 +179,7 @@ class FeatureMixin:
 
         Returns
         -------
-        feature_names_in_ : Union[numpy.ndarray[object], None]
+        feature_names_in_ : numpy.ndarray[object] | None
             The validated feature names if feature names were seen the
             last time reset was True. None if the estimator/transformer
             did not see valid feature names at the first fit.
@@ -196,21 +193,19 @@ class FeatureMixin:
             numpy.ndarray
 
         PandasTypes:
-            Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+            pandas.Series | pandas.DataFrame
 
         PolarsTypes:
-            Union[polars.series.Series, polars.dataframe.DataFrame]
+            polars.Series | polars.DataFrame
 
         ScipySparseTypes:
-            Union[
-                ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
-                ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
-                ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
-                ss.bsr_matrix, ss.bsr_array
-            ]
+            ss.csc_matrix | ss.csc_array | ss.csr_matrix | ss.csr_array
+            | ss.coo_matrix | ss.coo_array | ss.dia_matrix | ss.dia_array
+            | ss.lil_matrix | ss.lil_array | ss.dok_matrix | ss.dok_array
+            | ss.bsr_matrix | ss.bsr_array
 
         XContainer:
-            Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+            NumpyTypes | PandasTypes | PolarsTypes | ScipySparseTypes
 
         """
 
@@ -235,7 +230,7 @@ class FeatureMixin:
 
     def get_feature_names_out(
         self,
-        input_features: Union[Sequence[str], None]=None
+        input_features: Sequence[str] | None = None
     ) -> npt.NDArray[object]:
         """Return the feature name vector for the transformed output.
 
@@ -249,7 +244,7 @@ class FeatureMixin:
 
         Parameters
         ----------
-        input_features : Union[Sequence[str], None]
+        input_features : Sequence[str] | None
             Input features.
 
         Returns

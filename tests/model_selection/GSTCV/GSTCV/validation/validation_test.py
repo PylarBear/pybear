@@ -19,7 +19,7 @@ class TestValidation:
 
     # def _validation(
     #     _estimator: ClassifierProtocol,
-    #     _pre_dispatch: Union[Literal['all'], str, numbers.Integral]
+    #     _pre_dispatch: Literal['all'] | str | numbers.Integral
     # ) -> None:
 
 

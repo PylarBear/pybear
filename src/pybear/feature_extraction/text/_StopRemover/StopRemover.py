@@ -7,14 +7,12 @@
 
 
 from typing import (
-    Callable,
-    Optional
-)
-from typing_extensions import (
     Any,
-    Self,
+    Callable,
+    Optional,
     Union
 )
+from typing_extensions import Self
 import numpy.typing as npt
 from ._type_aliases import (
     XContainer,
@@ -175,10 +173,10 @@ class StopRemover(
         numpy.ndarray
 
     PandasTypes:
-        pandas.core.frame.DataFrame
+        pandas.DataFrame
 
     PolarsTypes:
-        polars.dataframe.DataFrame
+        polars.DataFrame
 
     XContainer:
         Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]

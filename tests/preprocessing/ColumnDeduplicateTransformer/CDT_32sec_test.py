@@ -683,7 +683,7 @@ class TestPartialFit:
     #     def partial_fit(
     #         self,
     #         X: XContainer,
-    #         y: Optional[Union[Any, None]]=None
+    #         y: Optional[Any | None]=None
     #     ) -> Self:
 
 
@@ -1065,7 +1065,7 @@ class TestTransform:
     #     def transform(
     #         self,
     #         X:XContainer,
-    #         copy:Optional[Union[bool, None]]=None
+    #         copy:Optional[bool | None]=None
     #     ) -> XContainer:
 
     # - num columns must equal num columns seen during fit
@@ -1111,7 +1111,7 @@ class TestTransform:
         # if 'pandas' or 'polars', should return pd/pl df no matter what given
         _output_type_dict = {
             None: type(_X_wip), 'default': np.ndarray, 'polars': pl.DataFrame,
-            'pandas': pd.core.frame.DataFrame
+            'pandas': pd.DataFrame
         }
         assert isinstance(TRFM_X, _output_type_dict[output_type]), \
             (f"X input type {type(_X_wip)}, X output type {type(TRFM_X)}, "
@@ -1260,7 +1260,7 @@ class TestTransform:
             assert TRFM_X.flags['C_CONTIGUOUS'] is True
 
         # returned dtypes are same as given dtypes
-        if isinstance(TRFM_X, (pd.core.frame.DataFrame, pl.DataFrame)):
+        if isinstance(TRFM_X, (pd.DataFrame, pl.DataFrame)):
             assert np.array_equal(
                 np.array(list(TRFM_X.dtypes)),
                 np.array(list(_X_wip.dtypes))[TestCls.column_mask_]
@@ -1283,7 +1283,7 @@ class TestTransform:
             if isinstance(_X_wip, np.ndarray):
                 _out_col = TRFM_X[:, [_new_idx]]
                 _og_col = _X_wip[:, [_kept_idx]]
-            elif isinstance(_X_wip, pd.core.frame.DataFrame):
+            elif isinstance(_X_wip, pd.DataFrame):
                 _out_col = TRFM_X.iloc[:, [_new_idx]].to_numpy()
                 _og_col = _X_wip.iloc[:, [_kept_idx]].to_numpy()
             elif isinstance(_X_wip, pl.DataFrame):
@@ -1435,7 +1435,7 @@ class TestFitTransform:
         # if  'pandas' or 'polars', should return pd/pl df no matter what given
         _output_type_dict = {
             None: type(_X_wip), 'default': np.ndarray, 'polars': pl.DataFrame,
-            'pandas': pd.core.frame.DataFrame
+            'pandas': pd.DataFrame
         }
         assert isinstance(TRFM_X, _output_type_dict[output_type]), \
             (f"X input type {type(_X_wip)}, X output type {type(TRFM_X)}, "
@@ -1448,7 +1448,7 @@ class TestInverseTransform:
     # def inverse_transform(
     #     self,
     #     X:XContainer,
-    #     copy:Optional[Union[bool, None]] = None
+    #     copy:Optional[bool | None] = None
     # ) -> XContainer:
 
     # - output is C contiguous

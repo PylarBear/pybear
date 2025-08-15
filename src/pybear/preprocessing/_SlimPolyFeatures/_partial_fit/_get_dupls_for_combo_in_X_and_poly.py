@@ -6,7 +6,7 @@
 
 
 
-from typing_extensions import Union
+from typing import Union
 from .._type_aliases import InternalXContainer
 
 import itertools
@@ -76,7 +76,7 @@ def _get_dupls_for_combo_in_X_and_poly(
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     assert isinstance(_X,
-        (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_array,
+        (np.ndarray, pd.DataFrame, pl.DataFrame, ss.csc_array,
         ss.csc_matrix)
     )
     assert _X.shape[1] >= 1   # must always have 1 or more features

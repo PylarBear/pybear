@@ -6,9 +6,8 @@
 
 
 
-from typing_extensions import (
+from typing import (
     Any,
-    Union
 )
 from .._type_aliases import (
     InternalXContainer,
@@ -79,7 +78,7 @@ def _find_constants(
 
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     assert isinstance(_X,
-        (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_array,
+        (np.ndarray, pd.DataFrame, pl.DataFrame, ss.csc_array,
          ss.csc_matrix)
     )
 
@@ -120,7 +119,7 @@ def _find_constants(
         ))
 
 
-    _pcf_out:list[Union[uuid.UUID, Any]] = list(itertools.chain(*_pcf_out))
+    _pcf_out:list[uuid.UUID | Any] = list(itertools.chain(*_pcf_out))
     # the idxs of the list match the idxs of the data
 
     # convert '_pcf_out' to dict[idx, value] for only the columns of constants

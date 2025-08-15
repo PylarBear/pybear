@@ -19,7 +19,7 @@ from pybear.feature_extraction.text._Lexicon._methods._delete_words import \
 class TestDeleteWords:
 
     # def _delete_words(
-    #     WORDS: Union[str, Sequence[str]],
+    #     WORDS: str | Sequence[str],
     #     lexicon_folder_path: str
     # ) -> None:
 

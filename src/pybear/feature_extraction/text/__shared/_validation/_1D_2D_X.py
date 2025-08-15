@@ -8,9 +8,9 @@
 
 from typing import (
     Optional,
-    Sequence
+    Sequence,
+    Union
 )
-from typing_extensions import Union
 
 from .....base._check_dtype import check_dtype
 

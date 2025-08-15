@@ -6,7 +6,7 @@
 
 
 
-from typing_extensions import Any
+from typing import Any
 from .._type_aliases import SKKFoldType
 
 import numpy as np

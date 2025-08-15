@@ -8,11 +8,8 @@
 
 from typing import (
     Literal,
-    Optional
-)
-from typing_extensions import (
-    TypeAlias,
-    Union
+    Optional,
+    TypeAlias
 )
 from .__type_aliases import (
     PythonTypes,
@@ -33,7 +30,7 @@ from ..utilities._nan_masking import nan_mask
 from ..utilities._inf_masking import inf_mask
 
 XContainer: TypeAlias = \
-    Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+    PythonTypes | NumpyTypes | PandasTypes | PolarsTypes | ScipySparseTypes
 
 
 
@@ -73,27 +70,26 @@ def check_dtype(
     **Type Aliases**
 
     PythonTypes:
-        Union[list, tuple, set, list[list], tuple[tuple]]
+        list | tuple | set | list[list] | tuple[tuple]
 
     NumpyTypes:
         numpy.ndarray
 
     PandasTypes:
-        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+        pandas.Series | pandas.DataFrame
 
     PolarsTypes:
-        Union[polars.series.Series, polars.dataframe.DataFrame]
+        polars.Series | polars.DataFrame
 
     ScipySparseTypes:
-        Union[
-            ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
-            ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
-            ss.lil_matrix, ss.lil_array, ss.dok_matrix, ss.dok_array,
-            ss.bsr_matrix, ss.bsr_array
-        ]
+        ss.csc_matrix | ss.csc_array | ss.csr_matrix | ss.csr_array
+        | ss.coo_matrix | ss.coo_array | ss.dia_matrix | ss.dia_array
+        | ss.lil_matrix | ss.lil_array | ss.dok_matrix | ss.dok_array
+        | ss.bsr_matrix | ss.bsr_array
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+        PythonTypes | NumpyTypes | PandasTypes | PolarsTypes |
+        ScipySparseTypes
 
     Examples
     --------

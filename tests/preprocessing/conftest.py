@@ -13,9 +13,8 @@ from typing import (
     Optional,
     Sequence
 )
-from typing_extensions import (
+from typing import (
     Any,
-    Union
 )
 
 from uuid import uuid4
@@ -55,21 +54,21 @@ def _X_factory():
 
 
     def foo(
-        _dupl:Optional[list[list[int]]]=None,
-        _has_nan:Optional[Union[int, bool]]=False,
+        _dupl:Optional[list[list[int]]] = None,
+        _has_nan:Optional[int | bool ] = False,
         _format:Optional[Literal[
             'np','pd','pl',
             'csc_array', 'csr_array', 'coo_array', 'dia_array', 'lil_array',
             'dok_array', 'bsr_array',
             'csc_matrix', 'csr_matrix', 'coo_matrix', 'dia_matrix', 'lil_matrix',
             'dok_matrix', 'bsr_matrix'
-        ]]='np',
-        _dtype:Optional[Literal['flt','int','str','obj','hybrid']]='flt',
-        _columns:Optional[Union[Sequence[str], None]]=None,
-        _constants:Optional[Union[dict[int, Any], None]]=None,
-        _noise:Optional[float]=0,
-        _zeros:Optional[Union[float,None]]=0,
-        _shape:Optional[tuple[int,int]]=(20,5)
+        ]] = 'np',
+        _dtype:Optional[Literal['flt','int','str','obj','hybrid']] = 'flt',
+        _columns:Optional[Sequence[str] | None] = None,
+        _constants:Optional[dict[int, Any] | None] = None,
+        _noise:Optional[float] = 0,
+        _zeros:Optional[float | None] = 0,
+        _shape:Optional[tuple[int,int]] = (20,5)
     ):
 
         # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **

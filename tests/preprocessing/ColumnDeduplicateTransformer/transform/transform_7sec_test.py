@@ -94,7 +94,7 @@ class TestTransform:
 
         # retain the original dtype(s)
         _og_format = type(_X_wip)
-        if isinstance(_X_wip, (pd.core.frame.DataFrame, pl.DataFrame)):
+        if isinstance(_X_wip, (pd.DataFrame, pl.DataFrame)):
             # need to cast pl to ndarray
             _og_dtype = np.array(_X_wip.dtypes)
         else:
@@ -140,7 +140,7 @@ class TestTransform:
         assert isinstance(out, _og_format)
 
         # output dtypes are same as given
-        if isinstance(out, (pd.core.frame.DataFrame, pl.DataFrame)):
+        if isinstance(out, (pd.DataFrame, pl.DataFrame)):
             assert np.array_equal(out.dtypes, _og_dtype[_column_mask])
         else:
             assert out.dtype == _og_dtype
@@ -157,7 +157,7 @@ class TestTransform:
             if isinstance(_X_wip, np.ndarray):
                 _out_col = out[:, _out_idx]
                 _og_col = _X_wip[:, _og_idx]
-            elif isinstance(_X_wip, pd.core.frame.DataFrame):
+            elif isinstance(_X_wip, pd.DataFrame):
                 _out_col = out.iloc[:, _out_idx].to_numpy()
                 _og_col = _X_wip.iloc[:, _og_idx].to_numpy()
                 # verify header matches

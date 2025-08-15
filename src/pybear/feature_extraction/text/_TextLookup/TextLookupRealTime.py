@@ -7,14 +7,11 @@
 
 
 from typing import (
+    Any,
     Optional,
     Sequence
 )
-from typing_extensions import (
-    Any,
-    Self,
-    Union
-)
+from typing_extensions import Self
 import numpy.typing as npt
 
 from copy import deepcopy
@@ -255,14 +252,14 @@ class TextLookupRealTime(_TextLookupMixin):
         'auto-mode', where the user will not be prompted for decisions.
         When TLRT encounters a word that is not in the Lexicon, the word
         will be silently deleted from the text body.
-    DELETE_ALWAYS : Optional[Union[Sequence[str], None]], default=None
+    DELETE_ALWAYS : Optional[Sequence[str] | None], default=None
         A list of words that will always be deleted by TLRT, even if
         they are in the `Lexicon`. In both manual and auto modes, TLRT
         will silently delete the word(s), no questions asked. What is
         passed here becomes the seed for the :attr:`DELETE_ALWAYS_`
         attribute, which may have more words added to it during run-time
         in manual mode. Auto-mode will never add more words to this list.
-    REPLACE_ALWAYS : Optional[Union[dict[str, str], None]], default=None
+    REPLACE_ALWAYS : Optional[dict[str, str] | None], default=None
         A dictionary with words expected to be in the text body as keys
         and their respective single-word replacements as values. TLRT
         will replace these words even if they are in the `Lexicon`. For
@@ -272,7 +269,7 @@ class TextLookupRealTime(_TextLookupMixin):
         attribute, which may have more word/replacement pairs added to
         it during run-time in manual mode. Auto-mode will never add more
         entries to this dictionary.
-    SKIP_ALWAYS : Optional[Union[Sequence[str], None]], default=None
+    SKIP_ALWAYS : Optional[Sequence[str] | None], default=None
         A list of words that will always be ignored by TLRT, even if they
         are not in the `Lexicon`. For both auto and manual mode, TLRT
         will not prompt the user for any more information, it will
@@ -280,7 +277,7 @@ class TextLookupRealTime(_TextLookupMixin):
         for the :attr:`SKIP_ALWAYS_` attribute, which may have more words
         added to it during run-time in manual mode. Auto-mode will never
         add more words to this list.
-    SPLIT_ALWAYS : Optional[Union[dict[str, Sequence[str]], None]], default=None
+    SPLIT_ALWAYS : Optional[dict[str, Sequence[str]] | None], default=None
         A dictionary with words expected to be in the text body as keys
         and their respective multi-word lists of replacements as values.
         TLRT will remove the original word and insert these words into
@@ -321,13 +318,13 @@ class TextLookupRealTime(_TextLookupMixin):
         numpy.ndarray[str]
 
     PandasTypes:
-        pandas.core.frame.DataFrame
+        pandas.DataFrame
 
     PolarsTypes:
-        polars.dataframe.DataFrame
+        polars.DataFrame
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+        PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 
     WipXContainer:
         list[list[str]]
@@ -366,10 +363,10 @@ class TextLookupRealTime(_TextLookupMixin):
         auto_split: Optional[bool] = True,
         auto_add_to_lexicon: Optional[bool] = False,
         auto_delete: Optional[bool] = False,
-        DELETE_ALWAYS: Optional[Union[Sequence[str], None]] = None,
-        REPLACE_ALWAYS: Optional[Union[dict[str, str], None]] = None,
-        SKIP_ALWAYS: Optional[Union[Sequence[str], None]] = None,
-        SPLIT_ALWAYS: Optional[Union[dict[str, Sequence[str]], None]] = None,
+        DELETE_ALWAYS: Optional[Sequence[str] | None] = None,
+        REPLACE_ALWAYS: Optional[dict[str, str] | None] = None,
+        SKIP_ALWAYS: Optional[Sequence[str] | None] = None,
+        SPLIT_ALWAYS: Optional[dict[str, Sequence[str]] | None] = None,
         remove_empty_rows: Optional[bool] = False,
         verbose: Optional[bool] = False
     ) -> None:
@@ -481,7 +478,7 @@ class TextLookupRealTime(_TextLookupMixin):
             The (possibly ragged) 2D container of text to have its
             contents cross-referenced against the pybear `Lexicon`.
             Ignored.
-        y : Optional[Union[any, None]], default=None
+        y : Optional[Any | None], default=None
             The target for the data. Always ignored.
 
         Returns

@@ -8,12 +8,10 @@
 
 from typing import (
     Callable,
-    Sequence
+    Sequence,
+    TypeAlias
 )
-from typing_extensions import (
-    TypeAlias,
-    Union
-)
+
 from ..__type_aliases import (
     NumpyTypes,
     PandasTypes,
@@ -33,9 +31,9 @@ from .._check_2D_str_array import check_2D_str_array
 
 
 
-PythonTypes: TypeAlias = Union[Sequence[str], Sequence[Sequence[str]], set[str]]
+PythonTypes: TypeAlias = Sequence[str] | Sequence[Sequence[str]] | set[str]
 
-XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+XContainer: TypeAlias = PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 
 
 
@@ -49,19 +47,19 @@ class FileDumpMixin:
     **Type Aliases**
 
     PythonTypes:
-        Union[Sequence[str], Sequence[Sequence[str]], set[str]]
+        Sequence[str] | Sequence[Sequence[str]] | set[str]
 
     NumpyTypes:
         numpy.ndarray[str]
 
     PandasTypes:
-        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+        pandas.Series | pandas.DataFrame
 
     PolarsTypes:
-        Union[polars.series.Series, polars.dataframe.DataFrame]
+        polars.Series | polars.DataFrame
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+        PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 
     """
 

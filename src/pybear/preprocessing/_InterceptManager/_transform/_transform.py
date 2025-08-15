@@ -47,7 +47,7 @@ def _transform(
 
     assert isinstance(
         _X,
-        (np.ndarray, pd.core.frame.DataFrame, pl.DataFrame, ss.csc_array,
+        (np.ndarray, pd.DataFrame, pl.DataFrame, ss.csc_array,
          ss.csc_matrix)
     )
     assert isinstance(_instructions, dict)
@@ -58,9 +58,9 @@ def _transform(
 
     # class InstructionType(TypedDict):
     #
-    #     keep: Required[Union[None, list[int]]]
-    #     delete: Required[Union[None, list[int]]]
-    #     add: Required[Union[None, dict[str, Any]]]
+    #     keep: Required[None | list[int]]
+    #     delete: Required[None | list[int]]
+    #     add: Required[None | dict[str, Any]]
 
     # 'keep' isnt needed to modify X, it is only in the dictionary for
     # ease of making self.kept_columns_ later.
@@ -75,7 +75,7 @@ def _transform(
         KEEP_MASK[_instructions['delete']] = False
 
     # remove the columns
-    if isinstance(_X, pd.core.frame.DataFrame):
+    if isinstance(_X, pd.DataFrame):
         _X = _X.iloc[:, KEEP_MASK]
     else:
         _X = _X[:, KEEP_MASK]
@@ -106,7 +106,7 @@ def _transform(
             # the output dtype is '<U21' (???, maybe the floating points
             # on the float?) )
 
-        elif isinstance(_X, pd.core.frame.DataFrame):
+        elif isinstance(_X, pd.DataFrame):
             _X[_key] = _new_column.astype(_dtype['pd'])
 
         elif isinstance(_X, pl.DataFrame):

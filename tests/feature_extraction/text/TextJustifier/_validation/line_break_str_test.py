@@ -24,7 +24,7 @@ class TestValLineBreak:
     )
     def test_junk_line_break(self, junk_line_break):
 
-        # must be Union[None, str, Sequence[str]]
+        # must be None | str | Sequence[str]
 
         with pytest.raises(TypeError):
             _val_sep_or_line_break(

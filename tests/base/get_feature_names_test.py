@@ -78,7 +78,7 @@ class TestGetFeatureNames:
             )
             if _format == 'pl_series':
                 _X_wip = _X_wip[:, 0]
-                assert isinstance(_X_wip, pl.series.Series)
+                assert isinstance(_X_wip, pl.Series)
         else:
             raise Exception
 

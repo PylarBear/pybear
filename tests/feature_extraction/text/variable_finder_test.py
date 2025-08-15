@@ -67,7 +67,7 @@ class TestVariableFinder:
             _test_3 = 'abc'
             def test_4(x:int, y:int, z:int):
                 return x + y + z
-            test_5: Union[int, float, None] = None
+            test_5: int | float | None = None
             class test_6(Object):
                 pass
         """

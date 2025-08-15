@@ -6,9 +6,8 @@
 
 
 
-from typing_extensions import (
+from typing import (
     Any,
-    Union
 )
 import numpy.typing as npt
 
@@ -26,7 +25,7 @@ def _parallel_constant_finder(
     _equal_nan: bool,
     _rtol: numbers.Real,
     _atol: numbers.Real
-) -> list[Union[uuid.UUID, Any]]:
+) -> list[uuid.UUID | Any]:
     """
     Determine if a column holds a constant value, subject to `_equal_nan`,
     `_rtol`, and `_atol`. If there is a constant value, return the value.

@@ -81,17 +81,17 @@ class TestValidateData_ParamValidation(Fixtures):
     #     accept_sparse:Iterable[Literal[
     #         "csr", "csc", "coo", "dia", "lil", "dok", "bsr"
     #     ]]=("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
-    #     dtype:Literal['numeric','any']='any',
-    #     require_all_finite:bool=True,
-    #     cast_inf_to_nan:bool=True,
-    #     standardize_nan:bool=True,
-    #     allowed_dimensionality:Iterable[numbers.Integral]=(1,2),
-    #     ensure_2d:bool=True,
-    #     order:Literal['C', 'F']='C',
-    #     ensure_min_features:numbers.Integral=1,
-    #     ensure_max_features:Union[numbers.Integral, None]=None,
-    #     ensure_min_samples:numbers.Integral=1,
-    #     sample_check:Union[numbers.Integral, None]=None
+    #     dtype:Literal['numeric','any'] = 'any',
+    #     require_all_finite:bool = True,
+    #     cast_inf_to_nan:bool = True,
+    #     standardize_nan:bool = True,
+    #     allowed_dimensionality:Iterable[numbers.Integral] = (1,2),
+    #     ensure_2d:bool = True,
+    #     order:Literal['C', 'F'] = 'C',
+    #     ensure_min_features:numbers.Integral = 1,
+    #     ensure_max_features:numbers.Integral | None = None,
+    #     ensure_min_samples:numbers.Integral = 1,
+    #     sample_check:numbers.Integral | None = None
     # ):
 
     # ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
@@ -1168,7 +1168,7 @@ class TestValidateDataAccuracy(Fixtures):
                     assert isinstance(out, np.ndarray)
                     assert out.shape == (_X_np.shape[0], 1)
                 elif _X_format == 'pd':
-                    assert isinstance(out, pd.core.frame.DataFrame)
+                    assert isinstance(out, pd.DataFrame)
                     assert out.shape == (_X_np.shape[0], 1)
                 elif _X_format == 'pl':
                     assert isinstance(out, pl.DataFrame)

@@ -8,9 +8,9 @@
 
 from typing import (
     Iterable,
-    Literal
+    Literal,
+    Union
 )
-from typing_extensions import Union
 from ..._type_aliases import (
     GenericKFoldType,
     ScorerInputType,

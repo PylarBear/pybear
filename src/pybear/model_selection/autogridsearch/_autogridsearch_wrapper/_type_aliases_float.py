@@ -9,9 +9,6 @@
 from typing import (
     Literal,
     Sequence,
-    Tuple
-)
-from typing_extensions import (
     TypeAlias,
     Union
 )
@@ -32,7 +29,7 @@ PointsType: TypeAlias = list[numbers.Integral]
 FloatTypeType: TypeAlias = Literal['soft_float', 'hard_float', 'fixed_float']
 
 InFloatParamType: TypeAlias = \
-    Sequence[Tuple[InFloatGridType, InPointsType, FloatTypeType]]
+    Sequence[tuple[InFloatGridType, InPointsType, FloatTypeType]]
 FloatParamType: TypeAlias = list[FloatGridType, PointsType, FloatTypeType]
 
 

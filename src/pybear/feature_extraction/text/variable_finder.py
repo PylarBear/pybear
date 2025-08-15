@@ -59,7 +59,7 @@ def variable_finder(
         _raw_text = text
 
     _finder = '[A-Za-z0-9_\.,: ]+'    # finds variable names
-    _finder += '[ ]{0,1}[:]{0,1}[ ]{0,1}[A-Za-z\., \[\]]+[ ]{0,1}' # type hints'
+    _finder += '[ ]{0,1}[:]{0,1}[ ]{0,1}[A-Za-z\., \|\[\]]+[ ]{0,1}' # type hints'
     _finder += '[=][ ]{0,1}[A-Za-z0-9\'\"_\.\\\]+'  # find the value
 
     out = re.findall(re.compile(_finder), _raw_text)
@@ -67,7 +67,7 @@ def variable_finder(
     out += re.findall(re.compile('class [A-Za-z0-9_]+'), _raw_text)
 
     _finder = '[A-Za-z0-9_\.,: ]+'       # finds variable names
-    _finder += '[ ]{0,1}[:]{0,1}[ ]{0,1}[A-Za-z\., \[\]]{0,}' # type hints
+    _finder += '[ ]{0,1}[:]{0,1}[ ]{0,1}[A-Za-z\., \|\[\]]{0,}' # type hints
     for _idx, _match in enumerate(out):
         out[_idx] = re.search(re.compile(_finder), _match).group().strip()
         if '=' in out[_idx]:

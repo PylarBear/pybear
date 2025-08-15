@@ -29,12 +29,10 @@ class TestValScoring:
     #     _must_be_dict:Optional[bool] = True
     # ) -> None:
 
-    # ScorerInputType: TypeAlias = Union[
-    #     ScorerNameTypes,
-    #     Sequence[ScorerNameTypes],
-    #     ScorerCallableType,
-    #     dict[str, ScorerCallableType]
-    # ]
+    # ScorerInputType: TypeAlias = (
+    #     ScorerNameTypes | Sequence[ScorerNameTypes]
+    #     | ScorerCallableType | dict[str, ScorerCallableType]
+    # )
 
 
     @pytest.mark.parametrize('junk_scoring',

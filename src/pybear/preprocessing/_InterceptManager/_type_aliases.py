@@ -7,16 +7,13 @@
 
 
 from typing import (
+    Any,
     Callable,
     Literal,
+    TypeAlias,
     TypedDict
 )
-from typing_extensions import (
-    Any,
-    Required,
-    TypeAlias,
-    Union
-)
+from typing_extensions import Required
 import numpy.typing as npt
 from ..__shared._type_aliases import XContainer
 
@@ -30,29 +27,22 @@ import polars as pl
 
 # once any ss is inside partial_fit, inv_trfm, or transform it is
 # converted to csc
-InternalXContainer: TypeAlias = Union[
-    npt.NDArray,
-    pd.DataFrame,
-    pl.DataFrame,
-    ss.csc_matrix,
-    ss.csc_array
-]
+InternalXContainer: TypeAlias = \
+    npt.NDArray | pd.DataFrame | pl.DataFrame | ss.csc_matrix | ss.csc_array
 
 
-KeepType: TypeAlias = Union[
-    Literal['first', 'last', 'random', 'none'],
-    dict[str, Any],
-    numbers.Integral,
-    str,
-    Callable[[XContainer], int]
-]
+KeepType: TypeAlias = (
+    Literal['first', 'last', 'random', 'none'] | dict[str, Any]
+    | numbers.Integral | str | Callable[[XContainer], int]
+)
+
 
 
 class InstructionType(TypedDict):
 
-    keep: Required[Union[None, list[int]]]
-    delete: Required[Union[None, list[int]]]
-    add: Required[Union[None, dict[str, Any]]]
+    keep: Required[None | list[int]]
+    delete: Required[None | list[int]]
+    add: Required[None | dict[str, Any]]
 
 
 ConstantColumnsType: TypeAlias = dict[int, Any]

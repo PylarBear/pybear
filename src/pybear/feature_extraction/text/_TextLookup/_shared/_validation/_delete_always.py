@@ -6,15 +6,16 @@
 
 
 
-from typing import Sequence
-from typing_extensions import Union
+from typing import (
+    Sequence,
+)
 
 from ......base._check_1D_str_sequence import check_1D_str_sequence
 
 
 
 def _val_delete_always(
-    _delete_always: Union[Sequence[str], None]
+    _delete_always: Sequence[str] | None
 ) -> None:
     """Validate delete_always.
 
@@ -22,7 +23,7 @@ def _val_delete_always(
 
     Parameters
     ----------
-    _delete_always : Union[Sequence[str], None]
+    _delete_always : Sequence[str] | None
         A 1D sequence of strings that when there is a case-sensitive
         match against a word in the text, that word is removed from the
         body of text.

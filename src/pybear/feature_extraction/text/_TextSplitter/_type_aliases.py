@@ -6,8 +6,8 @@
 
 
 
-from typing import Optional
-from typing_extensions import (
+from typing import (
+    Optional,
     TypeAlias,
     Union
 )

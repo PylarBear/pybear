@@ -6,7 +6,7 @@
 
 
 
-from typing_extensions import (
+from typing import (
     TypeAlias,
     Union
 )
@@ -23,19 +23,18 @@ import scipy.sparse as ss
 from ._copy_X import copy_X as _copy_X
 
 
-
+# pizza, PYCHARM like Union not pipe
 NumpyTypes: TypeAlias = \
     Union[np.ndarray, np.ma.MaskedArray]
 
-ScipySparseTypes: TypeAlias = \
-    Union[
-        ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
-        ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
-        ss.lil_matrix, ss.lil_array, ss.bsr_matrix, ss.bsr_array
-    ]
+ScipySparseTypes: TypeAlias = (
+    ss.csc_matrix | ss.csc_array | ss.csr_matrix | ss.csr_array
+    | ss.coo_matrix | ss.coo_array | ss.dia_matrix | ss.dia_array
+    | ss.lil_matrix | ss.lil_array | ss.bsr_matrix | ss.bsr_array
+)
 
 XContainer: TypeAlias = \
-    Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+    NumpyTypes | PandasTypes | PolarsTypes | ScipySparseTypes
 
 
 
@@ -69,23 +68,21 @@ def ensure_2D(
     **Type Aliases**
 
     NumpyTypes:
-        Union[numpy.ndarray, numpy.ma.MaskedArray]
+        numpy.ndarray | numpy.ma.MaskedArray
 
     PandasTypes:
-        Union[pandas.core.series.Series, pandas.core.frame.DataFrame]
+        pandas.Series | pandas.DataFrame
 
     PolarsTypes:
-        Union[polars.series.Series, polars.dataframe.DataFrame]
+        polars.Series | polars.DataFrame
 
     ScipySparseTypes:
-        Union[
-            ss.csc_matrix, ss.csc_array, ss.csr_matrix, ss.csr_array,
-            ss.coo_matrix, ss.coo_array, ss.dia_matrix, ss.dia_array,
-            ss.lil_matrix, ss.lil_array, ss.bsr_matrix, ss.bsr_array
-        ]
+        ss.csc_matrix | ss.csc_array | ss.csr_matrix | ss.csr_array
+        | ss.coo_matrix | ss.coo_array | ss.dia_matrix | ss.dia_array
+        | ss.lil_matrix | ss.lil_array | ss.bsr_matrix | ss.bsr_array
 
     XContainer:
-        Union[NumpyTypes, PandasTypes, PolarsTypes, ScipySparseTypes]
+        NumpyTypes | PandasTypes | PolarsTypes | ScipySparseTypes
 
     Examples
     --------
@@ -146,9 +143,9 @@ def ensure_2D(
 
         if isinstance(_X, (np.ndarray, np.ma.MaskedArray)):
             return _X.reshape((-1, 1))
-        elif isinstance(_X, pd.core.series.Series):
+        elif isinstance(_X, pd.Series):
             return _X.to_frame()
-        elif isinstance(_X, pl.series.Series):
+        elif isinstance(_X, pl.Series):
             return pl.DataFrame(_X)
         # should not have scipy sparse here
         else:

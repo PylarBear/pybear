@@ -6,8 +6,10 @@
 
 
 
-from typing import Sequence
-from typing_extensions import Union
+from typing import (
+    Sequence,
+    Union
+)
 from .._type_aliases import XContainer
 
 from .....base._check_1D_str_sequence import check_1D_str_sequence

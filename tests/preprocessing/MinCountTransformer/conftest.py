@@ -8,10 +8,10 @@
 
 import pytest
 
-from typing_extensions import (
+from typing import (
+    Any,
     Callable,
-    Sequence,
-    Union
+    Sequence
 )
 import numpy.typing as npt
 
@@ -89,16 +89,16 @@ def mmct():
 
         def trfm(
             self,
-            MOCK_X: npt.NDArray[any],
-            MOCK_Y: Union[npt.NDArray[int], None],
-            ignore_columns: Union[Sequence[int], None],
+            MOCK_X: npt.NDArray[Any],
+            MOCK_Y: npt.NDArray[int] | None,
+            ignore_columns: Sequence[int] | None,
             ignore_nan: bool,
             ignore_non_binary_integer_columns: bool,
             ignore_float_columns: bool,
-            handle_as_bool: Union[Sequence[int], None],
+            handle_as_bool: Sequence[int] | None,
             delete_axis_0: bool,
             count_threshold: int
-        ) -> Union[tuple[npt.NDArray[any], npt.NDArray[int]], npt.NDArray[any]]:
+        ) -> tuple[npt.NDArray[Any], npt.NDArray[int]] | npt.NDArray[Any]:
 
             if handle_as_bool is None:
                 handle_as_bool = []
@@ -506,7 +506,7 @@ def trfm_validator() -> Callable:
     """
 
     def foo(
-        VECTOR: npt.NDArray[Union[int, str, bool]],
+        VECTOR: npt.NDArray[int | str | bool],
         _thresh: int,
         _source_len: int
     ) -> bool:

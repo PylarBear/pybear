@@ -6,8 +6,8 @@
 
 
 
-from typing import Sequence
-from typing_extensions import (
+from typing import (
+    Sequence,
     TypeAlias,
     Union
 )
@@ -22,9 +22,9 @@ PythonTypes: TypeAlias = Sequence[Sequence[str]]
 
 NumpyTypes: TypeAlias = npt.NDArray[str]
 
-PandasTypes: TypeAlias = pd.core.frame.DataFrame
+PandasTypes: TypeAlias = pd.DataFrame
 
-PolarsTypes: TypeAlias = pl.dataframe.DataFrame
+PolarsTypes: TypeAlias = pl.DataFrame
 
 XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
 

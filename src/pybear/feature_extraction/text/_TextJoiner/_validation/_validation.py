@@ -6,8 +6,10 @@
 
 
 
-from typing import Sequence
-from typing_extensions import Union
+from typing import (
+    Sequence,
+    Union
+)
 from .._type_aliases import XContainer
 
 from ...__shared._validation._2D_X import _val_2D_X

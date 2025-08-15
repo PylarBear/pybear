@@ -29,8 +29,8 @@ class TestMapXToListAccuracy:
 
 
     # def _map_X_to_list(
-    #     _X: Union[Dim1Types, Dim2Types]
-    # ) -> Union[list[str], list[list[str]]]:
+    #     _X: Dim1Types | Dim2Types
+    # ) -> list[str] | list[list[str]]:
 
 
     @pytest.mark.parametrize('_container',

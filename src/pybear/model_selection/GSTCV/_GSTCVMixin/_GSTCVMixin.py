@@ -6,11 +6,11 @@
 
 
 
-from typing_extensions import (
+from typing import (
     Any,
-    Self,
     Union
 )
+from typing_extensions import Self
 import numpy.typing as npt
 from .._type_aliases import (
     ClassifierProtocol,

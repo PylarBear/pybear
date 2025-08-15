@@ -28,7 +28,7 @@ class TestMakeInstructions:
     #     _delete_axis_0: bool,
     #     _original_dtypes: OriginalDtypesType,
     #     _n_features_in: int,
-    #     _feature_names_in: Union[FeatureNamesInType, None],
+    #     _feature_names_in: FeatureNamesInType | None,
     #     _total_counts_by_column: TotalCountsByColumnType
     # ) -> InstructionsType:
 

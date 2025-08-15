@@ -71,7 +71,7 @@ class TestTextPadder:
         TestCls.set_output(transform='pandas')
         assert TestCls._output_transform == 'pandas'
         out = TestCls.fit_transform(_text)
-        assert isinstance(out, pd.core.frame.DataFrame)
+        assert isinstance(out, pd.DataFrame)
         assert TestCls._output_transform == 'pandas'
 
         TestCls.set_output(transform='polars')

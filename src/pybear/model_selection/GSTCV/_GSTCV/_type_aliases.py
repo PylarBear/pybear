@@ -11,9 +11,7 @@ from typing import (
     Iterable,
     Literal,
     Optional,
-    Sequence
-)
-from typing_extensions import (
+    Sequence,
     TypeAlias,
     Union
 )

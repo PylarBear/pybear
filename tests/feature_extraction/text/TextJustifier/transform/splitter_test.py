@@ -26,8 +26,8 @@ class TestSplitter:
 
     # def _splitter(
     #     _X: list[str],
-    #     _sep: Union[re.Pattern[str], tuple[re.Pattern[str], ...]],
-    #     _line_break: Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]
+    #     _sep: re.Pattern[str] | tuple[re.Pattern[str], ...]
+    #     _line_break: None | re.Pattern[str] | tuple[re.Pattern[str], ...]
     # ) -> list[str]:
 
 

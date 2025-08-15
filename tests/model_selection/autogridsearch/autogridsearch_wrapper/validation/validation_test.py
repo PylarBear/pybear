@@ -26,7 +26,7 @@ class TestValidation:
     #     _params: InParamsType,
     #     _total_passes: numbers.Integral,
     #     _total_passes_is_hard: bool,
-    #     _max_shifts: Union[None, numbers.Integral],
+    #     _max_shifts: None | numbers.Integral,
     #     _agscv_verbose: bool
     # ) -> None:
 
