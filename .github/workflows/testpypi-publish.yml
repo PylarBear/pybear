@@ -1,6 +1,6 @@
 # TestPyPI git action template almost verbatim from 
 # https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/
-# with some minor edits. 24_09_06_19_11_00
+# with some minor edits.
 
 
 name: TestPyPI Publishing Workflow
@@ -27,11 +27,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y llvm clang libomp-dev
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12.x"
+          python-version: "3.x"
   
       - name: Install pip, poetry, & dependencies
         run: |
