@@ -6,12 +6,8 @@
 
 
 
-from typing import Union
-
-
-
 def _val_replace_always(
-    _replace_always: Union[dict[str, str], None]
+    _replace_always: dict[str, str] | None
 ) -> None:
     """Validate `replace_always`.
 
@@ -19,7 +15,7 @@ def _val_replace_always(
 
     Parameters
     ----------
-    _replace_always : Union[dict[str, str], None]
+    _replace_always : dict[str, str] | None
         A dictionary of keys that when the key is a case-sensitive match
         against a word in the text then the respective value is put in
         place of the word in the text body.

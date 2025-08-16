@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import (
     InParamsType,
 
@@ -26,7 +25,7 @@ def _validation(
     _params: InParamsType,
     _total_passes: numbers.Integral,
     _total_passes_is_hard: bool,
-    _max_shifts: Union[None, numbers.Integral],
+    _max_shifts: numbers.Integral | None,
     _agscv_verbose: bool
 ) -> None:
     """Centralized hub for validation.
@@ -43,7 +42,7 @@ def _validation(
     _total_passes_is_hard:
         bool
     _max_shifts:
-        Union[None, numbers.Integral]
+        numbers.Integral | None
     _agscv_verbose:
         bool
 

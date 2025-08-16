@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import OriginalDtypesType
 
 import numpy as np
@@ -19,7 +18,7 @@ from ...__shared._validation._any_integer import _val_any_integer
 
 def _original_dtypes_merger(
     _col_dtypes: OriginalDtypesType,
-    _previous_col_dtypes: Union[OriginalDtypesType, None],
+    _previous_col_dtypes: OriginalDtypesType | None,
     _n_features_in: int
 ) -> OriginalDtypesType:
     """Merge the datatypes found for the current partial fit with the
@@ -47,7 +46,7 @@ def _original_dtypes_merger(
     _col_dtypes : OriginalDtypesType
         The datatypes found by MCT in the data for the current partial
         fit.
-    _previous_col_dtypes : Union[OriginalDtypesType, None]
+    _previous_col_dtypes : OriginalDtypesType | None
         The datatypes found by MCT in data seen in previous partial fits.
     _n_features_in : int
         The number of features in the data.

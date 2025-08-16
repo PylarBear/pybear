@@ -8,13 +8,12 @@
 
 from typing import (
     TypeAlias,
-    Union
 )
 
 import numbers
 
 
-CaseSensitiveType: TypeAlias = Union[bool, list[Union[bool, None]]]
+CaseSensitiveType: TypeAlias = bool | list[bool | None]
 
 
 
@@ -29,7 +28,7 @@ def _val_case_sensitive(
 
     Parameters
     ----------
-    _case_sensitive : Union[bool, list[Union[bool, None]]]
+    _case_sensitive : bool | list[bool | None]
         Whether to do a case-sensitive search. If a list-like, the
         entries are applied to the corresponding row in the data.
     _n_rows : numbers.Integral
@@ -45,7 +44,7 @@ def _val_case_sensitive(
     **Type Aliases**
 
     CaseSensitiveType:
-        Union[bool, list[Union[bool, None]]]
+        bool | list[bool | None]
 
     """
 

@@ -8,7 +8,6 @@
 
 from typing import (
     TypeAlias,
-    Union
 )
 from .__type_aliases import (
     PandasTypes,
@@ -23,9 +22,8 @@ import scipy.sparse as ss
 from ._copy_X import copy_X as _copy_X
 
 
-# pizza, PYCHARM like Union not pipe
-NumpyTypes: TypeAlias = \
-    Union[np.ndarray, np.ma.MaskedArray]
+
+NumpyTypes: TypeAlias = np.ndarray | np.ma.MaskedArray
 
 ScipySparseTypes: TypeAlias = (
     ss.csc_matrix | ss.csc_array | ss.csr_matrix | ss.csr_array

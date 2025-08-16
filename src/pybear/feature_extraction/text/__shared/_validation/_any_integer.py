@@ -7,9 +7,7 @@
 
 
 from typing import (
-    Optional,
     Sequence,
-    Union
 )
 
 import numbers
@@ -17,13 +15,13 @@ import numbers
 
 
 def _val_any_integer(
-    _int:Union[numbers.Integral, Sequence[numbers.Integral]],
-    _name:Optional[str] = 'unnamed integer',
-    _min:Optional[numbers.Real] = float('-inf'),
-    _max:Optional[numbers.Real] = float('inf'),
-    _disallowed:Optional[Sequence[numbers.Integral]] = [],
-    _can_be_bool:Optional[bool] = False,
-    _can_be_None:Optional[bool] = False
+    _int:numbers.Integral | Sequence[numbers.Integral],
+    _name:str = 'unnamed integer',
+    _min:numbers.Real = float('-inf'),
+    _max:numbers.Real = float('inf'),
+    _disallowed:Sequence[numbers.Integral] = [],
+    _can_be_bool:bool = False,
+    _can_be_None:bool = False
 ) -> None:
     """Validate any integer or sequence of integers.
 
@@ -44,17 +42,17 @@ def _val_any_integer(
 
     Parameters
     ----------
-    _int : Union[numbers.Integral, Sequence[numbers.Integral]]
+    _int : numbers.Integral | Sequence[numbers.Integral]
         Number to be validated whether it is an integer.
-    _min : Optional[numbers.Real], default=float('-inf')
+    _min : numbers.Real, default=float('-inf')
         The minimum allowed value '_int' can take.
-    _max : Optional[numbers.Real], default=float('inf')
+    _max : numbers.Real, default=float('inf')
         The maximum allowed value '_int' can take.
-    _disallowed : Optional[Sequence[numbers.Integral]], default=[]
+    _disallowed : Sequence[numbers.Integral], default=[]
         Values that '_int' is not allowed to take.
-    _can_be_bool : Optional[bool], default=False
+    _can_be_bool : bool, default=False
         If True, '_int' can be boolean.
-    _can_be_None : Optional[bool], default=False
+    _can_be_None : bool, default=False
         If True, '_int' can be None.
 
     Returns
@@ -95,7 +93,7 @@ def _val_any_integer(
 
     # helper function -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     def _helper(
-        _int:Union[numbers.Integral, Sequence[numbers.Integral], None],
+        _int:numbers.Integral | Sequence[numbers.Integral] | None,
     ) -> None:
 
         """Helper function for validating integers."""

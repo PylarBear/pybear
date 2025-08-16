@@ -8,9 +8,7 @@
 
 from typing import (
     Any,
-    Optional,
-    Sequence,
-    Union
+    Sequence
 )
 from typing_extensions import Self
 from ._type_aliases import (
@@ -78,7 +76,7 @@ class TextJoiner(
 
     Parameters
     ----------
-    sep : Optional[Union[str, Sequence[str]]], default=' '
+    sep : str | Sequence[str], default=' '
         The character sequence to insert between individual strings when
         joining the 2D input data across rows. If a 1D sequence of
         strings, then the `sep` value in each position is used to join
@@ -107,15 +105,14 @@ class TextJoiner(
         polars.DataFrame
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+        PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 
     XWipContainer:
         list[str]
 
     SepType:
-        Optional[Union[str, Sequence[str]]]
+        str | Sequence[str]
 
-\
     Examples
     --------
     >>> from pybear.feature_extraction.text import TextJoiner as TJ
@@ -135,7 +132,7 @@ class TextJoiner(
     def __init__(
         self,
         *,
-        sep: Optional[Union[str, Sequence[str]]] = ' '
+        sep:str | Sequence[str] = ' '
     ) -> None:
         """Initialize the TextJoiner instance."""
 
@@ -184,8 +181,8 @@ class TextJoiner(
 
     def partial_fit(
         self,
-        X: XContainer,
-        y: Optional[Any] = None
+        X:XContainer,
+        y:Any = None
     ) -> Self:
         """No-op batch-wise `fit` method.
 
@@ -194,7 +191,7 @@ class TextJoiner(
         X : XContainer
             The (possibly ragged) 2D container of text to be joined along
             rows using the `sep` character string(s). Ignored.
-        y : Optional[Any], default=None
+        y : Any, default=None
             The target for the data. Always ignored.
 
         Returns
@@ -209,8 +206,8 @@ class TextJoiner(
 
     def fit(
         self,
-        X: XContainer,
-        y: Optional[Any] = None
+        X:XContainer,
+        y:Any = None
     ) -> Self:
         """No-op one-shot `fit` method.
 
@@ -219,7 +216,7 @@ class TextJoiner(
         X : XContainer
             The (possibly ragged) 2D container of text to be joined along
             rows using the `sep` character string(s). Ignored.
-        y : Optional[Any], default=None
+        y : Any, default=None
             The target for the data. Always ignored.
 
         Returns
@@ -235,7 +232,7 @@ class TextJoiner(
     def transform(
         self,
         X:XContainer,
-        copy:Optional[bool] = False
+        copy:bool = False
     ) -> XWipContainer:
         """Convert each row of tokenized strings in X to a single string.
 
@@ -247,7 +244,7 @@ class TextJoiner(
         X : XContainer
             The (possibly ragged) 2D container of text to be joined along
             rows using the `sep` character string(s).
-        copy : Optional[bool], default=False
+        copy : bool, default = False
             Whether to operate directly on the original `X` or a deepcopy
             of `X`.
 
@@ -279,8 +276,8 @@ class TextJoiner(
 
     def score(
         self,
-        X: Any,
-        y: Optional[Any] = None
+        X:Any,
+        y:Any = None
     ) -> None:
         """No-op score method.
 
@@ -290,7 +287,7 @@ class TextJoiner(
         ----------
         X : Any
             The data. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default = None
             The target for the data. Ignored.
 
         Returns

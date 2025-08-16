@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import (
     DoNotDropType,
     ConflictType,
@@ -32,14 +31,14 @@ from ...__shared._validation._any_integer import _val_any_integer
 
 def _validation(
     _X: XContainer,
-    _columns: Union[FeatureNamesInType, None],
+    _columns: FeatureNamesInType | None,
     _conflict: ConflictType,
     _do_not_drop: DoNotDropType,
     _keep: KeepType,
     _rtol: numbers.Real,
     _atol: numbers.Real,
     _equal_nan: bool,
-    _n_jobs: Union[numbers.Integral | None],
+    _n_jobs: numbers.Integral | None,
     _job_size: numbers.Integral
 ) -> None:
     """Centralized hub for performing parameter validation.
@@ -50,7 +49,7 @@ def _validation(
     ----------
     _X : XContainer of shape (n_samples, n_features)
         The data.
-    _columns : Union[FeatureNamesInType, None]
+    _columns : FeatureNamesInType | None
         An vector of shape (n_features,) if `X` was passed in a container
         that has a header, otherwise None.
     _conflict : ConflictType
@@ -67,7 +66,7 @@ def _validation(
         non-boolean, non-negative, real number. See numpy.allclose.
     _equal_nan : bool
         How to handle nan values during comparisons.
-    _n_jobs : Union[numbers.Integral, None]
+    _n_jobs : numbers.Integral | None
         The number of joblib Parallel jobs to use when scanning the data
         for duplicates.
     _job_size : numbers.Integral

@@ -11,8 +11,7 @@ from typing import (
     Callable,
     Literal,
     Sequence,
-    TypeAlias,
-    Union
+    TypeAlias
 )
 import numpy.typing as npt
 
@@ -29,11 +28,10 @@ InternalXContainer: TypeAlias = (
     | ss._lil.lil_array | ss._dok.dok_array
 )
 
-FeatureNameCombinerType: TypeAlias = \
-    Union[
-        Callable[[Sequence[str], tuple[int, ...]], str],
-        Literal['as_feature_names', 'as_indices']
-    ]
+FeatureNameCombinerType: TypeAlias = (
+    Callable[[Sequence[str], tuple[int, ...]], str]
+    | Literal['as_feature_names', 'as_indices']
+)
 
 CombinationsType: TypeAlias = tuple[tuple[int, ...], ...]
 

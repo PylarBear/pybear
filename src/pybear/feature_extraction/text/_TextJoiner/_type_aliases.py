@@ -7,10 +7,8 @@
 
 
 from typing import (
-    Optional,
     Sequence,
-    TypeAlias,
-    Union
+    TypeAlias
 )
 import numpy.typing as npt
 
@@ -23,16 +21,11 @@ NumpyTypes: TypeAlias = npt.NDArray[str]
 PandasTypes: TypeAlias = pd.DataFrame
 PolarsTypes: TypeAlias = pl.DataFrame
 
-XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+XContainer: TypeAlias = PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 
 XWipContainer: TypeAlias = list[str]
 
-SepType: TypeAlias = Optional[Union[str, Sequence[str]]]
-
-
-
-
-
+SepType: TypeAlias = str | Sequence[str]
 
 
 

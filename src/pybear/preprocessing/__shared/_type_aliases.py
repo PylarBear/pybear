@@ -9,7 +9,6 @@
 import numpy.typing as npt
 from typing import (
     TypeAlias,
-    Union
 )
 
 import pandas as pd

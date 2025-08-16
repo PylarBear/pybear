@@ -55,7 +55,7 @@ def _regexp_1D_core(
     **Type Aliases**
 
     WipRemoveType:
-        Optional[Union[WipPatternType, list[WipPatternType]]]
+        WipPatternType | list[WipPatternType]
 
     """
 

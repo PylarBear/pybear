@@ -8,8 +8,7 @@
 
 from typing import (
     Callable,
-    Sequence,
-    Union
+    Sequence
 )
 from .._type_aliases import XContainer
 
@@ -29,11 +28,11 @@ from ...__shared._validation._any_integer import _val_any_integer
 
 def _validation(
     _X: XContainer,
-    _match_callable: Union[Callable[[str, str], bool], None],
+    _match_callable: Callable[[str, str], bool] | None,
     _remove_empty_rows: bool,
-    _exempt: Union[Sequence[str], None],
-    _supplemental: Union[Sequence[str], None],
-    _n_jobs: Union[numbers.Integral, None]
+    _exempt: Sequence[str] | None,
+    _supplemental: Sequence[str] | None,
+    _n_jobs: numbers.Integral | None
 ) -> None:
     """Centralized hub for validating parameters for `StopRemover`.
 
@@ -44,19 +43,19 @@ def _validation(
     ----------
     _X : XContainer
         The data from which to remove stop words.
-    _match_callable : Union[Callable[[str, str], bool], None]
+    _match_callable : Callable[[str, str], bool] | None
         None to use the default `StopRemover` matching criteria, or a
         custom callable that defines what constitutes matches of words
         in the text against the stop words.
     _remove_empty_rows : bool
         Whether to remove any empty rows that may be left after the stop
         word removal process.
-    _exempt : Optional[Union[list[str], None]]
+    _exempt : Sequence[str] | None
         Stop words that are exempted from the search. text that matches
         these words will not be removed.
-    _supplemental : Optional[Union[list[str], None]]
+    _supplemental : Sequence[str] | None
         Words to be removed in addition to the stop words.
-    _n_jobs : Optional[Union[numbers.Integral, None]], default = -1
+    _n_jobs : numbers.Integral | None, default = -1
         The number of cores/threads to use when parallelizing the
         search for stop words in the rows of `X`. The default is to
         use processes but can be set by running `StopRemover` under a

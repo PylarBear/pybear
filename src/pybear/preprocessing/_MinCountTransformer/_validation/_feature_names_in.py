@@ -6,10 +6,6 @@
 
 
 
-from typing import (
-    Optional,
-    Union
-)
 from .._type_aliases import FeatureNamesInType
 
 from ...__shared._validation._any_integer import _val_any_integer
@@ -17,8 +13,8 @@ from ...__shared._validation._any_integer import _val_any_integer
 
 
 def _val_feature_names_in(
-    _feature_names_in: Union[FeatureNamesInType, None],
-    _n_features_in: Optional[Union[int, None]]=None
+    _feature_names_in: FeatureNamesInType | None,
+    _n_features_in: int | None = None
 ) -> None:
     """Validate `feature_names_in` is None or 1D list-like of strings.
 
@@ -31,7 +27,7 @@ def _val_feature_names_in(
         If MCT was fit on a data container that had a header (e.g.
         pandas or polars dataframe) then this is a list-like of those
         feature names. Otherwise, is None.
-    _n_features_in : Optional[Union[int, None]], default=None
+    _n_features_in : int | None, default=None
         The number of features in the data that was fit.
 
     Returns

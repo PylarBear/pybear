@@ -8,8 +8,7 @@
 
 from typing import (
     Literal,
-    Sequence,
-    Union
+    Sequence
 )
 from .._type_aliases import FeatureNamesInType
 
@@ -26,11 +25,11 @@ from ...__shared._validation._any_integer import _val_any_integer
 
 
 def _val_ign_cols_hab_callable(
-    _fxn_output: Union[Sequence[str], Sequence[numbers.Integral]],
-    _first_fxn_output: Union[Sequence[str], Sequence[numbers.Integral], None],
+    _fxn_output: Sequence[str] | Sequence[numbers.Integral],
+    _first_fxn_output: Sequence[str] | Sequence[numbers.Integral] | None,
     _name: Literal['ignore_columns', 'handle_as_bool'],
     _n_features_in: int,
-    _feature_names_in: Union[FeatureNamesInType, None]
+    _feature_names_in: FeatureNamesInType | None
 ) -> None:
     """Validate an `ignore_columns` or `handle_as_bool` callable.
 
@@ -57,10 +56,10 @@ def _val_ign_cols_hab_callable(
 
     Parameters
     ----------
-    _fxn_output : Union[Sequence[str], Sequence[numbers.Integral]]
+    _fxn_output : Sequence[str] | Sequence[numbers.Integral]
         The output of the callable used for `ignore_columns` or
         `handle_as_bool`.
-    _first_fxn_output : Union[Sequence[str], Sequence[numbers.Integral], None]
+    _first_fxn_output : Sequence[str] | Sequence[numbers.Integral] | None
         The output of the callable on the first call to `partial_fit` or
         `transform`. used to validate that all subsequent outputs of the
         callable equal the first.
@@ -68,7 +67,7 @@ def _val_ign_cols_hab_callable(
         The name of the parameter for which a callable was passed.
     _n_features_in : int
         The number of features in the data.
-    _feature_names_in : Union[FeatureNamesInType, None]
+    _feature_names_in : FeatureNamesInType | None
         The feature names of a data-bearing object.
 
     Returns

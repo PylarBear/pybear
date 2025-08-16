@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 import numpy.typing as npt
 from .._type_aliases import InternalXContainer
 
@@ -21,7 +20,7 @@ from ....utilities._nan_masking import nan_mask
 
 def _columns_getter(
     _X: InternalXContainer,
-    _col_idxs: Union[int, tuple[int, ...]]
+    _col_idxs: int | tuple[int, ...]
 ) -> npt.NDArray:
     """Handles the mechanics of extracting one or more columns from the
     various allowed data container types.
@@ -38,7 +37,7 @@ def _columns_getter(
         The data to undergo minimum frequency thresholding. There is no
         conditioning of the data here and this module expects to receive
         it in suitable form.
-    _col_idxs : Union[int, tuple[int, ...]]
+    _col_idxs : int | tuple[int, ...]
         The column index / indices to extract from `_X`.
 
     Returns

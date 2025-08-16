@@ -18,12 +18,6 @@ from pybear.model_selection.GSTCV._GSTCVMixin._validation._param_grid \
 class TestValParamGrid:
 
 
-    # def _val_param_grid(
-    #     _param_grid:ParamGridInputType | ParamGridsInputType,
-    #     _must_be_list_dict:Optional[bool] = True
-    # ) -> None:
-
-
     @staticmethod
     @pytest.fixture(scope='function')
     def good_param_grid():

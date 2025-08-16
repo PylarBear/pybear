@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import NGramsType
 
 # this is directly from NGramMerger
@@ -15,7 +14,7 @@ from ..._NGramMerger._validation._ngrams import _val_ngrams
 
 
 def _val_ngram_merge(
-    _ngram_merge: Union[None, NGramsType]
+    _ngram_merge: NGramsType | None
 ) -> None:
     """Validate ngram_merge.
 
@@ -27,7 +26,7 @@ def _val_ngram_merge(
 
     Parameters
     ----------
-    _ngram_merge : Union[None, NGramsType]
+    _ngram_merge : NGramsType | None
         Can be None. A dictionary keyed with 'ngrams' and  'wrap'.
         'ngrams' is a sequence of sequences, where each inner sequence
         holds a series of string literals and/or re.compile objects that

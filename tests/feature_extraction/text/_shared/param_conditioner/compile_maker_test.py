@@ -24,16 +24,6 @@ class TestCompileMaker:
     # any str literal is converted to re.compile
     # always returns a list
 
-    # ddef _compile_maker(
-    #     _pattern_holder: (
-    #         str | re.Pattern | tuple[str | re.Pattern, ...]
-    #         | list[None | str | re.Pattern | tuple[str | re.Pattern, ...]]
-    #     ),
-    #     _order_matters: bool,
-    #     _n_rows: numbers.Integral,
-    #     _name:Optional[str] = 'unnamed pattern holder'
-    # ) -> list[list[None] | list[re.Pattern]]:
-
 
     def test_rejects_None(self):
 

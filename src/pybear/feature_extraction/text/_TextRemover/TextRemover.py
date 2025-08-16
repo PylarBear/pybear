@@ -8,7 +8,6 @@
 
 from typing import (
     Any,
-    Optional
 )
 from typing_extensions import Self
 import numpy.typing as npt
@@ -135,7 +134,7 @@ class TextRemover(
 
     Parameters
     ----------
-    remove : Optional[RemoveType], default=None
+    remove : RemoveType, default = None
         The literal strings or regex patterns to remove from the data.
         When passed as a single literal string or re.compile object,
         that is applied to every string in the data, and every full
@@ -147,19 +146,19 @@ class TextRemover(
         string, re.compile, or tuple is applied to the corresponding row
         in the data. If any entry in the list is None, the corresponding
         row in the data is ignored.
-    case_sensitive : Optional[CaseSensitiveType]
+    case_sensitive : CaseSensitiveType, default = True
         Global setting for case-sensitivity. If True (the default)
         then all searches are case-sensitive. If False, TR will look
         for matches regardless of case. This setting is overriden
         when IGNORECASE flags are passed in re.compile objects or
         to `flags`.
-    remove_empty_rows : Optional[bool], default=False
+    remove_empty_rows : bool, default = False
         Whether to remove rows that become empty when data is passed in
         a 2D container. This does not apply to 1D data. If True, TR
         will remove any empty rows from the data and that row will be
         indicated in the `row_support_` mask by a False in that position.
         If False, empty rows are not removed from the data.
-    flags : Optional[FlagsType]
+    flags : FlagsType, default = None
         The flags value(s) for the full string searches. Internally,
         TR does all its searching for strings with `re.fullmatch`,
         therefore flags can be passed whether you are searching for
@@ -204,23 +203,23 @@ class TextRemover(
     PatternType:
         None | str | re.Pattern[str] | tuple[str | re.Pattern[str], ...]
     RemoveType:
-        Optional[PatternType | list[PatternType]]
+        PatternType | list[PatternType]
 
     WipPatternType:
         None | re.Pattern[str] | tuple[re.Pattern[str], ...]
     WipRemoveType:
-        Optional[WipPatternType | list[WipPatternType]]
+        WipPatternType | list[WipPatternType]
 
     CaseSensitiveType:
-        Optional[bool | list[bool | None]]
+        bool | list[bool | None]
 
     RemoveEmptyRowsType:
-        Optional[bool]
+        bool
 
     FlagType:
         None | numbers.Integral
     FlagsType:
-        Optional[FlagType | list[FlagType]]
+        FlagType | list[FlagType]
 
     RowSupportType:
         numpy.ndarray[bool]
@@ -251,7 +250,7 @@ class TextRemover(
         *,
         remove: RemoveType = None,
         case_sensitive: CaseSensitiveType = True,
-        remove_empty_rows: Optional[bool] = False,
+        remove_empty_rows: bool = False,
         flags: FlagsType = None
     ) -> None:
         """Initialize the TextRemover instance."""
@@ -329,7 +328,7 @@ class TextRemover(
     def partial_fit(
         self,
         X: XContainer,
-        y: Optional[Any] = None
+        y: Any = None
     ) -> Self:
         """Batch-wise no-op fit operation.
 
@@ -337,7 +336,7 @@ class TextRemover(
         ----------
         X : XContainer
             The data. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default=None
             The target for the data. Always ignored.
 
         Returns
@@ -353,7 +352,7 @@ class TextRemover(
     def fit(
         self,
         X: XContainer,
-        y: Optional[Any] = None
+        y: Any = None
     ) -> Self:
         """One-shot no-op fit operation.
 
@@ -361,7 +360,7 @@ class TextRemover(
         ----------
         X : XContainer
             The data. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default=None
             The target for the data. Always ignored.
 
         Returns
@@ -377,7 +376,7 @@ class TextRemover(
     def transform(
         self,
         X:XContainer,
-        copy:Optional[bool] = False
+        copy:bool = False
     ) -> XWipContainer:
         """Remove unwanted strings from the data.
 
@@ -385,7 +384,7 @@ class TextRemover(
         ----------
         X : XContainer
             The data.
-        copy : Optional[bool], default=False
+        copy : bool, default=False
             Whether to remove unwanted strings directly from the original
             `X` or from a deepcopy of the original `X`.
 
@@ -455,7 +454,7 @@ class TextRemover(
     def score(
         self,
         X: XContainer,
-        y: Optional[Any] = None
+        y: Any = None
     ) -> None:
         """No-op score method to allow wrap by dask_ml wrappers.
 
@@ -463,7 +462,7 @@ class TextRemover(
         ----------
         X : XContainer
             The data. Ignored.
-        y : Optional[Any | None], default=None
+        y : Any, default=None
             The target for the data. Ignored.
 
         Returns

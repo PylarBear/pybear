@@ -8,7 +8,6 @@
 
 from typing import (
     TypeAlias,
-    Union
 )
 
 import numbers
@@ -17,12 +16,12 @@ from ._any_integer import _val_any_integer
 
 
 
-FlagType: TypeAlias = Union[None, numbers.Integral]
+FlagType: TypeAlias = numbers.Integral | None
 
 
 
 def _val_flags(
-    _flags: Union[FlagType, list[FlagType]],
+    _flags: FlagType | list[FlagType],
     _n_rows: numbers.Integral
 ) -> None:
     """Validate the 'flags' parameter.
@@ -32,7 +31,7 @@ def _val_flags(
 
     Parameters
     ----------
-    _flags : Union[FlagType, list[FlagType]]
+    _flags : FlagType | list[FlagType]
         The flags argument for re methods/functions when re.Pattern
         objects are being used (either globally on all the data or a row
         of the data.) Must be None or an integer, or a list of Nones
@@ -53,7 +52,7 @@ def _val_flags(
     **Type Aliases**
 
     FlagType:
-        Union[None, numbers.Integral]
+        numbers.Integral | None
 
     """
 

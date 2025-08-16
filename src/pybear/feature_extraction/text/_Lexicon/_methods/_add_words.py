@@ -7,9 +7,7 @@
 
 
 from typing import (
-    Optional,
     Sequence,
-    Union
 )
 
 import os
@@ -24,11 +22,11 @@ from ._identify_sublexicon import _identify_sublexicon
 
 
 def _add_words(
-    WORDS: Union[str, Sequence[str]],
-    lexicon_folder_path: str,
-    character_validation: Optional[bool] = True,
-    majuscule_validation: Optional[bool] = True,
-    file_validation: Optional[bool] = True
+    WORDS:str | Sequence[str],
+    lexicon_folder_path:str,
+    character_validation:bool = True,
+    majuscule_validation:bool = True,
+    file_validation:bool = True
 ) -> None:
     """Silently update the pybear lexicon text files with the given words.
 
@@ -67,26 +65,25 @@ def _add_words(
 
     Parameters
     ----------
-    WORDS : Union[str, Sequence[str]] - the word or words to be added
-        to the pybear lexicon. Cannot be an empty string or an empty
-        sequence. Words that are already in the lexicon are silently
-        ignored.
+    WORDS : str | Sequence[str] - the word or words to be added to the
+        pybear lexicon. Cannot be an empty string or an empty sequence.
+        Words that are already in the lexicon are silently ignored.
     lexicon_folder_path : str - the path to the directory that holds
         the lexicon text files.
-    character_validation : Optional[bool], default = True
+    character_validation : bool, default = True
         Whether to apply pybear lexicon character validation to the word
         or sequence of words. pybear lexicon allows only the 26 letters
         in the English language, no others. No spaces, no hyphens, no
         apostrophes. If True, any non-alpha characters will raise an
         exception during validation. If False, any string character is
         accepted.
-    majuscule_validation : Optional[bool], default = True
+    majuscule_validation : bool, default = True
         Whether to apply pybear lexicon majuscule validation to the word
         or sequence of words. The pybear lexicon requires all characters
         be majuscule, i.e., EVERYTHING MUST BE UPPER-CASE. If True,
         any non-majuscule characters will raise an exception during
         validation. If False, any case is accepted.
-    file_validation : Optional[bool], default = True
+    file_validation : bool, default = True
         Whether to apply pybear lexicon file name validation to the
         word or sequence of words. The formal pybear lexicon only allows
         words to start with the 26 upper-case letters of the English

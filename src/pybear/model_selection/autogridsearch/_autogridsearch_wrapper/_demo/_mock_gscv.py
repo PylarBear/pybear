@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import (
     GridsType,
     ParamsType,
@@ -24,7 +23,7 @@ def _mock_gscv(
     _GRIDS: GridsType,
     _params: ParamsType,
     _true_best: BestParamsType,
-    _best_params: Union[None, BestParamsType],
+    _best_params: BestParamsType | None,
     _pass: int,
     *,
     _pause_time: numbers.Real = 5
@@ -47,7 +46,7 @@ def _mock_gscv(
     _true_best : BestParamsType
         The "true best" value for every parameter as entered by the user
         or generated randomly
-    _best_params : Union[None, BestParamsType]
+    _best_params : BestParamsType | None
         Best results from the previous GridSearch pass. None if on the
         first pass (pass 0).
     _pass : int

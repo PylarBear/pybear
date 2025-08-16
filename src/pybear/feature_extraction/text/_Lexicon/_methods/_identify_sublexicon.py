@@ -7,9 +7,7 @@
 
 
 from typing import (
-    Optional,
     Sequence,
-    Union
 )
 
 import string
@@ -21,8 +19,8 @@ from ._validate_word_input import _validate_word_input
 
 
 def _identify_sublexicon(
-    WORDS: Union[str, Sequence[str]],
-    file_validation: Optional[bool] = True
+    WORDS:str | Sequence[str],
+    file_validation:bool = True
 ) -> list[str]:
     """Identify the files that need to be accessed to make changes to
     the pybear lexicon.
@@ -31,9 +29,9 @@ def _identify_sublexicon(
 
     Parameters
     ----------
-    WORDS : Union[str, Sequence[str]]
+    WORDS : str | Sequence[str]
         The word or sequence of words passed to a pybear Lexicon method.
-    file_validation : Optional[bool], default = True
+    file_validation : bool, default = True
         Whether to block first characters that are not allowed in the
         formal pybear lexicon. I.e., only allow ABCDEF..... etc.
 

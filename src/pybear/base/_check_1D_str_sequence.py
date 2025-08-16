@@ -8,7 +8,6 @@
 
 from typing import (
     Iterable,
-    Optional,
     TypeAlias
 )
 from .__type_aliases import (
@@ -34,7 +33,7 @@ XContainer: TypeAlias = \
 
 def check_1D_str_sequence(
     X:XContainer[str],
-    require_all_finite:Optional[bool] = False
+    require_all_finite:bool = False
 ) -> None:
     """Validate things that are expected to be 1D sequences of strings.
 
@@ -50,7 +49,7 @@ def check_1D_str_sequence(
     ----------
     X : XContainer[str] of shape (n_samples, )
         Something that is expected to be a 1D sequence of strings.
-    require_all_finite : Optional[bool], default=False
+    require_all_finite : bool, default=False
         If True, disallow all non-finite values, such as nan-like or
         infinity-like values.
 

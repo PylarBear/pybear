@@ -24,7 +24,7 @@ def _transform(
     ----------
     _X : XWipContainer
         The data.
-    _upper : Union[bool, None]
+    _upper : bool | None
         What case to set the type to. If True, set to upper-case; if
         False, set to lower-case; if None, do a no-op.
 
@@ -39,7 +39,7 @@ def _transform(
     **Type Aliases**
 
     XWipContainer:
-        Union[list[str], list[list[str]]]
+        list[str] | list[list[str]]
 
     """
 

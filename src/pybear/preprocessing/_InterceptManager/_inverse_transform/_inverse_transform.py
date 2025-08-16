@@ -17,7 +17,7 @@ import pandas as pd
 import polars as pl
 import scipy.sparse as ss
 
-# pizza this thing is all lit up
+
 
 def _inverse_transform(
     _X: InternalXContainer,

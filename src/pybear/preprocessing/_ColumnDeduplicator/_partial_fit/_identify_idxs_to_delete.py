@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import (
     DuplicatesType,
     KeepType,
@@ -27,7 +26,7 @@ def _identify_idxs_to_delete(
     _duplicates: DuplicatesType,
     _keep: KeepType,
     _do_not_drop: DoNotDropType,
-    _columns: Union[FeatureNamesInType, None],
+    _columns: FeatureNamesInType | None,
     _conflict: ConflictType,
     _rand_idxs: tuple[int, ...]
 ) -> RemovedColumnsType:
@@ -54,7 +53,7 @@ def _identify_idxs_to_delete(
         provided. Otherwise, a list of column indices must be provided.
         If a conflict arises, such as two columns specified in `do_not_drop`
         are duplicates of each other, the behavior is managed by `conflict`.
-    _columns : Union[FeatureNamesInType, None] of shape (n_features,)
+    _columns : FeatureNamesInType | None of shape (n_features,)
         If fitting is done on a container that has a header, this is a
         ndarray of strings, otherwise is None.
     _conflict : ConflictType

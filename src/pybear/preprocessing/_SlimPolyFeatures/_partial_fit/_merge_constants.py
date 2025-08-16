@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import PolyConstantsType
 
 import numbers
@@ -15,7 +14,7 @@ import numpy as np
 
 
 def _merge_constants(
-    _old_constants: Union[PolyConstantsType, None],
+    _old_constants: PolyConstantsType | None,
     _new_constants: PolyConstantsType,
     _rtol: numbers.Real,
     _atol: numbers.Real
@@ -30,7 +29,7 @@ def _merge_constants(
 
     Parameters
     ----------
-    _old_constants : Union[PolyConstantsType, None]
+    _old_constants : PolyConstantsType | None
         The column indices of constant columns found in previous partial
         fits and the values in the columns.
     _new_constants : PolyConstantsType

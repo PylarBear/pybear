@@ -8,8 +8,7 @@
 
 from typing import (
     Callable,
-    Sequence,
-    Union
+    Sequence
 )
 from .._type_aliases import XContainer
 
@@ -28,13 +27,13 @@ from ...__shared._validation._any_string import _val_any_string
 
 def _validation(
     _X: XContainer,
-    _ngrams: Union[Sequence[Sequence[Union[str, re.Pattern[str]]]], None],
-    _ngcallable: Union[Callable[[list[str]], str], None],
-    _sep: Union[str, None],
+    _ngrams: Sequence[Sequence[str | re.Pattern[str]] | None],
+    _ngcallable: Callable[[list[str]], str] | None,
+    _sep: str | None,
     _wrap: bool,
     _case_sensitive: bool,
     _remove_empty_rows: bool,
-    _flags: Union[numbers.Integral, None]
+    _flags: numbers.Integral | None
 ) -> None:
     """Centralized hub for validation.
 
@@ -46,15 +45,15 @@ def _validation(
     ----------
     _X : XContainer
         (possibly ragged) 2D array of strings.
-    _ngrams : Union[Sequence[Sequence[Union[str, re.Pattern[str]]]], None]
+    _ngrams : Sequence[Sequence[str | re.Pattern[str]]] | None
         A sequence of sequences, where each inner sequence holds a series
         of string literals and/or re.compile objects that specify an
         n-gram. Cannot be empty, and cannot have any n-grams with less
         than 2 entries. Can be None.
-    _ngcallable : Union[Callable[[list[str]], str], None]
+    _ngcallable : Callable[[list[str]], str] | None
         The callable applied to ngram sequences to produce a contiguous
         string sequence.
-    _sep : Union[str, None]
+    _sep : str | None
         The separator that joins words in the n-grams.
     _wrap : bool
         Whether to look for pattern matches across the end of the current
@@ -64,7 +63,7 @@ def _validation(
     _remove_empty_rows : bool
         Whether to delete any empty rows that may occur during the
         merging process. A row could only become empty if `_wrap` is True.
-    _flags : Union[numbers.Integral, None]
+    _flags : numbers.Integral | None
         The global flags value(s) applied to the n-gram search. Must be
         None or an integer. The values of the integers are not validated
         for legitimacy, any exceptions would be raised by re.fullmatch.

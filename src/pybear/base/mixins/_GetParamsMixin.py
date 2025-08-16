@@ -8,7 +8,6 @@
 
 from typing import (
     Any,
-    Optional
 )
 
 from copy import deepcopy
@@ -22,7 +21,7 @@ class GetParamsMixin:
     """
 
 
-    def get_params(self, deep:Optional[bool]=True) -> dict[str, Any]:
+    def get_params(self, deep:bool = True) -> dict[str, Any]:
         """Get parameters for this instance.
 
         The 'instance' may be a pybear estimator, transformer, or a
@@ -30,7 +29,7 @@ class GetParamsMixin:
 
         Parameters
         ----------
-        deep : Optional[bool], default=True
+        deep : bool, default = True
             For instances that do not have nested instances in an
             `estimator` attribute (such as estimators or transformers),
             this parameter is ignored and the same (full) set of

@@ -9,8 +9,7 @@
 from typing import (
     Literal,
     Sequence,
-    TypeAlias,
-    Union
+    TypeAlias
 )
 
 import numbers
@@ -18,12 +17,12 @@ import numbers
 
 
 # see _type_aliases, bool subtypes of DataType, GridType, PointsType, ParamType
-BoolDataType: TypeAlias = Union[bool, None]  # DataType sub
+BoolDataType: TypeAlias = bool | None  # DataType sub
 
 InBoolGridType: TypeAlias = Sequence[BoolDataType]
 BoolGridType: TypeAlias = list[BoolDataType]
 
-InPointsType: TypeAlias = Union[numbers.Integral, Sequence[numbers.Integral]]
+InPointsType: TypeAlias = numbers.Integral | Sequence[numbers.Integral]
 PointsType: TypeAlias = list[numbers.Integral]
 
 BoolTypeType: TypeAlias = Literal['fixed_bool']

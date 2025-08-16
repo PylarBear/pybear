@@ -8,8 +8,6 @@
 
 from typing import (
     Any,
-    Optional,
-    Union
 )
 from typing_extensions import Self
 from ._type_aliases import (
@@ -67,7 +65,7 @@ class TextNormalizer(
 
     Parameters
     ----------
-    upper : Optional[Union[bool, None]]
+    upper : bool | None
         If True, convert all text in X to upper-case; if False, convert
         to lower-case; if None, do a no-op.
 
@@ -77,25 +75,25 @@ class TextNormalizer(
     **Type Aliases**
 
     PythonTypes:
-        Union[Sequence[str], Sequence[Sequence[str]]]
+        Sequence[str] | Sequence[Sequence[str]]
 
     NumpyTypes:
         numpy.ndarray[str]
 
     PandasTypes:
-        Union[pandas.Series, pandas.DataFrame]
+        pandas.Series | pandas.DataFrame
 
     PolarsTypes:
-        Union[polars.Series, polars.DataFrame]
+        polars.Series | polars.DataFrame
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+        PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 
     XWipContainer:
-        Union[list[str], list[list[str]]]
+        list[str] | list[list[str]]
 
     UpperType:
-        Optional[Union[bool, None]]
+        bool | None
 
     See Also
     --------
@@ -153,8 +151,8 @@ class TextNormalizer(
 
     def partial_fit(
         self,
-        X: XContainer,
-        y: Optional[Any] = None
+        X:XContainer,
+        y:Any = None
     ) -> Self:
         """No-op batch-wise fit.
 
@@ -162,7 +160,7 @@ class TextNormalizer(
         ----------
         X : XContainer
             The text data to normalize.
-        y : Optional[Any], default=None
+        y : Any, default = None
             The target for the data. Always ignored.
 
         Returns
@@ -179,7 +177,7 @@ class TextNormalizer(
     def fit(
         self,
         X: XContainer,
-        y: Optional[Any] = None
+        y: Any = None
     ) -> Self:
         """ No-op one-shot fit.
 
@@ -187,7 +185,7 @@ class TextNormalizer(
         ----------
         X : XContainer
             The text data to normalize.
-        y : Optional[Any], default=None
+        y : Any, default = None
             The target for the data. Always ignored.
 
         Returns
@@ -204,7 +202,7 @@ class TextNormalizer(
     def transform(
         self,
         X:XContainer,
-        copy:Optional[bool] = False
+        copy:bool = False
     ) -> XWipContainer:
         """Normalize the text in a dataset.
 
@@ -212,13 +210,13 @@ class TextNormalizer(
         ----------
         X : XContainer
             The text data to normalize.
-        copy : Optional[bool], default=False
+        copy : bool, default = False
             Whether to normalize the text in the original `X` object or
             a deepcopy of `X`.
 
         Returns
         -------
-        X_tr : Union[list[str], list[list[str]]]
+        X_tr : list[str] | list[list[str]]
             The data with normalized text.
 
         """
@@ -246,8 +244,8 @@ class TextNormalizer(
 
     def score(
         self,
-        X: Any,
-        y: Optional[Any] = None
+        X:Any,
+        y:Any = None
     ) -> None:
         """No-op score method.
 
@@ -255,7 +253,7 @@ class TextNormalizer(
         ----------
         X : Any
             The data. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default = None
             The target for the data. Ignored.
 
         Returns

@@ -29,7 +29,7 @@ def _val_y(
 
     Parameters
     ----------
-    _y : Optional[YContainer] of shape (n_samples, n_features) or (n_samples,)
+    _y : YContainer of shape (n_samples, n_features) or (n_samples,)
         The target for the data.
 
     Returns

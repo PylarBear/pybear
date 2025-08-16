@@ -6,9 +6,6 @@
 
 
 
-from typing import (
-    Optional,
-)
 import numpy.typing as npt
 
 import operator
@@ -24,8 +21,8 @@ from ..base._check_2D_str_array import check_2D_str_array
 def remove_characters(
     X: list[str] | list[list[str]] | npt.NDArray[str],
     *,
-    allowed_chars: Optional[str | None] = None,
-    disallowed_chars: Optional[str | None] = None
+    allowed_chars:str | None = None,
+    disallowed_chars:str | None = None
 ) -> list[str] | list[list[str]] | npt.NDArray[str]:
     """Remove characters that are not allowed or are explicitly disallowed
     from 1D or 2D text data.
@@ -37,10 +34,10 @@ def remove_characters(
     ---------
     X : list[str] | list[list[str]] | npt.NDArray[str]]
         The data from which to remove unwanted characters.
-    allowed_chars : Optional[str | None], default=None
+    allowed_chars : str | None, default=None
         The characters that are to be kept; cannot be passed if
         disallowed_chars is passed.
-    disallowed_chars : Optional[str | None], default=None
+    disallowed_chars : str | None, default=None
         The characters that are to be removed; cannot be passed if
         allowed_chars is passed.
 

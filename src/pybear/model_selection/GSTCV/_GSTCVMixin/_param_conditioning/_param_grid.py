@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from ..._type_aliases import (
     ParamGridInputType,
     ParamGridsInputType,
@@ -19,7 +18,7 @@ from ._thresholds import _cond_thresholds
 
 
 def _cond_param_grid(
-    _param_grid: Union[ParamGridInputType, ParamGridsInputType],
+    _param_grid: ParamGridInputType | ParamGridsInputType,
     _thresholds: ThresholdsInputType    # this is init self.thresholds
 ) -> ParamGridsWIPType:
     """Condition `param_grid` and any thresholds that may be passed inside.
@@ -31,7 +30,7 @@ def _cond_param_grid(
 
     Parameters
     ----------
-    _param_grid : Union[ParamGridInputType, ParamGridsInputType]
+    _param_grid : ParamGridInputType | ParamGridsInputType
         A 'param_grid' is a dictionary with hyperparameter names (str)
         as keys and list-likes of hyperparameter settings to test as
         values. `_param_grid` can be one of the described param_grids,

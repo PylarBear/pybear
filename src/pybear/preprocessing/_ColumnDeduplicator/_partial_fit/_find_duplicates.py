@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import (
     InternalXContainer,
     DuplicatesType
@@ -34,7 +33,7 @@ def _find_duplicates(
     _rtol: numbers.Real,
     _atol: numbers.Real,
     _equal_nan: bool,
-    _n_jobs: Union[numbers.Integral, None],
+    _n_jobs: numbers.Integral | None,
     _job_size: numbers.Integral
 ) -> DuplicatesType:
     """Find identical columns in X.
@@ -73,7 +72,7 @@ def _find_duplicates(
         the compared pair of values is/are nan, consider the pair to be
         not equivalent, thus making the column pair not equal. This is
         in line with the normal numpy handling of nan values.
-    _n_jobs : Union[numbers.Integral, None]
+    _n_jobs : numbers.Integral | None
         The number of joblib Parallel jobs to use when comparing columns.
     _job_size : numbers.Integral
         The number of columns to send to a joblib job. Must be an integer

@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Python dependency from ">=3.10, <3.14" to ">=3.10"
+- Optional and Union type hints replaced with pipes
 
 ### Deprecated
 - None

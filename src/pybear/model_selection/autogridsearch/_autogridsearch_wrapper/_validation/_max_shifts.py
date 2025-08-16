@@ -6,18 +6,13 @@
 
 
 
-from typing import (
-    Optional,
-    Union
-)
-
 import numbers
 
 
 
 def _val_max_shifts(
-    _max_shifts: Union[None, numbers.Integral],
-    _can_be_None: Optional[bool] = False
+    _max_shifts:numbers.Integral | None,
+    _can_be_None:bool = False
 ) -> None:
     """Validate `_max_shifts`.
 
@@ -25,10 +20,10 @@ def _val_max_shifts(
 
     Parameters
     ----------
-    _max_shifts : Union[None, numbers.Integral]
+    _max_shifts : numbers.Integral | None
         The maximum number of grid shifts allowed when trying to center
         parameters within their search grids.
-    _can_be_None : Optional[bool], default=False
+    _can_be_None : bool, default=False
         Whether `max_shifts` can be None-valued.
 
     Returns

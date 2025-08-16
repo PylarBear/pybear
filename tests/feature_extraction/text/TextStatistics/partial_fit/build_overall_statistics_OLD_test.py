@@ -21,12 +21,6 @@ from pybear.feature_extraction.text._TextStatistics._partial_fit. \
 class TestBuildOverallStatisticsOLD:
 
 
-    # def _build_overall_statistics(
-    #     string_frequency_: dict[str, numbers.Integral],
-    #     case_sensitive: Optional[bool] = False
-    # ) -> OverallStatisticsType:
-
-
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
     @pytest.mark.parametrize('junk_DICT',

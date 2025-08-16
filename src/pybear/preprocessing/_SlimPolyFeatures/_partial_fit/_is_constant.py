@@ -8,7 +8,6 @@
 
 from typing import (
     Any,
-    Union
 )
 import numpy.typing as npt
 
@@ -26,7 +25,7 @@ def _is_constant(
     _equal_nan: bool,
     _rtol: numbers.Real,
     _atol: numbers.Real
-) -> Union[uuid.UUID, Any]:
+) -> uuid.UUID | Any:
     """Determine if a column holds a single value, subject to `_rtol`,
     `_atol`, and `_equal_nan`.
 
@@ -67,7 +66,7 @@ def _is_constant(
 
     Returns
     -------
-    out : Union[uuid.uuid4, Any]
+    out : uuid.uuid4 | Any
         If the column is not constant, returns a uuid4 identifier; if it
         is constant, returns the constant value.
 

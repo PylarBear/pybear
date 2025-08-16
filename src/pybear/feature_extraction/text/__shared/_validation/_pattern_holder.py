@@ -7,9 +7,7 @@
 
 
 from typing import (
-    Optional,
-    TypeAlias,
-    Union
+    TypeAlias
 )
 
 import numbers
@@ -18,16 +16,16 @@ import re
 
 
 PatternType: TypeAlias = \
-    Union[None, str, re.Pattern[str], tuple[Union[str, re.Pattern[str]], ...]]
+    None | str | re.Pattern[str] | tuple[str | re.Pattern[str], ...]
 PatternHolderType: TypeAlias = \
-    Union[PatternType, list[PatternType]]
+    PatternType | list[PatternType]
 
 
 
 def _val_pattern_holder(
-    _pattern_holder: PatternHolderType,
-    _n_rows: numbers.Integral,
-    _name: Optional[str] = 'unnamed patterns'
+    _pattern_holder:PatternHolderType,
+    _n_rows:numbers.Integral,
+    _name:str = 'unnamed patterns'
 ) -> None:
     """Validate 'pattern_holder'.
 
@@ -69,10 +67,10 @@ def _val_pattern_holder(
     **Type Aliases**
 
     PatternType:
-        Union[None, str, re.Pattern[str], tuple[Union[str, re.Pattern[str]], ...]]
+        None | str | re.Pattern[str] | tuple[str | re.Pattern[str], ...]
 
     PatternHolderType:
-        Union[PatternType, list[PatternType]]
+        PatternType | list[PatternType]
 
     """
 
@@ -84,18 +82,18 @@ def _val_pattern_holder(
     # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
     def _val_helper(
-        _core_pattern_holder: Union[None, str, re.Pattern[str]]
+        _core_pattern_holder: None | str | re.Pattern[str]
     ) -> bool:
         """
         Helper function to validate the core 'pattern_holder' objects
-        are Union[None, str, re.Pattern[str]].
+        are None | str | re.Pattern[str].
         """
 
         return isinstance(_core_pattern_holder, (type(None), str, re.Pattern))
 
 
     def _tuple_helper(
-        _pattern_holder: tuple[Union[str, re.Pattern[str]]]
+        _pattern_holder: tuple[str | re.Pattern[str]]
     ) -> bool:
         """
         Helper function for validating tuples.

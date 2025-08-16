@@ -7,10 +7,8 @@
 
 
 from typing import (
-    Optional,
     Sequence,
-    TypeAlias,
-    Union
+    TypeAlias
 )
 import numpy.typing as npt
 
@@ -22,44 +20,44 @@ import polars as pl
 
 
 
-PythonTypes: TypeAlias = Union[Sequence[str], Sequence[Sequence[str]], set[str]]
+PythonTypes: TypeAlias = Sequence[str] | Sequence[Sequence[str]] | set[str]
 
 NumpyTypes: TypeAlias = npt.NDArray
 
-PandasTypes: TypeAlias = Union[pd.Series, pd.DataFrame]
+PandasTypes: TypeAlias = pd.Series | pd.DataFrame
 
-PolarsTypes: TypeAlias = Union[pl.Series, pl.DataFrame]
+PolarsTypes: TypeAlias = pl.Series | pl.DataFrame
 
-XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+XContainer: TypeAlias = PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 
-XWipContainer: TypeAlias = Union[list[str], list[list[str]]]
+XWipContainer: TypeAlias = list[str] | list[list[str]]
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-NCharsType: TypeAlias = Optional[numbers.Integral]
+NCharsType: TypeAlias = numbers.Integral
 
 CoreSepBreakType: TypeAlias = \
-    Union[str, Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]]]
+    str | Sequence[str] | re.Pattern[str] | Sequence[re.Pattern[str]]
 
-SepType: TypeAlias = Optional[CoreSepBreakType]
+SepType: TypeAlias = CoreSepBreakType
 
-LineBreakType: TypeAlias = Optional[Union[None, CoreSepBreakType]]
+LineBreakType: TypeAlias = CoreSepBreakType | None
 
-CoreSepBreakWipType: TypeAlias = Union[re.Pattern[str], tuple[re.Pattern[str], ...]]
+CoreSepBreakWipType: TypeAlias = re.Pattern[str] | tuple[re.Pattern[str], ...]
 
 SepWipType: TypeAlias = CoreSepBreakWipType
 
-LineBreakWipType: TypeAlias = Union[None, CoreSepBreakWipType]
+LineBreakWipType: TypeAlias = CoreSepBreakWipType | None
 
-CaseSensitiveType: TypeAlias = Optional[bool]
+CaseSensitiveType: TypeAlias = bool
 
-SepFlagsType: TypeAlias = Optional[Union[numbers.Integral, None]]
+SepFlagsType: TypeAlias = numbers.Integral | None
 
-LineBreakFlagsType: TypeAlias = Optional[Union[numbers.Integral, None]]
+LineBreakFlagsType: TypeAlias = numbers.Integral | None
 
-BackfillSepType: TypeAlias = Optional[str]
+BackfillSepType: TypeAlias = str
 
-Join2DType: TypeAlias = Optional[str]
+Join2DType: TypeAlias = str
 
 
 

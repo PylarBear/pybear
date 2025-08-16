@@ -8,7 +8,6 @@
 
 from typing import (
     Any,
-    Optional
 )
 from typing_extensions import Self
 from ._type_aliases import (
@@ -19,8 +18,6 @@ from ._type_aliases import (
     CaseSensitiveType,
     FlagsType
 )
-
-import re
 
 from ._validation._validation import _validation
 from ._transform._special_param_conditioner import _special_param_conditioner
@@ -166,15 +163,15 @@ class TextReplacer(
 
     Parameters
     ----------
-    replace : ReplaceType, default=None
+    replace : ReplaceType, default = None
         The literal string pattern(s) or regex pattern(s) to search for
         and their replacement value(s).
-    case_sensitive : Optional[CaseSensitiveType]
+    case_sensitive : CaseSensitiveType, default = True
         Global setting for case-sensitivity. If True (the default) then
         all searches are case-sensitive. If False, TR will look for
         matches regardless of case. This setting is overriden when
         IGNORECASE flags are passed in re.compile objects or to `flags`.
-    flags : Optional[FlagsType]
+    flags : FlagsType, default = None
         The flags values(s) for the substring searches. Internally, TR
         does all its searching for substrings with `re.sub`, therefore
         flags can be passed whether you are searching for literal strings
@@ -220,22 +217,22 @@ class TextReplacer(
     ReplaceSubType:
         None | PairType | tuple[PairType, ...]
     ReplaceType:
-        Optional[ReplaceSubType | list[ReplaceSubType]]
+        ReplaceSubType | list[ReplaceSubType]
 
     WipPairType:
         tuple[re.Pattern[str], SubstituteType]
     WipReplaceSubType:
         None | WipPairType | tuple[WipPairType, ...]
     WipReplaceType:
-        Optional[WipReplaceSubType | list[WipReplaceSubType]]
+        WipReplaceSubType | list[WipReplaceSubType]
 
     CaseSensitiveType:
-        Optional[bool | list[bool | None]]
+        bool | list[bool | None]
 
     FlagType:
-        None | numbers.Integral
+        numbers.Integral | None
     FlagsType:
-        Optional[FlagType | list[FlagType]]
+        FlagType | list[FlagType]
 
     See Also
     --------
@@ -244,6 +241,8 @@ class TextReplacer(
     Examples
     --------
     >>> from pybear.feature_extraction.text import TextReplacer as TR
+    >>> import re
+    >>>
     >>> trfm = TR(replace=((',', ''),(re.compile(r'\.'), '')))
     >>> X = ['To be, or not to be, that is the question.']
     >>> trfm.fit_transform(X)
@@ -259,9 +258,9 @@ class TextReplacer(
     def __init__(
         self,
         *,
-        replace: Optional[ReplaceType] = None,
+        replace: ReplaceType | None = None,
         case_sensitive: CaseSensitiveType = True,
-        flags: FlagsType = None
+        flags: FlagsType | None = None
     ) -> None:
         """Initialize the TextReplacer instance."""
 
@@ -296,7 +295,7 @@ class TextReplacer(
     def partial_fit(
         self,
         X: XContainer,
-        y: Optional[Any] = None
+        y: Any = None
     ) -> Self:
         """No-op batch-wise fit of the `TextReplacer` instance.
 
@@ -304,7 +303,7 @@ class TextReplacer(
         ----------
         X : XContainer
             1D or 2D text data. Ignored.
-        y : Optional[Any], default = None
+        y : Any, default = None
             The target for the data. Always ignored.
 
         Returns
@@ -320,7 +319,7 @@ class TextReplacer(
     def fit(
         self,
         X: XContainer,
-        y: Optional[Any] = None
+        y: Any = None
     ) -> Self:
         """No-op one-shot fit of the TextReplacer instance.
 
@@ -328,7 +327,7 @@ class TextReplacer(
         ----------
         X : XContainer
             1D or 2D text data. Ignored.
-        y : Optional[Any], default = None
+        y : Any, default = None
             The target for the data. Always ignored.
 
         Returns
@@ -344,7 +343,7 @@ class TextReplacer(
     def transform(
         self,
         X:XContainer,
-        copy:Optional[bool] = False
+        copy:bool = False
     ) -> XWipContainer:
         """Search the data for matches against the search criteria and
         make the specified replacements.
@@ -354,7 +353,7 @@ class TextReplacer(
         X : XContainer
             1D or 2D text data whose strings will be searched and may
             have substrings replaced.
-        copy : Optional[bool], default=False
+        copy : bool, default=False
             Whether to make the replacements directly on the given `X`
             or on a deepcopy of `X`.
 
@@ -409,7 +408,7 @@ class TextReplacer(
     def score(
         self,
         X: XContainer,
-        y: Optional[Any] = None
+        y: Any = None
     ) -> None:
         """No-op score method.
 
@@ -419,7 +418,7 @@ class TextReplacer(
         ----------
         X : XContainer
             1D or 2D text data. Ignored.
-        y : Optional[Any], default = None
+        y : Any, default = None
             The target for the data. Ignored.
 
         Returns

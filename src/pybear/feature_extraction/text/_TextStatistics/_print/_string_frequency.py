@@ -6,8 +6,6 @@
 
 
 
-from typing import Optional
-
 import numbers
 
 import numpy as np
@@ -18,10 +16,10 @@ from .._validation._string_frequency import _val_string_frequency
 
 
 def _print_string_frequency(
-    string_frequency: dict[str, numbers.Integral],
-    lp: numbers.Integral,
-    rp: numbers.Integral,
-    n: Optional[numbers.Integral] = 10
+    string_frequency:dict[str, numbers.Integral],
+    lp:numbers.Integral,
+    rp:numbers.Integral,
+    n:numbers.Integral = 10
 ) -> None:
     """Print the `string_frequency_` attribute to screen.
 
@@ -38,7 +36,7 @@ def _print_string_frequency(
         The left padding for the display.
     rp : numbers.Integral
         The right padding for the display.
-    n : Optional[numbers.Integral], default = 10
+    n : numbers.Integral, default = 10
         The number of most frequent strings to print.
 
     Returns

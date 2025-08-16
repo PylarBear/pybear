@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 import numpy.typing as npt
 from pybear.preprocessing._SlimPolyFeatures._type_aliases import (
     CombinationsType,
@@ -26,7 +25,7 @@ from ....utilities._nan_masking import nan_mask
 
 def _columns_getter(
     _X: InternalXContainer,
-    _col_idxs: Union[tuple[int, ...], CombinationsType]
+    _col_idxs: tuple[int, ...] | CombinationsType
 ) -> npt.NDArray[np.float64]:
     """Handles the mechanics of extracting and multiplying polynomial
     columns from the various allowed data container types.
@@ -43,7 +42,7 @@ def _columns_getter(
         ndarray, pandas dataframe, polars dataframe, or scipy csc only.
         This module expects `_X` to be in a valid state when passed, and
         will not condition it.
-    _col_idxs : Union[tuple[int, ...], CombinationsType]
+    _col_idxs : tuple[int, ...] | CombinationsType
         The column index / indices to extract from `_X`.
 
     Returns

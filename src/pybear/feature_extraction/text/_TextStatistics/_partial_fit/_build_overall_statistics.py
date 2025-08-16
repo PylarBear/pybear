@@ -7,8 +7,7 @@
 
 
 from typing import (
-    Optional,
-    Sequence
+    Sequence,
 )
 from .._type_aliases import OverallStatisticsType
 
@@ -19,8 +18,8 @@ from .....base._check_1D_str_sequence import check_1D_str_sequence
 
 
 def _build_overall_statistics(
-    STRINGS: Sequence[str],
-    case_sensitive: Optional[bool] = False
+    STRINGS:Sequence[str],
+    case_sensitive:bool = False
 ) -> OverallStatisticsType:
     """Populate a dictionary with the overall statistics.
 
@@ -44,7 +43,7 @@ def _build_overall_statistics(
     ----------
     STRINGS : Sequence[str]
         A list-like of strings passed to `fit` or `partial_fit`.
-    case_sensitive : Optional[bool], default = False
+    case_sensitive : bool, default = False
         Whether to normalize all characters to the same case or preserve
         the original case.
 

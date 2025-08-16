@@ -6,8 +6,6 @@
 
 
 
-from typing import Optional
-
 import itertools
 import re
 
@@ -16,17 +14,17 @@ import numpy as np
 
 
 def variable_finder(
-    text:Optional[str] = None,
-    filepath:Optional[str] = None
+    text:str | None = None,
+    filepath:str | None = None
 ) -> list[str]:
     """Search a string OR a text file for substrings that appear to be
     variable declarations.
 
     Parameters
     ----------
-    text : Optional[str]
+    text : str | None
         The text to search for variable names.
-    filepath : Optional[str]
+    filepath : str | None
         The file path to open and search for variable names.
 
     Returns

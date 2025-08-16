@@ -10,7 +10,6 @@
 from typing import (
     Any,
     Literal,
-    Optional,
     Sequence,
     TypeAlias
 )
@@ -29,8 +28,8 @@ from pybear.utilities._array_sparsity import array_sparsity as arsp
 def choice(
     a: Sequence[Any],
     shape: numbers.Integral | Sequence[numbers.Integral],
-    replace: Optional[bool]=True,
-    n_jobs: Optional[numbers.Integral | None]=None
+    replace: bool=True,
+    n_jobs: numbers.Integral | None = None
 ) -> npt.NDArray[Any]:
     """Randomly select elements from the given pool `a`, with or without
     replacement, to fill a numpy array of size `shape`.
@@ -304,7 +303,7 @@ class Sparse:
     engine : EngineType, default = "default"
         Selects the desired engine for generating the returned array.
         See the 'Engine' section of the docs for a detailed explanation.
-    dtype : Optional[object], default = float
+    dtype : object, default = float
         Desired dtype of the result.
 
     Attributes
@@ -345,7 +344,7 @@ class Sparse:
         shape: numbers.Integral | Sequence[numbers.Integral],
         sparsity: numbers.Real = 0,
         engine: EngineType = 'default',
-        dtype: Optional[object] = float,
+        dtype: object = float,
     ):
         """Initialize the `Sparse` instance."""
 
@@ -905,7 +904,7 @@ def sparse(
     maximum: numbers.Real,
     shape: numbers.Integral | Sequence[numbers.Integral],
     sparsity: numbers.Real,
-    dtype: Optional[object] = np.float64
+    dtype: object = np.float64
 ):
     """Return random values from a “discrete uniform” (integer) or
     "uniform" (float) distribution of the specified dtype in the
@@ -926,9 +925,9 @@ def sparse(
         be less than this number.
     shape : numbers.Integral | Sequence[numbers.Integral]
         Dimensions of the returned array.
-    sparsity : Optional[numbers.Real], default = 0
+    sparsity : numbers.Real, default = 0
         Desired percentage of zeros in the returned array.
-    dtype : Optional[object], default = float
+    dtype : object, default = float
         Desired dtype of the result.
 
     Returns

@@ -31,7 +31,7 @@ def _transform(
     **Type Aliases**
 
     XWipContainer:
-        Union[list[str], list[list[str]]]
+        list[str] | list[list[str]]
 
     """
 

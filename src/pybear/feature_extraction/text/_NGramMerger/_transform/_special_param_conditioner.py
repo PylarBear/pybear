@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import (
     NGramsType,
     NGramsWipType
@@ -21,7 +20,7 @@ from ...__shared._param_conditioner._param_conditioner import _param_conditioner
 def _special_param_conditioner(
     _ngrams: NGramsType,
     _case_sensitive: bool,
-    _flags: Union[numbers.Integral, None]
+    _flags: numbers.Integral | None
 ) -> NGramsWipType:
     """Convert any literal strings in the ngrams to re.compile objects.
 
@@ -31,20 +30,20 @@ def _special_param_conditioner(
 
     Parameters
     ----------
-    _ngrams : Union[Sequence[Sequence[Union[str, re.Pattern[str]]]], None]
+    _ngrams : Sequence[Sequence[str | re.Pattern[str]]] | None
         A sequence of sequences, where each inner sequence holds a series
         of string literals and/or re.compile objects that specify an
         n-gram. Cannot be empty, and cannot have any n-grams with less
         than 2 entries. Can be None.
     _case_sensitive : bool
         Whether to do a case-sensitive search.
-    _flags : Union[numbers.Integral, None]
+    _flags : numbers.Integral | None
         The global flags value(s) applied to the n-gram search. Must be
         None or an integer.
 
     Returns
     -------
-    _wip_ngrams : Union[None, list[tuple[re.Pattern[str], ...]]]
+    _wip_ngrams : list[tuple[re.Pattern[str], ...]] | None
         The ngrams with any literal strings converted to re.compile and
         any flags from 'case_sensitive' and 'flags' applied to the
         compile objects.
@@ -58,11 +57,11 @@ def _special_param_conditioner(
     # empty, and cannot contain any n-gram sequences with
     # less than 2 entries.
     # --- 'case_sensitive' must be bool
-    # --- 'flags' must be Union[int, None]
+    # --- 'flags' must be int | None
 
 
 
-    # _param_conditioner wants to see list[tuple[Union[str, re.Pattern], ...]]
+    # _param_conditioner wants to see list[tuple[str | re.Pattern], ...]
     if _ngrams is not None:
         _ngrams = list(map(tuple, _ngrams))
 

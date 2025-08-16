@@ -8,7 +8,6 @@
 
 from typing import (
     Sequence,
-    Union
 )
 from .._type_aliases import XContainer
 
@@ -17,7 +16,7 @@ from .....base._check_1D_str_sequence import check_1D_str_sequence
 
 
 def _val_sep(
-    _sep: Union[str, Sequence[str]],
+    _sep: str | Sequence[str],
     _X: XContainer
 ) -> None:
     """Validate `sep`.
@@ -27,7 +26,7 @@ def _val_sep(
 
     Parameters
     ----------
-    _sep : Union[str, Sequence[str]]
+    _sep : str | Sequence[str]
         The character sequence to insert between individual strings
         when joining the 2D input data across rows. If a 1D sequence of
         strings, then the `sep` value in each position is used to join

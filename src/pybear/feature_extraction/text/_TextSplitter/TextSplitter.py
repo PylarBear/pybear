@@ -8,8 +8,6 @@
 
 from typing import (
     Any,
-    Optional,
-    Union
 )
 from typing_extensions import Self
 from ._type_aliases import (
@@ -20,8 +18,6 @@ from ._type_aliases import (
     MaxSplitsType,
     FlagsType
 )
-
-import re
 
 from ._validation import _validation
 from ._regexp_core import _regexp_core
@@ -138,7 +134,7 @@ class TextSplitter(
 
     Parameters
     ----------
-    sep : Optional[SepsType], default=None
+    sep : SepsType, default = None
         The separator(s) to split the strings in `X` on. None skips every
         string in `X`, performing no splits. When passed as a single
         literal character string, that is applied to every string in `X`.
@@ -152,12 +148,12 @@ class TextSplitter(
         literals/re.compiles is applied to the corresponding string in
         `X`. If any entry in the list is None, no split is performed on
         the corresponding string in `X`.
-    case_sensitive : Optional[CaseSensitiveType]
+    case_sensitive : CaseSensitiveType
         Global setting for case-sensitivity. If True (the default) then
         all searches are case-sensitive. If False, TS will look for
         matches regardless of case. This setting is overriden when
         IGNORECASE flags are passed in re.compile objects or to `flags`.
-    maxsplit : Optional[MaxSplitsType], default=None
+    maxsplit : MaxSplitsType, default = None
         The maximum number of splits to perform on a string. Only applies
         when something is passed to `sep`. If None, the default number
         of splits for `re.split` is used on every string in `X`. If
@@ -166,7 +162,7 @@ class TextSplitter(
         number of strings in `X`, and each is applied correspondingly to
         `X`.  If any entry in the list is None, no split is performed on
         the corresponding string in `X`.
-    flags : Optional[FlagsType], default=None
+    flags : FlagsType, default = None
         The flags value(s) for the separator searches. If you do
         not know what this means then ignore this and just use
         `case_sensitive`. If None, the default flags for `re.split`
@@ -182,7 +178,7 @@ class TextSplitter(
     **Type Aliases**
 
     PythonTypes:
-        Union[list[str], tuple[str], set[str]]
+        list[str] | tuple[str] | set[str]
 
     NumpyTypes:
         numpy.ndarray[str]
@@ -194,32 +190,28 @@ class TextSplitter(
         polars.Series
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+        PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 
     XWipContainer:
         list[list[str]]
 
     SepType:
-        Union[
-            None,
-            Union[str, re.Pattern[str]],
-            tuple[Union[str, re.Pattern[str]], ...]
-        ]
+        None | str |  re.Pattern[str]  | tuple[str | re.Pattern[str], ...]
     SepsType:
-        Optional[Union[SepType, list[SepType]]]
+        SepType | list[SepType]
 
     CaseSensitiveType:
-        Optional[Union[bool, list[Union[None, bool]]]]
+        bool | list[bool | None]
 
     MaxSplitType:
-        Union[None, numbers.Integral]
+        numbers.Integral | None
     MaxSplitsType:
-        Optional[Union[MaxSplitType, list[MaxSplitType]]]
+        MaxSplitType | list[MaxSplitType]
 
     FlagType:
-        Union[None, numbers.Integral]
+        numbers.Integral | None
     FlagsType:
-        Optional[Union[FlagType, list[FlagType]]]
+        FlagType | list[FlagType]
 
     See Also
     --------
@@ -228,6 +220,8 @@ class TextSplitter(
     Examples
     --------
     >>> from pybear.feature_extraction.text import TextSplitter as TS
+    >>> import re
+    >>>
     >>> Trfm = TextSplitter(sep=' ', maxsplit=2)
     >>> X = [
     ...     'This is a test.',
@@ -286,8 +280,8 @@ class TextSplitter(
 
     def partial_fit(
         self,
-        X: XContainer,
-        y: Optional[Any] = None
+        X:XContainer,
+        y:Any = None
     ) -> Self:
         """No-op batch-wise fitting of `TextSplitter`.
 
@@ -295,7 +289,7 @@ class TextSplitter(
         ----------
         X : XContainer
             A 1D sequence of strings to be split. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default=None
             The target for the data. Always ignored.
 
         Returns
@@ -310,8 +304,8 @@ class TextSplitter(
 
     def fit(
         self,
-        X: XContainer,
-        y: Optional[Any] = None
+        X:XContainer,
+        y:Any = None
     ) -> Self:
         """No-op one-shot fitting of TextSplitter.
 
@@ -319,7 +313,7 @@ class TextSplitter(
         ----------
         X : XContainer
             A 1D sequence of strings to be split. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default = None
             The target for the data. Always ignored.
 
         Returns
@@ -335,7 +329,7 @@ class TextSplitter(
     def transform(
         self,
         X:XContainer,
-        copy:Optional[bool] = False
+        copy:bool = False
     ) -> XWipContainer:
         """Split the strings in `X` on the separator(s).
 
@@ -343,7 +337,7 @@ class TextSplitter(
         ----------
         X : XContainer
             A 1D sequence of strings to be split.
-        copy : Optional[bool], default=False
+        copy : bool, default=False
             Whether to perform the splits directly on `X` or on a
             deepcopy of `X`.
 
@@ -386,8 +380,8 @@ class TextSplitter(
 
     def score(
         self,
-        X: XContainer,
-        y: Optional[Union[any, None]] = None
+        X:XContainer,
+        y:Any | None = None
     ) -> None:
         """No-op scorer.
 
@@ -395,7 +389,7 @@ class TextSplitter(
         ----------
         X : XContainer
             A 1D sequence of strings. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default = None
             The target for the data. Ignored.
 
         Returns

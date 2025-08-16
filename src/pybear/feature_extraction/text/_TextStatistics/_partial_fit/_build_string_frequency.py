@@ -7,8 +7,7 @@
 
 
 from typing import (
-    Optional,
-    Sequence
+    Sequence,
 )
 
 import numbers
@@ -18,8 +17,8 @@ from .....base._check_1D_str_sequence import check_1D_str_sequence
 
 
 def _build_string_frequency(
-    STRINGS: Sequence[str],
-    case_sensitive: Optional[bool] = False
+    STRINGS:Sequence[str],
+    case_sensitive:bool = False
 ) -> dict[str, numbers.Integral]:
     """Build a dictionary of the unique strings in `STRINGS` and their
     counts.
@@ -28,7 +27,7 @@ def _build_string_frequency(
     ----------
     STRINGS : Sequence[str]
         The sequence of strings currently being fitted.
-    case_sensitive : Optional[bool], default = False
+    case_sensitive : bool, default = False
         Whether to preserve the case of the characters when getting the
         uniques. When False, normalize the case of all characters.
 

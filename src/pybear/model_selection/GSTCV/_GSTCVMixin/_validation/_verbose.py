@@ -6,15 +6,13 @@
 
 
 
-from typing import Optional
-
 import numbers
 
 
 
 def _val_verbose(
-    _verbose: numbers.Real,
-    _can_be_raw_value:Optional[bool] = False
+    _verbose:numbers.Real,
+    _can_be_raw_value:bool = False
 ) -> None:
     """Validate `verbose`, the amount of verbosity to display to screen
     during the grid search.

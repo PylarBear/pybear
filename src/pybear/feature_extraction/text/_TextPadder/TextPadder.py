@@ -8,8 +8,6 @@
 
 from typing import (
     Any,
-    Optional,
-    Union
 )
 from typing_extensions import Self
 from ._type_aliases import (
@@ -117,9 +115,9 @@ class TextPadder(
 
     Parameters
     ----------
-    fill : Optional[str], default=""
+    fill : str, default = ""
         The character string to pad text sequences with.
-    n_features : Optional[Union[numbers.Integral, None]], default=None
+    n_features : numbers.Integral | None, default = None
         The number of features to create when padding the data, i.e.,
         the length of the feature axis. When None, TP pads all examples
         to match the number of strings in the example with the most
@@ -151,7 +149,7 @@ class TextPadder(
         polars.DataFrame
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+        PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 
     XWipContainer:
         list[list[str]]
@@ -182,8 +180,8 @@ class TextPadder(
     def __init__(
         self,
         *,
-        fill: Optional[str] = '',
-        n_features: Optional[Union[numbers.Integral, None]] = None
+        fill:str = '',
+        n_features:numbers.Integral | None = None
     ) -> None:
         """Initialize the `TextPadder` instance."""
 
@@ -192,7 +190,7 @@ class TextPadder(
 
 
     # handled by GetParamsMixin
-    # def get_params(self, deep:Optional[bool] = True):
+    # def get_params(self, deep:bool = True):
 
     # handled by SetParamsMixin
     # def set_params(self, **params):
@@ -203,7 +201,7 @@ class TextPadder(
     # handled by SetOutputMixin
     # def set_output(
     #     self,
-    #     transform: Union[Literal['default', 'pandas', 'polars'], None]=None
+    #     transform: Literal['default', 'pandas', 'polars'] | None = None
     # )
 
 
@@ -259,8 +257,8 @@ class TextPadder(
 
     def partial_fit(
         self,
-        X: XContainer,
-        y: Optional[Any] = None
+        X:XContainer,
+        y:Any = None
     ) -> Self:
         """Batch-wise fitting operation.
 
@@ -272,7 +270,7 @@ class TextPadder(
         ----------
         X : XContainer, (possibly ragged) shape (n_samples, n_features)
             The data.
-        y : Optional[Any], default = None
+        y : Any, default = None
             The target for the data. Always ignored.
 
         Returns
@@ -307,8 +305,8 @@ class TextPadder(
 
     def fit(
         self,
-        X: XContainer,
-        y: Optional[Any] = None
+        X:XContainer,
+        y:Any = None
     ) -> Self:
         """One-shot fitting operation.
 
@@ -319,7 +317,7 @@ class TextPadder(
         ----------
         X : XContainer, (possibly ragged) shape (n_samples, n_features)
             The data.
-        y : Optional[Any], default = None.
+        y : Any, default = None.
             The target for the data. Always ignored.
 
         Returns
@@ -338,7 +336,7 @@ class TextPadder(
     def transform(
         self,
         X:XContainer,
-        copy:Optional[bool] = False
+        copy:bool = False
     ):
         """Map ragged text data to a shaped array.
 
@@ -346,7 +344,7 @@ class TextPadder(
         ----------
         X : XContainer, (possibly ragged) shape (n_samples, n_features)
             The data to be transformed.
-        copy : Optional[bool], default=False
+        copy : bool, default = False
             Whether to perform the transformation directly on `X` or on
             a deepcopy of `X`.
 
@@ -393,8 +391,8 @@ class TextPadder(
 
     def score(
         self,
-        X: Any,
-        y: Optional[Any] = None
+        X:Any,
+        y:Any = None
     ) -> None:
         """No-op score method.
 
@@ -402,7 +400,7 @@ class TextPadder(
         ----------
         X : Any
             The data. Ignored
-        y : Optional[Any], default = None
+        y : Any, default = None
             The target for the data. Ignored.
 
         Returns

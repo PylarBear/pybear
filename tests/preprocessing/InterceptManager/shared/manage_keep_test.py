@@ -21,15 +21,6 @@ from pybear.preprocessing._InterceptManager._shared._manage_keep import (
 
 class TestManageKeep:
 
-    # def _manage_keep(
-    #     _keep: KeepType,
-    #     _X: XContainer,
-    #     _constant_columns: ConstantColumnsType,
-    #     _n_features_in: int,
-    #     _feature_names_in: FeatureNamesInType,
-    #     _rand_idx: int
-    # ) -> Literal['none'] | dict[str, Any] | int:
-
 
     # callable keep converts X to int, validated against _constant_columns
     # keep feature str converted to int, validated against _constant_columns

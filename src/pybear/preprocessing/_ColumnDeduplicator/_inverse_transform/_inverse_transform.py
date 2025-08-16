@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import (
     InternalXContainer,
     RemovedColumnsType,
@@ -23,7 +22,7 @@ import scipy.sparse as ss
 def _inverse_transform(
     _X: InternalXContainer,
     _removed_columns: RemovedColumnsType,
-    _feature_names_in: Union[FeatureNamesInType, None]
+    _feature_names_in: FeatureNamesInType | None
 ) -> InternalXContainer:
     """Revert deduplicated data back to its original state.
 
@@ -40,7 +39,7 @@ def _inverse_transform(
         original data, indexed by their column location in the original
         data; the values are the column index in the original data of
         the respective duplicate that was kept.
-    _feature_names_in : Union[FeatureNamesInType, None]
+    _feature_names_in : FeatureNamesInType | None
         The feature names found during fitting, if X was passed in a
         container with a header.
 

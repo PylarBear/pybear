@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import BestParamsType
 
 import numbers
@@ -24,7 +23,7 @@ from .._build_is_logspace import _build_is_logspace
 
 def _demo(
     _DemoCls,
-    _true_best: Union[None, BestParamsType] = None,
+    _true_best: BestParamsType | None = None,
     _mock_gscv_pause_time: numbers.Real = 5
 ):
     """Simulated trials of this `AutoGridSearch` instance.
@@ -42,7 +41,7 @@ def _demo(
     _DemoCls : object
         Instance of `AutoGridSearch` created for demo purposes, not
         "self".
-    _true_best : Union[None, BestParamsType], default=None
+    _true_best : BestParamsType | None, default=None
         Dictionary of mocked true best values for an estimator's
         hyperparameters,  as provided by the user. If not passed, random
         true best values are generated based on the first round grids

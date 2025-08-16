@@ -8,8 +8,7 @@
 
 from typing import (
     Callable,
-    TypeAlias,
-    Union
+    TypeAlias
 )
 from .._type_aliases import (
     ReplaceType,
@@ -26,8 +25,8 @@ from .._validation._replace import _val_replace
 from ...__shared._param_conditioner._flag_maker import _flag_maker
 
 
-ModFindType: TypeAlias = list[list[Union[None, re.Pattern[str]]]]
-ModReplaceType: TypeAlias = list[list[Union[str, Callable]]]
+ModFindType: TypeAlias = list[list[re.Pattern[str] | None]]
+ModReplaceType: TypeAlias = list[list[str | Callable]]
 
 
 
@@ -74,16 +73,16 @@ def _special_param_conditioner(
     **Type Aliases**
 
     ReplaceType:
-        Optional[Union[ReplaceSubType, list[ReplaceSubType]]]
+        ReplaceSubType | list[ReplaceSubType]
 
     WipReplaceType:
-        Optional[Union[WipReplaceSubType, list[WipReplaceSubType]]]
+        WipReplaceSubType | list[WipReplaceSubType]
 
     CaseSensitiveType:
-        Optional[Union[bool, list[Union[bool, None]]]]
+        bool | list[bool | None]
 
     FlagsType:
-        Optional[Union[FlagType, list[FlagType]]]
+        FlagType | list[FlagType]
 
     """
 
@@ -222,11 +221,11 @@ def _special_param_conditioner(
 
     # put the re.compiles back into the original params -- -- -- -- -- --
 
-    # _mod_find should be list[Union[list[None], list[re.Pattern[str]]]]
+    # _mod_find should be list[list[None] | list[re.Pattern[str]]]
     assert isinstance(_mod_find, list)
     assert all(map(isinstance, _mod_find, (list for _ in _mod_find)))
 
-    # _mod_replace should be list[Union[list[None], list[str]]]
+    # _mod_replace should be list[list[None], list[str]]
     assert isinstance(_mod_replace, list)
     assert all(map(isinstance, _mod_replace, (list for _ in _mod_replace)))
 

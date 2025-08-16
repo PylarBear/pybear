@@ -7,9 +7,7 @@
 
 
 from typing import (
-    Optional,
-    TypeAlias,
-    Union
+    TypeAlias
 )
 import numpy.typing as npt
 
@@ -21,7 +19,7 @@ import polars as pl
 
 
 
-PythonTypes: TypeAlias = Union[list[str], tuple[str], set[str]]
+PythonTypes: TypeAlias = list[str] | tuple[str] | set[str]
 
 NumpyTypes: TypeAlias = npt.NDArray[str]
 
@@ -29,49 +27,30 @@ PandasTypes: TypeAlias = pd.Series
 
 PolarsTypes: TypeAlias = pl.Series
 
-XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+XContainer: TypeAlias = PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 
 XWipContainer: TypeAlias = list[list[str]]
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-SepType: TypeAlias = Union[
-    None,
-    Union[str, re.Pattern[str]],
-    tuple[Union[str, re.Pattern[str]], ...]
-]
-SepsType: TypeAlias = Optional[Union[SepType, list[SepType]]]
+SepType: TypeAlias = \
+    None |str | re.Pattern[str] | tuple[str | re.Pattern[str], ...]
+
+SepsType: TypeAlias = SepType | list[SepType]
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-CaseSensitiveType: TypeAlias = Optional[Union[bool, list[Union[None, bool]]]]
+CaseSensitiveType: TypeAlias = bool | list[None | bool]
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-MaxSplitType: TypeAlias = Union[None, numbers.Integral]
-MaxSplitsType: TypeAlias = Optional[Union[MaxSplitType, list[MaxSplitType]]]
+MaxSplitType: TypeAlias = numbers.Integral | None
+MaxSplitsType: TypeAlias = MaxSplitType | list[MaxSplitType]
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-FlagType: TypeAlias = Union[None, numbers.Integral]
-FlagsType: TypeAlias = Optional[Union[FlagType, list[FlagType]]]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+FlagType: TypeAlias = numbers.Integral | None
+FlagsType: TypeAlias = FlagType | list[FlagType]
 
 
 

@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import CountThresholdType
 
 import numbers
@@ -18,7 +17,7 @@ from .._validation._count_threshold import _val_count_threshold
 def _threshold_listifier(
     _n_features_in: int,
     *_threshold: CountThresholdType
-) -> Union[list[int], tuple[list[int], ...]]:
+) -> list[int] | tuple[list[int], ...]:
     """Return `_threshold` as list-like(s) of integers with number of
     entries equaling the number of features in the data.
 
@@ -36,7 +35,7 @@ def _threshold_listifier(
 
     Return
     ------
-    _threshold_lists : Union[list[int], tuple[list[int], ...]]
+    _threshold_lists : list[int] | tuple[list[int], ...]
         A single list[int] or a tuple of list[int]s that indicate the
         threshold for each feature in the data.
 

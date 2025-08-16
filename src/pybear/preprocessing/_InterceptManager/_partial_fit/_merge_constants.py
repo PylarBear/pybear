@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import ConstantColumnsType
 
 import numbers
@@ -16,7 +15,7 @@ import numpy as np
 
 
 def _merge_constants(
-    _old_constants: Union[ConstantColumnsType, None],
+    _old_constants: ConstantColumnsType | None,
     _new_constants: ConstantColumnsType,
     _rtol: numbers.Real,
     _atol: numbers.Real
@@ -29,7 +28,7 @@ def _merge_constants(
 
     Parameters
     ----------
-    _old_constants : Union[ConstantColumnsType, None]
+    _old_constants : ConstantColumnsType | None
         The column indices of constant columns found in previous partial
         fits and the values in the columns. None if on the first partial
         fit.

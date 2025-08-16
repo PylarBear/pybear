@@ -7,9 +7,7 @@
 
 
 from typing import (
-    Optional,
-    Sequence,
-    Union
+    Sequence
 )
 
 import string
@@ -19,9 +17,9 @@ import numpy as np
 
 
 def _validate_word_input(
-    WORDS: Union[str, Sequence[str]],
-    character_validation: Optional[bool] = True,
-    majuscule_validation: Optional[bool] = True
+    WORDS:str | Sequence[str],
+    character_validation:bool = True,
+    majuscule_validation:bool = True
 ) -> None:
     """Validate the `WORDS` parameter passed to pybear Lexicon methods.
 
@@ -31,16 +29,16 @@ def _validate_word_input(
 
     Parameters
     ----------
-    WORDS : Union[str, Sequence[str]]
+    WORDS : str | Sequence[str]
         The word or sequence of words to append to the pybear lexicon.
-    character_validation : Optional[bool], default = True
+    character_validation : bool, default = True
         Whether to apply pybear lexicon character validation to the word
         or sequence of words. pybear lexicon allows only the 26 letters
         in the English language, no others. No spaces, no hypens, no
         apostrophes. If True, any non-alpha characters will raise an
         exception during validation. If False, any string character is
         accepted.
-    majuscule_validation : Optional[bool], default = True
+    majuscule_validation : bool, default = True
         Whether to apply pybear lexicon majuscule validation to the word
         or sequence of words. The pybear lexicon requires all characters
         be majuscule, i.e., EVERYTHING MUST BE UPPER-CASE. If True,

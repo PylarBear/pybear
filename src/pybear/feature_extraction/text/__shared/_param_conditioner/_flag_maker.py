@@ -7,8 +7,7 @@
 
 
 from typing import (
-    TypeAlias, 
-    Union
+    TypeAlias,
 )
 
 import numbers
@@ -16,19 +15,18 @@ import re
 
 
 
-CaseSensitiveType: TypeAlias = Union[bool, list[Union[bool, None]]]
+CaseSensitiveType: TypeAlias = bool | list[bool | None]
 
-FlagType: TypeAlias = Union[None, numbers.Integral]
-FlagsType: TypeAlias = Union[FlagType, list[FlagType]]
-
+FlagType: TypeAlias = None | numbers.Integral
+FlagsType: TypeAlias = FlagType | list[FlagType]
 
 
 
 def _flag_maker(
-    _compile_holder: list[Union[list[None], list[re.Pattern[str]]]],
+    _compile_holder: list[list[None] | list[re.Pattern[str]]],
     _case_sensitive: CaseSensitiveType,
     _flags: FlagsType
-) -> list[Union[list[None], list[re.Pattern[str]]]]:
+) -> list[list[None] | list[re.Pattern[str]]]:
     """
     Use flags inferred from _case_sensitive and any user-passed flags
     to put flags in the re.compile objects in _compile_holder. All string
@@ -48,7 +46,7 @@ def _flag_maker(
 
     Returns
     -------
-    _compile_holder : list[Union[list[None], list[re.Pattern[str]]]]
+    _compile_holder : list[list[None] | list[re.Pattern[str]]]
         _compile_holder object with the appropriate flags now in every
         re.compile object.
 
@@ -56,12 +54,13 @@ def _flag_maker(
     -----
     
     **Type Aliases**
+
     CaseSensitiveType:
-        Union[bool, list[Union[bool, None]]]
+        bool | list[bool | None]
     FlagType:
-        Union[None, numbers.Integral]
+        None | numbers.Integral
     FlagsType:
-        Union[FlagType, list[FlagType]]
+        FlagType | list[FlagType]
 
     """
 

@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from ..._type_aliases import (
     ScorerWIPType,
     ClassifierProtocol,
@@ -34,7 +33,7 @@ def _parallelized_train_scorer(
     _f_idx: int,
     _SCORER_DICT: ScorerWIPType,
     _BEST_THRESHOLDS_BY_SCORER: NDArrayHolderType,
-    _error_score: Union[numbers.Real, None],
+    _error_score: numbers.Real | None,
     _verbose: int
 ) -> MaskedHolderType:
 
@@ -69,7 +68,7 @@ def _parallelized_train_scorer(
         score for each scorer is found. This vector has length n_scorers
         and in each position holds a float indicating the threshold
         value that is the best threshold for that scorer.
-    _error_score : Union[numbers.Real, Literal['raise']]
+    _error_score : numbers.Real | Literal['raise']
         If this training fold excepted during fitting and `error_score`
         was set to the 'raise' literal, this module cannot be reached.
         Otherwise, a number or number-like was passed to `error_score`.

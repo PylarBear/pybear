@@ -8,21 +8,20 @@
 
 from typing import (
     Sequence,
-    Union
 )
 
 from .....base._check_1D_str_sequence import check_1D_str_sequence
 
 
 
-def _val_exempt(_exempt: Union[Sequence[str], None]) -> None:
+def _val_exempt(_exempt: Sequence[str] | None) -> None:
     """Validate `exempt`.
 
     Must be sequence[str] or None.
 
     Parameters
     ----------
-    _exempt : Union[Sequence[str], None]
+    _exempt : Sequence[str] | None
         Stop words that are exempt from being removed.
 
     Returns

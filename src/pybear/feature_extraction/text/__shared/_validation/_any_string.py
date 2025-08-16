@@ -6,13 +6,10 @@
 
 
 
-from typing import Optional
-
-
 def _val_any_string(
     _str:str,
-    _name:Optional[str] = 'unnamed string',
-    _can_be_None:Optional[bool] = False
+    _name:str = 'unnamed string',
+    _can_be_None:bool = False
 ) -> None:
     """Validate that a parameter is a string, or None if allowed to be None.
 
@@ -20,9 +17,9 @@ def _val_any_string(
     ----------
     _str : str
         The object to be validated as a string (or None).
-    _name : Optional[str], default='unnamed string'
+    _name : str, default='unnamed string'
         The name of the parameter being validated.
-    _can_be_None : Optional[bool]
+    _can_be_None : bool
         Whether None can be accepted in place of a string.
 
     Returns

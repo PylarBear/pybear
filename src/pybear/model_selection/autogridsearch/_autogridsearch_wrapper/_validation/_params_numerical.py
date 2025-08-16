@@ -24,7 +24,7 @@ def _val_numerical_param_value(
     COMES IN AS
     list-like(
         list-like('grid_value1', etc.),
-        Union[int, Sequence[int]],
+        int | Sequence[int],
         '{soft|hard|fixed}_{float|integer}'
     )
 

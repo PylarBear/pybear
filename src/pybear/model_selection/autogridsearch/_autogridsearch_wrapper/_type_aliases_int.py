@@ -9,8 +9,7 @@
 from typing import (
     Literal,
     Sequence,
-    TypeAlias,
-    Union
+    TypeAlias
 )
 
 import numbers
@@ -23,7 +22,7 @@ IntDataType: TypeAlias = numbers.Integral
 InIntGridType: TypeAlias = Sequence[IntDataType]
 IntGridType: TypeAlias = list[IntDataType]
 
-InPointsType: TypeAlias = Union[numbers.Integral, Sequence[numbers.Integral]]
+InPointsType: TypeAlias = numbers.Integral | Sequence[numbers.Integral]
 PointsType: TypeAlias = list[numbers.Integral]
 
 IntTypeType: TypeAlias = Literal['soft_integer', 'hard_integer', 'fixed_integer']

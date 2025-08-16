@@ -7,7 +7,6 @@
 
 
 from typing import (
-    Optional,
     TypeAlias
 )
 import numpy.typing as npt
@@ -36,7 +35,7 @@ XContainer: TypeAlias = \
 
 def cast_to_ndarray(
     X:XContainer,
-    copy_X:Optional[bool] = True
+    copy_X:bool = True
 ) -> npt.NDArray:
     """Convert the container of `X` to numpy.ndarray.
 
@@ -49,7 +48,7 @@ def cast_to_ndarray(
     ----------
     X : XContainer of shape (n_samples, n_features) or (n_samples,)
         The array-like data to be converted to ndarray.
-    copy_X : Optional[bool], default=True
+    copy_X : bool, default=True
         Whether to copy `X` before casting to ndarray or perform the
         operations directly on the passed `X`.
 

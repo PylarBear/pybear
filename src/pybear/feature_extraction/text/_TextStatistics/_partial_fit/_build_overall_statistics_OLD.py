@@ -6,7 +6,6 @@
 
 
 
-from typing import Optional
 from .._type_aliases import OverallStatisticsType
 
 import numbers
@@ -19,7 +18,7 @@ from .._validation._string_frequency import _val_string_frequency
 
 def _build_overall_statistics(
     string_frequency_: dict[str, numbers.Integral],
-    case_sensitive: Optional[bool] = False
+    case_sensitive: bool = False
 ) -> OverallStatisticsType:
     """Populate a dictionary with the overall statistics.
 
@@ -43,7 +42,7 @@ def _build_overall_statistics(
     string_frequency_ : dict[str, numbers.Integral]
         A dictionary holding all the unique strings seen and their
         frequencies across all fits on the `TextStatistics` instance.
-    case_sensitive : Optional[bool], default = False
+    case_sensitive : bool, default = False
         Whether to normalize all characters to the same case or preserve
         the original case.
 

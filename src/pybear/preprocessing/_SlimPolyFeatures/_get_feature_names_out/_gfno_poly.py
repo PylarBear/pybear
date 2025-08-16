@@ -75,10 +75,8 @@ def _gfno_poly(
         tuple[tuple[int, ...], ...]
 
     FeatureNameCombinerType:
-        Union[
-            Callable[[Sequence[str], tuple[int, ...]], str],
-            Literal['as_feature_names', 'as_indices']
-        ]
+        Callable[[Sequence[str], tuple[int, ...]], str]
+        | Literal['as_feature_names', 'as_indices']
 
     """
 

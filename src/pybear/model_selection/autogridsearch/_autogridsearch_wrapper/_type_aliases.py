@@ -10,7 +10,6 @@ from typing import (
     Literal,
     Sequence,
     TypeAlias,
-    Union
 )
 from ._type_aliases_float import (
     FloatDataType,
@@ -45,32 +44,32 @@ import numbers
 
 
 
-DataType: TypeAlias = Union[BoolDataType, StrDataType, IntDataType, FloatDataType]
+DataType: TypeAlias = BoolDataType | StrDataType | IntDataType | FloatDataType
 
 InGridType: TypeAlias = \
-    Union[InBoolGridType, InStrGridType, InIntGridType, InFloatGridType]
-GridType: TypeAlias = Union[BoolGridType, StrGridType, IntGridType, FloatGridType]
+    InBoolGridType | InStrGridType | InIntGridType | InFloatGridType
+GridType: TypeAlias = BoolGridType | StrGridType | IntGridType | FloatGridType
 
-InPointsType: TypeAlias = Union[numbers.Integral, Sequence[numbers.Integral]]
+InPointsType: TypeAlias = numbers.Integral | Sequence[numbers.Integral]
 PointsType: TypeAlias = list[numbers.Integral]
 
 InParamType: TypeAlias = \
-    Union[InBoolParamType, InStrParamType, InIntParamType, InFloatParamType]
+    InBoolParamType | InStrParamType | InIntParamType | InFloatParamType
 ParamType: TypeAlias = \
-    Union[BoolParamType, StrParamType, IntParamType, FloatParamType]
+    BoolParamType | StrParamType | IntParamType | FloatParamType
 
 InParamsType: TypeAlias = dict[
     str,
-    Union[InBoolParamType, InStrParamType, InIntParamType, InFloatParamType]
+    InBoolParamType | InStrParamType | InIntParamType | InFloatParamType
 ]
 ParamsType: TypeAlias = dict[
     str,
-    Union[BoolParamType, StrParamType, IntParamType, FloatParamType]
+    BoolParamType | StrParamType | IntParamType | FloatParamType
 ]
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-LogspaceType: TypeAlias = Union[Literal[False], numbers.Integral]
+LogspaceType: TypeAlias = Literal[False] | numbers.Integral
 IsLogspaceType: TypeAlias = dict[str, LogspaceType]
 
 PhliteType: TypeAlias = dict[str, bool]

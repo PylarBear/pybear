@@ -506,12 +506,6 @@ class TestX:
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestPartialFit:
 
-    #     def partial_fit(
-    #         self,
-    #         X: XContainer,
-    #         y: Optional[Any | None] = None
-    #     ) -> Self:
-
 
     @pytest.mark.parametrize('_y',
         (-1,0,1, np.pi, True, False, None, 'trash', [1,2], {1,2}, {'a':1},
@@ -897,11 +891,6 @@ class TestPartialFit:
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestTransform:
 
-    #     def transform(
-    #         self,
-    #         X:XContainer,
-    #         copy:Optional[bool | None] = None
-    #     ) -> XContainer:
 
     # - num columns must equal num columns seen during fit
     # - allows nan
@@ -1505,11 +1494,6 @@ class TestFitTransform:
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestInverseTransform:
 
-    # def inverse_transform(
-    #     self,
-    #     X:XContainer,
-    #     copy:Optional[bool | None] = None
-    # ) -> XContainer:
 
     # - output is C contiguous
     # - num columns must equal num columns in column_mask_

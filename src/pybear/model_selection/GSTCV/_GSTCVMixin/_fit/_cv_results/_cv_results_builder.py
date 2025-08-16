@@ -8,7 +8,6 @@
 
 from typing import (
     Type,
-    Union
 )
 from ...._type_aliases import (
     ParamGridsWIPType,
@@ -252,7 +251,7 @@ def _cv_results_builder(
     # BUILD VECTOR OF COLUMN NAMES ** ** ** ** ** ** ** ** ** ** ** **
 
     COLUMNS: list[str] = []
-    DTYPES: list[Type[Union[np.float64, object]]] = []
+    DTYPES: list[Type[np.float64 | object]] = []
 
     COLUMNS += ['mean_fit_time', 'std_fit_time', 'mean_score_time', 'std_score_time']
     DTYPES += [np.float64 for _ in range(4)]

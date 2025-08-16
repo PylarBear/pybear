@@ -8,7 +8,6 @@
 
 from typing import (
     Sequence,
-    Union
 )
 
 import re
@@ -16,7 +15,7 @@ import re
 
 
 def _val_ngrams(
-    _ngrams: Union[Sequence[Sequence[Union[str, re.Pattern[str]]]], None]
+    _ngrams: Sequence[Sequence[str | re.Pattern[str]]] | None
 ) -> None:
     """Validate ngrams.
 
@@ -25,7 +24,7 @@ def _val_ngrams(
 
     Parameters
     ----------
-    _ngrams : Union[Sequence[Sequence[Union[str, re.Pattern[str]]]], None]
+    _ngrams : Sequence[Sequence[str | re.Pattern[str]]] | None
         A sequence of sequences, where each inner sequence holds a series
         of string literals and/or re.compile objects that specify an
         n-gram. Cannot be empty, and cannot have any n-grams with less

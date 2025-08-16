@@ -19,17 +19,6 @@ from pybear.feature_extraction.text.__shared._param_conditioner. \
 
 class TestParamConditioner:
 
-    # def _param_conditioner(
-    #     _pattern_holder: PatternHolderType,
-    #     _case_sensitive: CaseSensitiveType,
-    #     _flags: FlagsType,
-    #     _order_matters: bool,
-    #     _n_rows: numbers.Integral,
-    #     _name: Optional[str] = 'unnamed pattern holder'
-    # ) -> (
-    #          None | re.Pattern[str] | tuple[re.Pattern, ...],
-    #          list[None | re.Pattern[str] | tuple[re.Pattern, ...]]
-    #      ):
 
     # no validation
 

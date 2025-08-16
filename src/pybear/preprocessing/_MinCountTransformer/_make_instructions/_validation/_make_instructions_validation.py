@@ -14,7 +14,6 @@ from ..._type_aliases import (
     TotalCountsByColumnType,
     FeatureNamesInType
 )
-from typing import Union
 
 from ..._validation._count_threshold import _val_count_threshold
 from ..._validation._ignore_columns_handle_as_bool import \
@@ -38,7 +37,7 @@ def _make_instructions_validation(
     _delete_axis_0: bool,
     _original_dtypes: OriginalDtypesType,
     _n_features_in: int,
-    _feature_names_in: Union[FeatureNamesInType, None],
+    _feature_names_in: FeatureNamesInType | None,
     _total_counts_by_column: TotalCountsByColumnType
 ) -> None:
     """Validate all parameters taken in by `_make_instructions`.
@@ -48,7 +47,7 @@ def _make_instructions_validation(
 
     Parameters
     ----------
-    _count_threshold : Union[int, Sequence[int]]
+    _count_threshold : int | Sequence[int]
         Minimum frequency threshold.
     _ignore_float_columns : bool
         Whether to ignore float columns.
@@ -67,7 +66,7 @@ def _make_instructions_validation(
         The internal dtypes to assigned to each feature by MCT.
     _n_features_in : int
         The numbers of features in the fitted data.
-    _feature_names_in : Union[FeatureNamesInType, None]
+    _feature_names_in : FeatureNamesInType | None
         The feature names seen at first fit if the data was passed in a
         container that has a headers, such as pandas or polars dataframes.
     _total_counts_by_column : TotalCountsByColumnType

@@ -8,7 +8,6 @@
 
 from typing import (
     Literal,
-    Optional,
     Sequence
 )
 
@@ -30,24 +29,23 @@ from ._copy_X import copy_X as _copy_X
 def validate_data(
     X,
     *,
-    copy_X:Optional[bool] = True,
-    cast_to_ndarray:Optional[bool] = False,
-    accept_sparse:Optional[Sequence[
+    copy_X:bool = True,
+    cast_to_ndarray:bool = False,
+    accept_sparse:Sequence[
         Literal["csr", "csc", "coo", "dia", "lil", "dok", "bsr"]
         | Literal[False] | None
-    ]] = \
-        ("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
-    dtype:Optional[Literal['numeric', 'str', 'any']] = 'any',
-    require_all_finite:Optional[bool] = True,
-    cast_inf_to_nan:Optional[bool] = True,
-    standardize_nan:Optional[bool] = True,
-    allowed_dimensionality:Optional[Sequence[numbers.Integral]] = (1,2),
-    ensure_2d:Optional[bool] = True,
-    order:Optional[Literal['C', 'F']] = 'C',
-    ensure_min_features:Optional[numbers.Integral] = 1,
-    ensure_max_features:Optional[numbers.Integral | None] = None,
-    ensure_min_samples:Optional[numbers.Integral] = 1,
-    sample_check:Optional[numbers.Integral | None] = None
+    ] = ("csr", "csc", "coo", "dia", "lil", "dok", "bsr"),
+    dtype:Literal['numeric', 'str', 'any'] = 'any',
+    require_all_finite:bool = True,
+    cast_inf_to_nan:bool = True,
+    standardize_nan:bool = True,
+    allowed_dimensionality:Sequence[numbers.Integral] = (1,2),
+    ensure_2d:bool = True,
+    order:Literal['C', 'F'] = 'C',
+    ensure_min_features:numbers.Integral = 1,
+    ensure_max_features:numbers.Integral | None = None,
+    ensure_min_samples:numbers.Integral = 1,
+    sample_check:numbers.Integral | None = None
 ):
     """Validate characteristics of `X` and apply some select transformative
     operations.
@@ -72,11 +70,11 @@ def validate_data(
     ----------
     X : array_like of shape (n_samples, n_features) or (n_samples,)
         The data to be validated.
-    copy_X : Optional[bool], default=True
+    copy_X : bool, default=True
         Whether to operate directly on the passed `X` or create a copy.
-    cast_to_ndarray : Optional[bool], default=False
+    cast_to_ndarray : bool, default=False
         If True, convert the passed `X` to numpy ndarray.
-    accept_sparse : Optional[Sequence[str] | Literal[False] | None]
+    accept_sparse : Sequence[str] | Literal[False] | None
         default=("csr", "csc", "coo", "dia", "lil", "dok", "bsr").
 
         The scipy sparse matrix/array formats that are allowed. If no
@@ -87,29 +85,29 @@ def validate_data(
         here. Not case sensitive. Entries cover both the 'matrix' and
         'array' formats, e.g., ['csr', 'csc'] will allow csr_matrix,
         csr_array, csc_matrix, and csc_array formats.
-    dtype : Optional[Literal['numeric','str','any']], default='any'
+    dtype : Literal['numeric','str','any'], default='any'
         The allowed datatype of `X`. If 'numeric', data that cannot be
         coerced to a numeric datatype will raise a TypeError. If 'str',
         all data in `X` is must be strings or a TypeError is raised. If
         'any', no restrictions are imposed on the datatype of `X`.
-    require_all_finite : Optional[bool], default=True
+    require_all_finite : bool, default=True
         If True, block data that has undefined values, in particular,
         nan-like and infinity-like values. If False, nan-like and
         infinity-like values are allowed.
-    cast_inf_to_nan : Optional[bool], default=True
+    cast_inf_to_nan : bool, default=True
         If True, coerce any infinity-like values in the data to
         numpy.nan; if False, leave any infinity-like values as is.
-    standardize_nan : Optional[bool], default=True
+    standardize_nan : bool, default=True
         If True, coerce all nan-like values in the data to numpy.nan; if
         False, leave all the nan-like values in the given state.
-    allowed_dimensionality : Optional[Sequence[numbers.Integral]]
+    allowed_dimensionality : Sequence[numbers.Integral], default = (1,2)
         The allowed dimension of `X`. All entries must be greater than
         zero and less than or equal to two. Examples: (1,)  {1,2}, [2].
-    ensure_2d : Optional[bool], default=True
+    ensure_2d : bool, default=True
         Coerce the data to a 2-dimensional format. For example, a 1D
         numpy vector would be reshaped to a 2D numpy array; a 1D pandas
         series would be converted to a 2D pandas dataframe.
-    order : Optional[Literal['C', 'F']], default='C'
+    order : Literal['C', 'F'], default='C'
         Only applicable if `X` is a numpy array or `cast_to_ndarray` is
         True. Sets the memory order of `X`. 'C' is row-major and 'F' is
         column-major. The default for numpy arrays is 'C', and major
@@ -118,16 +116,16 @@ def validate_data(
         understanding of the potential performance implications of
         changing the memory order of `X` on downstream processes that
         may be designed for 'C' order.
-    ensure_min_features : Optional[numbers.Integral], default=1
+    ensure_min_features : numbers.Integral, default=1
         The minimum number of features (columns) that must be in `X`.
-    ensure_max_features : Optional[numbers.Integral | None]
+    ensure_max_features : numbers.Integral | None, default = None
         The maximum number of features allowed in `X`; if not None, must
         be greater than or equal to `ensure_min_features`. If None, then
         there is no restriction on the maximum number of features in `X`.
-    ensure_min_samples : Optional[numbers.Integral], default=1
+    ensure_min_samples : numbers.Integral, default=1
         The minimum number of samples (rows) that must be in `X`. Ignored
         if `sample_check` is not None.
-    sample_check : Optional[numbers.Integral | None]
+    sample_check : numbers.Integral | None = None
         The exact number of samples allowed in `X`. If not None, must be
         a non-negative integer. Use this to check, for example, that the
         number of samples in `y` equals the number of samples in `X`. If

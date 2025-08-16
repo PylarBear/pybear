@@ -8,7 +8,6 @@
 
 from typing import (
     Callable,
-    Union
 )
 import numpy.typing as npt
 from .._type_aliases import NGramsWipType
@@ -24,8 +23,8 @@ from ._wrap_manager import _wrap_manager
 def _transform(
     _X: list[list[str]],
     _ngrams: NGramsWipType,
-    _ngcallable: Union[Callable[[list[str]], str], None],
-    _sep: Union[str, None],
+    _ngcallable: Callable[[list[str]], str] | None,
+    _sep: str | None,
     _wrap: bool,
     _remove_empty_rows: bool
 ) -> tuple[list[list[str]], npt.NDArray[bool]]:
@@ -52,10 +51,10 @@ def _transform(
         n-gram must be a tuple of re.compile objects that specify an
         n-gram pattern. Cannot be empty, and cannot have any ngrams
         that have less than 2 entries.
-    _ngcallable : Union[Callable[[list[str]], str], None]
+    _ngcallable : Callable[[list[str]], str] | None
         The callable applied to sequences that match an n-gram pattern
         to produce a single contiguous string.
-    _sep : Union[str, None]
+    _sep : str | None
         The user defined separator to join the words with, when
         `_ngcallable` is not given. If no separator is defined by the
         user, use the default separator.
@@ -84,7 +83,7 @@ def _transform(
     **Type Aliases**
 
     NGramsWipType:
-        Union[None, list[tuple[re.Pattern[str], ...]]]
+        list[tuple[re.Pattern[str], ...]] | None
 
     """
 

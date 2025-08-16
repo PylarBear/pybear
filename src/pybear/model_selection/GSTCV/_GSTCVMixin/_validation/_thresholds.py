@@ -6,7 +6,6 @@
 
 
 
-from typing import Optional
 from ..._type_aliases import ThresholdsInputType
 
 import numpy as np
@@ -17,7 +16,7 @@ def _val_thresholds(
     _thresholds: ThresholdsInputType,
     _is_from_kwargs: bool,
     _idx: int,
-    _must_be_list_like:Optional[bool]=True
+    _must_be_list_like:bool = True
 ) -> None:
     """Validate `_thresholds`.
 
@@ -43,7 +42,7 @@ def _val_thresholds(
         If `_thresholds` was not passed in param grid, a dummy `_idx`
         value of 0 is used, and cannot be accessed because the code routes
         through `_is_from_kwargs`.
-    _must_be_list_like : Optional[bool], default=True
+    _must_be_list_like : bool, default = True
         Whether `thresholds` can be in the raw state as passed to init
         or must have already been conditioned into a list-like.
 

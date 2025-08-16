@@ -8,7 +8,6 @@
 
 from typing import (
     Literal,
-    Union
 )
 
 import numbers
@@ -16,14 +15,14 @@ import numbers
 
 
 def _val_error_score(
-    _error_score: Union[Literal['raise'], numbers.Real]
+    _error_score: Literal['raise'] | numbers.Real
 ) -> None:
     """Validate that `error_score` is a non-boolean numeric value or
     literal 'raise'.
 
     Parameters
     ----------
-    _error_score : Union[Literal['raise'], numbers.Real]
+    _error_score : Literal['raise'] | numbers.Real
         Score to assign if an error occurs in estimator fitting.
 
     Returns

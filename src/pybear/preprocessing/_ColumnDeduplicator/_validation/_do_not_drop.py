@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import (
     DoNotDropType,
     FeatureNamesInType
@@ -17,7 +16,7 @@ from .._type_aliases import (
 def _val_do_not_drop(
     _do_not_drop: DoNotDropType,
     _n_features_in: int,
-    _columns: Union[FeatureNamesInType, None]
+    _columns: FeatureNamesInType | None
 ) -> None:
     """Validate `do_not_drop`.
 
@@ -37,7 +36,7 @@ def _val_do_not_drop(
         managed by `conflict`.
     _n_features_in : int
         The number of features in the data seen at first fit.
-    _columns : Union[FeatureNamesInType, None] of shape (n_features,)
+    _columns : FeatureNamesInType | None of shape (n_features,)
         If fitting is done on a container that has a header, this is a
         ndarray of strings, otherwise is None.
 

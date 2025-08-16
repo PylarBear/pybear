@@ -8,9 +8,7 @@
 
 from typing import (
     Any,
-    Optional,
-    Sequence,
-    Union
+    Sequence
 )
 
 import re
@@ -169,22 +167,22 @@ class Lexicon(TextStatistics):
         raise AttributeError(f"'_reset' is blocked")
 
 
-    def get_params(self, deep:Optional[bool] = True):
+    def get_params(self, deep:bool = True):
         """Blocked."""
         raise AttributeError(f"'get_params' is blocked")
 
 
-    def set_params(self, deep:Optional[bool] = True):
+    def set_params(self, deep:bool = True):
         """Blocked."""
         raise AttributeError(f"'set_params' is blocked")
 
 
-    def partial_fit(self, X:Any, y:Optional[Any] = None):
+    def partial_fit(self, X:Any, y:Any = None):
         """Blocked."""
         raise AttributeError(f"'partial_fit' is blocked")
 
 
-    def fit(self, X:Any, y:Optional[Any] = None):
+    def fit(self, X:Any, y:Any = None):
         """Blocked."""
         raise AttributeError(f"'fit' is blocked")
 
@@ -199,14 +197,14 @@ class Lexicon(TextStatistics):
         raise AttributeError(f"'fit_transform' is blocked")
 
 
-    def score(self, X:Any, y:Optional[Any] = None):
+    def score(self, X:Any, y:Any = None):
         """Blocked."""
         raise AttributeError(f"'score' is blocked")
 
 
     def lookup_substring(
         self,
-        pattern: Union[str, re.Pattern[str]]
+        pattern: str | re.Pattern[str]
     ) -> list[str]:
         """Use string literals or regular expressions to look for substring
         matches in the `Lexicon`.
@@ -222,7 +220,7 @@ class Lexicon(TextStatistics):
 
         Parameters
         ----------
-        pattern : Union[str, re.Pattern[str]]
+        pattern : str | re.Pattern[str]
             Character sequence or regular expression in a re.compile
             object to be looked up against the pybear `Lexicon`.
 
@@ -247,7 +245,7 @@ class Lexicon(TextStatistics):
 
     def lookup_string(
         self,
-        pattern: Union[str, re.Pattern[str]]
+        pattern: str | re.Pattern[str]
     ) -> list[str]:
         """Use string literals or regular expressions to look for full
         word matches in the `Lexicon`.
@@ -263,7 +261,7 @@ class Lexicon(TextStatistics):
 
         Parameters
         ----------
-        pattern : Union[str, re.Pattern[str]]
+        pattern : str | re.Pattern[str]
             Character sequence or regular expression in a re.compile
             object to be looked up against the pybear `Lexicon`.
 
@@ -319,10 +317,10 @@ class Lexicon(TextStatistics):
 
     def add_words(
         self,
-        WORDS: Union[str, Sequence[str]],
-        character_validation: Optional[bool] = True,
-        majuscule_validation: Optional[bool] = True,
-        file_validation: Optional[bool] = True
+        WORDS:str | Sequence[str],
+        character_validation:bool = True,
+        majuscule_validation:bool = True,
+        file_validation:bool = True
     ) -> None:
         """Silently update the pybear `Lexicon` text files with the given
         words.
@@ -363,24 +361,24 @@ class Lexicon(TextStatistics):
 
         Parameters
         ----------
-        WORDS : Union[str, Sequence[str]]
+        WORDS : str | Sequence[str]
             The word or words to be added to the pybear `Lexicon`. Cannot
             be an empty string or an empty sequence. Words that are
             already in the `Lexicon` are silently ignored.
-        character_validation : Optional[bool], default = True
+        character_validation : bool, default = True
             Whether to apply pybear `Lexicon` character validation to
             the word or sequence of words. pybear `Lexicon` allows only
             the 26 letters in the English language, no others. No spaces,
             no hyphens, no apostrophes. If True, any non-alpha characters
             will raise an exception during validation. If False, any
             string character is accepted.
-        majuscule_validation : Optional[bool], default = True
+        majuscule_validation : bool, default = True
             Whether to apply pybear `Lexicon` majuscule validation to the
             word or sequence of words. The pybear `Lexicon` requires all
             characters be majuscule, i.e., EVERYTHING MUST BE UPPER-CASE.
             If True, any non-majuscule characters will raise an exception
             during validation. If False, any case is accepted.
-        file_validation : Optional[bool], default = True
+        file_validation : bool, default = True
             Whether to apply pybear `Lexicon` file name validation to the
             word or sequence of words. The formal pybear `Lexicon` only
             allows words to start with the 26 upper-case letters of the
@@ -412,7 +410,7 @@ class Lexicon(TextStatistics):
 
     def delete_words(
         self,
-        WORDS: Union[str, Sequence[str]]
+        WORDS: str | Sequence[str]
     ):
         """Remove the given word(s) from the pybear `Lexicon` text files.
         Case sensitive! Any words that are not in the pybear `Lexicon`
@@ -420,7 +418,7 @@ class Lexicon(TextStatistics):
 
         Parameters
         ----------
-        WORDS : Union[str, Sequence[str]]
+        WORDS : str | Sequence[str]
             The word or words to remove from the pybear `Lexicon`. Cannot
             be an empty string or an empty sequence.
 

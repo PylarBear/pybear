@@ -8,8 +8,6 @@
 
 from typing import (
     Any,
-    Optional,
-    Union
 )
 from typing_extensions import Self
 import numpy.typing as npt
@@ -202,30 +200,30 @@ class NGramMerger(
 
     Parameters
     ----------
-    ngrams : Union[Sequence[Sequence[Union[str, re.Pattern[str]]]], None], default=None
+    ngrams : NGramsType, default = None
         A sequence of sequences, where each inner sequence holds a series
         of string literals and/or re.compile objects that specify an
         n-gram. Cannot be empty, and cannot have any n-gram patterns
         with less than 2 entries.
-    ngcallable : Optional[Callable[[list[str]], str]], default=None
+    ngcallable : NGCallableType, default = None
         A callable applied to word sequences that match an n-gram to
         produce a single contiguous string sequence.
-    sep : Optional[str], default='_'
+    sep : str | None, default = None
         The separator that joins words that match an n-gram. This is
         overriden when a callable is passed to `ngcallable`.
-    wrap : Optional[bool], default=False
+    wrap : bool default = False
         Whether to look for pattern matches across the end of one line
         and into the beginning of the next line.
-    case_sensitive : Optional[bool], default=True
+    case_sensitive : bool, default = True
         Global case-sensitivity setting. If True (the default) then all
         searches are case-sensitive. If False, NGM will look for matches
         regardless of case. This setting is overriden when IGNORECASE
         flags are passed in re.compile objects or to `flags`.
-    remove_empty_rows : Optional[bool], default=False
+    remove_empty_rows : bool, default = False
         Whether to delete any empty rows that may occur during the n-gram
         merging process. A row could only become empty if `wrap` is True
         or the data was passed with an empty row already in it.
-    flags : Union[numbers.Integral, None]
+    flags : numbers.Integral | None, default = None
         The global flags value(s) applied to the n-gram search. Must be
         None or an integer. The values of the integers are not validated
         for legitimacy, any exceptions would be raised by `re.fullmatch`.
@@ -254,34 +252,34 @@ class NGramMerger(
         polars.DataFrame
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+        PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 
     XWipContainer:
         list[list[str]]
 
     NGramsType:
-        Optional[Union[Sequence[Sequence[Union[str, re.Pattern[str]]]], None]]
+        Sequence[Sequence[str | re.Pattern[str]]] | None
 
     NGramsWipType:
-        Union[None, list[tuple[re.Pattern[str], ...]]]
+        list[tuple[re.Pattern[str], ...]] | None
 
     NGCallableType:
-        Optional[Union[None, Callable[[list[str]], str]]]
+        Callable[[list[str]], str] | None
 
     SepType:
-        Optional[Union[str, None]]
+        str | None
 
     WrapType:
-        Optional[bool]
+        bool
 
     CaseSensitiveType:
-        Optional[bool]
+        bool
 
     RemoveEmptyRowsType:
-        Optional[bool]
+        bool
 
     FlagsType:
-        Optional[Union[numbers.Integral, None]]
+        numbers.Integral | None
 
     Examples
     --------
@@ -319,7 +317,7 @@ class NGramMerger(
         sep:SepType = None,
         wrap:WrapType = False,
         case_sensitive:CaseSensitiveType = True,
-        remove_empty_rows:Optional[bool] = False,
+        remove_empty_rows:bool = False,
         flags:FlagsType = None
     ) -> None:
         """Initialize the NGramMerger instance."""
@@ -425,8 +423,8 @@ class NGramMerger(
 
     def partial_fit(
         self,
-        X: XContainer,
-        y: Optional[Any] = None
+        X:XContainer,
+        y:Any = None
     ) -> Self:
         """No-op batch-wise fit operation.
 
@@ -434,7 +432,7 @@ class NGramMerger(
         ----------
         X : XContainer
             The data. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default=None
             The target for the data. Always ignored.
 
         Returns
@@ -451,7 +449,7 @@ class NGramMerger(
     def fit(
         self,
         X: XContainer,
-        y: Optional[Any] = None
+        y: Any = None
     ) -> Self:
         """No-op one-shot fit operation.
 
@@ -459,7 +457,7 @@ class NGramMerger(
         ----------
         X : XContainer
             The data. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default=None
             The target for the data. Always ignored.
 
         Returns
@@ -477,7 +475,7 @@ class NGramMerger(
     def transform(
         self,
         X:XContainer,
-        copy:Optional[bool] = False
+        copy:bool = False
     ) -> XWipContainer:
         """Merge n-grams in a (possibly ragged) 2D array-like of strings.
 
@@ -485,7 +483,7 @@ class NGramMerger(
         ----------
         X : XContainer
             The data.
-        copy : Optional[bool], default=False
+        copy : bool, default=False
             Whether to directly operate on the passed `X` or on a
             deepcopy of `X`.
 
@@ -545,8 +543,8 @@ class NGramMerger(
 
     def score(
         self,
-        X: Any,
-        y: Optional[Any] = None
+        X:Any,
+        y:Any = None
     ) -> None:
         """No-op score method.
 
@@ -556,7 +554,7 @@ class NGramMerger(
         ----------
         X : Any
             The data. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default = None
             The target for the data. Ignored.
 
         Returns

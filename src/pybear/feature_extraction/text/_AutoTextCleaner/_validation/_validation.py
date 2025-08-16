@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import (
     XContainer,
     ReturnDimType,
@@ -38,18 +37,18 @@ def _validation(
     _X: XContainer,
     _global_sep: str,
     _case_sensitive: bool,
-    _global_flags: Union[numbers.Integral, None],
+    _global_flags: numbers.Integral | None,
     _remove_empty_rows: bool,
     _return_dim: ReturnDimType,
     _strip: bool,
     _replace: ReplaceType,
     _remove: RemoveType,
-    _normalize: Union[bool, None],
-    _lexicon_lookup: Union[LexiconLookupType, None],
+    _normalize: bool | None,
+    _lexicon_lookup: LexiconLookupType | None,
     _remove_stops: bool,
-    _ngram_merge: Union[None, NGramsType],
-    _justify: Union[None, numbers.Integral],
-    _get_statistics: Union[None, GetStatisticsType]
+    _ngram_merge: NGramsType | None,
+    _justify: numbers.Integral | None,
+    _get_statistics: GetStatisticsType | None
 ) -> None:
     """Validate the parameters for AutoTextCleaner.
 
@@ -66,7 +65,7 @@ def _validation(
     _case_sensitive:
         bool
     _global_flags:
-        Union[numbers.Integral, None]
+        numbers.Integral | None
     _remove_empty_rows:
         bool
     _return_dim:
@@ -78,17 +77,17 @@ def _validation(
     _remove:
         RemoveType
     _normalize:
-        Union[bool, None]
+        bool | None
     _lexicon_lookup:
-        Union[LexiconLookupType, None]
+        LexiconLookupType | None
     _remove_stops:
         bool
     _ngram_merge:
-        Union[None, NGramsType]
+        NGramsType | None
     _justify:
-        Union[None, numbers.Integral]
+        numbers.Integral | None
     _get_statistics:
-        Union[None, GetStatisticsType]
+        GetStatisticsType | None
 
     Returns
     -------

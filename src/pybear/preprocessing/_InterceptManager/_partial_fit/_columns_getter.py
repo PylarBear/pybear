@@ -8,7 +8,6 @@
 
 from typing import (
     Any,
-    Union
 )
 import numpy.typing as npt
 from .._type_aliases import InternalXContainer
@@ -24,7 +23,7 @@ from ....utilities._nan_masking import nan_mask
 
 def _columns_getter(
     _X: InternalXContainer,
-    _col_idxs: Union[int, tuple[int, ...]]
+    _col_idxs: int | tuple[int, ...]
 ) -> npt.NDArray[Any]:
     """Handles the mechanics of extracting one or more columns from the
     various allowed data container types.
@@ -41,7 +40,7 @@ def _columns_getter(
         ndarray, pandas dataframe, polars dataframe, or scipy csc only.
         This module expects `_X` to be in a valid state when passed, and
         will not condition it.
-    _col_idxs : Union[int, tuple[int, ...]]
+    _col_idxs : int | tuple[int, ...]
         The column index / indices to extract from `_X`.
 
     Returns

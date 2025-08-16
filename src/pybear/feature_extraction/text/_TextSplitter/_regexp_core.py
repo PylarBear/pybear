@@ -8,8 +8,7 @@
 
 from typing import (
     Sequence,
-    TypeAlias,
-    Union
+    TypeAlias
 )
 from ._type_aliases import MaxSplitsType
 
@@ -19,11 +18,10 @@ import re
 
 
 
-PatternsType: TypeAlias = \
-    Union[
-        None, re.Pattern[str], tuple[re.Pattern[str], ...],
-        list[Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]]
-    ]
+PatternsType: TypeAlias = (
+    None | re.Pattern[str] | tuple[re.Pattern[str], ...]
+    | list[None | re.Pattern[str] | tuple[re.Pattern[str], ...]]
+)
 
 
 
@@ -55,16 +53,14 @@ def _regexp_core(
     **Type Aliases**
 
     PatternsType:
-        Union[
-            None, re.Pattern[str], tuple[re.Pattern[str], ...],
-            list[Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]]
-        ]
+        None | re.Pattern[str] | tuple[re.Pattern[str], ...]
+        | list[None | re.Pattern[str] | tuple[re.Pattern[str], ...]]
 
     MaxSplitType:
-        Union[None, numbers.Integral]
+        numbers.Integral | None
 
     MaxSplitsType:
-        Optional[Union[MaxSplitType, list[MaxSplitType]]]
+        MaxSplitType | list[MaxSplitType]
 
     """
 

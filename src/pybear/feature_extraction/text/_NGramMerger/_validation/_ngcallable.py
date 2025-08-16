@@ -8,13 +8,12 @@
 
 from typing import (
     Callable,
-    Union
 )
 
 
 
 def _val_ngcallable(
-    _ngcallable: Union[Callable[[list[str]], str], None]
+    _ngcallable: Callable[[list[str]], str] | None
 ) -> None:
     """Validate the ngram callable.
 
@@ -23,7 +22,7 @@ def _val_ngcallable(
 
     Parameters
     ----------
-    _ngcallable : Union[Callable[[list[str]], str], None]
+    _ngcallable : Callable[[list[str]], str] | None
         The callable applied to ngram sequences to produce a contiguous
         string sequence.
 

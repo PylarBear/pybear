@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import (
     DoNotDropType,
     DuplicatesType,
@@ -22,7 +21,7 @@ import numpy as np
 def _lock_in_random_idxs(
     _duplicates: DuplicatesType,
     _do_not_drop: DoNotDropType,
-    _columns: Union[FeatureNamesInType, None]
+    _columns: FeatureNamesInType | None
 ) -> tuple[int, ...]:
     """Lock in random indices for when `keep` is 'random'.
 
@@ -59,7 +58,7 @@ def _lock_in_random_idxs(
         A list of columns not to be dropped. If fitting is done on a
         container that has a header, a list of feature names may be
         provided. Otherwise, a list of column indices must be provided.
-    _columns : Union[FeatureNamesInType, None] of shape (n_features,)
+    _columns : FeatureNamesInType | None of shape (n_features,)
         If fitting is done on a container that has a header, this is a
         ndarray of strings, otherwise is None.
 

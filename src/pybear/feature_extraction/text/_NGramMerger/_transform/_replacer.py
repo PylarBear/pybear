@@ -8,8 +8,7 @@
 
 from typing import (
     Callable,
-    Sequence,
-    Union
+    Sequence
 )
 
 import re
@@ -20,8 +19,8 @@ def _replacer(
     _line: list[str],
     _ngram: tuple[re.Pattern[str], ...],
     _hits: Sequence[int],
-    _ngcallable: Union[Callable[[list[str]], str], None],
-    _sep: Union[str, None]
+    _ngcallable: Callable[[list[str]], str] | None,
+    _sep: str | None
 ) -> list[str]:
     """Using the pattern match indices found by :func:`_match_finder`,
     at those indices in `_line` replace the words with the contiguous
@@ -45,10 +44,10 @@ def _replacer(
     _hits : Sequence[int]
         The starting indices of sequences in `_line` that match the
         n-gram pattern.
-    _ngcallable : Union[Callable[[list[str]], str], None]
+    _ngcallable : Callable[[list[str]], str] | None
         The callable applied to sequences that match an n-gram pattern
         to produce a single contiguous string.
-    _sep : Union[str, None]
+    _sep : str | None
         The user defined separator to join the words with. If no
         separator is defined by the user, use the default separator.
 

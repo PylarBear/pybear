@@ -19,7 +19,7 @@ import numbers
 
 def get_feature_names_out(
     input_features: Sequence[str] | None,
-    feature_names_in_: npt.NDArray[object] | None,  # pizza come back to this
+    feature_names_in_: npt.NDArray[object] | None,
     n_features_in_: numbers.Integral
 ) -> npt.NDArray[object]:
     """Return the feature name vector for the output of a pybear

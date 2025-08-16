@@ -8,7 +8,6 @@
 
 from typing import (
     TypeAlias,
-    Union
 )
 import numpy.typing as npt
 
@@ -23,10 +22,9 @@ import polars as pl
 
 
 PythonTypes: TypeAlias = list | tuple | set
-NumpyTypes: TypeAlias = npt.NDArray[numbers.Number | str] | np.ma.MaskedArray # pizza
-# pizza keep Union, PyCharm linter likes it for pd but doesnt like pipe
-PandasTypes: TypeAlias = Union[pd.Series, pd.DataFrame]
-PolarsTypes: TypeAlias = Union[pl.Series, pl.DataFrame]
+NumpyTypes: TypeAlias = npt.NDArray[numbers.Number | str] | np.ma.MaskedArray
+PandasTypes: TypeAlias = pd.Series | pd.DataFrame
+PolarsTypes: TypeAlias = pl.Series | pl.DataFrame
 SparseTypes: TypeAlias = (
     ss.csc_matrix | ss.csc_array | ss.csr_matrix | ss.csr_array
     | ss.coo_matrix | ss.coo_array | ss.dia_matrix | ss.dia_array

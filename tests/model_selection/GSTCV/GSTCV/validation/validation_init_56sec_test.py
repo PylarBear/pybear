@@ -39,23 +39,6 @@ from pybear.model_selection.GSTCV._GSTCV.GSTCV import GSTCV
 class TestInitValidation:
 
 
-    #     def __init__(
-    #         self,
-    #         estimator: ClassifierProtocol,
-    #         param_grid: ParamGridInputType | ParamGridsInputType,
-    #         *,
-    #         thresholds: Optional[None | numbers.Real | Sequence[numbers.Real]]=None,
-    #         scoring: Optional[str | Sequence[str] | Callable | dict[str, Callable]]='accuracy',
-    #         n_jobs: Optional[numbers.Integral | None]=None,
-    #         refit: Optional[bool | str | Callable]=True,
-    #         cv: Optional[numbers.Integral | Iterable | None]=None,
-    #         verbose: Optional[numbers.Real]=0,
-    #         pre_dispatch: Optional[Literal['all'] | str | numbers.Integral]='2*n_jobs',
-    #         error_score: Optional[Literal['raise'] | numbers.Real]='raise',
-    #         return_train_score: Optional[bool]=False
-    #     ) -> None:
-
-
     # fixtures ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
     @staticmethod
@@ -208,7 +191,7 @@ class TestInitValidation:
     # joint param_grid & thresholds v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
 
     # param_grid: dict[str, list[Any]] or list[dict[str, list[Any]]]
-    # thresholds: Optional[Sequence[numbers.Real] | numbers.Real | None]=None
+    # thresholds: None | numbers.Real | Sequence[numbers.Real] = None
 
 
     @staticmethod
@@ -363,7 +346,7 @@ class TestInitValidation:
 
 
     # cv v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-    # cv: Optional[int | Iterable | None] = None
+    # cv:int | Iterable | None = None
 
     @pytest.mark.parametrize('junk_cv',
         (-1, 0, 1, 3.14, [0, 1], (0, 1), {0, 1}, True, False, 'trash', min,
@@ -449,7 +432,7 @@ class TestInitValidation:
 
 
     # error_score v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-    # Optional[Literal['raise'] | numbers.Real] = 'raise'
+    # Literal['raise'] | numbers.Real = 'raise'
 
     @pytest.mark.parametrize('junk_error_score',
         (True, False, None, 'trash', min, [0, 1], (0, 1), {0, 1},
@@ -494,7 +477,7 @@ class TestInitValidation:
 
 
     # verbose v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-    # verbose: Optional[numbers.Real]=0
+    # verbosenumbers.Real = 0
 
     @pytest.mark.parametrize('junk_verbose',
         (-10, -1, None, 'trash', min, [0, 1], (0, 1), {0, 1}, {'a': 1}, lambda x: x)
@@ -545,7 +528,7 @@ class TestInitValidation:
 
 
     # refit v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-    # refit: Optional[RefitType]=True
+    # refit:RefitType = True
 
 
     one_scorer = {'accuracy': accuracy_score}
@@ -675,7 +658,7 @@ class TestInitValidation:
 
 
     # scoring v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-    # scoring: Optional[ScorerInputType]='accuracy'
+    # scoring: ScorerInputType = 'accuracy'
 
     @pytest.mark.parametrize('junk_scoring',
         (-1, 0, 1, 3.14, True, False, None, 'trash', min, [0, 1], (0, 1),
@@ -832,7 +815,7 @@ class TestInitValidation:
 
 
     # n_jobs v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-    # n_jobs: Optional[int | None]=None
+    # n_jobs: int | None = None
 
     @pytest.mark.parametrize('junk_n_jobs',
         (-2, 0, 3.14, True, False, 'trash', min, [0, 1], (0, 1), {0, 1},
@@ -880,9 +863,25 @@ class TestInitValidation:
 
     # END n_jobs v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
+    # pre_dispatch v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
+    @pytest.mark.parametrize('junk_pre_dispatch',
+        (-2, 0, False, 'trash', min, [0, 1], (0, 1), {0, 1},
+         {'a': 1}, lambda x: x)
+    )
+    def test_rejects_junk_pre_dispatch(
+        self, X_np, y_np, special_gstcv, junk_pre_dispatch
+    ):
+
+        special_gstcv.set_params(pre_dispatch=junk_pre_dispatch)
+
+        # this is raised by joblib, let it raise whatever
+        with pytest.raises(Exception):
+            special_gstcv.fit(X_np, y_np)
+
+    # END pre_dispatch v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
     # return_train_score v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-    # return_train_score: Optional[bool]=False
+    # return_train_score:bool = False
 
     @pytest.mark.parametrize('junk_return_train_score',
         (-1, 0, 1, 3.14, None, 'trash', min, [0, 1], (0, 1), {0, 1},
@@ -913,25 +912,6 @@ class TestInitValidation:
                good_train_score
 
     # END return_train_score v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-
-
-    # pre_dispatch v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-    @pytest.mark.parametrize('junk_pre_dispatch',
-        (-2, 0, False, 'trash', min, [0, 1], (0, 1), {0, 1},
-         {'a': 1}, lambda x: x)
-    )
-    def test_rejects_junk_pre_dispatch(
-        self, X_np, y_np, special_gstcv, junk_pre_dispatch
-    ):
-
-        special_gstcv.set_params(pre_dispatch=junk_pre_dispatch)
-
-        # this is raised by joblib, let it raise whatever
-        with pytest.raises(Exception):
-            special_gstcv.fit(X_np, y_np)
-
-    # END pre_dispatch v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-
 
 
 
