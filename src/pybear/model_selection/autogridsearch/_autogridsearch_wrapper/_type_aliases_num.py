@@ -24,8 +24,6 @@ from ._type_aliases_int import (
     IntTypeType
 )
 
-import numbers
-
 
 
 # see _type_aliases, general num subtypes of DataType, GridType, PointsType, ParamType
@@ -34,8 +32,8 @@ NumDataType = TypeVar('NumDataType', IntDataType, FloatDataType)
 InNumGridType: TypeAlias = InIntGridType | InFloatGridType
 NumGridType: TypeAlias = IntGridType | FloatGridType
 
-InPointsType: TypeAlias = numbers.Integral | Sequence[numbers.Integral]
-PointsType: TypeAlias = list[numbers.Integral]
+InPointsType: TypeAlias = int | Sequence[int]
+PointsType: TypeAlias = list[int]
 
 NumTypeType: TypeAlias = IntTypeType | FloatTypeType
 

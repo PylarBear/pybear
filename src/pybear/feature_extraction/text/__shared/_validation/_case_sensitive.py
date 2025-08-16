@@ -19,7 +19,7 @@ CaseSensitiveType: TypeAlias = bool | list[bool | None]
 
 def _val_case_sensitive(
     _case_sensitive: CaseSensitiveType,
-    _n_rows: numbers.Integral
+    _n_rows: int
 ) -> None:
     """Validate 'case_sensitive'.
 
@@ -31,7 +31,7 @@ def _val_case_sensitive(
     _case_sensitive : bool | list[bool | None]
         Whether to do a case-sensitive search. If a list-like, the
         entries are applied to the corresponding row in the data.
-    _n_rows : numbers.Integral
+    _n_rows : int
         The number of rows in the data.
 
     Returns

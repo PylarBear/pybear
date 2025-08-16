@@ -10,13 +10,11 @@ from typing import (
     Sequence,
 )
 
-import numbers
-
 
 
 def _condition_sep(
     _sep: str | Sequence[str],
-    _n_rows: numbers.Integral
+    _n_rows: int
 ) -> list[str]:
     """Condition the `sep` parameter into a Python list of strings whose
     length equals the number of rows in X.
@@ -28,7 +26,7 @@ def _condition_sep(
     _sep : str | Sequence[str]
         The string sequence(s) to use to join each row of text strings
         in the data.
-    _n_rows : numbers.Integral
+    _n_rows : int
         The number of sub-containers of text in the data.
 
     Returns

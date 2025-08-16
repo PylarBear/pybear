@@ -16,15 +16,7 @@ from pybear.feature_extraction.text._TextPadder._transform._transform import \
 
 
 
-
 class TestTransform:
-
-
-    # def _transform(
-    #     _X: XContainer,
-    #     _fill: str,
-    #     _n_features: numbers.Integral
-    # ) -> list[list[str]]:
 
 
     @staticmethod

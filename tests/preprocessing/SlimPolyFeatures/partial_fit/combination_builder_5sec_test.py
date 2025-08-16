@@ -6,24 +6,14 @@
 
 
 
+import pytest
 
 from pybear.preprocessing._SlimPolyFeatures._partial_fit._combination_builder \
     import _combination_builder
 
-import pytest
-
-
 
 
 class TestCombinationBuilder:
-
-
-    # def _combination_builder(
-    #     n_features_in_: numbers.Integral,
-    #     _min_degree: numbers.Integral,
-    #     _max_degree: numbers.Integral,
-    #     _intx_only: bool
-    # ) -> list[tuple[int, ...]]:
 
 
     @pytest.mark.parametrize('_n_features_in',

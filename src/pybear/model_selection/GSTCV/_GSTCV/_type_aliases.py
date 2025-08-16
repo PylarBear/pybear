@@ -14,15 +14,14 @@ from typing import (
     TypeAlias
 )
 
-import numbers
 
 
-PreDispatchType: TypeAlias = Literal['all'] | str | numbers.Integral
+PreDispatchType: TypeAlias = Literal['all'] | str | int
 
 SKXType: TypeAlias = Iterable
-SKYType: TypeAlias = Sequence[numbers.Integral] | None
+SKYType: TypeAlias = Sequence[int] | None
 
-SKSlicerType: TypeAlias = Sequence[numbers.Integral]
+SKSlicerType: TypeAlias = Sequence[int]
 
 SKKFoldType: TypeAlias = tuple[SKSlicerType, SKSlicerType]
 

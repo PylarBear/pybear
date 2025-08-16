@@ -19,17 +19,6 @@ from pybear.preprocessing._SlimPolyFeatures._partial_fit.\
     _get_dupls_for_combo_in_X_and_poly import _get_dupls_for_combo_in_X_and_poly
 
 
-# def _get_dupls_for_combo_in_X_and_poly(
-#     _X: InternalXContainer,
-#     _poly_combos: list[tuple[int, ...]],
-#     _min_degree: numbers.Integral,
-#     _equal_nan: bool,
-#     _rtol: numbers.Real,
-#     _atol: numbers.Real,
-#     _n_jobs: numbers.Integral | None
-# ) -> list[bool]:
-
-
 
 class Fixtures:
 

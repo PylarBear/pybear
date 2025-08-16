@@ -22,8 +22,8 @@ FloatDataType: TypeAlias = numbers.Real
 InFloatGridType: TypeAlias = Sequence[FloatDataType]
 FloatGridType: TypeAlias = list[FloatDataType]
 
-InPointsType: TypeAlias = numbers.Integral | Sequence[numbers.Integral]
-PointsType: TypeAlias = list[numbers.Integral]
+InPointsType: TypeAlias = int | Sequence[int]
+PointsType: TypeAlias = list[int]
 
 FloatTypeType: TypeAlias = Literal['soft_float', 'hard_float', 'fixed_float']
 

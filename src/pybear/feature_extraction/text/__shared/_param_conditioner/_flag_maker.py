@@ -10,14 +10,13 @@ from typing import (
     TypeAlias,
 )
 
-import numbers
 import re
 
 
 
 CaseSensitiveType: TypeAlias = bool | list[bool | None]
 
-FlagType: TypeAlias = None | numbers.Integral
+FlagType: TypeAlias = None | int
 FlagsType: TypeAlias = FlagType | list[FlagType]
 
 
@@ -58,7 +57,7 @@ def _flag_maker(
     CaseSensitiveType:
         bool | list[bool | None]
     FlagType:
-        None | numbers.Integral
+        None | int
     FlagsType:
         FlagType | list[FlagType]
 

@@ -18,13 +18,6 @@ from pybear.model_selection.GSTCV._GSTCVMixin._validation._predict_proba \
 class TestValPredictProba:
 
 
-# def _val_predict_proba(
-#     _predict_proba: Sequence[numbers.Real],
-#     _len: numbers.Integral
-# ) -> None:
-
-
-
     # 'len' ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('junk_len',
         (-1, 0, True, False, 3.14, None, min, 'junk', [0,1], {'a':1}, lambda x: x)

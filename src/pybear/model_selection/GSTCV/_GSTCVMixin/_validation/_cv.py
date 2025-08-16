@@ -11,12 +11,10 @@ from typing import (
 )
 from ..._type_aliases import GenericKFoldType
 
-import numbers
-
 
 
 def _val_cv(
-    _cv:None | numbers.Integral | Iterable[GenericKFoldType],
+    _cv:None | int | Iterable[GenericKFoldType],
     _can_be_None:bool = False,
     _can_be_int:bool = False
 ) -> None:
@@ -33,7 +31,7 @@ def _val_cv(
 
     Parameters
     ----------
-    _cv : None | numbers.Integral | Iterable[GenericKFoldType
+    _cv : None | int | Iterable[GenericKFoldType
 
         Possible inputs for cv are:
 

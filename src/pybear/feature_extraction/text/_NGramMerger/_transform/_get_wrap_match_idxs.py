@@ -15,10 +15,10 @@ import numpy as np
 
 def _get_wrap_match_idxs(
     _first_line: Sequence[str],
-    _start_idx: numbers.Integral,
-    _end_idx: numbers.Integral,
-    _wrap_match_idx: Sequence[numbers.Integral],
-    _n_len: numbers.Integral
+    _start_idx: int,
+    _end_idx: int,
+    _wrap_match_idx: Sequence[int],
+    _n_len: int
 ) -> tuple[list[int], list[int]]:
     """Create 2 separate lists of indices.
 
@@ -32,16 +32,16 @@ def _get_wrap_match_idxs(
     ----------
     _first_line : Sequence[str]
         The active line in transform that is being searched for n-grams.
-    _start_idx : numbers.Integral
+    _start_idx : int
         The index in the first line where the wrap region started. Python
         range rules apply.
-    _end_idx : numbers.Integral
+    _end_idx : int
         The index in the second line where the wrap region ended. Python
         range rules apply.
-    _wrap_match_idx : Sequence[numbers.Integral]
+    _wrap_match_idx : Sequence[int]
         The index in the wrap region object where an n-gram pattern match
         started. cannot be empty if this module is accessed.
-    _n_len : numbers.Integral
+    _n_len : int
         The length of the n-gram pattern that is currently being searched
         for in transform.
 

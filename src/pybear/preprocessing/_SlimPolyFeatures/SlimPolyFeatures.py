@@ -253,11 +253,11 @@ class SlimPolyFeatures(
 
     Parameters
     ----------
-    degree : numbers.Integral, default = 2
+    degree : int, default = 2
         The maximum polynomial degree of the generated features. The
         minimum value accepted by SPF is 2; the no-op case of simply
         returning the original degree-one data is not allowed.
-    min_degree : numbers.Integral, default = 1
+    min_degree : int, default = 1
         The minimum polynomial degree of the generated features.
         Polynomial terms with degree below `min_degree` are not included
         in the final output array. The minimum value accepted by SPF is
@@ -367,14 +367,14 @@ class SlimPolyFeatures(
     atol : numbers.Real, default = 1e-8
         The absolute difference tolerance for equality. Must be a
         non-boolean, non-negative, real number. See numpy.allclose.
-    n_jobs : numbers.Integral | None, default=None
+    n_jobs : int | None, default=None
         The number of joblib parallel jobs to use when looking for
         duplicate columns. The default is to use processes, but can be
         overridden externally using a joblib `parallel_config` context
         manager. The default number of jobs is None, which uses the
         joblib default setting. To get maximum speed benefit, pybear
         recommends using -1, which means use all processors.
-    job_size : numbers.Integral, default=50
+    job_size : int, default=50
         The number of columns to send to a joblib job. Must be an integer
         greater than or equal to 2. This allows the user to optimize
         CPU utilization for their particular circumstance. Long, thin
@@ -514,9 +514,9 @@ class SlimPolyFeatures(
 
     def __init__(
         self,
-        degree:numbers.Integral = 2,
+        degree:int = 2,
         *,
-        min_degree:numbers.Integral = 1,
+        min_degree:int = 1,
         interaction_only:bool = False,
         scan_X:bool = True,
         keep:Literal['first', 'last', 'random'] = 'first',
@@ -525,8 +525,8 @@ class SlimPolyFeatures(
         equal_nan:bool = True,
         rtol:numbers.Real = 1e-5,
         atol:numbers.Real = 1e-8,
-        n_jobs:numbers.Integral | None = None,
-        job_size:numbers.Integral = 50
+        n_jobs:int | None = None,
+        job_size:int = 50
     ) -> None:
         """Initialize the SlimPolyFeatures instance."""
 

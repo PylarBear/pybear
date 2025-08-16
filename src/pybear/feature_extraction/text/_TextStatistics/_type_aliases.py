@@ -23,12 +23,12 @@ import polars as pl
 
 class OverallStatisticsType(TypedDict):
 
-    size: Required[numbers.Integral]
-    uniques_count: Required[numbers.Integral]
+    size: Required[int]
+    uniques_count: Required[int]
     average_length: Required[numbers.Real]
     std_length: Required[numbers.Real]
-    max_length: Required[numbers.Integral]
-    min_length: Required[numbers.Integral]
+    max_length: Required[int]
+    min_length: Required[int]
 
 
 

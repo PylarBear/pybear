@@ -34,7 +34,7 @@ YContainer: TypeAlias = \
 
 DataType:TypeAlias = numbers.Number | str
 
-CountThresholdType: TypeAlias = numbers.Integral | Sequence[numbers.Integral]
+CountThresholdType: TypeAlias = int | Sequence[int]
 
 OriginalDtypesType: TypeAlias = \
     npt.NDArray[Literal['bin_int', 'int', 'float', 'obj']]
@@ -46,13 +46,13 @@ InstrLiterals: TypeAlias = Literal['INACTIVE', 'DELETE ALL', 'DELETE COLUMN']
 InstructionsType: TypeAlias = dict[int, list[DataType | InstrLiterals]]
 
 IcHabCallable: TypeAlias = \
-    Callable[[XContainer], Sequence[numbers.Integral] | Sequence[str]]
+    Callable[[XContainer], Sequence[int] | Sequence[str]]
 
 IgnoreColumnsType: TypeAlias = \
-    None | Sequence[numbers.Integral] | Sequence[str] | IcHabCallable
+    None | Sequence[int] | Sequence[str] | IcHabCallable
 
 HandleAsBoolType: TypeAlias = \
-    None | Sequence[numbers.Integral] | Sequence[str] | IcHabCallable
+    None | Sequence[int] | Sequence[str] | IcHabCallable
 
 InternalIgnoreColumnsType: TypeAlias = npt.NDArray[np.int32]
 

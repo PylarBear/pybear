@@ -11,8 +11,8 @@ import numbers
 
 
 def _val_degree__min_degree(
-    _degree: numbers.Integral,
-    _min_degree: numbers.Integral
+    _degree: int,
+    _min_degree: int
 ) -> None:
     """Validate `_degree` and `_min_degree`.
 
@@ -21,11 +21,11 @@ def _val_degree__min_degree(
 
     Parameters
     ----------
-    _degree : numbers.Integral
+    _degree : int
         The maximum polynomial degree of the generated features. The
         minimum value accepted by SPF is 2; the no-op case of simply
         returning the original degree-one data is not allowed.
-    _min_degree : numbers.Integral
+    _min_degree : int
         The minimum polynomial degree of the generated features.
         Polynomial terms with degree below `_min_degree` are not
         included in the final output array. The minimum value accepted

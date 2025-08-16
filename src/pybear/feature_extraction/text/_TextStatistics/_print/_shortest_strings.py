@@ -16,10 +16,10 @@ from .._get._get_shortest_strings import _get_shortest_strings
 
 
 def _print_shortest_strings(
-    string_frequency:dict[str, numbers.Integral],
-    lp:numbers.Integral,
-    rp:numbers.Integral,
-    n:numbers.Integral = 10
+    string_frequency:dict[str, int],
+    lp:int,
+    rp:int,
+    n:int = 10
 ) -> None:
     """Print the shortest strings in the `string_frequency_` attribute
     and their frequencies to screen.
@@ -30,14 +30,14 @@ def _print_shortest_strings(
 
     Parameters
     ----------
-    string_frequency : dict[str, numbers.Integral]
+    string_frequency : dict[str, int]
         The dictionary holding all the unique strings and their
         frequencies seen by the fitted `TextStatistics` instance.
-    lp : numbers.Integral
+    lp : int
         The left padding for the display.
-    rp : numbers.Integral
+    rp : int
         The right padding for the display.
-    n : numbers.Integral, default = 10
+    n : int, default = 10
         The number of shortest strings to print to screen.
 
     Returns

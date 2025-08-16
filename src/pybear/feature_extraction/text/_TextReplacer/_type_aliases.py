@@ -14,7 +14,6 @@ from typing import (
 import numpy.typing as npt
 
 import re
-import numbers
 
 import pandas as pd
 import polars as pl
@@ -38,13 +37,13 @@ XWipContainer: TypeAlias = list[str] | list[list[str]]
 FindType: TypeAlias = str | re.Pattern[str]
 SubstituteType: TypeAlias = str | Callable[[str], str]
 PairType: TypeAlias = tuple[FindType, SubstituteType]
-ReplaceSubType: TypeAlias = None | PairType | tuple[PairType, ...]
+ReplaceSubType: TypeAlias = PairType | tuple[PairType, ...] | None
 ReplaceType: TypeAlias = ReplaceSubType | list[ReplaceSubType]
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 WipPairType: TypeAlias = tuple[re.Pattern[str], SubstituteType]
-WipReplaceSubType: TypeAlias = None | WipPairType | tuple[WipPairType, ...]
+WipReplaceSubType: TypeAlias = WipPairType | tuple[WipPairType, ...] | None
 WipReplaceType: TypeAlias = WipReplaceSubType | list[WipReplaceSubType]
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -53,7 +52,7 @@ CaseSensitiveType: TypeAlias = bool | list[bool | None]
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-FlagType: TypeAlias = numbers.Integral | None
+FlagType: TypeAlias = int | None
 FlagsType: TypeAlias = FlagType | list[FlagType]
 
 

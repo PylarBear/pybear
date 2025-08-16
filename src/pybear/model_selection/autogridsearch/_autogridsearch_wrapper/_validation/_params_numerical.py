@@ -17,7 +17,7 @@ import numpy as np
 def _val_numerical_param_value(
     _num_param_key: str,
     _num_param_value: InNumParamType,
-    _total_passes: numbers.Integral
+    _total_passes: int
 ) -> None:
     """Validate `_num_param_value`.
 
@@ -48,7 +48,7 @@ def _val_numerical_param_value(
     _num_param_value : InNumParamType
         The list-like of instructions for the multi-pass grid search of
         this numerical parameter.
-    _total_passes : numbers.Integral
+    _total_passes : int
         The total number of rounds of gridsearch entered by the user at
         init.
 

@@ -26,11 +26,11 @@ from ...__shared._validation._any_string import _val_any_string
 
 def _validation(
     _X: XContainer,
-    _n_chars: numbers.Integral,
+    _n_chars: int,
     _sep: CoreSepBreakType,
-    _sep_flags: numbers.Integral | None,
+    _sep_flags: int | None,
     _line_break: CoreSepBreakType | None,
-    _line_break_flags: numbers.Integral | None,
+    _line_break_flags: int | None,
     _case_sensitive: bool,
     _backfill_sep: str,
     _join_2D: str
@@ -56,7 +56,7 @@ def _validation(
     ----------
     _X : XContainer
         The text to be justified. 2D containers can be ragged.
-    _n_chars : numbers.Integral
+    _n_chars : int
         The number of characters per line to target when justifying the
         text.
     _sep : CoreSepBreakType
@@ -71,7 +71,7 @@ def _validation(
         to wrap a line. Cannot be a regex pattern that blatantly returns
         zero-span matches, cannot be an empty list-like.
     _sep_flags:
-        numbers.Integral | None - the flags for the `sep` parameter.
+        int | None - the flags for the `sep` parameter.
     _line_break:
         STR
         None | str | Sequence[str] - the character string sequence(s)
@@ -82,7 +82,7 @@ def _validation(
         re.compile object(s) that indicate to TJ where it must force a
         new line. Can be None. Cannot be a regex pattern that blatantly
         returns zero-span matches, cannot be an empty list-like.
-    _line_break_flags : numbers.Integral | None
+    _line_break_flags : int | None
         The flags for the `line_break` parameter.
     _backfill_sep : str
         Some lines in the text may not have any of the given wrap

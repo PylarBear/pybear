@@ -204,12 +204,12 @@ class TextSplitter(
         bool | list[bool | None]
 
     MaxSplitType:
-        numbers.Integral | None
+        int | None
     MaxSplitsType:
         MaxSplitType | list[MaxSplitType]
 
     FlagType:
-        numbers.Integral | None
+        int | None
     FlagsType:
         FlagType | list[FlagType]
 

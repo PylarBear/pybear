@@ -20,7 +20,7 @@ from .._validation._overall_statistics import _val_overall_statistics
 def _merge_overall_statistics(
     _current_overall_statistics: OverallStatisticsType,
     _overall_statistics: OverallStatisticsType,
-    _len_uniques: numbers.Integral
+    _len_uniques: int
 ) -> OverallStatisticsType:
     """Combine the statistics for the current batch of strings with those
     from the previous partial fits.
@@ -32,7 +32,7 @@ def _merge_overall_statistics(
     _overall_statistics : dict[str, numbers.Real]
         The statistics for all strings seen prior to the current partial
         fit.
-    _len_uniques : numbers.Integral
+    _len_uniques : int
         The number of unique strings seen by all partial fits, including
         the current partial fit.
 
@@ -91,8 +91,8 @@ def _merge_overall_statistics(
     # N1 = Number of Observations in the first group
     # N2 = Number of Observations in the second group
 
-    m: numbers.Integral = _current_overall_statistics['size']
-    n: numbers.Integral = _overall_statistics['size']
+    m: int = _current_overall_statistics['size']
+    n: int = _overall_statistics['size']
     x1_mean: numbers.Real = _current_overall_statistics['average_length']
     x2_mean: numbers.Real = _overall_statistics['average_length']
     x1_stdev: numbers.Real = _current_overall_statistics['std_length']

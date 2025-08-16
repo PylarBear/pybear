@@ -27,9 +27,9 @@ from pybear.utilities._array_sparsity import array_sparsity as arsp
 
 def choice(
     a: Sequence[Any],
-    shape: numbers.Integral | Sequence[numbers.Integral],
+    shape: int | Sequence[int],
     replace: bool=True,
-    n_jobs: numbers.Integral | None = None
+    n_jobs: int | None = None
 ) -> npt.NDArray[Any]:
     """Randomly select elements from the given pool `a`, with or without
     replacement, to fill a numpy array of size `shape`.
@@ -43,13 +43,13 @@ def choice(
     ----------
     a : Sequence[Any]
         1-dimensional list-like of elements to randomly choose from.
-    shape : numbers.Integral | Sequence[numbers.Integral]
+    shape : int | Sequence[int]
         Shape of returned numpy array containing the randomly selected
         values.
     replace : bool
         Select values from `a` with (True) or without (False) replacement
         of previous pick.
-    n_jobs : numbers.Integral | None, default=None
+    n_jobs : int | None, default=None
         Number of CPU cores used when parallelizing over subpartitions
         of `a` during selection. -1 means using all processors.
 
@@ -296,7 +296,7 @@ class Sparse:
     maximum : numbers.Real
         Upper boundary of the output interval. All values generated will
         be less than this number.
-    shape : numbers.Integral | Sequence[numbers.Integral]
+    shape : int | Sequence[int]
         Dimensions of the returned array.
     sparsity : numbers.Real, default = 0
         Desired percentage of zeros in the returned array.
@@ -341,7 +341,7 @@ class Sparse:
         self,
         minimum: numbers.Real,
         maximum: numbers.Real,
-        shape: numbers.Integral | Sequence[numbers.Integral],
+        shape: int | Sequence[int],
         sparsity: numbers.Real = 0,
         engine: EngineType = 'default',
         dtype: object = float,
@@ -902,7 +902,7 @@ class Sparse:
 def sparse(
     minimum: numbers.Real,
     maximum: numbers.Real,
-    shape: numbers.Integral | Sequence[numbers.Integral],
+    shape: int | Sequence[int],
     sparsity: numbers.Real,
     dtype: object = np.float64
 ):
@@ -923,7 +923,7 @@ def sparse(
     maximum : numbers.Real
         Upper boundary of the output interval. All values generated will
         be less than this number.
-    shape : numbers.Integral | Sequence[numbers.Integral]
+    shape : int | Sequence[int]
         Dimensions of the returned array.
     sparsity : numbers.Real, default = 0
         Desired percentage of zeros in the returned array.

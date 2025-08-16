@@ -38,8 +38,8 @@ def _validation(
     _rtol: numbers.Real,
     _atol: numbers.Real,
     _equal_nan: bool,
-    _n_jobs: numbers.Integral | None,
-    _job_size: numbers.Integral
+    _n_jobs: int | None,
+    _job_size: int
 ) -> None:
     """Centralized hub for performing parameter validation.
 
@@ -66,10 +66,10 @@ def _validation(
         non-boolean, non-negative, real number. See numpy.allclose.
     _equal_nan : bool
         How to handle nan values during comparisons.
-    _n_jobs : numbers.Integral | None
+    _n_jobs : int | None
         The number of joblib Parallel jobs to use when scanning the data
         for duplicates.
-    _job_size : numbers.Integral
+    _job_size : int
         The number of columns to send to a joblib job. Must be an integer
         greater than or equal to 2.
 

@@ -6,8 +6,6 @@
 
 
 
-import numbers
-
 from ..__shared._validation._2D_X import _val_2D_X
 from ..__shared._validation._any_integer import _val_any_integer
 from ..__shared._validation._any_string import _val_any_string
@@ -17,9 +15,9 @@ from ._type_aliases import XContainer
 
 
 def _validation(
-    _X: XContainer,
+    _X:XContainer,
     _fill:str,
-    _n_features: numbers.Integral
+    _n_features:int
 ) -> None:
     """Centralized hub for validating parameters and `X`.
 
@@ -32,7 +30,7 @@ def _validation(
         The data.
     _fill : str
         The fill value for the void space in the data.
-    _n_features : numbers.Integral
+    _n_features : int
         The number of features for the filled data.
 
     Returns

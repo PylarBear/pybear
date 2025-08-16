@@ -13,13 +13,13 @@ from ...__shared._validation._any_integer import _val_any_integer
 
 
 def _val_n(
-    _n: numbers.Integral
+    _n: int
 ) -> None:
     """Validate 'n'. Must be an integer >= 1.
 
     Parameters
     ----------
-    _n : numbers.Integral
+    _n : int
         Something expected to be an integer that is >= 1
 
     Returns

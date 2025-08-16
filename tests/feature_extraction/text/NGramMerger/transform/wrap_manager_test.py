@@ -20,17 +20,6 @@ from pybear.feature_extraction.text._NGramMerger._transform._wrap_manager \
 class TestWrapManager:
 
 
-    # def _wrap_manager(
-    #     _first_line: list[str],
-    #     _second_line: list[str],
-    #     _first_hits: Sequence[numbers.Integral],
-    #     _second_hits: Sequence[numbers.Integral],
-    #     _ngram: Sequence[str | re.Pattern],
-    #     _ngcallable: Callable[[Sequence[str]], str] | None,
-    #     _sep: str | None
-    # ) -> tuple[list[str], list[str]]:
-
-
     @pytest.mark.parametrize('_first_hits', ([], [0], [1], [1, 3]))
     @pytest.mark.parametrize('_second_hits', ([], [0], [3], [1, 3]))
     @pytest.mark.parametrize('_ngcallable, _sep', (

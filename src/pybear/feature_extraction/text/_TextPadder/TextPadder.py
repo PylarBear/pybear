@@ -15,8 +15,6 @@ from ._type_aliases import (
     XWipContainer
 )
 
-import numbers
-
 import numpy as np
 
 from ._partial_fit._partial_fit import _partial_fit
@@ -117,7 +115,7 @@ class TextPadder(
     ----------
     fill : str, default = ""
         The character string to pad text sequences with.
-    n_features : numbers.Integral | None, default = None
+    n_features : int | None, default = None
         The number of features to create when padding the data, i.e.,
         the length of the feature axis. When None, TP pads all examples
         to match the number of strings in the example with the most
@@ -181,7 +179,7 @@ class TextPadder(
         self,
         *,
         fill:str = '',
-        n_features:numbers.Integral | None = None
+        n_features:int | None = None
     ) -> None:
         """Initialize the `TextPadder` instance."""
 

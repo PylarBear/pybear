@@ -13,7 +13,6 @@ from typing import (
 )
 import numpy.typing as npt
 
-import numbers
 import re
 
 import pandas as pd
@@ -48,7 +47,7 @@ CaseSensitiveType: TypeAlias = bool
 
 RemoveEmptyRowsType: TypeAlias = bool
 
-FlagsType: TypeAlias = numbers.Integral | None
+FlagsType: TypeAlias = int | None
 
 
 

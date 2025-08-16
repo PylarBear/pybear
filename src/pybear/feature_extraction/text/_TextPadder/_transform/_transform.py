@@ -16,7 +16,7 @@ from .._type_aliases import XWipContainer
 def _transform(
     _X: XWipContainer,
     _fill: str,
-    _n_features: numbers.Integral
+    _n_features: int
 ) -> list[list[str]]:
     """Pad ragged `X` vector with fill value to make a full array.
 
@@ -28,7 +28,7 @@ def _transform(
         The data to be padded to a structured array.
     _fill : str
         The string value to fill void space with.
-    _n_features : numbers.Integral
+    _n_features : int
         The number of features to create for the padded data.
 
     Returns

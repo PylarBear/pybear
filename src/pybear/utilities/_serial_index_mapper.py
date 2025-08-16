@@ -15,8 +15,8 @@ import numpy as np
 
 
 def serial_index_mapper(
-    shape:Sequence[numbers.Integral],
-    positions:Sequence[numbers.Integral]
+    shape:Sequence[int],
+    positions:Sequence[int]
 ) -> list[tuple[int, ...]]:
     """Map serial index positions to their zero-based Cartesian
     coordinates in an object of the given shape.
@@ -31,9 +31,9 @@ def serial_index_mapper(
 
     Parameters
     ----------
-    shape : Sequence[numbers.Integral, ...]
+    shape : Sequence[int, ...]
         The dimensions of the object to map into.
-    positions : Sequence[numbers.Integral]
+    positions : Sequence[int]
         Vector of serialized index positions.
 
     Returns

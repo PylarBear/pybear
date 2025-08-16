@@ -13,7 +13,6 @@ from typing import (
 import numpy.typing as npt
 
 import re
-import numbers
 
 import pandas as pd
 import polars as pl
@@ -54,7 +53,7 @@ RemoveEmptyRowsType: TypeAlias = bool
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-FlagType: TypeAlias = numbers.Integral | None
+FlagType: TypeAlias = int | None
 FlagsType: TypeAlias = FlagType | list[FlagType]
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --

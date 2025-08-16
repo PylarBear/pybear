@@ -205,7 +205,7 @@ class GSTCV(_GSTCVMixin):
 
         def your_metric_wrapper(y_true, y_pred):
             return your_metric(y_true, y_pred, \\**hard_coded_kwargs)
-    n_jobs : numbers.Integral | None, default=None
+    n_jobs : int | None, default=None
         Number of jobs to run in parallel. -1 means using all processors.
         For best speed benefit, pybear recommends setting `n_jobs` in
         both `GSTCV` and the wrapped estimator to None, whether under a
@@ -244,7 +244,7 @@ class GSTCV(_GSTCVMixin):
 
         See the `scoring` parameter to know more about multiple metric
         evaluation.
-    cv : numbers.Integral | Iterable | None, default=None
+    cv : int | Iterable | None, default=None
         Sets the cross-validation splitting strategy.
 
         Possible inputs for cv are:
@@ -455,7 +455,7 @@ class GSTCV(_GSTCVMixin):
         None | numbers.Real | Sequence[numbers.Real]
 
     SKSlicerType:
-        Sequence[numbers.Integral]
+        Sequence[int]
 
     SKKFoldType:
         tuple[SKSlicerType, SKSlicerType]
@@ -478,19 +478,19 @@ class GSTCV(_GSTCVMixin):
         | dict[str, ScorerCallableType]
 
     RefitCallableType:
-        Callable[[CVResultsType], numbers.Integral]
+        Callable[[CVResultsType], int]
 
     RefitType:
         bool | ScorerNameTypes | RefitCallableType
 
     PreDispatchType:
-        Literal['all'] | str | numbers.Integral
+        Literal['all'] | str | int
 
     SKXType:
         Iterable
 
     SKYType:
-        Sequence[numbers.Integral]
+        Sequence[int]
 
     CVResultsType:
         dict[str, np.ma.masked_array[Any]]
@@ -551,9 +551,9 @@ class GSTCV(_GSTCVMixin):
         *,
         thresholds:ThresholdsInputType = None,
         scoring:ScorerInputType = 'accuracy',
-        n_jobs:numbers.Integral | None = None,
+        n_jobs:int | None = None,
         refit:bool | str | Callable = True,
-        cv:numbers.Integral | Iterable | None = None,
+        cv:int | Iterable | None = None,
         verbose:numbers.Real = 0,
         pre_dispatch:PreDispatchType = '2*n_jobs',
         error_score:ErrorScoreType = 'raise',

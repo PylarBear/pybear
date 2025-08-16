@@ -30,11 +30,11 @@ XContainer: TypeAlias = \
 
 def check_shape(
     X: XContainer,
-    min_features: numbers.Integral=1,
+    min_features: int=1,
     max_features: int | None = None,
-    min_samples: numbers.Integral=1,
+    min_samples: int=1,
     sample_check: int | None = None,
-    allowed_dimensionality: Sequence[numbers.Integral] = (1, 2)
+    allowed_dimensionality: Sequence[int] = (1, 2)
 ) -> tuple[int, ...]:
     """Check the shape of a data-bearing object against user-defined
     criteria.
@@ -63,14 +63,14 @@ def check_shape(
     X : XContainer of shape (n_samples, n_features) or (n_samples,)
         The data-bearing object for which to get and validate the shape.
         Must have a 'shape' attribute.
-    min_features : numbers.Integral
+    min_features : int
         The minimum number of features required in `X`; must be greater
         than or equal to zero.
     max_features : int | None
         The maximum number of features allowed in `X`; if not None, must
         be greater than or equal to `min_features`. If None, then there
         is no restriction on the maximum number of features in `X`.
-    min_samples : numbers.Integral
+    min_samples : int
         The minimum number of samples required in `X`; must be greater
         than or equal to zero. Ignored if `sample_check` is not None.
     sample_check : int | None
@@ -78,7 +78,7 @@ def check_shape(
         a non-negative integer. Use this to check, for example, that the
         number of samples in y equals the number of samples in `X`. If
         None, this check is not performed.
-    allowed_dimensionality : Sequence[numbers.Integral]
+    allowed_dimensionality : Sequence[int]
         The allowed dimensionalities of `X`. All entries must be greater
         than zero and less than or equal to two.
 

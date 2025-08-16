@@ -36,7 +36,7 @@ def _validation(
     _handle_as_bool: HandleAsBoolType,
     _delete_axis_0: bool,
     _reject_unseen_values: bool,
-    _max_recursions: numbers.Integral,
+    _max_recursions: int,
     _n_features_in: int,
     _feature_names_in: FeatureNamesInType | None
 ) -> None:
@@ -68,7 +68,7 @@ def _validation(
     _reject_unseen_values : bool
         Whether to reject values seen during transform that were not
         seen during fitting.
-    _max_recursions : numbers.Integral
+    _max_recursions : int
         The number of times to repeat the MCT algorithm on a single
         dataset.
     _n_features_in : int

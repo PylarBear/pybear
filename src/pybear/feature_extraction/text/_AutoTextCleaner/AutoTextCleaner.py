@@ -23,8 +23,6 @@ from ._type_aliases import (
 )
 
 from copy import deepcopy
-import numbers
-import re
 import warnings
 
 import numpy as np
@@ -158,7 +156,7 @@ class AutoTextCleaner(
         etc., are case-sensitive. This generally controls case-senstivity
         globally, but for those of you that know regex, an IGNORECASE
         flag passed to `global_flags` will always overrule this parameter.
-    global_flags : numbers.Integral | None, default=None
+    global_flags : int | None, default=None
         The regex flags for operations that do searches within the text,
         like replace and remove. If you do not know regex, then you
         don't need to worry about this, just pass literal strings to
@@ -221,7 +219,7 @@ class AutoTextCleaner(
         around the beginnings and ends of adjacent lines, False will
         only look for ngrams within the contiguous text of one line.
         See pybear :class:`NGramMerger` for more information.
-    justify : numbers.Integral | None, default=None
+    justify : int | None, default=None
         When None do not justify the text. Otherwise, pass an integer
         to indicate to ATC to justify the data to that character width.
         When this is not None, i.e., an integer is passed, ATC does not
@@ -327,6 +325,8 @@ class AutoTextCleaner(
     Examples
     --------
     >>> from pybear.feature_extraction.text import AutoTextCleaner as ATC
+    >>> import re
+    >>>
     >>> Trfm = ATC(case_sensitive=False, strip=True, remove_empty_rows=True,
     ...     replace=(re.compile('[^a-z]'), ''), remove='', normalize=True,
     ...     global_sep=' ', get_statistics={'before': None, 'after':False},
@@ -353,7 +353,7 @@ class AutoTextCleaner(
         *,
         global_sep:str = ' ',
         case_sensitive:bool = True,
-        global_flags:numbers.Integral | None = None,
+        global_flags:int | None = None,
         remove_empty_rows:bool = False,
         return_dim:ReturnDimType = None,
         ############
@@ -364,7 +364,7 @@ class AutoTextCleaner(
         lexicon_lookup:LexiconLookupType | None = None,
         remove_stops:bool = False,
         ngram_merge:NGramsType | None = None,
-        justify:numbers.Integral | None = None,
+        justify:int | None = None,
         get_statistics:GetStatisticsType | None = None
     ):
         """Initialize the AutoTextCleaner instance."""

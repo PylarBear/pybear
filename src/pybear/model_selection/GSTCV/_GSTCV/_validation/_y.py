@@ -8,14 +8,12 @@
 
 from typing import Iterable
 
-import numbers
-
 import numpy as np
 
 
 
 def _val_y(
-    _y: Iterable[numbers.Integral]  # not SKYType... see the notes.
+    _y: Iterable[int]  # not SKYType... see the notes.
 ) -> None:
     """Validate `_y`.
 

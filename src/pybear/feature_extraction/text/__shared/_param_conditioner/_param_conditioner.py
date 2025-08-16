@@ -10,7 +10,6 @@ from typing import (
     TypeAlias,
 )
 
-import numbers
 import re
 
 from ._compile_maker import _compile_maker
@@ -32,7 +31,7 @@ WipPatternHolderType: TypeAlias = \
 
 CaseSensitiveType: TypeAlias = bool | list[bool | None]
 
-FlagType: TypeAlias = None | numbers.Integral
+FlagType: TypeAlias = None | int
 FlagsType: TypeAlias = FlagType | list[FlagType]
 
 
@@ -42,7 +41,7 @@ def _param_conditioner(
     _case_sensitive:CaseSensitiveType,
     _flags:FlagsType,
     _order_matters:bool,
-    _n_rows:numbers.Integral,
+    _n_rows:int,
     _name:str = 'unnamed pattern holder'
 ) -> WipPatternHolderType:
     """
@@ -63,7 +62,7 @@ def _param_conditioner(
         redundancy are important. If not important, any redundancy can
         be eliminated with Python sets and order can change without
         consequence.
-    _n_rows : numbers.Integral
+    _n_rows : int
         The number of rows in the data. if _flags, _pattern_holder,
         and/or _case_sensitive were passed as a list, the length of them
         was already validated against this number.
@@ -97,7 +96,7 @@ def _param_conditioner(
         bool | list[bool | None]
 
     FlagType:
-        None | numbers.Integral
+        None | int
     FlagsType:
         FlagType | list[FlagType]
 

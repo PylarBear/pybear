@@ -16,8 +16,8 @@ from .._validation._n import _val_n
 
 
 def _get_longest_strings(
-    string_frequency: dict[str, numbers.Integral],
-    n: numbers.Integral = 10
+    string_frequency: dict[str, int],
+    n: int = 10
 ) -> dict[str, int]:
     """Return the longest strings in the `string_frequency_` attribute
     as a dictionary with strings as keys and frequencies as values.
@@ -27,11 +27,11 @@ def _get_longest_strings(
 
     Parameters
     ----------
-    string_frequency : dict[str, numbers.Integral]
+    string_frequency : dict[str, int]
         The dictionary holding the unique strings seen by the fitted
         `TextStatistics` instance, and the number of occurrences of each
         string.
-    n : numbers.Integral, default = 10
+    n : int, default = 10
         The number of top longest strings to retrieve.
 
     Returns

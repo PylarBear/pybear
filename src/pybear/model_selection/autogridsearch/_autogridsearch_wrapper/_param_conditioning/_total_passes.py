@@ -6,18 +6,14 @@
 
 
 
-import numbers
-
-
-
 def _cond_total_passes(
-    _total_passes: numbers.Integral
+    _total_passes: int
 ) -> int:
     """Standardize `total_passes` to Python integer.
 
     Parameters
     ----------
-    _total_passes : numbers.Integral
+    _total_passes : int
         The number of passes of grid search to perform.
 
     Returns

@@ -17,8 +17,6 @@ from typing_extensions import Required
 import numpy.typing as npt
 from ..__shared._type_aliases import XContainer
 
-import numbers
-
 import pandas as pd
 import scipy.sparse as ss
 import polars as pl
@@ -33,7 +31,7 @@ InternalXContainer: TypeAlias = \
 
 KeepType: TypeAlias = (
     Literal['first', 'last', 'random', 'none'] | dict[str, Any]
-    | numbers.Integral | str | Callable[[XContainer], int]
+    | int | str | Callable[[XContainer], int]
 )
 
 

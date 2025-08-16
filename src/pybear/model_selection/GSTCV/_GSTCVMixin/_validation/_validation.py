@@ -40,9 +40,9 @@ def _validation(
     _param_grid: ParamGridInputType | ParamGridsInputType,
     _thresholds: ThresholdsInputType,
     _scoring: ScorerInputType,
-    _n_jobs: numbers.Integral | None,
+    _n_jobs: int | None,
     _refit: RefitType,
-    _cv: None | numbers.Integral | Iterable[GenericKFoldType],
+    _cv: None | int | Iterable[GenericKFoldType],
     _verbose: numbers.Real,
     _error_score: Literal['raise'] | numbers.Real,
     _return_train_score: bool
@@ -62,11 +62,11 @@ def _validation(
     _scoring:
         ScorerInputType
     _n_jobs:
-        numbers.Integral | None
+        int | None
     _refit:
         RefitType
     _cv:
-        None | numbers.Integral | Iterable[GenericKFoldType]
+        None | int | Iterable[GenericKFoldType]
     _verbose:
         numbers.Real
     _error_score:

@@ -24,7 +24,7 @@ PatternHolderType: TypeAlias = \
 
 def _val_pattern_holder(
     _pattern_holder:PatternHolderType,
-    _n_rows:numbers.Integral,
+    _n_rows:int,
     _name:str = 'unnamed patterns'
 ) -> None:
     """Validate 'pattern_holder'.
@@ -54,7 +54,7 @@ def _val_pattern_holder(
         row in the data. The list must be a sequence of Nones, string
         literals, re.compile objects and/or tuples of string literals /
         re.compile objects.
-    _n_rows : numbers.Integral
+    _n_rows : int
         The number of rows in the data.
 
     Return

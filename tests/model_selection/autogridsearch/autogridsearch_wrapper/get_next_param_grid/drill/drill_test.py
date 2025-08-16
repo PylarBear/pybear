@@ -19,16 +19,6 @@ from pybear.model_selection.autogridsearch._autogridsearch_wrapper. \
 # have run before _drill, but some places like 'fixed' can handle it
 
 
-# def _drill(
-#     _param_name: str,
-#     _grid: GridType,
-#     _param_value: ParamType,
-#     _is_logspace: LogspaceType,
-#     _pass: numbers.Integral,
-#     _best: DataType
-# ) -> tuple[GridType, ParamType, Literal[False]]:
-
-
 def test_catches_best_not_in_grid():
     with pytest.raises(ValueError):
         _drill(

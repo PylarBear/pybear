@@ -72,7 +72,7 @@ def timer(orig_func) -> Callable:
 
 def time_memory_benchmark(
     *args,
-    number_of_trials:numbers.Integral = 7,
+    number_of_trials:int = 7,
     rest_time:numbers.Real = 1,
     verbose:numbers.Real = 1
 ) -> npt.NDArray:
@@ -86,7 +86,7 @@ def time_memory_benchmark(
     ----------
     *args
         Tuples of ('function_name', function, ARGS_AS_LIST, KWARGS_AS_DICT).
-    number_of_trials : numbers.Integral
+    number_of_trials : int
         Number of times to run each given function. Given, for example,
         two trials with functions f1, f2, and f3, runs are ordered as f1,
         f2, f3, f1, f2, f3, not f1, f1, f2, f2, f3, f3.

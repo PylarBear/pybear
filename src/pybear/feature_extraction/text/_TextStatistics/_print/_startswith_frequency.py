@@ -15,21 +15,21 @@ from .._validation._startswith_frequency import _val_startswith_frequency
 
 
 def _print_startswith_frequency(
-    startswith_frequency: dict[str, numbers.Integral],
-    lp: numbers.Integral,
-    rp: numbers.Integral
+    startswith_frequency: dict[str, int],
+    lp: int,
+    rp: int
 ) -> None:
     """Print the `startswith_frequency_` attribute to screen.
 
     Parameters
     ----------
-    startswith_frequency : dict[str, numbers.Integral]
+    startswith_frequency : dict[str, int]
         The dictionary holding the unique first characters and the number
         of times those characters appeared in the first position for
         every string fitted on the `TextStatistics` instance.
-    lp : numbers.Integral
+    lp : int
         The left padding for the display.
-    rp : numbers.Integral
+    rp : int
         The right padding for the display.
 
     Returns

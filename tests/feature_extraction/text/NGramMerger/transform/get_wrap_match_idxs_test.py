@@ -21,14 +21,6 @@ from pybear.feature_extraction.text._NGramMerger._transform._get_wrap_match_idxs
 
 class TestGetWrapMatchIdxs:
 
-    # def _get_wrap_match_idxs(
-    #     _first_line: Sequence[str],
-    #     _start_idx: numbers.Integral,
-    #     _end_idx: numbers.Integral,
-    #     _wrap_match_idx: Sequence[numbers.Integral],
-    #     _n_len: numbers.Integral
-    # ) -> tuple[list[int], list[int]]:
-
     
     def test_accuracy(self):
 

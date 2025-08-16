@@ -11,15 +11,13 @@ from .._type_aliases import (
     ParamsType
 )
 
-import numbers
-
 import numpy as np
 
 
 
 def _cond_params(
     _params: InParamsType,
-    _total_passes: numbers.Integral
+    _total_passes: int
 ) -> ParamsType:
     """Standardize the format of `params`, vis-à-vis `total_passes`.
 
@@ -31,7 +29,7 @@ def _cond_params(
         numerical parameters as values. `AutoGridSearch` does not accept
         lists of multiple params dictionaries in the same way that
         scikit-Learn accepts multiple param_grids.
-    _total_passes : numbers.Integral
+    _total_passes : int
         The number of grid searches to perform. The actual number of
         passes run can be different from this number based on the setting
         for `total_passes_is_hard`. If `total_passes_is_hard` is True,

@@ -32,8 +32,8 @@ from ...__shared._validation._any_integer import _val_any_integer
 
 def _validation(
     _X: XContainer,
-    _degree: numbers.Integral,
-    _min_degree: numbers.Integral,
+    _degree: int,
+    _min_degree: int,
     _scan_X: bool,
     _keep: Literal['first', 'last', 'random'],
     _interaction_only: bool,
@@ -43,7 +43,7 @@ def _validation(
     _atol: numbers.Real,
     _equal_nan: bool,
     _n_jobs: int | None,
-    _job_size: numbers.Integral
+    _job_size: int
 ) -> None:
     """Centralized hub for performing parameter validation.
 
@@ -53,9 +53,9 @@ def _validation(
     ----------
     _X : XContainer of shape (n_samples, n_features)
         The data.
-    _degree : numbers.Integral
+    _degree : int
         The maximum degree of the polynomial expansion.
-    _min_degree : numbers.Integral
+    _min_degree : int
         The minimum degree of the polynomial expansion.
     _scan_X : bool
         Whether to scan X for constants with `InterceptManager` and
@@ -80,7 +80,7 @@ def _validation(
     _n_jobs : int | None
         The number of joblib Parallel jobs to use when scanning for
         duplicate columns.
-    _job_size : numbers.Integral
+    _job_size : int
         The number of columns to send to a joblib job. Must be an
         integer greater than or equal to 2.
 

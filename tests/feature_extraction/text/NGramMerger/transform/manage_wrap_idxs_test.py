@@ -20,13 +20,6 @@ class TestManageWrapIdxs:
 
     def test_accuracy(self):
 
-        # def _manage_wrap_idxs(
-        #     _first_line: Sequence[str],
-        #     _first_hits: Sequence[int],
-        #     _second_hits: Sequence[int],
-        #     _n_len: numbers.Integral
-        # ) -> tuple[int, int]:
-
 
         _first_line = ['CHALLENGER', 'DEEP', 'FRIED']
 

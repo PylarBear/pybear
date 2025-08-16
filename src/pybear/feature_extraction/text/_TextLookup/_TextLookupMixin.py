@@ -13,8 +13,6 @@ from typing import (
 from typing_extensions import Self
 import numpy.typing as npt
 
-import numbers
-
 from .._Lexicon.Lexicon import Lexicon
 
 from ....base import (
@@ -336,14 +334,14 @@ class _TextLookupMixin(
 
     def _display_lexicon_update(
         self,
-        n:numbers.Integral | None = None
+        n:int | None = None
     ) -> None:
         """Print :attr:`LEXICON_ADDENDUM_` object for copy and paste
         into `Lexicon`.
 
         Parameters
         ----------
-        n : numbers.Integral | None, default = None
+        n : int | None, default = None
             The number of entries in :attr:`LEXICON_ADDENDUM_` to print.
 
         Returns
@@ -367,7 +365,7 @@ class _TextLookupMixin(
     def _split_or_replace_handler(
         self,
         _line: list[str],
-        _word_idx: numbers.Integral,
+        _word_idx: int,
         _NEW_WORDS: list[str]
     ) -> list[str]:
         """Handle removing a user-identified word from a line, substituting
@@ -381,7 +379,7 @@ class _TextLookupMixin(
         ----------
         _line : list[str]
             The full line of the data that holds the current word.
-        _word_idx : numbers.Integral
+        _word_idx : int
             The index of the current word in `_line`.
         _NEW_WORDS : list[str]
             The word(s) to be inserted into `_line` in place of the

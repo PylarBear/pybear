@@ -26,12 +26,12 @@ from .._partial_fit._columns_getter import _columns_getter
 def _get_dupls_for_combo_in_X_and_poly(
     _X: InternalXContainer,
     _poly_combos: list[tuple[int, ...]],
-    _min_degree: numbers.Integral,
+    _min_degree: int,
     _equal_nan: bool,
     _rtol: numbers.Real,
     _atol: numbers.Real,
-    _n_jobs: numbers.Integral | None,
-    _job_size: numbers.Integral
+    _n_jobs: int | None,
+    _job_size: int
 ) -> list[tuple[tuple[int,...], tuple[int, ...]]]:
     """Scan the polynomial columns generated as products of combinations
     of columns from X across X itself and themselves, looking for
@@ -47,7 +47,7 @@ def _get_dupls_for_combo_in_X_and_poly(
     _poly_combos : list[tuple[int, ...]]
         The combinations of columns from `_X` to use to build the
         polynomial columns.
-    _min_degree : numbers.Integral
+    _min_degree : int
         The minimum degree of polynomial terms to return in the output.
     _equal_nan : bool
         How to handle nan-like values when checking for equality. See
@@ -56,10 +56,10 @@ def _get_dupls_for_combo_in_X_and_poly(
         The relative difference tolerance for equality. See numpy.allclose.
     _atol : numbers.Real
         The absolute tolerance parameter for equality. See numpy.allclose.
-    _n_jobs : numbers.Integral | None
+    _n_jobs : int | None
         The number of joblib Parallel jobs to use when looking for
         duplicate columns.
-    _job_size : numbers.Integral
+    _job_size : int
         The number of columns to send to a joblib job. Must be an integer
         greater than or equal to 2.
 

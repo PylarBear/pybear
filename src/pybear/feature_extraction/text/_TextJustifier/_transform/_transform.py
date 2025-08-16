@@ -21,7 +21,7 @@ from ._stacker import _stacker
 
 def _transform(
     _X: list[str],
-    _n_chars: numbers.Integral,
+    _n_chars: int,
     _sep: SepWipType,
     _line_break: LineBreakWipType,
     _backfill_sep: str
@@ -40,7 +40,7 @@ def _transform(
     ----------
     _X : list[str]
         The text to justify as a 1D Python list of strings.
-    _n_chars : numbers.Integral
+    _n_chars : int
         The number of characters per line to target when justifying the
         text.
     _sep : SepWipType

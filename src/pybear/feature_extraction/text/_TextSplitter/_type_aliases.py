@@ -44,12 +44,12 @@ CaseSensitiveType: TypeAlias = bool | list[None | bool]
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-MaxSplitType: TypeAlias = numbers.Integral | None
+MaxSplitType: TypeAlias = int | None
 MaxSplitsType: TypeAlias = MaxSplitType | list[MaxSplitType]
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-FlagType: TypeAlias = numbers.Integral | None
+FlagType: TypeAlias = int | None
 FlagsType: TypeAlias = FlagType | list[FlagType]
 
 

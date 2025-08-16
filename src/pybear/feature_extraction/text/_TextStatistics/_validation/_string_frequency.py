@@ -11,7 +11,7 @@ import numbers
 
 
 def _val_string_frequency(
-    _string_frequency: dict[str, numbers.Integral]
+    _string_frequency: dict[str, int]
 ) -> None:
     """Validate `string_frequency`.
 
@@ -22,7 +22,7 @@ def _val_string_frequency(
 
     Parameters
     ----------
-    _string_frequency : dict[str, numbers.Integral]
+    _string_frequency : dict[str, int]
         A dictionary of unique character strings and counts.
 
     Returns

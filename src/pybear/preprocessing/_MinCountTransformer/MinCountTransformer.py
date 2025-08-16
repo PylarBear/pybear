@@ -387,7 +387,7 @@ class MinCountTransformer(
         seen during fit are ignored. If True, MCT will terminate when
         a value that was not seen during fit is encountered while
         transforming data.
-    max_recursions : numbers.Integral, default=1
+    max_recursions : int, default=1
         The number of times MCT repeats its algorithm on passed data.
         Only available for `fit_transform`.
 
@@ -478,7 +478,7 @@ class MinCountTransformer(
         numbers.Number | str
 
     CountThresholdType:
-        numbers.Integral | Sequence[numbers.Integral]
+        int | Sequence[int]
 
     OriginalDtypesType:
         numpy.ndarray[Literal['bin_int', 'int', 'float', 'obj']]
@@ -493,13 +493,13 @@ class MinCountTransformer(
         dict[int, list[DataType | InstrLiterals]]
 
     IcHabCallable:
-        Callable[[XContainer], Sequence[numbers.Integral] | Sequence[str]]
+        Callable[[XContainer], Sequence[int] | Sequence[str]]
 
     IgnoreColumnsType:
-        None | Sequence[numbers.Integral] | Sequence[str] | IcHabCallable]
+        None | Sequence[int] | Sequence[str] | IcHabCallable]
 
     HandleAsBoolType:
-        None | Sequence[numbers.Integral] | Sequence[str] | IcHabCallable]
+        None | Sequence[int] | Sequence[str] | IcHabCallable]
 
     FeatureNamesInType:
         numpy.ndarray[object]
@@ -549,7 +549,7 @@ class MinCountTransformer(
         handle_as_bool:HandleAsBoolType = None,
         delete_axis_0:bool = False,
         reject_unseen_values:bool = False,
-        max_recursions:numbers.Integral = 1
+        max_recursions:int = 1
     ) -> None:
         """Initialize the `MinCountTransformer` instance."""
 
@@ -1053,8 +1053,8 @@ class MinCountTransformer(
     def print_instructions(
         self,
         *,
-        clean_printout: bool = True,
-        max_char: numbers.Integral = 99
+        clean_printout:bool = True,
+        max_char:int = 99
     ) -> None:
         """Display instructions generated for the current fitted state,
         subject to the current settings of the parameters.
@@ -1084,7 +1084,7 @@ class MinCountTransformer(
         ----------
         clean_printout : bool
             Truncate printout to fit on screen.
-        max_char : numbers.Integral, default=99
+        max_char : int, default=99
             The maximum number of characters to display per line if
             `clean_printout` is set to True. Ignored if `clean_printout`
             is False. Must be an integer in range [72, 120].

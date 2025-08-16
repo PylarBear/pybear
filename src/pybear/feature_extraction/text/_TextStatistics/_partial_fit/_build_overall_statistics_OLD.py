@@ -17,7 +17,7 @@ from .._validation._string_frequency import _val_string_frequency
 
 
 def _build_overall_statistics(
-    string_frequency_: dict[str, numbers.Integral],
+    string_frequency_: dict[str, int],
     case_sensitive: bool = False
 ) -> OverallStatisticsType:
     """Populate a dictionary with the overall statistics.
@@ -39,7 +39,7 @@ def _build_overall_statistics(
 
     Parameters
     ----------
-    string_frequency_ : dict[str, numbers.Integral]
+    string_frequency_ : dict[str, int]
         A dictionary holding all the unique strings seen and their
         frequencies across all fits on the `TextStatistics` instance.
     case_sensitive : bool, default = False

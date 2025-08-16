@@ -28,8 +28,8 @@ from ...__shared._validation._any_string import _val_any_string
 def _wrap_manager(
     _first_line: list[str],
     _second_line: list[str],
-    _first_hits: Sequence[numbers.Integral],
-    _second_hits: Sequence[numbers.Integral],
+    _first_hits: Sequence[int],
+    _second_hits: Sequence[int],
     _ngram: tuple[re.Pattern[str], ...],
     _ngcallable: Callable[[list[str]], str] | None,
     _sep: str | None
@@ -48,10 +48,10 @@ def _wrap_manager(
     _second_line : list[str]
         The line below the current line being searched for ngram patterns
         in `transform`.
-    _first_hits : Sequence[numbers.Integral]
+    _first_hits : Sequence[int]
         The first indices of any matching n-gram patterns found in the
         current line during the normal linear n-gram search.
-    _second_hits : Sequence[numbers.Integral]
+    _second_hits : Sequence[int]
         The first indices of any matching n-gram patterns found in the
         line below the current line during the normal linear n-gram
         search.

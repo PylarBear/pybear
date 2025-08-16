@@ -11,8 +11,6 @@ from typing import (
     Sequence
 )
 
-import numbers
-
 import numpy as np
 
 from ._cast_to_ndarray import cast_to_ndarray as _cast_to_ndarray
@@ -39,13 +37,13 @@ def validate_data(
     require_all_finite:bool = True,
     cast_inf_to_nan:bool = True,
     standardize_nan:bool = True,
-    allowed_dimensionality:Sequence[numbers.Integral] = (1,2),
+    allowed_dimensionality:Sequence[int] = (1,2),
     ensure_2d:bool = True,
     order:Literal['C', 'F'] = 'C',
-    ensure_min_features:numbers.Integral = 1,
-    ensure_max_features:numbers.Integral | None = None,
-    ensure_min_samples:numbers.Integral = 1,
-    sample_check:numbers.Integral | None = None
+    ensure_min_features:int = 1,
+    ensure_max_features:int | None = None,
+    ensure_min_samples:int = 1,
+    sample_check:int | None = None
 ):
     """Validate characteristics of `X` and apply some select transformative
     operations.
@@ -100,7 +98,7 @@ def validate_data(
     standardize_nan : bool, default=True
         If True, coerce all nan-like values in the data to numpy.nan; if
         False, leave all the nan-like values in the given state.
-    allowed_dimensionality : Sequence[numbers.Integral], default = (1,2)
+    allowed_dimensionality : Sequence[int], default = (1,2)
         The allowed dimension of `X`. All entries must be greater than
         zero and less than or equal to two. Examples: (1,)  {1,2}, [2].
     ensure_2d : bool, default=True
@@ -116,16 +114,16 @@ def validate_data(
         understanding of the potential performance implications of
         changing the memory order of `X` on downstream processes that
         may be designed for 'C' order.
-    ensure_min_features : numbers.Integral, default=1
+    ensure_min_features : int, default=1
         The minimum number of features (columns) that must be in `X`.
-    ensure_max_features : numbers.Integral | None, default = None
+    ensure_max_features : int | None, default = None
         The maximum number of features allowed in `X`; if not None, must
         be greater than or equal to `ensure_min_features`. If None, then
         there is no restriction on the maximum number of features in `X`.
-    ensure_min_samples : numbers.Integral, default=1
+    ensure_min_samples : int, default=1
         The minimum number of samples (rows) that must be in `X`. Ignored
         if `sample_check` is not None.
-    sample_check : numbers.Integral | None = None
+    sample_check : int | None = None
         The exact number of samples allowed in `X`. If not None, must be
         a non-negative integer. Use this to check, for example, that the
         number of samples in `y` equals the number of samples in `X`. If

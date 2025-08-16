@@ -16,13 +16,13 @@ from ._any_integer import _val_any_integer
 
 
 
-FlagType: TypeAlias = numbers.Integral | None
+FlagType: TypeAlias = int | None
 
 
 
 def _val_flags(
     _flags: FlagType | list[FlagType],
-    _n_rows: numbers.Integral
+    _n_rows: int
 ) -> None:
     """Validate the 'flags' parameter.
 
@@ -39,7 +39,7 @@ def _val_flags(
         the number of rows in the data. The values of the integers are
         not validated for legitimacy, any exceptions would be raised by
         the re method it is passed to.
-    _n_rows : numbers.Integral
+    _n_rows : int
         The number of rows in the data.
 
     Return
@@ -52,7 +52,7 @@ def _val_flags(
     **Type Aliases**
 
     FlagType:
-        numbers.Integral | None
+        int | None
 
     """
 

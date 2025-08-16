@@ -6,12 +6,8 @@
 
 
 
-import numbers
-
-
-
 def _val_total_passes(
-    _total_passes: numbers.Integral
+    _total_passes: int
 ) -> None:
     """Validate `total_passes`.
 
@@ -19,7 +15,7 @@ def _val_total_passes(
 
     Parameters
     ----------
-    _total_passes : numbers.Integral
+    _total_passes : int
         The number of grid-search passes to run. The actual number of
         passes run can be higher than this number under certain
         circumstances.

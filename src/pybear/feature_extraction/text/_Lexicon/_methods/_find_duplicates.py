@@ -6,15 +6,13 @@
 
 
 
-import numbers
-
 import numpy as np
 
 
 
 def _find_duplicates(
-    string_frequency_: dict[str, numbers.Integral]
-) -> dict[str, numbers.Integral]:
+    string_frequency_: dict[str, int]
+) -> dict[str, int]:
     """Find any duplicates in the Lexicon.
 
     If any, display to screen and return as Python dictionary with
@@ -22,7 +20,7 @@ def _find_duplicates(
 
     Parameters
     ----------
-    string_frequency_ : dict[str, numbers.Integral] - The unique words
+    string_frequency_ : dict[str, int] - The unique words
         in the lexicon and their frequencies. There should be only one
         entry for each word in the lexicon, i.e., all frequencies should
         be 1.

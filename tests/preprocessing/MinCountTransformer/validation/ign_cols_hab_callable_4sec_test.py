@@ -18,15 +18,6 @@ from pybear.preprocessing._MinCountTransformer._validation.\
 class TestValIgnColsHabCallable:
 
 
-    # def _val_ign_cols_hab_callable(
-    #     _fxn_output: Sequence[str] | Sequence[numbers.Integral],
-    #     _first_fxn_output: Sequence[str] | Sequence[numbers.Integral] | None,
-    #     _name: Literal['ignore_columns', 'handle_as_bool'],
-    #     _n_features_in: int,
-    #     _feature_names_in: FeatureNamesInType | None
-    # ) -> None:
-
-
     # _n_features_in is validated by _val_n_features_in, tested elsewhere
 
     # _feature_names_in is validated by _val_feature_names_in, tested elsewhere

@@ -57,7 +57,7 @@ def _regexp_core(
         | list[None | re.Pattern[str] | tuple[re.Pattern[str], ...]]
 
     MaxSplitType:
-        numbers.Integral | None
+        int | None
 
     MaxSplitsType:
         MaxSplitType | list[MaxSplitType]

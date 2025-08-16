@@ -18,12 +18,6 @@ import pytest
 
 class TestGetXFeatureNamesOut:
 
-    # def get_feature_names_out(
-    #     _input_features: Iterable[str] | None,
-    #     feature_names_in_: npt.NDArray[object] | None,
-    #     n_features_in_: numbers.Integral
-    # ) -> npt.NDArray[object]:
-
 
     @staticmethod
     @pytest.fixture(scope='module')

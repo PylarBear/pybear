@@ -11,7 +11,7 @@ import numbers
 
 
 def _val_startswith_frequency(
-    _startswith_frequency: dict[str, numbers.Integral]
+    _startswith_frequency: dict[str, int]
 ) -> None:
     """Validate `startswith_frequency`.
 
@@ -22,7 +22,7 @@ def _val_startswith_frequency(
 
     Parameters
     ----------
-    _startswith_frequency :dict[str, numbers.Integral]
+    _startswith_frequency :dict[str, int]
         A dictionary of unique first characters and counts.
 
     Returns
