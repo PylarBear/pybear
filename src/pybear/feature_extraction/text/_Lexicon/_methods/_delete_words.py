@@ -8,7 +8,6 @@
 
 from typing import (
     Sequence,
-    Union
 )
 
 import os
@@ -21,7 +20,7 @@ from ._identify_sublexicon import _identify_sublexicon
 
 
 def _delete_words(
-    WORDS: Union[str, Sequence[str]],
+    WORDS: str | Sequence[str],
     lexicon_folder_path: str
 ) -> None:
     """Remove the given word(s) from the pybear lexicon text files.
@@ -30,7 +29,7 @@ def _delete_words(
 
     Parameters
     ----------
-    WORDS : Union[str, Sequence[str]]
+    WORDS : str | Sequence[str]
         The word or words to remove from the pybear lexicon. Cannot be
         an empty string or an empty sequence.
     lexicon_folder_path : str

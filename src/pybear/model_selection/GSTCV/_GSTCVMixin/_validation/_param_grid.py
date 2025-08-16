@@ -6,10 +6,6 @@
 
 
 
-from typing import (
-    Optional,
-    Union
-)
 from ..._type_aliases import (
     ParamGridInputType,
     ParamGridsInputType
@@ -20,8 +16,8 @@ from ._param_grid_helper import _val_param_grid_helper
 
 
 def _val_param_grid(
-    _param_grid:Union[ParamGridInputType, ParamGridsInputType],
-    _must_be_list_dict:Optional[bool] = True
+    _param_grid:ParamGridInputType | ParamGridsInputType,
+    _must_be_list_dict:bool = True
 ) -> None:
     """Validate `_param_grid` and any `thresholds` that may have been
     passed inside.
@@ -34,12 +30,12 @@ def _val_param_grid(
 
     Parameters
     ----------
-    _param_grid : Union[ParamGridInputType, ParamGridsInputType]
+    _param_grid : ParamGridInputType | ParamGridsInputType
         A `param_grid` is a dictionary with hyperparameter names (str)
         as keys and list-likes of hyperparameter settings to test as
         values. `_param_grid` can be one of the described param_grids or
         a list-like of such param_grids.
-    _must_be_list_dict : Optional[bool], default=True
+    _must_be_list_dict : bool, default=True
         Whether `_param_grid` must have already been conditioned into a
         list of dictionaries.
 

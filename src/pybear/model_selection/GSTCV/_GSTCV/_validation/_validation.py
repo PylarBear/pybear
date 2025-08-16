@@ -8,7 +8,6 @@
 
 from typing import (
     Literal,
-    Union
 )
 from ..._type_aliases import ClassifierProtocol
 
@@ -21,7 +20,7 @@ from ._pre_dispatch import _val_pre_dispatch
 
 def _validation(
     _estimator: ClassifierProtocol,
-    _pre_dispatch: Union[Literal['all'], str, numbers.Integral]
+    _pre_dispatch: Literal['all'] | str | numbers.Integral
 ) -> None:
     """Centralized hub for sklearn GSTCV validation.
 
@@ -31,7 +30,7 @@ def _validation(
     ----------
     _estimator : ClassifierProtocol
         The estimator to be validated.
-    _pre_dispatch : Union[Literal['all'], str, numbers.Integral]
+    _pre_dispatch : Literal['all'] | str | numbers.Integral
         The number of batches (of tasks) to be pre-dispatched. See the
         joblib.Parallel docs for more information.
 

@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import (
     SKSlicerType,
     SKSplitType,
@@ -23,7 +22,7 @@ import scipy.sparse as ss
 def _fold_splitter(
     train_idxs: SKSlicerType,
     test_idxs: SKSlicerType,
-    *data_objects: Union[SKXType, SKYType]
+    *data_objects: SKXType | SKYType
 ) -> tuple[SKSplitType, ...]:
     """Split given data objects into train / test pairs using the given
     train and test indices.
@@ -44,7 +43,7 @@ def _fold_splitter(
     test_idxs : SKSlicerType
         1D vector of row indices used to slice test sets out of every
         given data object.
-    *data_objects : Union[SKXType, SKYType]
+    *data_objects : SKXType | SKYType
         The data objects to slice. Need not be of equal size, and need
         not be completely consumed in the train / test splits. However,
         standard indexing rules apply when slicing by `train_idxs` and

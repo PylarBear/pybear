@@ -8,7 +8,6 @@
 
 from typing import (
     Callable,
-    Union
 )
 from .._type_aliases import ReplaceType
 
@@ -46,39 +45,34 @@ def _val_replace(
 
 
     # could be:
-    # FindType: TypeAlias = Union[str, re.Pattern[str]]
-    # SubstituteType: TypeAlias = Union[str, Callable[[str], str]]
-    # PairType: TypeAlias = Union[FindType, SubstituteType]
-    # ReplaceSubType: TypeAlias = Union[None, PairType, tuple[PairType, ...]]
-    # ReplaceType: TypeAlias = Optional[ReplaceSubType, list[ReplaceSubType]]
+    # FindType: TypeAlias = str | re.Pattern[str]
+    # SubstituteType: TypeAlias = str | Callable[[str], str]
+    # PairType: TypeAlias = FindType | SubstituteType
+    # ReplaceSubType: TypeAlias = None | PairType | tuple[PairType, ...]
+    # ReplaceType: TypeAlias = ReplaceSubType | list[ReplaceSubType]
 
 
     # helper function -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     def _core_pair_validator(
         _tuple: tuple[
-            Union[str, re.Pattern[str]],
-            Union[str, Callable[[str], str]]
+            str, re.Pattern[str],
+            str, Callable[[str], str]
         ]
     ):
-        # must 2 entries Union[str, re.Pattern[str]] and Union[str, Callable]
+        # must 2 entries str | re.Pattern[str] and str | Callable
 
-        """
-        Validate the core find/replace pairs.
-
+        """Validate the core find/replace pairs.
 
         Parameters
         ----------
         _tuple:
             the patterns to search for and what to replace them with.
 
-
         Returns
         -------
-        -
-            None
+        None
 
         """
-
 
         err_msg = (
             f"when passing find/substitute pairs to 'replace', you must pass "
@@ -140,9 +134,6 @@ def _val_replace(
                 raise TypeError(err_msg)
     else:
         raise TypeError(err_msg)
-
-
-
 
 
 

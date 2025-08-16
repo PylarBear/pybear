@@ -15,13 +15,6 @@ from pybear.model_selection.GSTCV._GSTCVMixin._validation._thresholds \
 
 class TestValThresholds:
 
-# def _val_thresholds(
-#     _thresholds: ThresholdsInputType,
-#     _is_from_kwargs: bool,
-#     _idx: int,
-#     _must_be_list_like:Optional[bool]=True
-# ) -> None:
-
 
     # 'is_from_kwargs' ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
     @pytest.mark.parametrize('junk_ifk',

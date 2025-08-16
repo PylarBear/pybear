@@ -7,7 +7,6 @@
 
 
 from typing import (
-    Optional,
     Sequence
 )
 
@@ -17,7 +16,7 @@ from .....base._check_2D_str_array import check_2D_str_array
 
 def _val_2D_X(
     _X: Sequence[Sequence[str]],
-    _require_all_finite:Optional[bool] = True
+    _require_all_finite:bool = True
 ) -> None:
     """Validate X.
 
@@ -27,7 +26,7 @@ def _val_2D_X(
     ----------
     _X : Sequence[Sequence[str]]
         The text data.
-    _require_all_finite : Optional[bool], default=True
+    _require_all_finite : bool, default=True
         Whether to block non-finite values such as nan or infinity (True)
         or allow (False).
 

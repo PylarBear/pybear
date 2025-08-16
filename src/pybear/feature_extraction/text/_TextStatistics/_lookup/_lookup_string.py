@@ -7,9 +7,7 @@
 
 
 from typing import (
-    Optional,
     Sequence,
-    Union
 )
 
 import numpy as np
@@ -19,9 +17,9 @@ import re
 
 
 def _lookup_string(
-    _pattern: Union[str, re.Pattern[str]],
-    _uniques: Sequence[str],
-    _case_sensitive: Optional[bool] = True
+    _pattern:str | re.Pattern[str],
+    _uniques:Sequence[str],
+    _case_sensitive:bool = True
 ) -> list[str]:
     """Use string literals or regular expressions to look for whole
     string matches (not substrings) in the fitted words.
@@ -51,14 +49,14 @@ def _lookup_string(
 
     Parameters
     ----------
-    _pattern : Union[str, re.Pattern[str]]
+    _pattern : str | re.Pattern[str]
         Character sequence or regular expression in a re.compile object
         to be looked up against the strings fitted on the `TextStatistics`
         instance.
     _uniques : Sequence[str]
         The unique strings found by the TextStatistics instance during
         fitting.
-    _case_sensitive : Optional[bool], default = True
+    _case_sensitive : bool, default = True
         Ignored if a re.compile object is passed to `pattern`. If True,
         search for the exact pattern in the fitted data. If False, ignore
         the case of words in uniques while performing the search.

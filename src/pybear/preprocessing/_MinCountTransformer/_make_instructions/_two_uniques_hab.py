@@ -8,7 +8,6 @@
 
 from typing import (
     Literal,
-    Union
 )
 from .._type_aliases import DataType
 
@@ -16,11 +15,11 @@ from .._type_aliases import DataType
 
 def _two_uniques_hab(
     _threshold: int,
-    _nan_key: Union[float, str, Literal[False]],
-    _nan_ct: Union[int, Literal[False]],
+    _nan_key: float | str | Literal[False],
+    _nan_ct: int | Literal[False],
     _COLUMN_UNQ_CT_DICT: dict[DataType, int],
     _delete_axis_0: bool
-) -> list[Union[Literal['DELETE COLUMN'], DataType]]:
+) -> list[Literal['DELETE COLUMN'] | DataType]:
     """Make delete instructions for a column with two unique non-nan
     values, handling values as booleans.
 
@@ -52,10 +51,10 @@ def _two_uniques_hab(
     ----------
     _threshold : int
         The minimum threshold frequency for this column.
-    _nan_key : Union[float, str, Literal[False]]
+    _nan_key : float | str | Literal[False]
         The nan value found in the column. `_columns_getter` converts
         all nan-likes to numpy.nan.
-    _nan_ct : Union[int, Literal[False]]
+    _nan_ct : int | Literal[False]
         The number of nan-like values found in the column.
     _COLUMN_UNQ_CT_DICT : dict[DataType, int]
         The value from `_total_cts_by_column` for this column, which is
@@ -67,7 +66,7 @@ def _two_uniques_hab(
 
     Returns
     -------
-    _instr_list : list[Union[Literal['DELETE COLUMN'], DataType]]
+    _instr_list : list[Literal['DELETE COLUMN'] | DataType]
         The row and column operations for this column.
 
     """

@@ -8,9 +8,7 @@
 
 from typing import (
     Any,
-    Callable,
-    Optional,
-    Union
+    Callable
 )
 from typing_extensions import Self
 import numpy.typing as npt
@@ -118,7 +116,7 @@ class StopRemover(
 
     Parameters
     ----------
-    match_callable : Optional[Union[Callable[[str, str], bool], None]], default=None
+    match_callable : Callable[[str, str], bool] | None, default = None
         None to use the default `StopRemover` matching criteria, or a
         custom callable that defines what constitutes matches of words
         in the text against the stop words. In pre-run validation, SR
@@ -136,20 +134,20 @@ class StopRemover(
         stop word. If you have modified your local copy of the `Lexicon`
         and/or the stop words and you intend to use regex in your
         callable, remember that it may be important to use re.escape.
-    remove_empty_rows : Optional[bool], default=True
+    remove_empty_rows : bool, default = True
         Whether to remove any rows that are left empty by the stop word
         removal process.
-    exempt : Optional[Union[list[str], None]], default=None
+    exempt : list[str] | None, default = None
         Stop words that are exempted from the search. Text that matches
         these words will not be removed. Ensure that the capitalization
         of the word(s) that you enter exactly matches that of the word(s)
         in the `Lexicon`. Always enter words in majuscule if working with
         the default pybear `Lexicon`.
-    supplemental : Optional[Union[list[str], None]], default=None
+    supplemental : list[str] | None, default = None
         Words to be removed in addition to the stop words. If you intend
         to do a case-sensitive search then the capitalization of these
         words matters.
-    n_jobs : Optional[Union[numbers.Integral, None]], default = -1
+    n_jobs : numbers.Integral | None, default = -1
         The number of cores/threads to use when parallelizing the
         search for stop words in the rows of `X`. The default is to use
         processes but can be set by running `StopRemover` under a joblib
@@ -179,7 +177,7 @@ class StopRemover(
         polars.DataFrame
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+        PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 
     XWipContainer:
         list[list[str]]
@@ -204,11 +202,11 @@ class StopRemover(
 
     def __init__(
         self,
-        match_callable: Optional[Union[Callable[[str, str], bool], None]] = None,
-        remove_empty_rows: Optional[bool] = True,
-        exempt: Optional[Union[list[str], None]] = None,
-        supplemental: Optional[Union[list[str], None]] = None,
-        n_jobs: Optional[Union[numbers.Integral, None]] = -1
+        match_callable:Callable[[str, str], bool] | None = None,
+        remove_empty_rows:bool = True,
+        exempt:list[str] | None = None,
+        supplemental:list[str] | None = None,
+        n_jobs:numbers.Integral | None = -1
     ) -> None:
         """Initialize the StopRemover instance."""
 
@@ -284,8 +282,8 @@ class StopRemover(
 
     def partial_fit(
         self,
-        X: XContainer,
-        y: Optional[Any] = None
+        X:XContainer,
+        y:Any = None
     ) -> Self:
         """No-op batch-wise fit method.
 
@@ -294,7 +292,7 @@ class StopRemover(
         X : XContainer
             The (possibly ragged) 2D container of text from which to
             remove stop words. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default = None
             The target for the data. Always ignored.
 
         Returns
@@ -309,8 +307,8 @@ class StopRemover(
 
     def fit(
         self,
-        X: XContainer,
-        y: Optional[Any] = None
+        X:XContainer,
+        y:Any = None
     ) -> Self:
         """No-op one-shot fit method.
 
@@ -319,7 +317,7 @@ class StopRemover(
         X : XContainer
             The (possibly ragged) 2D container of text from which to
             remove stop words. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default = None
             The target for the data. Always ignored.
 
         Returns
@@ -334,8 +332,8 @@ class StopRemover(
 
     def score(
         self,
-        X: Any,
-        y: Optional[Any] = None
+        X:Any,
+        y:Any = None
     ) -> None:
         """No-op score method.
 
@@ -345,7 +343,7 @@ class StopRemover(
         ----------
         X : Any
             The data. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default = None
             The target for the data. Ignored.
 
         Returns
@@ -392,7 +390,7 @@ class StopRemover(
     def transform(
         self,
         X:XContainer,
-        copy:Optional[bool] = False
+        copy:bool = False
     ) -> list[list[str]]:
         """Scan `X` and remove any stop words as defined in the pybear
         `Lexicon` `stop_words_` attribute.
@@ -412,7 +410,7 @@ class StopRemover(
         X : XContainer
             The (possibly ragged) 2D container of text from which to
             remove stop words.
-        copy : Optional[bool], default=False
+        copy : bool, default = False
             Whether to remove stop words directly from the passed `X` or
             a deepcopy of `X`.
 

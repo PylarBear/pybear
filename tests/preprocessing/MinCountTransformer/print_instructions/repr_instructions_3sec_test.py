@@ -21,17 +21,6 @@ from pybear.preprocessing._MinCountTransformer._print_instructions. \
 class TestReprInstructions:
 
 
-    # def _repr_instructions(
-    #     _delete_instr: InstructionsType,
-    #     _total_counts_by_column: TotalCountsByColumnType,
-    #     _thresholds: CountThresholdType,
-    #     _n_features_in: int,
-    #     _feature_names_in: FeatureNamesInType | None,
-    #     _clean_printout: bool,
-    #     _max_char: Optional[numbers.Integral] = 99
-    # ) -> list[str]:
-
-
     # validation ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 
     # _n_features_in is validated by _val_delete_instr, which is tested

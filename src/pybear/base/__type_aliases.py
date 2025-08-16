@@ -8,7 +8,6 @@
 
 from typing import (
     TypeAlias,
-    Union
 )
 import numpy.typing as npt
 
@@ -20,21 +19,19 @@ import scipy.sparse as ss
 
 Python1DTypes: TypeAlias = list | tuple | set
 Python2DTypes: TypeAlias = list[list] | tuple[tuple]
-PythonTypes: TypeAlias = list | tuple | set | list[list] | tuple[tuple]
+PythonTypes: TypeAlias = Python1DTypes | Python2DTypes
 
 Numpy1DTypes: TypeAlias = npt.NDArray
 Numpy2DTypes: TypeAlias = npt.NDArray
-NumpyTypes: TypeAlias = npt.NDArray
+NumpyTypes: TypeAlias = Numpy1DTypes | Numpy2DTypes
 
 Pandas1DTypes: TypeAlias = pd.Series
 Pandas2DTypes: TypeAlias = pd.DataFrame
-# pizza Pycharm linter doesnt like | for 2 generics but is OK with Union
-# keep this for now
-PandasTypes: TypeAlias = Union[pd.Series, pd.DataFrame]
+PandasTypes: TypeAlias = Pandas1DTypes | Pandas2DTypes
 
 Polars1DTypes: TypeAlias = pl.Series
 Polars2DTypes: TypeAlias = pl.DataFrame
-PolarsTypes: TypeAlias = Union[pl.Series, pl.DataFrame]
+PolarsTypes: TypeAlias = Polars1DTypes | Polars2DTypes
 
 ScipySparseTypes: TypeAlias = (
     ss.csc_matrix | ss.csc_array | ss.csr_matrix | ss.csr_array

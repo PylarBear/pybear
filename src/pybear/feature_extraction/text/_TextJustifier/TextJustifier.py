@@ -8,8 +8,6 @@
 
 from typing import (
     Any,
-    Optional,
-    Union
 )
 from typing_extensions import Self
 from ._type_aliases import (
@@ -211,7 +209,7 @@ class TextJustifier(
 
     Parameters
     ----------
-    n_chars : Optional[numbers.Integral], default=79
+    n_chars : numbers.Integral, default = 79
         The target number of characters per line when justifying the
         given text. Minimum allowed value is 1; there is no maximum
         value. Under normal expected operation with reasonable margins,
@@ -219,7 +217,7 @@ class TextJustifier(
         short. If margins are unusually small, the output can exceed
         the given margins (e.g. the margin is set lower than an
         individual word's length.)
-    sep : SepType, default=' '
+    sep : SepType, default = ' '
         The literal string(s) or re.compile object(s) that indicate
         to `TextJustifier` where it is allowed to wrap a line. When
         passed as a 1D sequence, TJ will consider any of those patterns
@@ -235,14 +233,14 @@ class TextJustifier(
         expression itself. Any exceptions would be raised by `re.search`.
         See the main docs for more discussion about limitations on what
         can be passed here.
-    sep_flags : Optional[Union[numbers.Integral, None]], default=None
+    sep_flags : numbers.Integral | None, default = None
         The flags for the `sep` parameter. THIS WILL APPLY EVEN IF YOU
         PASS LITERAL STRINGS TO `sep`. IGNORECASE flags passed to this
         will overrule `case_sensitive` for `sep`. This parameter is only
         validated by TJ to be an instance of numbers.Integral or None.
         TJ does not assess the validity of the value. Any exceptions
         would be raised by `re.search`.
-    line_break : LineBreakType, default=None
+    line_break : LineBreakType, default = None
         Literal string(s) or re.compile object(s) that indicate to TJ
         where it MUST end a line. TJ will start a new line immediately
         AFTER the occurrence of the pattern regardless of the number
@@ -262,20 +260,20 @@ class TextJustifier(
         validity of the expression itself. Any exceptions would be
         raised by `re.search`. See the main docs for more discussion
         about limitations on what can be passed here.
-    line_break_flags : Optional[Union[numbers.Integral, None]], default=None
+    line_break_flags : numbers.Integral | None, default = None
         The flags for the `line_break` parameter. THIS WILL APPLY EVEN
         IF YOU PASS LITERAL STRINGS TO `line_break`. IGNORECASE flags
         passed to this will overrule `case_sensitive` for `line_break`.
         This parameter is only validated by TJ to be an instance of
         numbers.Integral or None. TJ does not assess the validity of
         the value. Any exceptions would be raised by `re.search`.
-    backfill_sep : Optional[str], default=' '
+    backfill_sep : str, default = ' '
         In the case where a line is shorter than `n_chars`, DOES NOT END
         WITH A WRAP SEPARATOR, and the following line is short enough to
         be merged with it, this character string will separate the two
         strings when merged. If you do not want a separator in this case,
         pass an empty string to this parameter.
-    join_2D : Optional[str], default=' '
+    join_2D : str, default = ' '
         Ignored if the data is given as a 1D sequence. For 2D containers
         of strings, this is the character string sequence that is used
         to join the strings within rows to convert the data to 1D for
@@ -292,58 +290,58 @@ class TextJustifier(
     **Type Aliases**
 
     PythonTypes:
-        Union[Sequence[str], Sequence[Sequence[str]], set[str]]
+        Sequence[str] | Sequence[Sequence[str]] | set[str]
 
     NumpyTypes:
         numpy.ndarray
 
     PandasTypes:
-        Union[pandas.Series, pandas.DataFrame]
+        pandas.Series | pandas.DataFrame
 
     PolarsTypes:
-        Union[polars.Series, polars.DataFrame]
+        polars.Series | polars.DataFrame
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+        PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 
     XWipContainer:
-        Union[list[str], list[list[str]]]
+        list[str] | list[list[str]]
 
     NCharsType:
-        Optional[numbers.Integral]
+        numbers.Integral
 
     CoreSepBreakTypes:
-        Union[str, Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]]]
+        str | Sequence[str] | re.Pattern[str] | Sequence[re.Pattern[str]]
 
     SepType:
-        Optional[CoreSepBreakTypes]
+        CoreSepBreakTypes
 
     LineBreakType:
-        Optional[Union[None, CoreSepBreakTypes]]
+        CoreSepBreakTypes | None
 
     CoreSepBreakWipType:
-        Union[re.Pattern[str], tuple[re.Pattern[str], ...]]
+        re.Pattern[str] | tuple[re.Pattern[str], ...]
 
     SepWipType:
         CoreSepBreakWipType
 
     LineBreakWipType:
-        Union[None, CoreSepBreakWipType]
+        CoreSepBreakWipType | None
 
     CaseSensitiveType:
-        Optional[bool]
+        bool
 
     SepFlagsType:
-        Optional[Union[numbers.Integral, None]]
+        numbers.Integral | None
 
     LineBreakFlagsType:
-        Optional[Union[numbers.Integral, None]]
+        numbers.Integral | None
 
     BackfillSepType:
-        Optional[str]
+        str
 
     Join2DType:
-        Optional[str]
+        str
 
     Examples
     --------
@@ -390,14 +388,14 @@ class TextJustifier(
     def __init__(
         self,
         *,
-        n_chars:Optional[numbers.Integral] = 79,
+        n_chars:numbers.Integral = 79,
         sep:SepType = ' ',
         sep_flags:SepFlagsType = None,
         line_break:LineBreakType = None,
         line_break_flags:LineBreakFlagsType = None,
-        case_sensitive:Optional[bool] = True,
-        backfill_sep:Optional[str] = ' ',
-        join_2D:Optional[str] = ' '
+        case_sensitive:bool = True,
+        backfill_sep:str = ' ',
+        join_2D:str = ' '
     ) -> None:
         """Initialize the TextJustifier instance."""
 
@@ -455,8 +453,8 @@ class TextJustifier(
 
     def partial_fit(
         self,
-        X: XContainer,
-        y: Optional[Any] = None
+        X:XContainer,
+        y:Any = None
     ) -> Self:
         """No-op batch-wise fit operation.
 
@@ -464,7 +462,7 @@ class TextJustifier(
         ----------
         X : XContainer
             The data to justify. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default = None
             The target for the data. Always ignored.
 
         Returns
@@ -480,7 +478,7 @@ class TextJustifier(
     def fit(
         self,
         X: XContainer,
-        y: Optional[Any] = None
+        y: Any = None
     ) -> Self:
         """No-op one-shot fit operation.
 
@@ -488,7 +486,7 @@ class TextJustifier(
         ----------
         X : XContainer
             The data to justify. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default = None
             The target for the data. Always ignored.
 
         Returns
@@ -503,8 +501,8 @@ class TextJustifier(
 
     def score(
         self,
-        X: Any,
-        y: Optional[Any] = None
+        X:Any,
+        y:Any = None
     ) -> None:
         """No-op score method.
 
@@ -514,7 +512,7 @@ class TextJustifier(
         ----------
         X : Any
             The data. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default = None
             The target for the data. Ignored.
 
         Returns
@@ -533,9 +531,9 @@ class TextJustifier(
     def _cond_helper(
         _obj: LineBreakType,
         _case_sensitive: bool,
-        _flags: Union[None, numbers.Integral],
+        _flags: numbers.Integral | None,
         _name: str
-    ) -> Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]:
+    ) -> None | re.Pattern[str] | tuple[re.Pattern[str], ...]:
         """Helper for making re.compiles and putting in flags for `sep`
         and `line_break`.
 
@@ -558,7 +556,7 @@ class TextJustifier(
     def transform(
         self,
         X:XContainer,
-        copy:Optional[bool] = False
+        copy:bool = False
     ) -> XWipContainer:
         """Justify the text in a 1D sequence of strings or a (possibly
         ragged) 2D array-like of strings.
@@ -567,7 +565,7 @@ class TextJustifier(
         ----------
         X : XContainer
             The data to justify.
-        copy : Optional[bool], default=False
+        copy : bool, default = False
             Whether to directly operate on the passed `X` or on a
             deepcopy of `X`.
 

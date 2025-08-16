@@ -7,9 +7,7 @@
 
 
 from typing import (
-    Optional,
     TypeAlias,
-    Union
 )
 
 import numbers
@@ -23,29 +21,29 @@ from .._validation._compile_holder import _val_compile_holder
 
 
 PatternType: TypeAlias = \
-    Union[None, str, re.Pattern[str], tuple[Union[str, re.Pattern[str]], ...]]
+    None | str | re.Pattern[str] | tuple[str | re.Pattern[str], ...]
 PatternHolderType: TypeAlias = \
-    Union[PatternType, list[PatternType]]
+    PatternType | list[PatternType]
 
 WipPatternType: TypeAlias = \
-    Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]
+    None | re.Pattern[str] | tuple[re.Pattern[str], ...]
 WipPatternHolderType: TypeAlias = \
-    Union[WipPatternType, list[WipPatternType]]
+    WipPatternType | list[WipPatternType]
 
-CaseSensitiveType: TypeAlias = Union[bool, list[Union[bool, None]]]
+CaseSensitiveType: TypeAlias = bool | list[bool | None]
 
-FlagType: TypeAlias = Union[None, numbers.Integral]
-FlagsType: TypeAlias = Union[FlagType, list[FlagType]]
+FlagType: TypeAlias = None | numbers.Integral
+FlagsType: TypeAlias = FlagType | list[FlagType]
 
 
 
 def _param_conditioner(
-    _pattern_holder: PatternHolderType,
-    _case_sensitive: CaseSensitiveType,
-    _flags: FlagsType,
-    _order_matters: bool,
-    _n_rows: numbers.Integral,
-    _name: Optional[str] = 'unnamed pattern holder'
+    _pattern_holder:PatternHolderType,
+    _case_sensitive:CaseSensitiveType,
+    _flags:FlagsType,
+    _order_matters:bool,
+    _n_rows:numbers.Integral,
+    _name:str = 'unnamed pattern holder'
 ) -> WipPatternHolderType:
     """
     Use the parameters to convert all literal strings to re.compile and
@@ -69,7 +67,7 @@ def _param_conditioner(
         The number of rows in the data. if _flags, _pattern_holder,
         and/or _case_sensitive were passed as a list, the length of them
         was already validated against this number.
-    _name : Optional[str], default = 'unnamed pattern holder'
+    _name : str, default = 'unnamed pattern holder'
         The name of the corresponding pattern-holder param in the home
         module, like 'split', 'replace', 'ngrams', etc.
 
@@ -86,22 +84,22 @@ def _param_conditioner(
     **Type Aliases**
 
     PatternType:
-        Union[None, str, re.Pattern[str], tuple[Union[str, re.Pattern[str]], ...]]
+        None | str | re.Pattern[str] | tuple[str | re.Pattern[str], ...]
     PatternHolderType:
-        Union[PatternType, list[PatternType]]
+        PatternType | list[PatternType]
 
     WipPatternType:
-        Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]
+        None | re.Pattern[str] | tuple[re.Pattern[str], ...]
     WipPatternHolderType:
-        Union[WipPatternType, list[WipPatternType]]
+        WipPatternType | list[WipPatternType]
 
     CaseSensitiveType:
-        Union[bool, list[Union[bool, None]]]
+        bool | list[bool | None]
 
     FlagType:
-        Union[None, numbers.Integral]
+        None | numbers.Integral
     FlagsType:
-        Union[FlagType, list[FlagType]]
+        FlagType | list[FlagType]
 
     """
 
@@ -141,7 +139,7 @@ def _param_conditioner(
     )
 
     # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-    # '_compile_holder' must be list[Union[[None], [re.compile[str]]]]
+    # '_compile_holder' must be list[list[None] | list[re.compile[str]]]
     # '_case_sensitive' must be bool, list[None or bool]
     # '_flags' must be None, int, or list[None or int]
     # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
@@ -166,7 +164,7 @@ def _param_conditioner(
             _compile_holder[_idx] = tuple(_compile_holder[_idx])
 
     # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
-    # '_compile_holder' must be list[Union[None, compile[str], tuple[compile, ...]]]
+    # '_compile_holder' must be list[None | compile[str] | tuple[compile, ...]]
     # '_case_sensitive' doesnt matter anymore
     # '_flags' doesnt matter anymore
     # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^

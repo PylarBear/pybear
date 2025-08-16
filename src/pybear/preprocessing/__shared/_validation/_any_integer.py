@@ -7,7 +7,6 @@
 
 
 from typing import (
-    Optional,
     Sequence
 )
 
@@ -16,13 +15,13 @@ import numbers
 
 
 def _val_any_integer(
-    _int:numbers.Integral | Sequence[numbers.Integral],
-    _name:Optional[str] = 'unnamed integer',
-    _min:Optional[numbers.Real] = float('-inf'),
-    _max:Optional[numbers.Real] = float('inf'),
-    _disallowed:Optional[Sequence[numbers.Integral]] = [],
-    _can_be_bool:Optional[bool] = False,
-    _can_be_None:Optional[bool] = False
+    _int:int | Sequence[int],
+    _name:str = 'unnamed integer',
+    _min:numbers.Real = float('-inf'),
+    _max:numbers.Real = float('inf'),
+    _disallowed:Sequence[int] = [],
+    _can_be_bool:bool = False,
+    _can_be_None:bool = False
 ) -> None:
     """Validate any integer or sequence of integers.
 
@@ -45,15 +44,15 @@ def _val_any_integer(
     ----------
     _int : numbers.Integral | Sequence[numbers.Integral]
         The number being validated as an integer.
-    _min : Optional[numbers.Real], default=float('-inf')
+    _min : numbers.Real, default=float('-inf')
         The minimum allowed value `_int` can take.
-    _max : Optional[numbers.Real], default=float('inf')
+    _max : numbers.Real, default=float('inf')
         The maximum allowed value `_int` can take.
-    _disallowed : Optional[Sequence[numbers.Integral]], default=[]
+    _disallowed : Sequence[numbers.Integral], default=[]
         Values that `_int` is not allowed to take.
-    _can_be_bool : Optional[bool], default=False
+    _can_be_bool : bool, default=False
         If True, `_int` can be boolean.
-    _can_be_None : Optional[bool], default=False
+    _can_be_None : bool, default=False
         If True, `_int` can be None.
 
     Returns
@@ -94,9 +93,8 @@ def _val_any_integer(
 
     # helper function -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     def _helper(
-        _int:numbers.Integral | Sequence[numbers.Integral] | None,
+        _int:int | Sequence[int] | None,
     ) -> None:
-        # pizza
         """Helper function for validating integers."""
 
         nonlocal _name, _min, _max, _disallowed, _can_be_bool, _can_be_None

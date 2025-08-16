@@ -26,15 +26,6 @@ import pytest
 class TestIsFitted:
 
 
-    # def check_is_fitted(
-    #     estimator,
-    #     attributes:str | Iterable[str] | None = None,
-    #     *,
-    #     msg: str | None = None,
-    #     all_or_any: AllFunc | AnyFunc = all
-    # ):
-
-
     @staticmethod
     @pytest.fixture(scope='module')
     def good_estimator():

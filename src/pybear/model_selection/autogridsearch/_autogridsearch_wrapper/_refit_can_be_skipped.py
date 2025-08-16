@@ -8,8 +8,7 @@
 
 from typing import (
     Callable,
-    Literal,
-    Union
+    Literal
 )
 
 from sklearn.model_selection import (
@@ -33,7 +32,7 @@ from ...GSTCV._GSTCV import GSTCV
 
 def _refit_can_be_skipped(
     _GridSearchParent,
-    _scoring: Union[None, str, list, Callable, dict, Literal[False]],
+    _scoring: None | str | list | Callable | dict | Literal[False],
     _total_passes: int
 ) -> bool:
     """Determine if the parent GridSearch, the scoring strategy, and the
@@ -54,7 +53,7 @@ def _refit_can_be_skipped(
     ----------
     _GridSearchParent : object
         The parent `GridSearchCV` class passed to the agscv wrapper.
-    _scoring : Union[None, str, list, Callable, dict, Literal[False]]
+    _scoring : None | str | list | Callable | dict | Literal[False]]
         The value passed to the `scoring` parameter of the parent
         `GridSearchCV`. On the off chance that the parent GridSearch
         does not have a `scoring` parameter, Literal[False] is passed to

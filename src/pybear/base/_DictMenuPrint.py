@@ -6,8 +6,6 @@
 
 
 
-from typing import Optional
-
 import numbers
 
 from ._validate_user_input import validate_user_str_cs
@@ -28,18 +26,18 @@ class DictMenuPrint:
         Required. A Dictionary of unit-length alpha characters as keys
         and the descriptions of their associated actions as values. Keys
         are case-sensitive.
-    disp_width : Optional[numbers.Integral], default=80
+    disp_width : numbers.Integral, default=80
         The maximum number of characters to display per line.
-    fixed_col_width : Optional[numbers.Integral | None], default=None
+    fixed_col_width : numbers.Integral | None, default=None
         Set a fixed width for each column of menu items in the display.
         DMP will determine a number of columns that causes the overall
         width of the display to be less than or equal to `disp_width`.
-    allowed : Optional[str | None], default=None
+    allowed : str | None, default=None
         Can only enter this if `disallowed` is not entered, cannot enter
         both. The action keys that are allowed to be selected from the
         full selection available in `MENU_DICT`. case-sensitive. Enter
         as a contiguous sequence of characters.
-    disallowed : Optional[str | None], default=None
+    disallowed : str | None, default=None
         Can only enter this if `allowed` is not entered, cannot enter
         both. The action keys that are not allowed to be selected from
         `MENU_DICT`. `allowed` becomes the space of action keys that are
@@ -93,10 +91,10 @@ class DictMenuPrint:
         self,
         MENU_DICT:dict[str, str],
         *,
-        disp_width:Optional[numbers.Integral] = 80,
-        fixed_col_width:Optional[numbers.Integral | None] = None,
-        allowed:Optional[str | None] = None,
-        disallowed:Optional[str | None] = None
+        disp_width:numbers.Integral = 80,
+        fixed_col_width:numbers.Integral | None = None,
+        allowed:str | None = None,
+        disallowed:str | None = None
     ) -> None:
         """Initialize the DictMenuPrint instance."""
 
@@ -162,17 +160,17 @@ class DictMenuPrint:
 
     def _val_allowed_disallowed_and_get_allowed(
         self,
-        _allowed:Optional[str | None] = None,
-        _disallowed:Optional[str | None] = None
+        _allowed:str | None = None,
+        _disallowed:str | None = None
     ) -> str:
         """Validate `allowed` & `disallowed`, determine allowed, and
         return it.
 
         Parameters
         ----------
-        _allowed : Optional[str | None], default = None
+        _allowed : str | None, default = None
             Options in the full menu that the user is allowed to choose.
-        _disallowed : Optional[str | None], default = None
+        _disallowed : str | None, default = None
             Options in the full menu that the user is not allowed to
             choose.
 
@@ -283,8 +281,8 @@ class DictMenuPrint:
         self,
         prompt:str,
         *,
-        allowed:Optional[str | None] = None,
-        disallowed:Optional[str | None] = None
+        allowed:str | None = None,
+        disallowed:str | None = None
     ) -> str:
         """Displays the allowed menu options to the screen.
 
@@ -299,12 +297,12 @@ class DictMenuPrint:
 
         Parameters
         ----------
-        allowed : Optional[str | None], default=None
+        allowed : str | None, default=None
             Can only enter this if `disallowed` is not entered,
             cannot enter both. The action keys that are allowed to be
             selected from the full section available in `MENU_DICT`.
             Case-sensitive. Enter as a contiguous sequence of characters.
-        disallowed : Optional[str | None], default=None
+        disallowed : str | None, default=None
             Can only enter this if `allowed` is not entered, cannot
             enter both. The action keys that are not allowed to be
             selected from `MENU_DICT`. `allowed` becomes the space of

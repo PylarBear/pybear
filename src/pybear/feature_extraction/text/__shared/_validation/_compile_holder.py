@@ -7,9 +7,7 @@
 
 
 from typing import (
-    Optional,
     TypeAlias,
-    Union
 )
 
 import re
@@ -17,14 +15,14 @@ import numbers
 
 
 
-PatternType: TypeAlias = Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]
+PatternType: TypeAlias = None | re.Pattern[str] | tuple[re.Pattern[str], ...]
 
 
 
 def _val_compile_holder(
-    _ch: Union[PatternType, list[PatternType]],
-    _n_rows: numbers.Integral,
-    _name: Optional[str] = 'unnamed compile holder'
+    _ch:PatternType | list[PatternType],
+    _n_rows:numbers.Integral,
+    _name:str = 'unnamed compile holder'
 ) -> None:
     """Validate the WIP parameter 'compile_holder'.
 
@@ -35,11 +33,11 @@ def _val_compile_holder(
 
     Parameters
     ----------
-    _ch : Union[PatternType, list[PatternType]]
+    _ch : PatternType | list[PatternType]
         The regex pattern(s) to search for in text data.
     _n_rows : numbers.Integral
         The number of rows in the data passed to transform.
-    _name : Optional[str], default = 'unnamed compile holder'
+    _name : str, default = 'unnamed compile holder'
         The name of the corresponding pattern-holder param in the home
         module, like 'split', 'replace', 'ngrams', etc.
 
@@ -53,7 +51,7 @@ def _val_compile_holder(
     **Type Aliases**
 
     PatternType:
-        Union[None, re.Pattern[str], tuple[re.Pattern[str], ...]]
+        None | re.Pattern[str] | tuple[re.Pattern[str], ...]
 
     """
 

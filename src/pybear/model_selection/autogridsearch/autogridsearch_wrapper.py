@@ -8,8 +8,6 @@
 
 from typing import (
     Any,
-    Optional,
-    Union
 )
 from typing_extensions import Self
 from ._autogridsearch_wrapper._type_aliases import (
@@ -109,12 +107,12 @@ def autogridsearch_wrapper(GridSearchParent):
         def __init__(
             self,
             estimator,
-            params: ParamsType,
+            params:ParamsType,
             *,
-            total_passes: Optional[numbers.Integral]=5,
-            total_passes_is_hard: Optional[bool]=False,
-            max_shifts: Optional[Union[None, numbers.Integral]]=None,
-            agscv_verbose: Optional[bool]=False,
+            total_passes:numbers.Integral = 5,
+            total_passes_is_hard:bool = False,
+            max_shifts:numbers.Integral | None = None,
+            agscv_verbose:bool = False,
             **parent_gscv_kwargs
         ) -> None:
             """Initialize the `AutoGridSearch` instance."""
@@ -204,8 +202,8 @@ def autogridsearch_wrapper(GridSearchParent):
         def demo(
             self,
             *,
-            true_best_params: Optional[Union[None, BestParamsType]]=None,
-            mock_gscv_pause_time: Optional[numbers.Real]=5
+            true_best_params:BestParamsType | None = None,
+            mock_gscv_pause_time:numbers.Real = 5
         ):
             """Simulated trials of this `AutoGridSearch` instance.
 
@@ -220,13 +218,13 @@ def autogridsearch_wrapper(GridSearchParent):
 
             Parameters
             ----------
-            true_best_params : Optional[Union[None, BestParamsType]], default=None
+            true_best_params : BestParamsType | None, default = None
                 Python dictionary of mocked true best values for an
                 estimator's hyperparameters, as provided by the user.
                 If not passed, random true best values are generated
                 based on the first round grids made from the instructions
                 in `params`.
-            mock_gscv_pause_time : Optional[numbers.Real], default=5
+            mock_gscv_pause_time : numbers.Real, default = 5
                 Time in seconds to pause, simulating work being done by
                 the parent GridSearch.
 
@@ -289,12 +287,12 @@ def autogridsearch_wrapper(GridSearchParent):
             _print_results(self._GRIDS, self._RESULTS)
 
 
-        def get_params(self, deep:Optional[bool]=True) -> dict[str, Any]:
+        def get_params(self, deep:bool = True) -> dict[str, Any]:
             """Get parameters for this `AutoGridSearch` instance.
 
             Parameters
             ----------
-            deep : Optional[bool], default=True
+            deep : bool, default = True
                 `deep=False` will only return the parameters for the
                 wrapping `AutoGridSearch` class not the nested
                 estimator. When `deep=True`, this method returns the
@@ -380,8 +378,8 @@ def autogridsearch_wrapper(GridSearchParent):
         def fit(
             self,
             X,
-            y:Optional[Union[None, Any]] = None,
-            groups:Optional[Any] = None,
+            y:Any | None = None,
+            groups:Any = None,
             **fit_params
         ) -> Self:
             """Run the parent's `fit` method at least `total_passes`
@@ -393,9 +391,9 @@ def autogridsearch_wrapper(GridSearchParent):
             ----------
             X : array_like
                 The training data.
-            y: Optional[Any], default=None
+            y: Any, default = None
                 Target for the training data.
-            groups : Optional[Union[None, Any]], default=None
+            groups : Any | None, default = None
                 Group labels for the samples used while splitting the
                 dataset into train/tests sets. agscv exposes this for
                 parent GridSearch classes that have this keyword argument

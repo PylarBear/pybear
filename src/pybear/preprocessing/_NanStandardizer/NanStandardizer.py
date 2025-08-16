@@ -8,13 +8,11 @@
 
 from typing import (
     Any,
-    Optional
 )
 from typing_extensions import Self
 from ._type_aliases import XContainer
 
 import numpy as np
-import pandas as pd
 
 from ._validation._X import _val_X
 from ._transform._transform import _transform
@@ -74,7 +72,7 @@ class NanStandardizer(
 
     Parameters
     ----------
-    new_value : Optional[Any], default=np.nan
+    new_value : Any, default=np.nan
         The new value to put in place of the nan-like values. There is
         no validation for this value, the user is free to enter whatever
         they like. If there is a casting problem, i.e., the receiving
@@ -118,6 +116,8 @@ class NanStandardizer(
     Examples
     --------
     >>> from pybear.preprocessing import NanStandardizer as NS
+    >>> import pandas as pd
+    >>>
     >>> trfm = NS(new_value=99)
     >>> X1 = np.array([[0, 1, np.nan], [np.nan, 4, 5]], dtype=np.float64)
     >>> trfm.fit_transform(X1)
@@ -138,7 +138,7 @@ class NanStandardizer(
     def __init__(
         self,
         *,
-        new_value: Optional[Any] = np.nan
+        new_value: Any = np.nan
     ):
         """Instantiate the `NanStandardizer` instance."""
 
@@ -170,7 +170,7 @@ class NanStandardizer(
     def partial_fit(
         self,
         X: XContainer,
-        y: Optional[Any] = None
+        y: Any = None
     ) -> Self:
         """No-op batch-wise fit of the `NanStandardizer` instance.
 
@@ -179,7 +179,7 @@ class NanStandardizer(
         X : XContainer of shape (n_samples, n_features) or (n_samples,)
             The object for which to replace nan-like representations.
             Ignored.
-        y : Optional[Any], default=None
+        y : Any, default=None
             The target for the data. Ignored.
 
         Returns
@@ -194,7 +194,7 @@ class NanStandardizer(
     def fit(
         self,
         X: XContainer,
-        y: Optional[Any] = None
+        y: Any = None
     ) -> Self:
         """No-op one-shot fit of the NanStandardizer instance.
 
@@ -203,7 +203,7 @@ class NanStandardizer(
         X : XContainer of shape (n_samples, n_features) or (n_samples,)
             The object for which to replace nan-like representations.
             Ignored.
-        y : Optional[Any], default=None
+        y : Any, default=None
             The target for the data. Ignored.
 
         Returns
@@ -218,7 +218,7 @@ class NanStandardizer(
     def transform(
         self,
         X:XContainer,
-        copy:Optional[bool]=False
+        copy:bool=False
     ) -> XContainer:
         """Map the nan-like representations in `X` to new values.
 
@@ -226,7 +226,7 @@ class NanStandardizer(
         ----------
         X : XContainer of shape (n_samples, n_features) or (n_samples,)
             The object for which to replace nan-like representations.
-        copy : Optional[bool], default=False
+        copy : bool, default=False
             Whether to replace the values directly in the original `X`
             or in a deepcopy of `X`.
 
@@ -257,7 +257,7 @@ class NanStandardizer(
     def score(
         self,
         X: Any,
-        y: Optional[Any] = None
+        y: Any = None
     ) -> None:
         """No-op score method.
 
@@ -267,7 +267,7 @@ class NanStandardizer(
         ----------
         X : Any
             The data. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default=None
             The target for the data. Ignored.
 
         Returns

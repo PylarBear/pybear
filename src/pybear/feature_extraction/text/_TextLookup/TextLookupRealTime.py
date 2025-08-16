@@ -8,7 +8,6 @@
 
 from typing import (
     Any,
-    Optional,
     Sequence
 )
 from typing_extensions import Self
@@ -209,13 +208,13 @@ class TextLookupRealTime(_TextLookupMixin):
 
     Parameters
     ----------
-    update_lexicon : Optional[bool], default=False
+    update_lexicon : bool, default = False
         Whether to queue words that are not in the pybear `Lexicon` for
         later addition to the `Lexicon`. This applies to both autonomous
         and interactive modes. If False, TLRT will never put a word
         in :attr:`LEXICON_ADDENDUM_` and will never prompt you with the
         option.
-    skip_numbers : Optional[bool], default=True
+    skip_numbers : bool, default = True
         When True, TLRT will try to do Python float(word) on the word
         and, if it can be cast to a float, TLRT will skip it and go to
         the next word. If False, TLRT will handle it like any other word.
@@ -224,7 +223,7 @@ class TextLookupRealTime(_TextLookupMixin):
         for an action. Since they are handled like any other word, it
         would be possible to stage them for addition to your local copy
         of the `Lexicon`.
-    auto_split : Optional[bool], default=True
+    auto_split : bool, default = True
         TLRT will first look if the word is in any of the holder
         objects for special instructions, then look to see if the word
         is in the `Lexicon`. If not, the next step otherwise would be
@@ -239,27 +238,27 @@ class TextLookupRealTime(_TextLookupMixin):
         the 2 halves that were found to be in the `Lexicon`. If False,
         TLRT will skip this process and go straight to auto-add,
         auto-delete, or manual mode.
-    auto_add_to_lexicon : Optional[bool], default=False
+    auto_add_to_lexicon : bool, default = False
         `update_lexicon` must be True to use this. Cannot be True
         if `auto_delete` is True. When this parameter is True, TLRT
         operates in 'auto-mode', where the user will not be prompted
         for decisions. When TLRT encounters a word that is not in
         the `Lexicon`, the word will silently be staged in the
         `LEXICON_ADDENDUM_` attribute to be added to the `Lexicon` later.
-    auto_delete : Optional[bool], default=False
+    auto_delete : bool, default = False
         If `update_lexicon` or `auto_add_to_lexicon` are True then this
         cannot be True . When this parameter is True, TLRT operates in
         'auto-mode', where the user will not be prompted for decisions.
         When TLRT encounters a word that is not in the Lexicon, the word
         will be silently deleted from the text body.
-    DELETE_ALWAYS : Optional[Sequence[str] | None], default=None
+    DELETE_ALWAYS : Sequence[str] | None, default = None
         A list of words that will always be deleted by TLRT, even if
         they are in the `Lexicon`. In both manual and auto modes, TLRT
         will silently delete the word(s), no questions asked. What is
         passed here becomes the seed for the :attr:`DELETE_ALWAYS_`
         attribute, which may have more words added to it during run-time
         in manual mode. Auto-mode will never add more words to this list.
-    REPLACE_ALWAYS : Optional[dict[str, str] | None], default=None
+    REPLACE_ALWAYS : dict[str, str] | None, default = None
         A dictionary with words expected to be in the text body as keys
         and their respective single-word replacements as values. TLRT
         will replace these words even if they are in the `Lexicon`. For
@@ -269,7 +268,7 @@ class TextLookupRealTime(_TextLookupMixin):
         attribute, which may have more word/replacement pairs added to
         it during run-time in manual mode. Auto-mode will never add more
         entries to this dictionary.
-    SKIP_ALWAYS : Optional[Sequence[str] | None], default=None
+    SKIP_ALWAYS : Sequence[str] | None, default = None
         A list of words that will always be ignored by TLRT, even if they
         are not in the `Lexicon`. For both auto and manual mode, TLRT
         will not prompt the user for any more information, it will
@@ -277,7 +276,7 @@ class TextLookupRealTime(_TextLookupMixin):
         for the :attr:`SKIP_ALWAYS_` attribute, which may have more words
         added to it during run-time in manual mode. Auto-mode will never
         add more words to this list.
-    SPLIT_ALWAYS : Optional[dict[str, Sequence[str]] | None], default=None
+    SPLIT_ALWAYS : dict[str, Sequence[str]] | None, default = None
         A dictionary with words expected to be in the text body as keys
         and their respective multi-word lists of replacements as values.
         TLRT will remove the original word and insert these words into
@@ -288,13 +287,13 @@ class TextLookupRealTime(_TextLookupMixin):
         for the :attr:`SPLIT_ALWAYS_` attribute, which may have more
         word/replacement pairs added to it during run-time in manual
         mode. Auto-mode will never add entries to this dictionary.
-    remove_empty_rows : Optional[bool], default=False
+    remove_empty_rows : bool, default = False
         Whether to remove any rows that may have been made empty
         during the lookup process. If `remove_empty_rows` is True and
         rows are deleted, the user can find supplemental information
         in :attr:`row_support_`, which indicates through booleans which
         rows were kept (True) and which rows were removed (False).
-    verbose : Optional[bool], default=False
+    verbose : bool, default = False
         Whether to display helpful information during the transform
         process. This applies to both auto and manual modes.
 
@@ -358,17 +357,17 @@ class TextLookupRealTime(_TextLookupMixin):
     def __init__(
         self,
         *,
-        update_lexicon: Optional[bool] = False,
-        skip_numbers: Optional[bool] = True,
-        auto_split: Optional[bool] = True,
-        auto_add_to_lexicon: Optional[bool] = False,
-        auto_delete: Optional[bool] = False,
-        DELETE_ALWAYS: Optional[Sequence[str] | None] = None,
-        REPLACE_ALWAYS: Optional[dict[str, str] | None] = None,
-        SKIP_ALWAYS: Optional[Sequence[str] | None] = None,
-        SPLIT_ALWAYS: Optional[dict[str, Sequence[str]] | None] = None,
-        remove_empty_rows: Optional[bool] = False,
-        verbose: Optional[bool] = False
+        update_lexicon:bool = False,
+        skip_numbers:bool = True,
+        auto_split:bool = True,
+        auto_add_to_lexicon:bool = False,
+        auto_delete:bool = False,
+        DELETE_ALWAYS:Sequence[str] | None = None,
+        REPLACE_ALWAYS:dict[str, str] | None = None,
+        SKIP_ALWAYS:Sequence[str] | None = None,
+        SPLIT_ALWAYS:dict[str, Sequence[str]] | None = None,
+        remove_empty_rows:bool = False,
+        verbose:bool = False
     ) -> None:
         """Initialize the `TextLookupRealTime` instance."""
 
@@ -441,8 +440,8 @@ class TextLookupRealTime(_TextLookupMixin):
 
     def partial_fit(
         self,
-        X: XContainer,
-        y: Optional[Any] = None
+        X:XContainer,
+        y:Any = None
     ) -> Self:
         """No-op batch-wise fit method.
 
@@ -452,7 +451,7 @@ class TextLookupRealTime(_TextLookupMixin):
             The (possibly ragged) 2D container of text to have its
             contents cross-referenced against the pybear `Lexicon`.
             Ignored.
-        y : Optional[Any], default=None
+        y : Any, default=None
             The target for the data. Always ignored.
 
         Returns
@@ -467,8 +466,8 @@ class TextLookupRealTime(_TextLookupMixin):
 
     def fit(
         self,
-        X: XContainer,
-        y: Optional[Any] = None
+        X:XContainer,
+        y:Any = None
     ) -> Self:
         """No-op one-shot fit method.
 
@@ -478,7 +477,7 @@ class TextLookupRealTime(_TextLookupMixin):
             The (possibly ragged) 2D container of text to have its
             contents cross-referenced against the pybear `Lexicon`.
             Ignored.
-        y : Optional[Any | None], default=None
+        y : Any | None, default=None
             The target for the data. Always ignored.
 
         Returns
@@ -496,7 +495,7 @@ class TextLookupRealTime(_TextLookupMixin):
     def transform(
         self,
         X:XContainer,
-        copy:Optional[bool] = False
+        copy:bool = False
     ):
         """Scan tokens in `X` and either autonomously handle tokens not
         in the pybear `Lexicon` or prompt for handling.
@@ -505,7 +504,7 @@ class TextLookupRealTime(_TextLookupMixin):
         ----------
         X : XContainer
             The data in (possibly ragged) 2D array-like format.
-        copy : Optional[bool], default=False
+        copy : bool, default=False
             Whether to make substitutions and deletions directly on the
             passed `X` or a deepcopy of `X`.
 

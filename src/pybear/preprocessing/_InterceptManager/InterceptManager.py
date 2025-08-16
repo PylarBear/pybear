@@ -9,7 +9,6 @@
 from typing import (
     Any,
     Literal,
-    Optional,
     Sequence
 )
 from typing_extensions import Self
@@ -308,11 +307,11 @@ class InterceptManager(
 
     Parameters
     ----------
-    keep : Optional[KeepType], default='last'
+    keep : KeepType, default='last'
         The strategy for handling the constant columns. See 'The keep
         Parameter' section for a lengthy explanation of the 'keep'
         parameter.
-    equal_nan : Optional[bool], default=True
+    equal_nan : bool, default=True
         If `equal_nan` is True, exclude nan-likes from computations that
         discover constant columns. This essentially assumes that the nan
         value would otherwise be equal to the mean of the non-nan values
@@ -321,10 +320,10 @@ class InterceptManager(
         mean of the non-nan values in the same column, thus making the
         column non-constant. This is in line with the normal numpy
         handling of nan values.
-    rtol : Optional[numbers.Real], default=1e-5
+    rtol : numbers.Real, default=1e-5
         The relative difference tolerance for equality. Must be a
         non-boolean, non-negative, real number. See `numpy.allclose`.
-    atol : Optional[numbers.Real], default=1e-8
+    atol : numbers.Real, default=1e-8
         The absolute difference tolerance for equality. Must be a
         non-boolean, non-negative, real number. See `numpy.allclose`.
 
@@ -455,10 +454,10 @@ class InterceptManager(
     def __init__(
         self,
         *,
-        keep: Optional[KeepType]='last',
-        equal_nan: Optional[bool]=True,
-        rtol: Optional[numbers.Real]=1e-5,
-        atol: Optional[numbers.Real]=1e-8
+        keep:KeepType = 'last',
+        equal_nan:bool = True,
+        rtol:numbers.Real = 1e-5,
+        atol:numbers.Real = 1e-8
     ) -> None:
         """Initialize the InterceptManager instance."""
 
@@ -608,7 +607,7 @@ class InterceptManager(
 
     def get_feature_names_out(
         self,
-        input_features:Optional[Sequence[str] | None]=None
+        input_features:Sequence[str] | None = None
     ) -> FeatureNamesInType:
         """Get the feature names for the output of `transform`.
 
@@ -617,7 +616,7 @@ class InterceptManager(
 
         Parameters
         ----------
-        input_features : Optional[Sequence[str] | None], default=None
+        input_features : Sequence[str] | None, default=None
             Externally provided feature names for the fitted data, not
             the transformed data.
 
@@ -685,7 +684,7 @@ class InterceptManager(
     def partial_fit(
         self,
         X: XContainer,
-        y: Optional[Any]=None
+        y: Any=None
     ) -> Self:
         """Perform incremental fitting on one or more batches of data.
 
@@ -695,7 +694,7 @@ class InterceptManager(
         ----------
         X : XContainer of shape (n_samples, n_features)
             Required. Data to find constant columns in.
-        y : Optional[Any], default=None
+        y : Any, default=None
             Ignored. The target for the data.
 
         Returns
@@ -850,7 +849,7 @@ class InterceptManager(
     def fit(
         self,
         X: XContainer,
-        y: Optional[Any | None]=None
+        y: Any = None
     ) -> Self:
         """Perform a single fitting on a dataset.
 
@@ -860,7 +859,7 @@ class InterceptManager(
         ----------
         X : XContainer of shape (n_samples, n_features)
             Required. The data to find constant columns in.
-        y : Optional[Any | None], default=None
+        y : Any, default=None
             Ignored. The target for the data.
 
         Returns
@@ -887,7 +886,7 @@ class InterceptManager(
     def inverse_transform(
         self,
         X:XContainer,
-        copy:Optional[bool | None] = None
+        copy:bool | None = None
     ) -> XContainer:
         """Revert transformed data back to its original state.
 
@@ -909,7 +908,7 @@ class InterceptManager(
         ----------
         X : XContainer of shape (n_samples, n_transformed_features)
             A transformed data set.
-        copy : Optional[bool | None], default=None
+        copy : bool | None, default=None
             Whether to make a deepcopy of `X` before the inverse
             transform.
 
@@ -997,8 +996,8 @@ class InterceptManager(
 
     def score(
         self,
-        X: Any,
-        y: Optional[Any]=None
+        X:Any,
+        y:Any = None
     ) -> None:
         """Dummy method to spoof dask Incremental and ParallelPostFit
         wrappers.
@@ -1007,9 +1006,9 @@ class InterceptManager(
 
         Parameters
         ----------
-        X: Any
+        X:Any
             The data. Ignored.
-        y: Optional[Any], default = None
+        y:Any, default = None
             THe target for the data. Ignored.
 
         Returns
@@ -1027,7 +1026,7 @@ class InterceptManager(
     def transform(
         self,
         X:XContainer,
-        copy:Optional[bool | None] = None
+        copy:bool | None = None
     ) -> XContainer:
         """Manage the constant columns in `X`.
 
@@ -1038,7 +1037,7 @@ class InterceptManager(
         ----------
         X : XContainer of shape (n_samples, n_features)
             Required. The data to be transformed.
-        copy : Optional[bool | None], default=None
+        copy : bool | None, default=None
             Whether to make a deepcopy of `X` before the transform.
 
         Returns

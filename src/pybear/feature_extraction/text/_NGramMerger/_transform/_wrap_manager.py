@@ -8,8 +8,7 @@
 
 from typing import (
     Callable,
-    Sequence,
-    Union
+    Sequence
 )
 
 import re
@@ -32,8 +31,8 @@ def _wrap_manager(
     _first_hits: Sequence[numbers.Integral],
     _second_hits: Sequence[numbers.Integral],
     _ngram: tuple[re.Pattern[str], ...],
-    _ngcallable: Union[Callable[[list[str]], str], None],
-    _sep: Union[str, None]
+    _ngcallable: Callable[[list[str]], str] | None,
+    _sep: str | None
 ) -> tuple[list[str], list[str]]:
     """Define a wrap region and look in it for any n-gram matches.
 
@@ -59,10 +58,10 @@ def _wrap_manager(
     _ngram : tuple[re.Pattern[str], ...]
         A single n-gram sequence containing re.compile objects that
         specify an n-gram pattern. Cannot have less than 2 entries.
-    _ngcallable : Union[Callable[[list[str]], str], None]
+    _ngcallable : Callable[[list[str]], str] | None
         The callable applied to sequences that match an n-gram pattern
         to produce a single contiguous string.
-    _sep : Union[str, None]
+    _sep : str | None
         The user defined separator to join the words with, if
         `_ngcallable` is not given. If no separator is defined by the
         user, use the default separator.

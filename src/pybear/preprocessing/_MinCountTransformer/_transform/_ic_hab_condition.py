@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import (
     IgnoreColumnsType,
     HandleAsBoolType,
@@ -37,7 +36,7 @@ from ...__shared._validation._any_integer import _val_any_integer
 
 
 def _ic_hab_condition(
-    X: Union[XContainer, None],  # can be None when called from print_instructions
+    X: XContainer | None,  # can be None when called from print_instructions
     _ignore_columns: IgnoreColumnsType,
     _handle_as_bool: HandleAsBoolType,
     _ignore_float_columns: bool,
@@ -45,7 +44,7 @@ def _ic_hab_condition(
     _original_dtypes: OriginalDtypesType,
     _threshold: CountThresholdType,
     _n_features_in: int,
-    _feature_names_in: Union[FeatureNamesInType, None],
+    _feature_names_in: FeatureNamesInType | None,
     _raise: bool = False
 ) -> tuple[InternalIgnoreColumnsType, InternalHandleAsBoolType]:
     """Receive `ignore_columns` and `handle_as_bool` as callable(X),
@@ -80,7 +79,7 @@ def _ic_hab_condition(
 
     Parameters
     ----------
-    X : Union[XContainer, None], array-like of shape (n_samples, n_features)
+    X : XContainer | None, array-like of shape (n_samples, n_features)
         The data to undergo minimum frequency thresholding.
     _ignore_columns : IgnoreColumnsType
         The columns to be ignored during the transform process.
@@ -104,7 +103,7 @@ def _ic_hab_condition(
         column.
     _n_features_in : int
         The number of features in the data.
-    _feature_names_in : Union[FeatureNamesInType, None]
+    _feature_names_in : FeatureNamesInType | None
         If the data was passed in a container that had a valid header,
         then a list-like of the feature names. otherwise, None.
     _raise : bool

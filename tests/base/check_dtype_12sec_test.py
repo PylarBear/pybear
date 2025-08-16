@@ -18,12 +18,6 @@ import polars as pl
 
 class TestCheckDtype:
 
-    # check_dtype(
-    #     X,
-    #     allowed:Optional[Literal['numeric', 'str', 'any']] = 'any',
-    #     require_all_finite:Optional[bool] = False
-    # ) -> None:
-
 
     @staticmethod
     @pytest.fixture(scope='module')

@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import InternalXContainer
 
 import itertools
@@ -31,7 +30,7 @@ def _get_dupls_for_combo_in_X_and_poly(
     _equal_nan: bool,
     _rtol: numbers.Real,
     _atol: numbers.Real,
-    _n_jobs: Union[numbers.Integral, None],
+    _n_jobs: numbers.Integral | None,
     _job_size: numbers.Integral
 ) -> list[tuple[tuple[int,...], tuple[int, ...]]]:
     """Scan the polynomial columns generated as products of combinations
@@ -57,7 +56,7 @@ def _get_dupls_for_combo_in_X_and_poly(
         The relative difference tolerance for equality. See numpy.allclose.
     _atol : numbers.Real
         The absolute tolerance parameter for equality. See numpy.allclose.
-    _n_jobs : Union[numbers.Integral, None]
+    _n_jobs : numbers.Integral | None
         The number of joblib Parallel jobs to use when looking for
         duplicate columns.
     _job_size : numbers.Integral

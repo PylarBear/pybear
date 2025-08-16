@@ -7,9 +7,7 @@
 
 
 from typing import (
-    Optional,
-    TypeAlias,
-    Union
+    TypeAlias
 )
 
 import numbers
@@ -18,24 +16,24 @@ from copy import deepcopy
 
 
 
-FindType: TypeAlias = Union[str, re.Pattern[str]]
-PatternType: TypeAlias = Union[FindType, tuple[FindType, ...]]
+FindType: TypeAlias = str | re.Pattern[str]
+PatternType: TypeAlias = FindType | tuple[FindType, ...]
 
 
 
 def _compile_maker(
-    _pattern_holder: Union[PatternType, list[Union[None, PatternType]]],
+    _pattern_holder: PatternType | list[PatternType | None],
     _order_matters: bool,
     _n_rows: numbers.Integral,
-    _name:Optional[str] = 'unnamed pattern holder'
-) -> list[Union[list[None], list[re.Pattern[str]]]]:
+    _name:str = 'unnamed pattern holder'
+) -> list[list[None] | list[re.Pattern[str]]]:
     """
     Convert any string literals to re.compile and map '_pattern_holder'
     to a list. Do not forget to escape string literals!
 
     Parameters
     ----------
-    _pattern_holder : Union[PatternType, list[Union[None, PatternType]]]
+    _pattern_holder : PatternType | list[PatternType | None]
         The search criteria as passed by the user.
     _order_matters : bool
         When '_pattern_holder' is or has in it a tuple of literal strings
@@ -45,13 +43,13 @@ def _compile_maker(
         consequence.
     _n_rows : numbers.Integral - the number of rows in whatever data is
         associated with '_pattern_holder'.
-    _name : Optional[str], default = 'unnamed pattern holder'
+    _name : str, default = 'unnamed pattern holder'
         The name of the corresponding pattern-holder param in the home
         module, like 'split', 'replace', 'ngrams', etc.
 
     Returns
     -------
-    _compile_holder : list[Union[list[None], list[re.Pattern[str]]]]
+    _compile_holder : list[list[None] | list[re.Pattern[str]]]
         The search criteria mapped to [None] or [re.Pattern[str], ...]
         for every row in whatever data '_pattern_holder' is associated
         with.
@@ -62,9 +60,9 @@ def _compile_maker(
     **Type Aliases**
 
     FindType:
-        Union[str, re.Pattern[str]]
+        str | re.Pattern[str]
     PatternType:
-        Union[FindType, tuple[FindType, ...]]
+        FindType | tuple[FindType, ...]
 
     """
 

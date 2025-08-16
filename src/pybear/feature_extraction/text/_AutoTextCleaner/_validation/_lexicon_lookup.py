@@ -6,13 +6,12 @@
 
 
 
-from typing import Union
 from .._type_aliases import LexiconLookupType
 
 
 
 def _val_lexicon_lookup(
-    _lexicon_lookup: Union[LexiconLookupType, None]
+    _lexicon_lookup: LexiconLookupType | None
 ) -> None:
     """Validate 'lexicon_lookup'.
 
@@ -20,7 +19,7 @@ def _val_lexicon_lookup(
 
     Parameters
     ----------
-    _lexicon_lookup : Union[LexiconLookupType, None]
+    _lexicon_lookup : LexiconLookupType | None
         If None, do not look up the words in the text against the Lexicon.
         Otherwise, a dictionary of parameters that indicate how
         TextLookupRealTime should handle the lookup. For a human-less
@@ -44,10 +43,10 @@ def _val_lexicon_lookup(
         auto_split: NotRequired[bool]
         auto_add_to_lexicon: NotRequired[bool]
         auto_delete: NotRequired[bool]
-        DELETE_ALWAYS: NotRequired[Union[Sequence[str], None]]
-        REPLACE_ALWAYS: NotRequired[Union[dict[str, str], None]]
-        SKIP_ALWAYS: NotRequired[Union[Sequence[str], None]]
-        SPLIT_ALWAYS: NotRequired[Union[dict[str, Sequence[str]], None]]
+        DELETE_ALWAYS: NotRequired[Sequence[str] | None]
+        REPLACE_ALWAYS: NotRequired[dict[str, str] | None]
+        SKIP_ALWAYS: NotRequired[Sequence[str] | None]
+        SPLIT_ALWAYS: NotRequired[dict[str, Sequence[str]] | None]
         remove_empty_rows: NotRequired[bool]
         verbose: NotRequired[bool]
 

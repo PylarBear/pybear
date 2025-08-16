@@ -9,9 +9,7 @@
 from typing import (
     Any,
     Callable,
-    Iterable,
-    Optional,
-    Union
+    Iterable
 )
 from ._type_aliases import (
     PreDispatchType,
@@ -108,7 +106,7 @@ class GSTCV(_GSTCVMixin):
         `GSTCV` deliberately blocks dask classifiers (including, but not
         limited to, dask_ml, xgboost, and lightGBM dask classifiers.) To
         use dask classifiers, use pybear-dask`GSTCVDask`.
-    param_grid : Union[ParamGridInputType, ParamGridsInputType]
+    param_grid : ParamGridInputType | ParamGridsInputType
         Required. A dictionary with hyperparameters names (str) as keys
         and list-likes of respective settings to try as values. Can also
         be a list-like of such dictionaries, and the grids spanned by
@@ -207,13 +205,13 @@ class GSTCV(_GSTCVMixin):
 
         def your_metric_wrapper(y_true, y_pred):
             return your_metric(y_true, y_pred, \\**hard_coded_kwargs)
-    n_jobs : Optional[Union[numbers.Integral, None]], default=None
+    n_jobs : numbers.Integral | None, default=None
         Number of jobs to run in parallel. -1 means using all processors.
         For best speed benefit, pybear recommends setting `n_jobs` in
         both `GSTCV` and the wrapped estimator to None, whether under a
         joblib context manager or standing alone. When under a joblib
         context manager, also set `n_jobs` in the context manager to None.
-    refit : Optional[Union[bool, str, Callable]], default=True
+    refit : bool | str | Callable, default=True
         After the grid search is done, fit the whole dataset on the
         estimator using the best found hyperparameters and expose this
         fitted estimator via the :attr:`best_estimator_` attribute. Also,
@@ -246,7 +244,7 @@ class GSTCV(_GSTCVMixin):
 
         See the `scoring` parameter to know more about multiple metric
         evaluation.
-    cv : Optional[Union[numbers.Integral, Iterable, None]], default=None
+    cv : numbers.Integral | Iterable | None, default=None
         Sets the cross-validation splitting strategy.
 
         Possible inputs for cv are:
@@ -264,24 +262,24 @@ class GSTCV(_GSTCVMixin):
         of iterables. `GSTCV` will catch out of range indices and raise
         an error but any validation beyond that is up to the user outside
         of `GSTCV`.
-    verbose : Optional[numbers.Real], default=0
+    verbose : numbers.Real, default=0
         The amount of verbosity to display to screen during the grid
         search. Accepts integers from 0 to 10. 0 means no information
         displayed to the screen, 10 means full verbosity. Non-numbers
         are rejected. Boolean False is set to 0, boolean True is set to
         10. Negative numbers are rejected. Numbers greater than 10 are
         set to 10. Floats are rounded to integers.
-    pre_dispatch : Optional[PreDispatchType], default='2*n_jobs'
+    pre_dispatch : PreDispatchType, default='2*n_jobs'
         The number of batches (of tasks) to be pre-dispatched. Default
         is '2*n_jobs'. See the joblib.Parallel docs for more information.
-    error_score : Optional[ErrorScoreType], default='raise'
+    error_score : ErrorScoreType, default='raise'
         Score to assign if the estimator raises an error while fitting
         on a train fold. If set to ‘raise’, the error is raised. If a
         numeric value is given, a warning is raised and the error score
         value is inserted into the subsequent calculations in place of
         the missing value(s). This parameter does not affect the refit
         step, which will always raise the error.
-    return_train_score : Optional[bool]
+    return_train_score : bool
         If False, the `cv_results_` attribute will not include training
         scores. If True, the train data is scored using all the scorers
         at the best respective threshold(s) found for the test data.
@@ -454,7 +452,7 @@ class GSTCV(_GSTCVMixin):
         Sequence[ParamGridInputType]
 
     ThresholdsInputType:
-        Union[None, numbers.Real, Sequence[numbers.Real]]
+        None | numbers.Real | Sequence[numbers.Real]
 
     SKSlicerType:
         Sequence[numbers.Integral]
@@ -476,21 +474,17 @@ class GSTCV(_GSTCVMixin):
         Callable[[Iterable, Iterable], numbers.Real]
 
     ScorerInputType:
-        Union[
-            ScorerNameTypes,
-            Sequence[ScorerNameTypes],
-            ScorerCallableType,
-            dict[str, ScorerCallableType]
-        ]
+        ScorerNameTypes | Sequence[ScorerNameTypes] | ScorerCallableType
+        | dict[str, ScorerCallableType]
 
     RefitCallableType:
         Callable[[CVResultsType], numbers.Integral]
 
     RefitType:
-        Union[bool, ScorerNameTypes, RefitCallableType]
+        bool | ScorerNameTypes | RefitCallableType
 
     PreDispatchType:
-        Optional[Union[Literal['all'], str, numbers.Integral]]
+        Literal['all'] | str | numbers.Integral
 
     SKXType:
         Iterable
@@ -552,18 +546,18 @@ class GSTCV(_GSTCVMixin):
 
     def __init__(
         self,
-        estimator: ClassifierProtocol,
-        param_grid: Union[ParamGridInputType, ParamGridsInputType],
+        estimator:ClassifierProtocol,
+        param_grid:ParamGridInputType | ParamGridsInputType,
         *,
-        thresholds: ThresholdsInputType=None,
-        scoring: ScorerInputType='accuracy',
-        n_jobs: Optional[Union[numbers.Integral, None]]=None,
-        refit: Optional[Union[bool, str, Callable]]=True,
-        cv: Optional[Union[numbers.Integral, Iterable, None]]=None,
-        verbose: Optional[numbers.Real]=0,
-        pre_dispatch: Optional[PreDispatchType]='2*n_jobs',
-        error_score: Optional[ErrorScoreType]='raise',
-        return_train_score: Optional[bool]=False
+        thresholds:ThresholdsInputType = None,
+        scoring:ScorerInputType = 'accuracy',
+        n_jobs:numbers.Integral | None = None,
+        refit:bool | str | Callable = True,
+        cv:numbers.Integral | Iterable | None = None,
+        verbose:numbers.Real = 0,
+        pre_dispatch:PreDispatchType = '2*n_jobs',
+        error_score:ErrorScoreType = 'raise',
+        return_train_score:bool = False
     ) -> None:
         """Initialize the `GSTCV` instance."""
 

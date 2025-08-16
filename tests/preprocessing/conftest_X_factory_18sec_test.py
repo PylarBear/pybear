@@ -25,25 +25,6 @@ from pybear.preprocessing._InterceptManager._partial_fit. \
 
 class TestXFactory:
 
-    # def _X_factory():
-    #
-    #     def foo(
-    #         _dupl:list[list[int]] = None,
-    #         _has_nan:int | bool = False,
-    #         _format:Literal[
-    #             'np','pd','pl',
-    #             'csc_array', 'csr_array', 'coo_array', 'dia_array', 'lil_array',
-    #             'dok_array', 'bsr_array',
-    #             'csc_matrix', 'csr_matrix', 'coo_matrix', 'dia_matrix', 'lil_matrix',
-    #             'dok_matrix', 'bsr_matrix'
-    #         ]='np',
-    #         _dtype:Literal['flt','int','str','obj','hybrid']='flt',
-    #         _columns:Sequence[str] | None = None,
-    #         _constants:dict[int, Any] | None =None,
-    #         _noise:float=0,
-    #         _zeros:float | None=0,
-    #         _shape:tuple[int,int]=(20,5)
-    #     ) -> npt.NDArray[Any]:
 
     # fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
 

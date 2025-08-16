@@ -24,16 +24,6 @@ from pybear.model_selection.GSTCV._GSTCVMixin._validation._scoring import \
 
 class TestValScoring:
 
-    # def _val_scoring(
-    #     _scoring: ScorerInputType,
-    #     _must_be_dict:Optional[bool] = True
-    # ) -> None:
-
-    # ScorerInputType: TypeAlias = (
-    #     ScorerNameTypes | Sequence[ScorerNameTypes]
-    #     | ScorerCallableType | dict[str, ScorerCallableType]
-    # )
-
 
     @pytest.mark.parametrize('junk_scoring',
         (0, 1, True, False, None, np.nan)

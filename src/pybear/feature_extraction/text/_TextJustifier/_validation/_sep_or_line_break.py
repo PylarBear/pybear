@@ -9,8 +9,7 @@
 from typing import (
     Literal,
     Sequence,
-    TypeAlias,
-    Union
+    TypeAlias
 )
 
 import re
@@ -18,7 +17,7 @@ import re
 
 
 SepOrLineBreakType: TypeAlias = \
-    Union[None, str, Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]]]
+    None | str | Sequence[str] | re.Pattern[str] | Sequence[re.Pattern[str]]
 
 
 
@@ -90,13 +89,13 @@ def _val_sep_or_line_break(
     **Type Aliases**
 
     SepType:
-        Union[str, Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]]]
+        str | Sequence[str] | re.Pattern[str] | Sequence[re.Pattern[str]]
 
     LineBreakType:
-        Union[None, str, Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]]]
+        None | str | Sequence[str] | re.Pattern[str] | Sequence[re.Pattern[str]]
 
     SepOrLineBreakType:
-        Union[None, str, Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]]]
+        None | str | Sequence[str] | re.Pattern[str] | Sequence[re.Pattern[str]]]
 
     """
 
@@ -116,14 +115,14 @@ def _val_sep_or_line_break(
 
     # HELPER FUNCTION -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     def _can_return_empty_match(
-        _pat: Union[str, re.Pattern[str]]
+        _pat: str | re.Pattern[str]
     ) -> bool:
         """Helper function to try to identify strings or regex patterns
         that will always return zero-span matches.
 
         Parameters
         ----------
-        _pat : Union[str, re.Pattern[str]]
+        _pat : str | re.Pattern[str]
             A string or re.compile object passed to TJ at init.
 
         """

@@ -687,12 +687,6 @@ class TestX:
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestPartialFit:
 
-    #     def partial_fit(
-    #         self,
-    #         X: XContainer,
-    #         y: Optional[Any | None] = None
-    #     ) -> Self:
-
 
     @pytest.mark.parametrize('_y',
         (-1,0,1, np.pi, True, False, None, 'trash', [1,2], {1,2}, {'a':1},

@@ -8,7 +8,6 @@
 
 from typing import (
     Iterable,
-    Optional,
     Sequence,
     TypeAlias
 )
@@ -33,7 +32,7 @@ XContainer: TypeAlias = \
 
 def check_2D_str_array(
     X:XContainer[str],
-    require_all_finite:Optional[bool] = False
+    require_all_finite:bool = False
 ) -> None:
     """Validate things that are expected to be 2D arrays of strings.
 
@@ -49,7 +48,7 @@ def check_2D_str_array(
     ----------
     X : XContainer[str]
         Something that is expected to be a 2D array of strings.
-    require_all_finite : Optional[bool], default=False
+    require_all_finite : bool, default=False
         If True, disallow all non-finite values, such as nan-like or
         infinity-like values.
 

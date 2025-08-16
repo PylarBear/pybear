@@ -8,7 +8,6 @@
 
 from typing import (
     Any,
-    Optional
 )
 from typing_extensions import Self
 import numpy.typing as npt
@@ -149,45 +148,45 @@ class AutoTextCleaner(
 
     Parameters
     ----------
-    global_sep : Optional[str], default=' '
+    global_sep : str, default=' '
         The single literal character sequence that is used throughout
         the text cleaning process for joining 1D data, splitting 2D data,
         and identifying wrap points when justifying. A common separator
         (and the default) is ' '.
-    case_sensitive : Optional[bool], default=True
+    case_sensitive : bool, default=True
         Whether searches for the things to replace, things to remove,
         etc., are case-sensitive. This generally controls case-senstivity
         globally, but for those of you that know regex, an IGNORECASE
         flag passed to `global_flags` will always overrule this parameter.
-    global_flags : Optional[numbers.Integral | None], default=None
+    global_flags : numbers.Integral | None, default=None
         The regex flags for operations that do searches within the text,
         like replace and remove. If you do not know regex, then you
         don't need to worry about this, just pass literal strings to
         the other parameters. While `case-sensitive` generally controls
         case-sensitivity, an IGNORECASE flag passed here will always
         overrule.
-    remove_empty_rows : Optional[bool], default=False
+    remove_empty_rows : bool, default=False
         Some operations during the cleaning process, such as remove
         character patterns and/or stop words, ngram merge, and `Lexicon`
         lookup, may leave some rows with no strings in them. If this
         happens and this parameter is True, then that empty row is
         removed from the data.
-    return_dim : Optional[ReturnDimType], default=None
+    return_dim : ReturnDimType, default=None
         The desired dimension of the outputted data. If None (default),
         then the outputted container has the same dimenstionality as the
         given container. If 1 or 2, then that is the dimensionality of
         the outputted container.
-    strip : Optional[bool], default=False
+    strip : bool, default=False
         Whether to remove leading and trailing spaces from strings in
         the text.
-    replace : Optional[ReplaceType], default=None
+    replace : ReplaceType, default=None
         The search and replace strategy. Pass search and replace pairs
         in tuples, with a literal string or re.compile object as the
         search criteria, and a literal string or callable as the replace
         criteria. Pass multiple search and replace tuples in a single
         enveloping tuple. See the docs for pybear :class:`TextReplacer`
         for more information about this parameter.
-    remove : Optional[RemoveType], default=None
+    remove : RemoveType, default=None
         The literal strings or regex patterns to remove from the data.
         When passed as a single literal string or re.compile object,
         that is applied to every string in the data, and every full
@@ -196,10 +195,10 @@ class AutoTextCleaner(
         each pattern is searched against all the strings in the
         data and any exact matches are removed. See the docs for
         pybear :class:`TextRemover` for more information.
-    normalize : Optional[bool | None], default=None
+    normalize : bool | None, default=None
         If True, convert all text in `X` to upper-case; if False, convert
         to lower-case; if None, do a no-op.
-    lexicon_lookup : Optional[LexiconLookupType | None], default=None
+    lexicon_lookup : LexiconLookupType | None, default=None
         Remember that the pybear `Lexicon` is majuscule, so your text
         should be also if you choose to use this. When None, skip the
         `Lexicon` lookup process. Otherwise, must be a dictionary of
@@ -209,9 +208,9 @@ class AutoTextCleaner(
         be used. See :attr:`lexicon_lookup_` for more information. Also
         see the docs for pybear `TextLookupRealTime` for information
         about the parameters and the `Lexicon` lookup process.
-    remove_stops : Optional[bool], default=False
+    remove_stops : bool, default=False
         Whether to remove pybear-defined stop words from the text.
-    ngram_merge : Optional[None | NGramsType], default=None
+    ngram_merge : NGramsType | None, default=None
         When None, do not merge ngrams. To pass parameters to this,
         pass a dictionary with the keys 'ngrams' and 'wrap'. Set the
         value of 'ngrams' with a sequence of sequences, where each inner
@@ -222,12 +221,12 @@ class AutoTextCleaner(
         around the beginnings and ends of adjacent lines, False will
         only look for ngrams within the contiguous text of one line.
         See pybear :class:`NGramMerger` for more information.
-    justify : Optional[numbers.Integral | None], default=None
+    justify : numbers.Integral | None, default=None
         When None do not justify the text. Otherwise, pass an integer
         to indicate to ATC to justify the data to that character width.
         When this is not None, i.e., an integer is passed, ATC does not
         expose the :attr:`row_support_` attribute.
-    get_statistics : Optional[None | GetStatisticsType]
+    get_statistics : GetStatisticsType | None
         None or a dictionary keyed with 'before' and 'after'. When None,
         do not accumulate statistics about the incoming and outgoing
         text. When passed as a dictionary, both keys must be present.
@@ -352,21 +351,21 @@ class AutoTextCleaner(
     def __init__(
         self,
         *,
-        global_sep:Optional[str] = ' ',
-        case_sensitive:Optional[bool] = True,
-        global_flags:Optional[numbers.Integral | None] = None,
-        remove_empty_rows:Optional[bool] = False,
-        return_dim:Optional[ReturnDimType] = None,
+        global_sep:str = ' ',
+        case_sensitive:bool = True,
+        global_flags:numbers.Integral | None = None,
+        remove_empty_rows:bool = False,
+        return_dim:ReturnDimType = None,
         ############
-        strip:Optional[bool] = False,
-        replace:Optional[ReplaceType] = None,
-        remove:Optional[RemoveType] = None,
-        normalize:Optional[bool | None] = None,
-        lexicon_lookup:Optional[LexiconLookupType | None] = None,
-        remove_stops:Optional[bool] = False,
-        ngram_merge:Optional[None | NGramsType] = None,
-        justify:Optional[numbers.Integral | None] = None,
-        get_statistics:Optional[None | GetStatisticsType] = None
+        strip:bool = False,
+        replace:ReplaceType = None,
+        remove:RemoveType = None,
+        normalize:bool | None = None,
+        lexicon_lookup:LexiconLookupType | None = None,
+        remove_stops:bool = False,
+        ngram_merge:NGramsType | None = None,
+        justify:numbers.Integral | None = None,
+        get_statistics:GetStatisticsType | None = None
     ):
         """Initialize the AutoTextCleaner instance."""
 
@@ -695,7 +694,7 @@ class AutoTextCleaner(
     def partial_fit(
         self,
         X: XContainer,
-        y: Optional[Any] = None
+        y: Any = None
     ) -> Self:
         """No-op batch-wise fitting of the AutoTextCleaner instance.
 
@@ -703,7 +702,7 @@ class AutoTextCleaner(
         ----------
         X : XContainer
             The 1D or (possibly ragged) 2D text data. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default=None
             The target for the data. Always ignored.
 
         Returns
@@ -719,7 +718,7 @@ class AutoTextCleaner(
     def fit(
         self,
         X: XContainer,
-        y: Optional[Any] = None
+        y: Any = None
     ) -> Self:
         """No-op one-shot fitting of the AutoTextCleaner instance.
 
@@ -727,7 +726,7 @@ class AutoTextCleaner(
         ----------
         X : XContainer
             The 1D or (possibly ragged) 2D text data. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default=None
             The target for the data. Always ignored.
 
         Returns
@@ -745,7 +744,7 @@ class AutoTextCleaner(
     def score(
         self,
         X: Any,
-        y: Optional[Any] = None
+        y: Any = None
     ) -> None:
         """No-op score method.
 
@@ -753,7 +752,7 @@ class AutoTextCleaner(
         ----------
         X : Any
             The data. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default=None
             The target for the data. Ignored.
 
         Returns
@@ -769,8 +768,8 @@ class AutoTextCleaner(
 
     def transform(
         self,
-        X: XContainer,
-        copy: Optional[bool] = False
+        X:XContainer,
+        copy:bool = False
     ) -> XWipContainer:
         """Process the data as per the parameters.
 
@@ -778,7 +777,7 @@ class AutoTextCleaner(
         ----------
         X : XContainer
             The 1D or (possibly ragged) 2D text data.
-        copy : Optional[bool], default=False
+        copy : bool, default=False
             Whether to perform the text cleaning operations directly on
             the passed `X` or on a deepcopy of `X`.
 

@@ -9,9 +9,7 @@
 from typing import (
     Any,
     Literal,
-    Optional,
-    Sequence,
-    Union
+    Sequence
 )
 from typing_extensions import Self
 import numpy.typing as npt
@@ -195,19 +193,19 @@ class ColumnDeduplicator(
 
     Parameters
     ----------
-    keep : Optional[Literal['first', 'last', 'random']], default='first'
+    keep : Literal['first', 'last', 'random'], default='first'
         The strategy for keeping a single representative from a set of
         identical columns. 'first' retains the column left-most in the
         data; 'last' keeps the column right-most in the data; 'random'
         keeps a single randomly-selected column of the set of duplicates.
-    do_not_drop : Optional[Union[Sequence[int], Sequence[str], None]], default=None
+    do_not_drop : Sequence[int] | Sequence[str] | None, default=None
         A list of columns not to be dropped. If fitting is done with a
         container that has a header, a list of feature names may be
         provided. Otherwise, a list of column indices must be given. If
         a conflict arises, such as when two columns specified in
         `do_not_drop` are duplicates of each other, the behavior is
         managed by `conflict`.
-    conflict : Literal['raise', 'ignore']
+    conflict : Literal['raise', 'ignore'], default = 'raise'
         Ignored when `do_not_drop` is not passed. Instructs CDT how
         to deal with a conflict between the instructions in `keep`
         and `do_not_drop`. A conflict arises when the instruction in
@@ -249,14 +247,14 @@ class ColumnDeduplicator(
     atol : numbers.Real, default=1e-8
         The absolute difference tolerance for equality. Must be a
         non-boolean, non-negative, real number. See `numpy.allclose`.
-    n_jobs : Union[numbers.Integral, None], default=None
+    n_jobs : numbers.Integral | None, default=None
         The number of joblib Parallel jobs to use when comparing columns.
         The default is to use processes, but can be overridden externally
         using a joblib `parallel_config` context manager. The default
         value for `n_jobs` is None, which uses the joblib default
         setting. To get maximum speed benefit, pybear recommends setting
         this to -1, which means use all processors.
-    job_size : Optional[numbers.Integral], default=50
+    job_size : numbers.Integral, default=50
         The number of columns to send to a joblib job. Must be an integer
         greater than or equal to 2. This allows the user to optimize CPU
         utilization for their particular circumstance. Long, thin datasets
@@ -322,7 +320,7 @@ class ColumnDeduplicator(
         Literal['first', 'last', 'random']
 
     DoNotDropType:
-        Union[Sequence[int], Sequence[str], None]
+        Sequence[int] | Sequence[str] | None
 
     ConflictType:
         Literal['raise', 'ignore']
@@ -387,14 +385,14 @@ class ColumnDeduplicator(
     def __init__(
         self,
         *,
-        keep: Optional[Literal['first', 'last', 'random']]='first',
-        do_not_drop: Optional[Union[Sequence[str], Sequence[int], None]]=None,
-        conflict: Optional[Literal['raise', 'ignore']]='raise',
-        equal_nan: Optional[bool]=False,
-        rtol: Optional[numbers.Real]=1e-5,
-        atol: Optional[numbers.Real]=1e-8,
-        n_jobs: Optional[Union[numbers.Integral, None]]=None,
-        job_size: Optional[numbers.Integral]=50
+        keep:Literal['first', 'last', 'random']='first',
+        do_not_drop:Sequence[str] | Sequence[int] | None = None,
+        conflict:Literal['raise', 'ignore'] = 'raise',
+        equal_nan:bool = False,
+        rtol:numbers.Real = 1e-5,
+        atol:numbers.Real = 1e-8,
+        n_jobs:numbers.Integral | None = None,
+        job_size: numbers.Integral = 50
     ) -> None:
         """Initialize the `ColumnDeduplicator` instance."""
 
@@ -496,13 +494,13 @@ class ColumnDeduplicator(
 
     def get_feature_names_out(
         self,
-        input_features:Optional[Union[Sequence[str], None]]=None
+        input_features:Sequence[str] | None = None
     ) -> FeatureNamesInType:
         """Get the feature names for the output of `transform`.
 
         Parameters
         ----------
-        input_features : Optional[Union[Sequence[str], None]], default=None
+        input_features : Sequence[str] | None, default=None
             Externally provided feature names for the fitted data, not
             the transformed data.
 
@@ -557,8 +555,8 @@ class ColumnDeduplicator(
 
     def partial_fit(
         self,
-        X: XContainer,
-        y: Optional[Any]=None
+        X:XContainer,
+        y:Any = None
     ) -> Self:
         """Perform incremental fitting on one or more batches of data.
 
@@ -568,7 +566,7 @@ class ColumnDeduplicator(
         ----------
         X : XContainer of shape (n_samples, n_features)
             Required. Data to remove duplicate columns from.
-        y : Optional[Any], default=None
+        y : Any, default=None
             Ignored. The target for the data.
 
         Returns
@@ -701,7 +699,7 @@ class ColumnDeduplicator(
     def fit(
         self,
         X: XContainer,
-        y: Optional[Any]=None
+        y: Any = None
     ) -> Self:
         """Perform a single fitting on a dataset.
 
@@ -711,7 +709,7 @@ class ColumnDeduplicator(
         ----------
         X : XContainer of shape (n_samples, n_features)
             Required. The data to remove duplicate columns from.
-        y : Optional[Any], default=None
+        y : Any, default=None
             Ignored. The target for the data.
 
         Returns
@@ -732,7 +730,7 @@ class ColumnDeduplicator(
     def inverse_transform(
         self,
         X:XContainer,
-        copy:Optional[Union[bool, None]]=None
+        copy:bool | None = None
     ) -> XContainer:
         """Revert deduplicated data back to its original state.
 
@@ -754,7 +752,7 @@ class ColumnDeduplicator(
         ----------
         X : XContainer of shape (n_samples, n_transformed_features)
             A transformed data set.
-        copy : Optional[Union[bool, None]], default=None
+        copy : bool | None, default=None
             Whether to make a deepcopy of `X` before the inverse
             transform.
 
@@ -834,7 +832,7 @@ class ColumnDeduplicator(
     def score(
         self,
         X: Any,
-        y: Optional[Any]=None
+        y: Any = None
     ) -> None:
         """Dummy method to spoof dask Incremental and ParallelPostFit
         wrappers.
@@ -845,7 +843,7 @@ class ColumnDeduplicator(
         ----------
         X : Any
             The data. Ignored.
-        y : Optional[Any]
+        y : Any
             The target for the data. Ignored.
 
         Returns
@@ -869,7 +867,7 @@ class ColumnDeduplicator(
     def transform(
         self,
         X:XContainer,
-        copy:Optional[Union[bool, None]]=None
+        copy:bool | None = None
     ) -> XContainer:
         """Remove the duplicate columns from X.
 
@@ -880,7 +878,7 @@ class ColumnDeduplicator(
         ----------
         X : XContainer of shape (n_samples, n_features)
             The data to be deduplicated.
-        copy : Optional[Union[bool, None]], default=None
+        copy : bool | None, default=None
             Whether to make a deepcopy of `X` before the transform.
 
         Returns

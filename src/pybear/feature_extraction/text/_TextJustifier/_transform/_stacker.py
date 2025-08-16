@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import (
     SepWipType,
     LineBreakWipType
@@ -82,10 +81,10 @@ def _stacker(
     **Type Aliases**
 
     SepWipType:
-        Union[re.Pattern[str], tuple[re.Pattern[str], ...]]
+        re.Pattern[str] | tuple[re.Pattern[str], ...]
 
     LineBreakWipType:
-        Union[None, CoreSepBreakWipType]
+        None | CoreSepBreakWipType
 
     """
 
@@ -104,7 +103,7 @@ def _stacker(
     # and convert single compile to iterable.
     def _precondition_helper(
         _obj: LineBreakWipType
-    ) -> Union[None, tuple[re.Pattern[str], ...]]:
+    ) -> None | tuple[re.Pattern[str], ...]:
         """Helper function to put $ at the end of all the patterns in
         the compiles and convert single compile to iterable.
         """

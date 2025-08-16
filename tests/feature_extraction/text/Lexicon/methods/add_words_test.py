@@ -19,13 +19,6 @@ from pybear.feature_extraction.text._Lexicon._methods._add_words import _add_wor
 
 class TestAddWords:
 
-    # def _add_words(
-    #     WORDS: str | Sequence[str],
-    #     lexicon_folder_path: str,
-    #     character_validation: Optional[bool] = True,
-    #     majuscule_validation: Optional[bool] = True
-    # ) -> None:
-
 
     # fixtures -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 

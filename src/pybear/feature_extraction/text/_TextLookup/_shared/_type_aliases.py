@@ -8,8 +8,7 @@
 
 from typing import (
     Sequence,
-    TypeAlias,
-    Union
+    TypeAlias
 )
 import numpy.typing as npt
 
@@ -26,7 +25,7 @@ PandasTypes: TypeAlias = pd.DataFrame
 
 PolarsTypes: TypeAlias = pl.DataFrame
 
-XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+XContainer: TypeAlias = PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 
 WipXContainer: TypeAlias = list[list[str]]
 

@@ -6,14 +6,12 @@
 
 
 
-from typing import Union
-
 import numbers
 
 
 
 def _cond_max_shifts(
-    _max_shifts: Union[None, numbers.Integral],
+    _max_shifts: numbers.Integral | None,
     _inf_max_shifts: numbers.Integral
 ) -> int:
     """When `max_shifts` is passed as None to agscv, this indicates
@@ -21,7 +19,7 @@ def _cond_max_shifts(
 
     Parameters
     ----------
-    _max_shifts : Union[None, numbers.Integral]
+    _max_shifts : numbers.Integral | None
         The maximum number of grid-shift passes agscv is allowed to make.
         If None, the number of shifting passes allowed is unlimited.
     _inf_max_shifts : numbers.Integral

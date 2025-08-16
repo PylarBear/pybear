@@ -18,16 +18,6 @@ from pybear.feature_extraction.text.__shared._validation._compile_holder \
 class TestValCompileHolder:
 
 
-    # def _val_compile_holder(
-    #     _ch: (
-    #           None | re.Pattern[str] | tuple[re.Pattern[str], ...]
-    #           | list[None | re.Pattern[str] | tuple[re.Pattern[str], ...]]
-    #     ),
-    #     _n_rows: numbers.Integral,
-    #     _name: Optional[str] = 'unnamed compile holder'
-    # ) -> None:
-
-
     @pytest.mark.parametrize('junk_bad_n_rows',
         (-2.7, -1, 2.7, True, False, None, 'trash', [0,1], (1,),
          {1,2}, {'a': 1}, lambda x: x)

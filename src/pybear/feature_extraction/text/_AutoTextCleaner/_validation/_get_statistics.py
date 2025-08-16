@@ -6,13 +6,12 @@
 
 
 
-from typing import Union
 from .._type_aliases import GetStatisticsType
 
 
 
 def _val_get_statistics(
-    _get_statistics: Union[None, GetStatisticsType]
+    _get_statistics: GetStatisticsType | None
 ) -> None:
     """Validate 'get_statistics'.
 
@@ -21,7 +20,7 @@ def _val_get_statistics(
 
     Parameters
     ----------
-    _get_statistics : Union[None, GetStatisticsType]
+    _get_statistics : GetStatisticsType | None
         A dictionary indicating if TextStatistics is to accumulate
         statistics on the incoming and/or outgoing data, and if so,
         whether to store uniques. When 'store_uniques' is True there
@@ -38,9 +37,9 @@ def _val_get_statistics(
     **Type Aliases**
 
     class GetStatisticsType(TypedDict):
-        before: Required[Union[None, bool]]
+        before: Required[bool | None]
 
-        after: Required[Union[None, bool]]
+        after: Required[bool | None]
 
     """
 

@@ -21,7 +21,7 @@ def _validate_is_logspace(
 ) -> None:
     """Validate `_IS_LOGSPACE`.
 
-    Should be dict[str, Union[Literal[False], numbers.Integer]]
+    Should be dict[str, Literal[False] | numbers.Integer]
 
     Parameters
     ----------

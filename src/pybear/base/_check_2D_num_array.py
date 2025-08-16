@@ -8,7 +8,6 @@
 
 from typing import (
     Iterable,
-    Optional,
     Sequence,
     TypeAlias
 )
@@ -37,7 +36,7 @@ XContainer: TypeAlias = \
 
 def check_2D_num_array(
     X:XContainer[numbers.Number],
-    require_all_finite:Optional[bool] = False
+    require_all_finite:bool = False
 ) -> None:
     """Validate things that are expected to be 2D arrays of numbers.
 
@@ -54,7 +53,7 @@ def check_2D_num_array(
     ----------
     X : XContainer[numbers.Number]
         Something that is expected to be a 2D array of numbers.
-    require_all_finite : Optional[bool], default=False
+    require_all_finite : bool, default=False
         If True, disallow all non-finite values, such as nan-like or
         infinity-like values.
 

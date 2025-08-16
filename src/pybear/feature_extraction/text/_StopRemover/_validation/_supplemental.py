@@ -8,21 +8,20 @@
 
 from typing import (
     Sequence,
-    Union
 )
 
 from .....base._check_1D_str_sequence import check_1D_str_sequence
 
 
 
-def _val_supplemental(_supplemental: Union[Sequence[str], None]) -> None:
+def _val_supplemental(_supplemental: Sequence[str] | None) -> None:
     """Validate `supplemental`.
 
     Must be Sequence[str] or None.
 
     Parameters
     ----------
-    _supplemental : Union[Sequence[str], None]
+    _supplemental : Sequence[str] | None
         Stop words that are supplemental from being removed.
 
     Returns

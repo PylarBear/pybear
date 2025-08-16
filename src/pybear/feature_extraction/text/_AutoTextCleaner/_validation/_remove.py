@@ -48,7 +48,7 @@ def _val_remove(
     **Type Aliases**
 
     RemoveType:
-        Union[None, FindType, tuple[FindType, ...]]
+        None | FindType | tuple[FindType, ...]
 
     """
 

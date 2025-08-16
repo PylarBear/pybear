@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import (
     CountThresholdType,
     IgnoreColumnsType,
@@ -39,7 +38,7 @@ def _validation(
     _reject_unseen_values: bool,
     _max_recursions: numbers.Integral,
     _n_features_in: int,
-    _feature_names_in: Union[FeatureNamesInType, None]
+    _feature_names_in: FeatureNamesInType | None
 ) -> None:
     """Validate parameters for `MinCountTransformer`.
 
@@ -74,7 +73,7 @@ def _validation(
         dataset.
     _n_features_in : int
         The number of features in the data.
-    _feature_names_in : Union[FeatureNamesInType, None]
+    _feature_names_in : FeatureNamesInType | None
         The feature names seen at first fit if the data was passed in
         a container that has a header, like a pandas or polars dataframe.
 

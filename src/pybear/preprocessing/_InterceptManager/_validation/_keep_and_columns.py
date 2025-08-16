@@ -8,7 +8,6 @@
 
 from typing import (
     Sequence,
-    Union
 )
 from .._type_aliases import KeepType
 from ...__shared._type_aliases import XContainer
@@ -20,7 +19,7 @@ import warnings
 def _val_keep_and_columns(
     _keep: KeepType,
     _columns: Sequence[str] | None,
-    _X: XContainer    # pizza
+    _X: XContainer
 ) -> None:
     """Validate `keep` and `columns`.
 
@@ -57,7 +56,7 @@ def _val_keep_and_columns(
         The strategy for handling the constant columns. See 'The keep
         Parameter' section for a lengthy explanation of the `keep`
         parameter.
-    _columns : Union[NDArray[str], None] of shape (n_features,)
+    _columns : NDArray[str] | None of shape (n_features,)
         Exposed if `X` was passed in a container that has a header,
         otherwise None.
     _X : XContainer of shape (n_samples, n_features)

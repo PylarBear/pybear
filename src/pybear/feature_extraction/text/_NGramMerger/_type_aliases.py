@@ -8,10 +8,8 @@
 
 from typing import (
     Callable,
-    Optional,
     Sequence,
     TypeAlias,
-    Union
 )
 import numpy.typing as npt
 
@@ -31,26 +29,26 @@ PandasTypes: TypeAlias = pd.DataFrame
 
 PolarsTypes: TypeAlias = pl.DataFrame
 
-XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+XContainer: TypeAlias = PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 
 XWipContainer: TypeAlias = list[list[str]]
 
 NGramsType: TypeAlias = \
-    Optional[Union[Sequence[Sequence[Union[str, re.Pattern[str]]]], None]]
+    Sequence[Sequence[str | re.Pattern[str]]] | None
 
-NGramsWipType: TypeAlias = Union[None, list[tuple[re.Pattern[str], ...]]]
+NGramsWipType: TypeAlias = list[tuple[re.Pattern[str], ...]] | None
 
-NGCallableType: TypeAlias = Optional[Union[None, Callable[[list[str]], str]]]
+NGCallableType: TypeAlias = Callable[[list[str]], str] | None
 
-SepType: TypeAlias = Optional[Union[str, None]]
+SepType: TypeAlias = str | None
 
-WrapType: TypeAlias = Optional[bool]
+WrapType: TypeAlias = bool
 
-CaseSensitiveType: TypeAlias = Optional[bool]
+CaseSensitiveType: TypeAlias = bool
 
-RemoveEmptyRowsType: TypeAlias = Optional[bool]
+RemoveEmptyRowsType: TypeAlias = bool
 
-FlagsType: TypeAlias = Optional[Union[numbers.Integral, None]]
+FlagsType: TypeAlias = numbers.Integral | None
 
 
 

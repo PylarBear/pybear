@@ -113,10 +113,10 @@ def _validation(
     # SKIP_ALWAYS, SPLIT_ALWAYS, DELETE_ALWAYS, REPLACE_ALWAYS must not
     # have common strings (case_sensitive).
 
-    # DELETE_ALWAYS: Optional[Sequence[str] | None] = None,
-    # REPLACE_ALWAYS: Optional[dict[str, str] | None] = None,
-    # SKIP_ALWAYS: Optional[Sequence[str] | None] = None,
-    # SPLIT_ALWAYS: Optional[dict[str, Sequence[str]] | None] = None,
+    # DELETE_ALWAYS: Sequence[str] | None = None
+    # REPLACE_ALWAYS: dict[str, str] | None = None
+    # SKIP_ALWAYS: Sequence[str] | None = None
+    # SPLIT_ALWAYS: dict[str, Sequence[str]] | None = None
 
     delete_always = list(_DELETE_ALWAYS) if _DELETE_ALWAYS else []
     replace_always_keys = list(_REPLACE_ALWAYS.keys()) if _REPLACE_ALWAYS else []

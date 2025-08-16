@@ -6,14 +6,10 @@
 
 
 
-from typing import Optional
-
-
-
 def _val_any_bool(
     _bool:bool,
-    _name:Optional[str] = 'unnamed boolean',
-    _can_be_None:Optional[bool] = False
+    _name:str = 'unnamed boolean',
+    _can_be_None:bool = False
 ) -> None:
     """Validate `_bool`. Must be boolean.
 
@@ -21,10 +17,10 @@ def _val_any_bool(
     ----------
     _bool: bool
         Something that can only be boolean.
-    _name : Optional[str], default='unnamed boolean'
+    _name : str, default='unnamed boolean'
         The name of the parameter being validated as boolean, or None if
         allowed.
-    _can_be_None : Optional[bool], default=False
+    _can_be_None : bool, default=False
         Whether the boolean value is allowed to be passed as None.
 
     Returns

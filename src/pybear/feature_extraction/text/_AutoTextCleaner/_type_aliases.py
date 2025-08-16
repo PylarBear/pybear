@@ -11,8 +11,7 @@ from typing import (
     Literal,
     Sequence,
     TypeAlias,
-    TypedDict,
-    Union
+    TypedDict
 )
 from typing_extensions import (
     NotRequired,
@@ -28,28 +27,28 @@ import polars as pl
 
 
 
-PythonTypes: TypeAlias = Union[Sequence[str], set[str], Sequence[Sequence[str]]]
+PythonTypes: TypeAlias = Sequence[str] | set[str] | Sequence[Sequence[str]]
 
 NumpyTypes: TypeAlias = npt.NDArray[str]
 
-PandasTypes: TypeAlias = Union[pd.Series, pd.DataFrame]
+PandasTypes: TypeAlias = pd.Series | pd.DataFrame
 
-PolarsTypes: TypeAlias = Union[pl.Series, pl.DataFrame]
+PolarsTypes: TypeAlias = pl.Series | pl.DataFrame
 
-XContainer: TypeAlias = Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+XContainer: TypeAlias = PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 
-XWipContainer: TypeAlias = Union[list[str], list[list[str]]]
+XWipContainer: TypeAlias = list[str] | list[list[str]]
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-ReturnDimType: TypeAlias = Union[None, Literal[1, 2]]
+ReturnDimType: TypeAlias = Literal[1, 2] | None
 
-FindType: TypeAlias = Union[str, re.Pattern[str]]
-SubstituteType: TypeAlias = Union[str, Callable[[str], str]]
+FindType: TypeAlias = str | re.Pattern[str]
+SubstituteType: TypeAlias = str | Callable[[str], str]
 PairType: TypeAlias = tuple[FindType, SubstituteType]
-ReplaceType: TypeAlias = Union[None, PairType, tuple[PairType, ...]]
+ReplaceType: TypeAlias = PairType | tuple[PairType, ...] | None
 
-RemoveType: TypeAlias = Union[None, FindType, tuple[FindType, ...]]
+RemoveType: TypeAlias = FindType | tuple[FindType, ...] | None
 
 class LexiconLookupType(TypedDict):
     update_lexicon: NotRequired[bool]
@@ -57,10 +56,10 @@ class LexiconLookupType(TypedDict):
     auto_split: NotRequired[bool]
     auto_add_to_lexicon: NotRequired[bool]
     auto_delete: NotRequired[bool]
-    DELETE_ALWAYS: NotRequired[Union[Sequence[str], None]]
-    REPLACE_ALWAYS: NotRequired[Union[dict[str, str], None]]
-    SKIP_ALWAYS: NotRequired[Union[Sequence[str], None]]
-    SPLIT_ALWAYS: NotRequired[Union[dict[str, Sequence[str]], None]]
+    DELETE_ALWAYS: NotRequired[Sequence[str] | None]
+    REPLACE_ALWAYS: NotRequired[dict[str, str] | None]
+    SKIP_ALWAYS: NotRequired[Sequence[str] | None]
+    SPLIT_ALWAYS: NotRequired[dict[str, Sequence[str]] | None]
     remove_empty_rows: NotRequired[bool]
     verbose: NotRequired[bool]
 
@@ -69,8 +68,8 @@ class NGramsType(TypedDict):
     wrap: Required[bool]
 
 class GetStatisticsType(TypedDict):
-    before: Required[Union[None, bool]]
-    after: Required[Union[None, bool]]
+    before: Required[bool | None]
+    after: Required[bool | None]
 
 
 

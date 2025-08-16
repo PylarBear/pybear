@@ -18,21 +18,6 @@ from pybear.preprocessing._MinCountTransformer._make_instructions. \
 class TestMakeInstructions:
 
 
-    # def _make_instructions(
-    #     _count_threshold: CountThresholdType,
-    #     _ignore_float_columns: bool,
-    #     _ignore_non_binary_integer_columns: bool,
-    #     _ignore_columns: InternalIgnoreColumnsType,
-    #     _ignore_nan: bool,
-    #     _handle_as_bool: InternalHandleAsBoolType,
-    #     _delete_axis_0: bool,
-    #     _original_dtypes: OriginalDtypesType,
-    #     _n_features_in: int,
-    #     _feature_names_in: FeatureNamesInType | None,
-    #     _total_counts_by_column: TotalCountsByColumnType
-    # ) -> InstructionsType:
-
-
     @staticmethod
     @pytest.fixture
     def good_tcbc():

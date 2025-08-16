@@ -8,7 +8,6 @@
 
 from typing import (
     Sequence,
-    Union
 )
 
 from ......base._check_1D_str_sequence import check_1D_str_sequence
@@ -16,7 +15,7 @@ from ......base._check_1D_str_sequence import check_1D_str_sequence
 
 
 def _val_skip_always(
-    _skip_always: Union[Sequence[str], None]
+    _skip_always: Sequence[str] | None
 ) -> None:
     """Validate skip_always.
 
@@ -24,7 +23,7 @@ def _val_skip_always(
 
     Parameters
     ----------
-    _skip_always : Union[Sequence[str], None]
+    _skip_always : Sequence[str] | None
         A 1D sequence of strings that when there is a case-sensitive
         match against a word in the text, that word is skipped without
         further action and left in the body of text.

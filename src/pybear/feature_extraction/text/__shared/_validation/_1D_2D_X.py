@@ -7,9 +7,7 @@
 
 
 from typing import (
-    Optional,
-    Sequence,
-    Union
+    Sequence
 )
 
 from .....base._check_dtype import check_dtype
@@ -17,8 +15,8 @@ from .....base._check_dtype import check_dtype
 
 
 def _val_1D_2D_X(
-    _X: Union[Sequence[str], Sequence[Sequence[str]]],
-    _require_all_finite:Optional[bool] = True
+    _X: Sequence[str] | Sequence[Sequence[str]],
+    _require_all_finite:bool = True
 ) -> None:
     """Validate X.
 
@@ -27,9 +25,9 @@ def _val_1D_2D_X(
 
     Parameters
     ----------
-    _X : Union[Sequence[str], Sequence[Sequence[str]]]
+    _X : Sequence[str] | Sequence[Sequence[str]]
         The text data.
-    _require_all_finite : Optional[bool], default=True
+    _require_all_finite : bool, default=True
         Whether to block non-finite values such as nan or infinity
         (True) or allow (False).
 

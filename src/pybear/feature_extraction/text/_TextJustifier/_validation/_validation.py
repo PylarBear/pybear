@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import (
     XContainer,
     CoreSepBreakType
@@ -29,9 +28,9 @@ def _validation(
     _X: XContainer,
     _n_chars: numbers.Integral,
     _sep: CoreSepBreakType,
-    _sep_flags: Union[numbers.Integral, None],
-    _line_break: Union[None, CoreSepBreakType],
-    _line_break_flags: Union[numbers.Integral, None],
+    _sep_flags: numbers.Integral | None,
+    _line_break: CoreSepBreakType | None,
+    _line_break_flags: numbers.Integral | None,
     _case_sensitive: bool,
     _backfill_sep: str,
     _join_2D: str
@@ -62,28 +61,28 @@ def _validation(
         text.
     _sep : CoreSepBreakType
         STR
-        Union[str, Sequence[str]] - the literal string character
-        sequence(s) that indicate to TJ where it is allowed to wrap a
-        line. Cannot be an empty string, cannot be an empty list-like.
+        str | Sequence[str] - the literal string character sequence(s)
+        that indicate to TJ where it is allowed to wrap a line. Cannot
+        be an empty string, cannot be an empty list-like.
 
         REGEX
-        Union[None, re.Pattern[str], Sequence[re.Pattern[str]]] - the
+        None | re.Pattern[str] | Sequence[re.Pattern[str]] - the
         re.compile object(s) that indicate to TJ where it is allowed
         to wrap a line. Cannot be a regex pattern that blatantly returns
         zero-span matches, cannot be an empty list-like.
     _sep_flags:
-        Union[numbers.Integral, None] - the flags for the `sep` parameter.
+        numbers.Integral | None - the flags for the `sep` parameter.
     _line_break:
         STR
-        Union[None, str, Sequence[str]] - the character string sequence(s)
+        None | str | Sequence[str] - the character string sequence(s)
         that indicate to TJ where it must force a new line. Can be None.
         Cannot be an empty string, cannot be an empty list-like.
         REGEX
-        Union[None, re.Pattern[str], Sequence[re.Pattern[str]]] - the
+        None | re.Pattern[str] | Sequence[re.Pattern[str]] - the
         re.compile object(s) that indicate to TJ where it must force a
         new line. Can be None. Cannot be a regex pattern that blatantly
         returns zero-span matches, cannot be an empty list-like.
-    _line_break_flags : Union[numbers.Integral, None]
+    _line_break_flags : numbers.Integral | None
         The flags for the `line_break` parameter.
     _backfill_sep : str
         Some lines in the text may not have any of the given wrap
@@ -110,7 +109,7 @@ def _validation(
     **Type Aliases**
 
     CoreSepBreakType:
-        Union[str, Sequence[str], re.Pattern[str], Sequence[re.Pattern[str]]]
+        str | Sequence[str] | re.Pattern[str] | Sequence[re.Pattern[str]]]
 
     """
 

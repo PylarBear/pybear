@@ -57,7 +57,7 @@ def _validation(
         polars.DataFrame
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+        PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 
     """
 

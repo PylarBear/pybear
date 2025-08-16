@@ -32,11 +32,11 @@ def _val_return_dim(
     **Type Aliases**
 
     ReturnDimType:
-        Union[None, Literal[1, 2]]
+        Literal[1, 2] | None
 
     """
 
-    # return_dim:Optional[Union[Literal[1, 2], None]] = None,
+    # return_dim:Literal[1, 2] | None = None,
 
 
     if _return_dim is None:

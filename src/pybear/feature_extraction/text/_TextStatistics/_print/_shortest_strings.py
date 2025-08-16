@@ -6,8 +6,6 @@
 
 
 
-from typing import Optional
-
 import numbers
 
 from .._validation._string_frequency import _val_string_frequency
@@ -18,10 +16,10 @@ from .._get._get_shortest_strings import _get_shortest_strings
 
 
 def _print_shortest_strings(
-    string_frequency: dict[str, numbers.Integral],
-    lp: numbers.Integral,
-    rp: numbers.Integral,
-    n: Optional[numbers.Integral] = 10
+    string_frequency:dict[str, numbers.Integral],
+    lp:numbers.Integral,
+    rp:numbers.Integral,
+    n:numbers.Integral = 10
 ) -> None:
     """Print the shortest strings in the `string_frequency_` attribute
     and their frequencies to screen.
@@ -39,7 +37,7 @@ def _print_shortest_strings(
         The left padding for the display.
     rp : numbers.Integral
         The right padding for the display.
-    n : Optional[numbers.Integral], default = 10
+    n : numbers.Integral, default = 10
         The number of shortest strings to print to screen.
 
     Returns

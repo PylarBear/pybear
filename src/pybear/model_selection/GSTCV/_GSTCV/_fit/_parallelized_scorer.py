@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from ..._type_aliases import (
     ScorerWIPType,
     ClassifierProtocol,
@@ -34,7 +33,7 @@ def _parallelized_scorer(
     _f_idx: int,
     _SCORER_DICT: ScorerWIPType,
     _THRESHOLDS: ThresholdsWIPType,
-    _error_score: Union[numbers.Real, None],
+    _error_score: numbers.Real | None,
     _verbose: int
 ) -> tuple[MaskedHolderType, MaskedHolderType]:
 
@@ -71,7 +70,7 @@ def _parallelized_scorer(
         from the mother before building `cv_results_`. This is the vector
         of thresholds from the mother that also mothered this search
         permutation.
-    _error_score : Union[numbers.Real, Literal['raise']]
+    _error_score : numbers.Real | Literal['raise']
         If the training fold complementing this test fold excepted during
         fitting and `error_score` was set to the 'raise' literal, this
         module cannot be reached. Otherwise, a number or number-like was

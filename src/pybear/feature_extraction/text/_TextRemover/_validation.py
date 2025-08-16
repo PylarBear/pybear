@@ -63,33 +63,34 @@ def _validation(
     **Type Aliases**
 
     PythonTypes:
-        Union[Sequence[str], Sequence[Sequence[str]], set[str]]
+        Sequence[str] | Sequence[Sequence[str]] | set[str]
 
     NumpyTypes:
         numpy.ndarray[str]
 
     PandasTypes
-        Union[pandas.Series, pandas.DataFrame]
+        pandas.Series | pandas.DataFrame
 
     PolarsTypes:
-        Union[polars.Series, polars.DataFrame]
+        polars.Series | polars.DataFrame
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+        PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 
-    XWipContainer: TypeAlias = Union[list[str], list[list[str]]]
+    XWipContainer:
+        list[str] | list[list[str]]
 
     RemoveType:
-        Optional[Union[PatternType, list[PatternType]]]
+        PatternType | list[PatternType]
 
     CaseSensitiveType:
-        Optional[Union[bool, list[Union[bool, None]]]]
+        bool | list[bool | None]
 
     RemoveEmptyRowsType:
-        Optional[bool]
+        bool
 
     FlagsType:
-        Optional[Union[FlagType, list[FlagType]]]
+        FlagType | list[FlagType]
 
     """
 

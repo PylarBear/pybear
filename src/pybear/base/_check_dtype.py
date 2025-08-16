@@ -8,7 +8,6 @@
 
 from typing import (
     Literal,
-    Optional,
     TypeAlias
 )
 from .__type_aliases import (
@@ -36,8 +35,8 @@ XContainer: TypeAlias = \
 
 def check_dtype(
     X:XContainer,
-    allowed:Optional[Literal['numeric', 'str', 'any']] = 'any',
-    require_all_finite:Optional[bool] = False
+    allowed:Literal['numeric', 'str', 'any'] = 'any',
+    require_all_finite:bool = False
 ) -> None:
     """Check that the passed data is of an allowed datatype.
 
@@ -48,12 +47,12 @@ def check_dtype(
     ----------
     X : XContainer of shape (n_samples, n_features) or (n_samples,)
         The data to be checked for allowed datatype.
-    allowed : Optional[Literal['numeric', 'str', 'any']], default='any'
+    allowed : Literal['numeric', 'str', 'any'], default='any'
         The allowed datatype for the data. If 'numeric', only allow
         values that are instances of numbers.Number. If not, raise
         TypeError. If 'str', all data in `X` must be and instance of str
         or a TypeError is raised. If 'any', allow any datatype.
-    require_all_finite : Optional[bool], default=False
+    require_all_finite : bool, default=False
         If True, raise an exception if there are any nan-like or
         infinity-like values in the data. This means that all elements
         in the data must be of the required dtype. If False, nan-likes

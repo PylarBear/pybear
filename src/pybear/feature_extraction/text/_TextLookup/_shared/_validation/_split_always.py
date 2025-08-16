@@ -8,7 +8,6 @@
 
 from typing import (
     Sequence,
-    Union
 )
 
 from ......base._check_1D_str_sequence import check_1D_str_sequence
@@ -16,7 +15,7 @@ from ......base._check_1D_str_sequence import check_1D_str_sequence
 
 
 def _val_split_always(
-    _split_always: Union[dict[str, Sequence[str]], None]
+    _split_always: dict[str, Sequence[str]] | None
 ) -> None:
     """Validate split_always.
 
@@ -25,7 +24,7 @@ def _val_split_always(
 
     Parameters
     ----------
-    _split_always : Union[dict[str, Sequence[str]], None]
+    _split_always : dict[str, Sequence[str]] | None
         None or a dictionary with strings as keys and sequences of
         strings as values. When a key in the dictionary is a
         case-sensitive match against a word in the text, the matching

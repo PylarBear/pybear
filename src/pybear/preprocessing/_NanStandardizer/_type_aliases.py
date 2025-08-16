@@ -9,7 +9,6 @@
 from typing import (
     Sequence,
     TypeAlias,
-    Union
 )
 import numpy.typing as npt
 
@@ -23,10 +22,7 @@ PythonTypes: TypeAlias = Sequence | Sequence[Sequence]
 
 NumpyTypes: TypeAlias = npt.NDArray
 
-# keep this Union to keep the Pycharm linter happy.... for some reason it
-# is happy with this unioning 2 generics but not with pipe
-# pizza
-PandasTypes: TypeAlias = Union[pd.DataFrame, pd.Series]
+PandasTypes: TypeAlias = pd.DataFrame | pd.Series
 
 PolarsTypes: TypeAlias = pl.DataFrame | pl.Series
 

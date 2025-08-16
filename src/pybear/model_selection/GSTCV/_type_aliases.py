@@ -14,8 +14,7 @@ from typing import (
     Protocol,
     Sequence,
     TypeAlias,
-    TypedDict,
-    Union
+    TypedDict
 )
 from typing_extensions import (
     NotRequired,
@@ -55,7 +54,7 @@ ParamGridsInputType: TypeAlias = Sequence[ParamGridInputType]
 ParamGridWIPType: TypeAlias = dict[str, list[Any]]
 ParamGridsWIPType: TypeAlias = list[ParamGridWIPType]
 
-ThresholdsInputType: TypeAlias = Union[None, numbers.Real, Sequence[numbers.Real]]
+ThresholdsInputType: TypeAlias = None | numbers.Real | Sequence[numbers.Real]
 ThresholdsWIPType: TypeAlias = list[float]
 
 GenericSlicerType: TypeAlias = Sequence[numbers.Integral]
@@ -76,12 +75,10 @@ ScorerNameTypes: TypeAlias = Literal[
 ScorerCallableType: TypeAlias = Callable[[Iterable, Iterable], numbers.Real]
 
 
-ScorerInputType: TypeAlias = Union[
-    ScorerNameTypes,
-    Sequence[ScorerNameTypes],
-    ScorerCallableType,
-    dict[str, ScorerCallableType]
-]
+ScorerInputType: TypeAlias = (
+    ScorerNameTypes |  Sequence[ScorerNameTypes] | ScorerCallableType
+    | dict[str, ScorerCallableType]
+)
 
 
 class ScorerWIPType(TypedDict):
@@ -101,7 +98,7 @@ CVResultsType: TypeAlias = dict[str, np.ma.masked_array[Any]]
 
 
 RefitCallableType: TypeAlias = Callable[[CVResultsType], numbers.Integral]
-RefitType: TypeAlias = Union[bool, ScorerNameTypes, RefitCallableType]
+RefitType: TypeAlias = bool | ScorerNameTypes | RefitCallableType
 
 
 MaskedHolderType: TypeAlias = np.ma.masked_array[float]
@@ -111,7 +108,7 @@ NDArrayHolderType: TypeAlias = npt.NDArray[numbers.Real]
 FeatureNamesInType: TypeAlias = npt.NDArray[str]
 
 
-ErrorScoreType: TypeAlias = Union[numbers.Real, Literal['raise']]
+ErrorScoreType: TypeAlias = numbers.Real | Literal['raise']
 
 
 

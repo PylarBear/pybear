@@ -21,16 +21,6 @@ from pybear.base._DictMenuPrint import DictMenuPrint as DMP
 class TestDMPInit:
 
 
-    #     def __init__(
-    #         self,
-    #         MENU_DICT:dict[str, str],
-    #         disp_width:numbers.Integral = 80,
-    #         fixed_col_width:Optional[numbers.Integral | None] = None,
-    #         allowed:Optional[str | None] = None,
-    #         disallowed:Optional[str | None] = None
-    #     ) -> None:
-
-
     # VALIDATION ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
     # MENU_DICT -- -- -- -- -- -- -- -- -- -- -- --
@@ -217,12 +207,6 @@ class TestDMPInit:
 
 class TestDMPchoose:
 
-    #     def choose(
-    #         self,
-    #         prompt:str,
-    #         allowed:Optional[str | None] = None,
-    #         disallowed:Optional[str | None] = None
-    #     ) -> str:
 
     # VALIDATION ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 

@@ -8,13 +8,12 @@
 
 from typing import (
     Callable,
-    Union
 )
 
 
 
 def _val_match_callable(
-    _match_callable: Union[Callable[[str, str], bool], None]
+    _match_callable: Callable[[str, str], bool] | None
 ) -> None:
     """Validate `match_callable`.
 
@@ -23,7 +22,7 @@ def _val_match_callable(
 
     Parameters
     ----------
-    _match_callable : Union[Callable[[str, str], bool], None]
+    _match_callable : Callable[[str, str], bool] | None
         None to use the default `StopRemover` matching criteria, or a
         custom callable that defines what constitutes matches of words
         in the text against the stop words.

@@ -23,7 +23,7 @@ from ...__shared._validation._rtol import _val_rtol
 
 def _validation(
     _X: XContainer,
-    _columns: npt.NDArray[str] | None,   # pizza
+    _columns: npt.NDArray[str] | None,
     _keep: KeepType,
     _equal_nan: bool,
     _rtol: numbers.Real,
@@ -37,7 +37,7 @@ def _validation(
     ----------
     _X : XContainer of shape (n_samples, n_features)
         The data to be searched for constant columns.
-    _columns : NDArray[str] | None of shape (n_features,)   # pizza
+    _columns : NDArray[str] | None of shape (n_features,)
         Exposed if `X` was passed in a container that has a header,
         otherwise None.
     _keep : KeepType

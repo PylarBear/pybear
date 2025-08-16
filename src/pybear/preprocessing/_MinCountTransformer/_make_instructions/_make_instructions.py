@@ -6,7 +6,6 @@
 
 
 
-from typing import Union
 from .._type_aliases import (
     CountThresholdType,
     InternalIgnoreColumnsType,
@@ -45,7 +44,7 @@ def _make_instructions(
     _delete_axis_0: bool,
     _original_dtypes: OriginalDtypesType,
     _n_features_in: int,
-    _feature_names_in: Union[FeatureNamesInType, None],
+    _feature_names_in: FeatureNamesInType | None,
     _total_counts_by_column: TotalCountsByColumnType
 ) -> InstructionsType:
     """
@@ -175,7 +174,7 @@ def _make_instructions(
         'obj'.
     _n_features_in : int
         The number of features (columns) in the dataset.
-    _feature_names_in : Union[FeatureNamesInType, None]
+    _feature_names_in : FeatureNamesInType | None
         If the data container passed to the first fit had features names
         this is an ndarray of those feature names. Otherwise, this is
         None.

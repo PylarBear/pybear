@@ -10,19 +10,17 @@ from typing import (
     ContextManager,
     Iterable,
     Literal,
-    Optional,
     Sequence,
-    TypeAlias,
-    Union
+    TypeAlias
 )
 
 import numbers
 
 
-PreDispatchType: TypeAlias = Optional[Union[Literal['all'], str, numbers.Integral]]
+PreDispatchType: TypeAlias = Literal['all'] | str | numbers.Integral
 
 SKXType: TypeAlias = Iterable
-SKYType: TypeAlias = Union[Sequence[numbers.Integral], None]
+SKYType: TypeAlias = Sequence[numbers.Integral] | None
 
 SKSlicerType: TypeAlias = Sequence[numbers.Integral]
 

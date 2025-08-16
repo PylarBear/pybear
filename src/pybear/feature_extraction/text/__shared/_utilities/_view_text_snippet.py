@@ -16,9 +16,9 @@ from .....base._check_1D_str_sequence import check_1D_str_sequence
 
 
 def view_text_snippet(
-    _VECTOR: Sequence[str],
-    _idx: numbers.Integral,
-    _span: numbers.Integral = 9
+    _VECTOR:Sequence[str],
+    _idx:numbers.Integral,
+    _span:numbers.Integral = 9
 ) -> str:
     """Highlights the word of interest (which is given by the 'idx' value)
     in a series of words.
@@ -35,7 +35,7 @@ def view_text_snippet(
         to highlight. Cannot be empty.
     _idx : numbers.Integral
         The index of the string in the sequence of strings to highlight.
-    _span : Optional[numbers.Integral], default = 9
+    _span : numbers.Integral, default = 9
         The number of strings in the sequence of strings to select when
         highlighting one particular central string.
 

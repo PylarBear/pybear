@@ -8,10 +8,8 @@
 
 from typing import (
     Literal,
-    Optional,
     Sequence,
-    TypeAlias,
-    Union
+    TypeAlias
 )
 from .._type_aliases import (
     IgnoreColumnsType,
@@ -31,18 +29,18 @@ from ....utilities._nan_masking import nan_mask_numerical
 
 
 
-AllowedType: TypeAlias = Sequence[Union[Literal[
+AllowedType: TypeAlias = Sequence[Literal[
     'callable', 'Sequence[str]', 'Sequence[int]', 'None'
-]]]
+]]
 
 
 
 def _val_ignore_columns_handle_as_bool(
-    _value: Union[IgnoreColumnsType, HandleAsBoolType],
+    _value: IgnoreColumnsType | HandleAsBoolType,
     _name: Literal['ignore_columns', 'handle_as_bool'],
     _allowed: AllowedType,
     _n_features_in: int,
-    _feature_names_in: Optional[Union[FeatureNamesInType, None]]=None
+    _feature_names_in: FeatureNamesInType | None = None
 ) -> None:
     """Validate `ignore_columns` or `handle_as_bool`.
 
@@ -57,7 +55,7 @@ def _val_ignore_columns_handle_as_bool(
 
     Parameters
     ----------
-    _value : Union[Sequence[str], Sequence[int], callable, None]
+    _value : Sequence[str] | Sequence[int] | callable | None
         The value passed for the `ignore_columns` or `handle_as_bool`
         parameter to the `MinCountTransformer` instance.
     _name : Literal['ignore_columns', 'handle_as_bool']
@@ -66,7 +64,7 @@ def _val_ignore_columns_handle_as_bool(
         The datatype which `_value` is allowed to be.
     _n_features_in : int
         The number of features in the data.
-    _feature_names_in : Optional[Union[FeatureNamesInType, None]], default=None
+    _feature_names_in : FeatureNamesInType | None, default=None
         If the MCT instance was fitted on a data-bearing object that had
         a header (like a pandas or polars dataframe) then this is a 1D
         list-like of strings. Otherwise, is None.
@@ -81,9 +79,9 @@ def _val_ignore_columns_handle_as_bool(
     **Type Aliases**
 
     AllowedType:
-        Sequence[Union[Literal[
+        Sequence[Literal[
             'callable', 'Sequence[str]', 'Sequence[int]', 'None'
-        ]]]
+        ]]
 
     """
 

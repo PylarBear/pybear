@@ -1343,12 +1343,6 @@ class TestX:
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestPartialFit:
 
-    #     def partial_fit(
-    #         self,
-    #         X: XContainer,
-    #         y: Optional[YContainer]=None
-    #     ) -> Self:
-
 
     @pytest.mark.parametrize('_y',
         (-1,0,1, np.pi, True, False, None, 'trash', [1,2], {1,2}, {'a':1},
@@ -1649,12 +1643,6 @@ class TestPartialFit:
 @pytest.mark.skipif(bypass is True, reason=f"bypass")
 class TestTransform:
 
-    #     def transform(
-    #         self,
-    #         X: XContainer,
-    #         y: Optional[YContainer]=None,
-    #         copy: Optional[bool | None]=None
-    #     ) -> tuple[XContainer, YContainer] | XContainer:
 
     # - num columns must equal num columns seen during fit
     # - must have at least 3 samples

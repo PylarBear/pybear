@@ -8,7 +8,6 @@
 
 from typing import (
     Sequence,
-    Union
 )
 
 import numbers
@@ -16,7 +15,7 @@ import numbers
 
 
 def _condition_sep(
-    _sep: Union[str, Sequence[str]],
+    _sep: str | Sequence[str],
     _n_rows: numbers.Integral
 ) -> list[str]:
     """Condition the `sep` parameter into a Python list of strings whose
@@ -26,7 +25,7 @@ def _condition_sep(
 
     Parameters
     ----------
-    _sep : Union[str, Sequence[str]]
+    _sep : str | Sequence[str]
         The string sequence(s) to use to join each row of text strings
         in the data.
     _n_rows : numbers.Integral

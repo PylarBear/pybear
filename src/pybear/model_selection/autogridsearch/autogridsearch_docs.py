@@ -539,7 +539,7 @@ params : ParamsType
     hyperparameters. See the 'params Parameter' section of the docs
     for a lengthy, detailed, discussion on constructing this and how it
     works.
-total_passes : Optional[numbers.Integral], default=5
+total_passes : numbers.Integral, default=5
     The number of grid searches to perform. The actual number of passes
     can be different from this number based on the setting for the
     `total_passes_is_hard` parameter. If `total_passes_is_hard` is True,
@@ -550,23 +550,23 @@ total_passes : Optional[numbers.Integral], default=5
     toward the total number of passes. More information about 'shifting'
     can be found in the 'Terminology' and 'Operation' sections of the
     docs.
-total_passes_is_hard : Optional[bool], default=False
+total_passes_is_hard : bool, default=False
     If True, `total_passes` is the exact number of grid searches that
     will be performed. If False, rounds in which a 'shift' takes place
     will increment the total passes, essentially causing 'shift' passes
     to be ignored against the total count of grid searches.
-max_shifts : Optional[Union[None, numbers.Integral]], default=None
+max_shifts : numbers.Integral | None, default=None
     The maximum number of 'shifting' searches allowed. If None, there is
     no limit to the number of shifts that `AutoGridSearch` will perform
     when trying to center search grids.
-agscv_verbose : Optional[bool], default=False
+agscv_verbose : bool, default=False
     Display the status of `AutoGridSearch` and other helpful information
     during the `AutoGridSearch` session, in addition to any verbosity
     displayed by the underlying `GridsearchCV` module. This parameter is
     separate from any 'verbose' parameter that the parent GridSearch may
     have, and any setting for that parent parameter needs to be manually
     entered by the user separately.
-**parent_gscv_kwargs : Optional[dict[str, Any]]
+**parent_gscv_kwargs : dict[str, Any]
     Any keyword arguments to be passed to the parent grid search module.
 
 Attributes
@@ -581,7 +581,7 @@ Notes
 **Type Aliases**
 
 ParamsType:
-    dict[str, Sequence[Sequence[Any], Union[int, Sequence[int]], str]]
+    dict[str, Sequence[Sequence[Any], int | Sequence[int], str]]
 
 GridsType:
     dict[int, dict[str, list[Any]]]

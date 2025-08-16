@@ -8,8 +8,6 @@
 
 from typing import (
     Iterable,
-    Optional,
-    Union
 )
 from ..._type_aliases import GenericKFoldType
 
@@ -18,9 +16,9 @@ import numbers
 
 
 def _cond_cv(
-    _cv:Union[None, numbers.Integral, Iterable[GenericKFoldType]],
-    _cv_default:Optional[numbers.Integral] = 5
-) -> Union[int, list[GenericKFoldType]]:
+    _cv:None | numbers.Integral | Iterable[GenericKFoldType],
+    _cv_default:numbers.Integral = 5
+) -> int | list[GenericKFoldType]:
     """Condition `cv`.
 
     There was some validation that was forgone in the validation section.
@@ -39,7 +37,7 @@ def _cond_cv(
 
     Parameters
     ----------
-    _cv : Union[None, numbers.Integral, Iterable[GenericKFoldType]]
+    _cv : None | numbers.Integral | Iterable[GenericKFoldType]
 
         Possible inputs for cv are:
 
@@ -57,12 +55,12 @@ def _cond_cv(
         but any validation beyond that is up to the user outside of
         `GSTCV`.
 
-    _cv_default : Optional[numbers.Integral], default=5
+    _cv_default : numbers.Integral, default=5
         The number of cv folds to be applied when `cv` is None.
 
     Returns
     -------
-    _cv : Union[int, list[GenericKFoldType]]
+    _cv : int | list[GenericKFoldType]
         Conditioned `cv` input
 
     """

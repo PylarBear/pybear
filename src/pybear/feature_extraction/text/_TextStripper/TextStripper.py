@@ -8,7 +8,6 @@
 
 from typing import (
     Any,
-    Optional
 )
 from typing_extensions import Self
 from ._type_aliases import (
@@ -75,22 +74,22 @@ class TextStripper(
     **Type Aliases**
 
     PythonTypes:
-        Union[Sequence[str], Sequence[Sequence[str]]]
+        Sequence[str] | Sequence[Sequence[str]]
 
     NumpyTypes:
         numpy.ndarray[str]
 
     PandasTypes:
-        Union[pandas.Series, pandas.DataFrame]
+        pandas.Series | pandas.DataFrame
 
     PolarsTypes:
-        Union[polars.Series, polars.DataFrame]
+        polars.Series | polars.DataFrame
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+        PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 
     XWipContainer:
-        Union[list[str], list[list[str]]]
+        list[str] | list[list[str]]
 
     Examples
     --------
@@ -124,8 +123,8 @@ class TextStripper(
 
     def partial_fit(
         self,
-        X: XContainer,
-        y: Optional[Any] = None
+        X:XContainer,
+        y:Any = None
     ) -> Self:
         """No-op batch-wise fit.
 
@@ -134,7 +133,7 @@ class TextStripper(
         X : XContainer
             The data whose text will be stripped of leading and trailing
             spaces. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default = None
             The target for the data. Always ignored.
 
         Returns
@@ -149,8 +148,8 @@ class TextStripper(
 
     def fit(
         self,
-        X: XContainer,
-        y: Optional[Any] = None
+        X:XContainer,
+        y:Any = None
     ) -> Self:
         """No-op one-shot fit.
 
@@ -159,7 +158,7 @@ class TextStripper(
         X : XContainer
             The data whose text will be stripped of leading and trailing
             spaces. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default = None
             The target for the data. Always ignored.
 
         Returns
@@ -175,7 +174,7 @@ class TextStripper(
     def transform(
         self,
         X:XContainer,
-        copy:Optional[bool] = False
+        copy:bool = False
     ) -> XWipContainer:
         """Remove the leading and trailing spaces from 1D or 2D text data.
 
@@ -184,7 +183,7 @@ class TextStripper(
         X : XContainer
             The data whose text will be stripped of leading and trailing
             spaces.
-        copy : Optional[bool], default=False
+        copy : bool, default = False
             Whether to strip the text in the original `X` object or a
             deepcopy of `X`.
 
@@ -213,8 +212,8 @@ class TextStripper(
 
     def score(
         self,
-        X: Any,
-        y: Optional[Any] = None
+        X:Any,
+        y:Any = None
     ) -> None:
         """No-op score method.
 
@@ -222,7 +221,7 @@ class TextStripper(
         ----------
         X : Any
             The data. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default = None
             The target for the data. Ignored.
 
         Returns

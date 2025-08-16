@@ -8,8 +8,6 @@
 
 from typing import (
     Any,
-    Optional,
-    Union
 )
 from typing_extensions import Self
 from ._type_aliases import (
@@ -164,7 +162,7 @@ class TextStatistics(
 
     Parameters
     ----------
-    store_uniques : Optional[bool], default=True
+    store_uniques : bool, default = True
         Whether to retain the unique strings seen by the `TextStatistics`
         instance in memory. If True, all attributes and print methods
         are fully informative. If False, the :attr:`string_frequency_`
@@ -220,7 +218,7 @@ class TextStatistics(
     def __init__(
         self,
         *,
-        store_uniques: Optional[bool] = True
+        store_uniques:bool = True
     ) -> None:
         """Initialize the TextStatistics instance."""
 
@@ -403,8 +401,8 @@ class TextStatistics(
 
     def partial_fit(
         self,
-        X: XContainer,
-        y: Optional[Any] = None
+        X:XContainer,
+        y:Any = None
     ) -> Self:
         """Batch-wise fitting of the `TextStatistics` instance.
 
@@ -417,7 +415,7 @@ class TextStatistics(
             A 1D list-like or 2D array-like of strings to report
             statistics for. Can be empty. Strings do not need to be in
             the pybear :class:`Lexicon`.
-        y : Optional[Any], default = None
+        y : Any, default = None
             A target for the data. Always ignored.
 
         Returns
@@ -552,8 +550,8 @@ class TextStatistics(
 
     def fit(
         self,
-        X: XContainer,
-        y: Optional[Any] = None
+        X:XContainer,
+        y:Any = None
     ) -> Self:
         """Single batch training of the `TextStatistics` instance.
         The instance is reset and the only information retained is
@@ -565,7 +563,7 @@ class TextStatistics(
             A 1D list-like or 2D array-like of strings to report
             statistics for. Can be empty. Strings do not need to be in
             the pybear :class:`Lexicon`.
-        y : Optional[Any], default = None
+        y : Any, default = None
             A target for the data. Always ignored.
 
         Returns
@@ -654,7 +652,7 @@ class TextStatistics(
 
     def print_string_frequency(
         self,
-        n:Optional[numbers.Integral] = 10
+        n:numbers.Integral = 10
     ) -> None:
         """
         Print the :attr:`string_frequency_` attribute to screen.
@@ -664,7 +662,7 @@ class TextStatistics(
 
         Parameters
         ----------
-        n : Optional[numbers.Integral], default = 10
+        n : numbers.Integral, default = 10
             The number of the most frequent strings to print to screen.
 
         Returns
@@ -681,7 +679,7 @@ class TextStatistics(
     # longest_strings -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     def get_longest_strings(
         self,
-        n: Optional[numbers.Integral] = 10
+        n: numbers.Integral = 10
     ) -> dict[str, int]:
         """The longest strings seen by the `TextStatistics` instance
         during fitting.
@@ -692,7 +690,7 @@ class TextStatistics(
 
         Parameters
         ----------
-        n : Optional[numbers.Integral], default = 10
+        n : numbers.Integral, default = 10
             The number of the top longest strings to return.
 
         Returns
@@ -716,7 +714,7 @@ class TextStatistics(
 
     def print_longest_strings(
         self,
-        n: Optional[numbers.Integral] = 10
+        n: numbers.Integral = 10
     ) -> None:
         """Print the longest strings in :attr:`string_frequency_` to
         screen.
@@ -726,7 +724,7 @@ class TextStatistics(
 
         Parameters
         ----------
-        n : Optional[numbers.Integral], default = 10
+        n : numbers.Integral, default = 10
             The number of top longest strings to print to screen.
 
         Returns
@@ -743,7 +741,7 @@ class TextStatistics(
     # shortest_strings -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     def get_shortest_strings(
         self,
-        n: Optional[numbers.Integral] = 10
+        n: numbers.Integral = 10
     ) -> dict[str, int]:
         """The shortest strings seen by the `TextStatistics` instance
         during fitting.
@@ -754,7 +752,7 @@ class TextStatistics(
 
         Parameters
         ----------
-        n : Optional[numbers.Integral], default = 10
+        n : numbers.Integral, default = 10
             The number of the top shortest strings to return.
 
         Returns
@@ -778,7 +776,7 @@ class TextStatistics(
 
     def print_shortest_strings(
         self,
-        n: Optional[numbers.Integral] = 10
+        n: numbers.Integral = 10
     ) -> None:
         """Print the shortest strings in :attr:`string_frequency_` to
         screen.
@@ -788,7 +786,7 @@ class TextStatistics(
 
         Parameters
         ----------
-        n : Optional[numbers.Integral], default = 10
+        n : numbers.Integral, default = 10
             The number of shortest strings to print to screen.
 
         Returns
@@ -805,8 +803,8 @@ class TextStatistics(
 
     def lookup_substring(
         self,
-        pattern: Union[str, re.Pattern[str]],
-        case_sensitive: Optional[bool] = True
+        pattern:str | re.Pattern[str],
+        case_sensitive:bool = True
     ) -> list[str]:
         """Use string literals or regular expressions to look for
         substring matches in the fitted words.
@@ -831,11 +829,11 @@ class TextStatistics(
 
         Parameters
         ----------
-        pattern : Union[str, re.Pattern[str]]
+        pattern : str | re.Pattern[str]
             Character sequence or regular expression in a re.compile
             object to be looked up against the strings fitted on the
             `TextStatistics` instance.
-        case_sensitive : Optional[bool], default = True
+        case_sensitive : bool, default = True
             Ignored if a re.compile object is passed to `pattern`. If
             True, search for the exact pattern in the fitted data. If
             False, ignore the case of words in :attr:`uniques` while
@@ -857,8 +855,8 @@ class TextStatistics(
 
     def lookup_string(
         self,
-        pattern: Union[str, re.Pattern[str]],
-        case_sensitive: Optional[bool]=True
+        pattern:str | re.Pattern[str],
+        case_sensitive:bool = True
     ) -> list[str]:
         """Use string literals or regular expressions to look for whole
         string matches (not substrings) in the fitted words.
@@ -883,11 +881,11 @@ class TextStatistics(
 
         Parameters
         ----------
-        pattern : Union[str, re.Pattern[str]]
+        pattern : str | re.Pattern[str]
             Character sequence or regular expression in a re.compile
             object to be looked up against the strings fitted on the
             `TextStatistics` instance.
-        case_sensitive : Optional[bool], default = True
+        case_sensitive : bool, default = True
             Ignored if a re.compile object is passed to `pattern`. If
             True, search for the exact pattern in the fitted data. If
             False, ignore the case of the words in :attr:`uniques_`
@@ -910,8 +908,8 @@ class TextStatistics(
 
     def score(
         self,
-        X: Any,
-        y: Optional[Any] = None
+        X:Any,
+        y:Any = None
     ) -> None:
         """No-op score method.
 
@@ -922,7 +920,7 @@ class TextStatistics(
         ----------
         X : Any
             The data. Ignored.
-        y : Optional[Any], default = None
+        y : Any, default = None
             The target for the data. Ignored.
 
         """

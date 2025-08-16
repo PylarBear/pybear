@@ -9,9 +9,7 @@
 from typing import (
     Any,
     Literal,
-    Optional,
-    Sequence,
-    Union
+    Sequence
 )
 from typing_extensions import Self
 import numpy.typing as npt
@@ -255,17 +253,17 @@ class SlimPolyFeatures(
 
     Parameters
     ----------
-    degree : numbers.Integral, default=2
+    degree : numbers.Integral, default = 2
         The maximum polynomial degree of the generated features. The
         minimum value accepted by SPF is 2; the no-op case of simply
         returning the original degree-one data is not allowed.
-    min_degree : numbers.Integral, default=1
+    min_degree : numbers.Integral, default = 1
         The minimum polynomial degree of the generated features.
         Polynomial terms with degree below `min_degree` are not included
         in the final output array. The minimum value accepted by SPF is
         1; SPF cannot be used to generate a zero-degree column (a column
         of all ones).
-    interaction_only : bool, default=False
+    interaction_only : bool, default = False
         If True, only interaction features are produced, that is,
         polynomial features that are products of 'degree' distinct input
         features. Terms with power of 2 or higher for any feature are
@@ -276,7 +274,7 @@ class SlimPolyFeatures(
         degree interaction terms ['a', 'b', 'c'] and the second degree
         interaction terms ['ab', 'ac', 'bc'] are returned in the
         polynomial expansion.
-    scan_X : bool, default=True
+    scan_X : bool, default = True
         SPF requires that the data being fit has no columns of constants
         and no duplicate columns. When `scan_X` is True, SPF does not
         assume that the analyst knows these states of the data and
@@ -289,7 +287,7 @@ class SlimPolyFeatures(
         of constants or duplicates, but SPF will continue to operate
         under the assumptions of the stated design requirement, and the
         output will be nonsensical.
-    keep : Literal['first', 'last', 'random'], default='first'
+    keep : Literal['first', 'last', 'random'], default = 'first'
         The strategy for keeping a single representative from a set of
         identical columns in the polynomial expansion. This is overruled
         if a polynomial feature is a duplicate of one of the original
@@ -304,12 +302,12 @@ class SlimPolyFeatures(
         (lowest degree); 'last' keeps the column right-most in the
         expansion (highest degree); 'random' keeps a single randomly
         selected feature of the set of duplicates.
-    sparse_output : bool, default=True
+    sparse_output : bool, default = True
         If set to True, the polynomial expansion is returned from
         `transform` as a scipy sparse csr array. If set to False, the
         polynomial expansion is returned in the same format as passed
         to `transform`.
-    feature_name_combiner : FeatureNameCombinerType, default='as_indices'
+    feature_name_combiner : FeatureNameCombinerType, default = 'as_indices'
         Sets the naming convention for the created polynomial features.
         This does not set nor change any original feature names that may
         have been seen during fitting on containers that have a header.
@@ -344,7 +342,7 @@ class SlimPolyFeatures(
             2) Return a string that
                 a) is not a duplicate of any originally seen feature name
                 b) is not a duplicate of any other polynomial feature name
-    equal_nan : bool, default=False
+    equal_nan : bool, default = True
 
         When comparing two columns for equality:
 
@@ -363,20 +361,20 @@ class SlimPolyFeatures(
         all non-nan values in the respective column. If `equal_nan` is
         False, any nan-values could never take the value of the mean of
         the non-nan values in the column, making the column not constant.
-    rtol : numbers.Real, default=1e-5
+    rtol : numbers.Real, default = 1e-5
         The relative difference tolerance for equality. Must be a
         non-boolean, non-negative, real number. See numpy.allclose.
-    atol : numbers.Real, default=1e-8
+    atol : numbers.Real, default = 1e-8
         The absolute difference tolerance for equality. Must be a
         non-boolean, non-negative, real number. See numpy.allclose.
-    n_jobs : Union[numbers.Integral, None], default=None
+    n_jobs : numbers.Integral | None, default=None
         The number of joblib parallel jobs to use when looking for
         duplicate columns. The default is to use processes, but can be
         overridden externally using a joblib `parallel_config` context
         manager. The default number of jobs is None, which uses the
         joblib default setting. To get maximum speed benefit, pybear
         recommends using -1, which means use all processors.
-    job_size : Optional[numbers.Integral], default=50
+    job_size : numbers.Integral, default=50
         The number of columns to send to a joblib job. Must be an integer
         greater than or equal to 2. This allows the user to optimize
         CPU utilization for their particular circumstance. Long, thin
@@ -451,10 +449,8 @@ class SlimPolyFeatures(
         | ss._dok.dok_array | ss._bsr.bsr_array
 
     FeatureNameCombinerType:
-        Union[
-            Callable[[Sequence[str], tuple[int, ...]], str],
-            Literal['as_feature_names', 'as_indices']
-        ]
+        Callable[[Sequence[str], tuple[int, ...]], str],
+        | Literal['as_feature_names', 'as_indices']
 
     CombinationsType:
         tuple[tuple[int, ...], ...]
@@ -518,19 +514,19 @@ class SlimPolyFeatures(
 
     def __init__(
         self,
-        degree: Optional[numbers.Integral]=2,
+        degree:numbers.Integral = 2,
         *,
-        min_degree: Optional[numbers.Integral]=1,
-        interaction_only: Optional[bool]=False,
-        scan_X: Optional[bool]=True,
-        keep: Optional[Literal['first', 'last', 'random']]='first',
-        sparse_output: Optional[bool]=True,
-        feature_name_combiner: FeatureNameCombinerType='as_indices',
-        equal_nan: Optional[bool]=True,
-        rtol: Optional[numbers.Real]=1e-5,
-        atol: Optional[numbers.Real]=1e-8,
-        n_jobs: Optional[Union[numbers.Integral, None]]=None,
-        job_size: Optional[numbers.Integral]=50
+        min_degree:numbers.Integral = 1,
+        interaction_only:bool = False,
+        scan_X:bool = True,
+        keep:Literal['first', 'last', 'random'] = 'first',
+        sparse_output:bool = True,
+        feature_name_combiner:FeatureNameCombinerType = 'as_indices',
+        equal_nan:bool = True,
+        rtol:numbers.Real = 1e-5,
+        atol:numbers.Real = 1e-8,
+        n_jobs:numbers.Integral | None = None,
+        job_size:numbers.Integral = 50
     ) -> None:
         """Initialize the SlimPolyFeatures instance."""
 
@@ -599,7 +595,7 @@ class SlimPolyFeatures(
 
     # properties v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
     @property
-    def poly_combinations_(self) -> Union[CombinationsType, None]:
+    def poly_combinations_(self) -> CombinationsType | None:
         """Get the `poly_combinations_` attribute.
 
         The polynomial column combinations from `X` that are in the
@@ -613,7 +609,7 @@ class SlimPolyFeatures(
 
         Returns
         -------
-        poly_combinations_ : Union[CombinationsType, None]
+        poly_combinations_ : CombinationsType | None
             The polynomial column combinations from `X` that are in the
             polynomial expansion part of the final output.
 
@@ -633,7 +629,7 @@ class SlimPolyFeatures(
 
 
     @property
-    def poly_duplicates_(self) -> Union[PolyDuplicatesType, None]:
+    def poly_duplicates_(self) -> PolyDuplicatesType | None:
 
         # in-process _poly_duplicates may have constants if they are
         # also duplicate because they need to be tracked until the final
@@ -657,7 +653,7 @@ class SlimPolyFeatures(
 
         Returns
         -------
-        poly_duplicates_ : Union[PolyDuplicatesType, None]
+        poly_duplicates_ : PolyDuplicatesType | None
             The groups of identical polynomial features.
 
         """
@@ -678,7 +674,7 @@ class SlimPolyFeatures(
 
 
     @property
-    def kept_poly_duplicates_(self) -> Union[KeptPolyDuplicatesType, None]:
+    def kept_poly_duplicates_(self) -> KeptPolyDuplicatesType | None:
         """Get the `kept_poly_duplicates_` attribute.
 
         A dictionary whose keys are tuples of the indices of the columns
@@ -690,7 +686,7 @@ class SlimPolyFeatures(
 
         Returns
         -------
-        kept_poly_duplicates_ : Union[KeptPolyDuplicatesType, None]
+        kept_poly_duplicates_ : KeptPolyDuplicatesType | None
             A dictionary whose keys are the columns that were kept out
             of the sets of duplicates and the values are lists of the
             columns that were duplicates of the respective key.
@@ -713,7 +709,7 @@ class SlimPolyFeatures(
 
 
     @property
-    def dropped_poly_duplicates_(self) -> Union[DroppedPolyDuplicatesType, None]:
+    def dropped_poly_duplicates_(self) -> DroppedPolyDuplicatesType | None:
         """Get the `dropped_poly_duplicates_` attribute.
 
         A dictionary whose keys are the tuples that are removed from the
@@ -723,7 +719,7 @@ class SlimPolyFeatures(
 
         Returns
         -------
-        dropped_poly_duplicates_ : Union[DroppedPolyDuplicatesType, None]
+        dropped_poly_duplicates_ : DroppedPolyDuplicatesType | None
             keys: the poly combinations that were dropped from the
             expansion; values: the respective duplicate that was kept.
 
@@ -747,7 +743,7 @@ class SlimPolyFeatures(
 
 
     @property
-    def poly_constants_(self) -> Union[PolyConstantsType, None]:
+    def poly_constants_(self) -> PolyConstantsType | None:
         """Get the `poly_constants_` attribute.
 
         A dictionary whose keys are tuples of indices in the original
@@ -763,7 +759,7 @@ class SlimPolyFeatures(
 
         Returns
         -------
-        poly_constants_ : Union[PolyConstantsType, None]
+        poly_constants_ : PolyConstantsType | None
             keys: the poly combinations that produced a column of
             constants; values: the constant value for that poly feature.
             These are always omitted from the final expansion.
@@ -832,7 +828,7 @@ class SlimPolyFeatures(
 
     def get_feature_names_out(
         self,
-        input_features:Optional[Union[Sequence[str], None]]=None
+        input_features:Sequence[str] | None = None
     ) -> FeatureNamesInType:
         """Get the feature names for the output of `transform`.
 
@@ -842,7 +838,7 @@ class SlimPolyFeatures(
 
         Parameters
         ----------
-        input_features : Optional[Union[Sequence[str], None]], default=None
+        input_features : Sequence[str] | None, default = None
             Externally provided feature names for the fitted data, not
             the transformed data.
 
@@ -921,8 +917,8 @@ class SlimPolyFeatures(
 
     def partial_fit(
         self,
-        X: XContainer,
-        y: Optional[Any]=None
+        X:XContainer,
+        y:Any = None
     ) -> Self:
         """Incrementally train the SPF transformer instance on one or
         more batches of data.
@@ -931,7 +927,7 @@ class SlimPolyFeatures(
         ----------
         X : XContainer of shape (n_samples, n_features)
             Required. The data to undergo polynomial expansion.
-        y : Optional[Any], default=None
+        y : Any, default=None
             Ignored. The target for the data.
 
         Returns
@@ -1004,9 +1000,9 @@ class SlimPolyFeatures(
         # these both must be None on the first pass!
         # on subsequent passes, the holders may not be empty.
         if not hasattr(self, '_poly_duplicates'):
-            self._poly_duplicates: Union[PolyDuplicatesType, None] = None
+            self._poly_duplicates: PolyDuplicatesType | None = None
         if not hasattr(self, '_poly_constants'):
-            self._poly_constants: Union[PolyConstantsType, None] = None
+            self._poly_constants: PolyConstantsType | None = None
 
         # Identify constants & duplicates in X v^v^v^v^v^v^v^v^v^v^v^v^v
         # This is to know if we reject X for having constant or
@@ -1075,7 +1071,7 @@ class SlimPolyFeatures(
             # going forward, so dont even expend the energy to check.
         else:
             for _combo in self._combos:
-                _poly_is_constant: Union[uuid.UUID, Any] = \
+                _poly_is_constant: uuid.UUID | Any = \
                     _is_constant(
                         _column=_columns_getter(X, _combo).ravel(),
                         _equal_nan=self.equal_nan,
@@ -1229,8 +1225,8 @@ class SlimPolyFeatures(
 
     def fit(
         self,
-        X: XContainer,
-        y: Optional[Any]=None
+        X:XContainer,
+        y:Any = None
     ) -> Self:
         """Perform a single fitting on a dataset.
 
@@ -1238,7 +1234,7 @@ class SlimPolyFeatures(
         ----------
         X : XContainer of shape (n_samples, n_features)
             Required. The data to undergo polynomial expansion.
-        y : Optional[Any], default=None
+        y : Any, default=None
             Ignored. The target for the data.
 
         Returns
@@ -1259,8 +1255,8 @@ class SlimPolyFeatures(
 
     def score(
         self,
-        X: Any,
-        y:Optional[Any]=None
+        X:Any,
+        y:Any = None
     ) -> None:
         """Dummy method to spoof dask Incremental and ParallelPostFit
         wrappers.
@@ -1271,7 +1267,7 @@ class SlimPolyFeatures(
         ----------
         X : Any
             The data. Ignored.
-        y : Optional[Any], default = None
+        y : Any, default = None
             The target for the data. Ignored.
 
         Returns

@@ -8,8 +8,7 @@
 
 from typing import (
     Literal,
-    Sequence,
-    Union
+    Sequence
 )
 from .._type_aliases import CountThresholdType
 
@@ -23,7 +22,7 @@ from ...__shared._validation._any_integer import _val_any_integer
 
 def _val_count_threshold(
     _count_threshold: CountThresholdType,
-    _allowed: Sequence[Union[Literal['int', 'Sequence[int]']]],
+    _allowed: Sequence[Literal['int', 'Sequence[int]']],
     _n_features_in: int
 ) -> None:
     """Validate a threshold is non-bool integer >= 2, or a 1D list-like
@@ -41,7 +40,7 @@ def _val_count_threshold(
         frequency a value must have within a column in order to not be
         removed. if list-like, the length must equal the number of
         features in the data.
-    _allowed : Sequence[Union[Literal['int', 'Sequence[int]']]
+    _allowed : Sequence[Literal['int', 'Sequence[int]']]
         Must be 1D list-like of literal strings. Indicates the dtype(s)
         of `_count_threshold` that is/are allowed for this validation
         session. Cannot be empty, can contain either 'Sequence[int]',

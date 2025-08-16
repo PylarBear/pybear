@@ -8,7 +8,6 @@
 
 from typing import (
     Any,
-    Union
 )
 from typing_extensions import Self
 import numpy.typing as npt
@@ -299,8 +298,7 @@ class _GSTCVMixin(
 
         # an iterable _cv is turned to list(tuple, tuple,...)
         # int stays int
-        self._cv: Union[int, list[GenericKFoldType]] = \
-            _cond_cv(self.cv, _cv_default=5)
+        self._cv: int | list[GenericKFoldType] = _cond_cv(self.cv, _cv_default=5)
 
         self._verbose: int = _cond_verbose(self.verbose)
 
@@ -321,32 +319,32 @@ class _GSTCVMixin(
         # THIS IS JUST TO HAVE A REFERENCE TO LOOK AT
         # self.estimator: ClassifierProtocol
         # self._estimator: ClassifierProtocol
-        # self.param_grid: Union[ParamGridInputType, ParamGridsInputType]
+        # self.param_grid: ParamGridInputType | ParamGridsInputType
         # _param_grid: ParamGridsWIPType
         # self.thresholds: ThresholdsInputType
         # self._THRESHOLD_DICT: dict[int, ThresholdsWIPType]
         # self.scoring: ScorerInputType
         # self.scorer_: ScorerWIPType
         # self.multimetric_: bool
-        # self.n_jobs: Union[numbers.Integral, None]
+        # self.n_jobs: numbers.Integral | None
         # self.refit: RefitType
         # self._refit: RefitType
-        # self.cv: Union[None, numbers.Integral, Iterable[GenericKFoldType]]
-        # self._cv: Union[int, list[GenericKFoldType]]
+        # self.cv: None | numbers.Integral | Iterable[GenericKFoldType]
+        # self._cv: int | list[GenericKFoldType]
         # self.n_splits_: int
         # self.verbose: numbers.Real
         # self._verbose: int
-        # self.error_score: Union[Literal['raise'], numbers.Real]
+        # self.error_score: Literal['raise'] | numbers.Real
         # self.return_train_score: bool
 
         # IF GSTCV:
-        # self.pre_dispatch: Union[Literal['all'], str, numbers.Integral]
+        # self.pre_dispatch: Literal['all'] | str | numbers.Integral
         # self._scheduler: SKSchedulerType (ContextManager)
 
         # IF GSTCVDask:
         # self.cache_cv: bool
         # self.iid: bool
-        # self.scheduler = Union[DaskSchedulerType, None]
+        # self.scheduler = DaskSchedulerType | None
         # self._scheduler = DaskSchedulerType (Client, Scheduler, ContextManager)
         # END declare types after conditioning
         # # v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^

@@ -19,7 +19,7 @@ def _val_bool_param_value(
     COMES IN AS
     list-like(
         list-like('grid_value1', etc.),
-        Union[int, Sequence[int]],
+        int | Sequence[int],
         'fixed_bool'
     )
 

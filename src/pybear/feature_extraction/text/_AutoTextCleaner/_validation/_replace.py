@@ -35,7 +35,7 @@ def _val_replace(
     **Type Aliases**
 
     ReplaceType:
-        Union[None, PairType, tuple[PairType, ...]]
+        None | PairType | tuple[PairType, ...]
 
     """
 

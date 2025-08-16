@@ -42,10 +42,10 @@ def _validation(
     **Type Aliases**
 
     XContainer:
-        Union[PythonTypes, NumpyTypes, PandasTypes, PolarsTypes]
+        PythonTypes | NumpyTypes | PandasTypes | PolarsTypes
 
     UpperType:
-        Optional[Union[bool, None]]
+        bool | None
 
     """
 

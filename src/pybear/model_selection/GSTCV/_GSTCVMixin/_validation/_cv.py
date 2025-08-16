@@ -8,8 +8,6 @@
 
 from typing import (
     Iterable,
-    Optional,
-    Union
 )
 from ..._type_aliases import GenericKFoldType
 
@@ -18,9 +16,9 @@ import numbers
 
 
 def _val_cv(
-    _cv: Union[None, numbers.Integral, Iterable[GenericKFoldType]],
-    _can_be_None:Optional[bool] = False,
-    _can_be_int:Optional[bool] = False
+    _cv:None | numbers.Integral | Iterable[GenericKFoldType],
+    _can_be_None:bool = False,
+    _can_be_int:bool = False
 ) -> None:
     """Validate `cv`.
 
@@ -35,7 +33,7 @@ def _val_cv(
 
     Parameters
     ----------
-    _cv : Union[None, numbers.Integral, Iterable[GenericKFoldType]]]
+    _cv : None | numbers.Integral | Iterable[GenericKFoldType
 
         Possible inputs for cv are:
 
@@ -45,6 +43,9 @@ def _val_cv(
             (Stratified)KFold,
 
         3) An iterable yielding (train, test) split indices as arrays.
+    _can_be_None : bool, default = False
+    _can_be_int : bool, default = False
+
 
     Returns
     -------

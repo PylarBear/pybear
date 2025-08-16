@@ -20,13 +20,6 @@ from pybear.feature_extraction.text._TextStatistics._lookup._lookup_string \
 class TestLookupString:
 
 
-    # def _lookup_string(
-    #     _pattern: str | re.Pattern,
-    #     _uniques: Sequence[str],
-    #     _case_sensitive: Optional[bool] = True
-    # ) -> str | list[str] | None:
-
-
     @staticmethod
     @pytest.fixture(scope='function')
     def uniques():

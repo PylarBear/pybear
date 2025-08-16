@@ -8,7 +8,6 @@
 
 from typing import (
     Callable,
-    Optional
 )
 from ..._type_aliases import ScorerInputType
 
@@ -39,8 +38,8 @@ master_scorer_dict = {
 
 
 def _val_scoring(
-    _scoring: ScorerInputType,
-    _must_be_dict:Optional[bool] = True
+    _scoring:ScorerInputType,
+    _must_be_dict:bool = True
 ) -> None:
     """Validate `scoring`, the scoring metric(s) used to evaluate the
     predictions on the test (and possibly train) sets.
@@ -61,7 +60,7 @@ def _val_scoring(
     _scoring : ScorerInputType
         The scoring metric(s) used to evaluate the predictions on the
         test (and possibly train) sets.
-    _must_be_dict : Optional[bool], default=True
+    _must_be_dict : bool, default = True
         Whether 'scoring' must have already been conditioned into
         dict[str, Callable].
 

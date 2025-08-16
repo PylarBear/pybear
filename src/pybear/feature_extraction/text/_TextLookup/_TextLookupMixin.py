@@ -8,9 +8,7 @@
 
 from typing import (
     Any,
-    Optional,
-    Sequence,
-    Union
+    Sequence
 )
 from typing_extensions import Self
 import numpy.typing as npt
@@ -50,17 +48,17 @@ class _TextLookupMixin(
     def __init__(
         self,
         *,
-        update_lexicon: Optional[bool] = False,
-        skip_numbers: Optional[bool] = True,
-        auto_split: Optional[bool] = True,
-        auto_add_to_lexicon: Optional[bool] = False,
-        auto_delete: Optional[bool] = False,
-        DELETE_ALWAYS: Optional[Union[Sequence[str], None]] = None,
-        REPLACE_ALWAYS: Optional[Union[dict[str, str], None]] = None,
-        SKIP_ALWAYS: Optional[Union[Sequence[str], None]] = None,
-        SPLIT_ALWAYS: Optional[Union[dict[str, Sequence[str]], None]] = None,
-        remove_empty_rows: Optional[bool] = False,
-        verbose: Optional[bool] = False
+        update_lexicon:bool = False,
+        skip_numbers:bool = True,
+        auto_split:bool = True,
+        auto_add_to_lexicon:bool = False,
+        auto_delete:bool = False,
+        DELETE_ALWAYS:Sequence[str] | None = None,
+        REPLACE_ALWAYS:dict[str, str] | None = None,
+        SKIP_ALWAYS:Sequence[str] | None = None,
+        SPLIT_ALWAYS:dict[str, Sequence[str]] | None = None,
+        remove_empty_rows:bool = False,
+        verbose:bool = False
     ) -> None:
         """Initialize the TextLookup(RealTime) instance."""
 
@@ -311,8 +309,8 @@ class _TextLookupMixin(
 
     def score(
         self,
-        X: Any,
-        y: Optional[Any] = None
+        X:Any,
+        y:Any = None
     ) -> None:
         """No-op score method.
 
@@ -322,7 +320,7 @@ class _TextLookupMixin(
         ----------
         X : Any
             The data. Ignored.
-        y : Optional[Any], default=None
+        y : Any, default = None
             The target for the data. Ignored.
 
         Returns
@@ -338,14 +336,14 @@ class _TextLookupMixin(
 
     def _display_lexicon_update(
         self,
-        n:Optional[Union[numbers.Integral, None]] = None
+        n:numbers.Integral | None = None
     ) -> None:
         """Print :attr:`LEXICON_ADDENDUM_` object for copy and paste
         into `Lexicon`.
 
         Parameters
         ----------
-        n : Optional[Union[numbers.Integral, None]], default=None
+        n : numbers.Integral | None, default = None
             The number of entries in :attr:`LEXICON_ADDENDUM_` to print.
 
         Returns

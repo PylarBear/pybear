@@ -6,8 +6,6 @@
 
 
 
-from typing import Optional
-
 import numbers
 
 import numpy as np
@@ -19,7 +17,7 @@ from .._validation._n import _val_n
 
 def _get_shortest_strings(
     string_frequency: dict[str, numbers.Integral],
-    n: Optional[numbers.Integral] = 10
+    n: numbers.Integral = 10
 ) -> dict[str, numbers.Integral]:
     """Return the shortest strings in the `string_frequency_` attribute
     as a dictionary with strings as keys and frequencies as values. If
@@ -32,7 +30,7 @@ def _get_shortest_strings(
         The dictionary holding the unique strings seen by the fitted
         `TextStatistics` instance, and the number of occurrences of each
         string.
-    n : Optional[numbers.Integral], default = 10
+    n : numbers.Integral, default = 10
         The number of top shortest strings to retrieve.
 
     Returns

@@ -8,8 +8,7 @@
 
 from typing import (
     Iterable,
-    Literal,
-    Union
+    Literal
 )
 from ..._type_aliases import (
     GenericKFoldType,
@@ -38,14 +37,14 @@ from ._return_train_score import _val_return_train_score
 
 def _validation(
     _estimator: ClassifierProtocol,
-    _param_grid: Union[ParamGridInputType, ParamGridsInputType],
+    _param_grid: ParamGridInputType | ParamGridsInputType,
     _thresholds: ThresholdsInputType,
     _scoring: ScorerInputType,
-    _n_jobs: Union[numbers.Integral, None],
+    _n_jobs: numbers.Integral | None,
     _refit: RefitType,
-    _cv: Union[None, numbers.Integral, Iterable[GenericKFoldType]],
+    _cv: None | numbers.Integral | Iterable[GenericKFoldType],
     _verbose: numbers.Real,
-    _error_score: Union[Literal['raise'], numbers.Real],
+    _error_score: Literal['raise'] | numbers.Real,
     _return_train_score: bool
 ) -> None:
     """Centralized hub for validation.
@@ -57,21 +56,21 @@ def _validation(
     _estimator:
         ClassifierProtocol
     _param_grid:
-        Union[ParamGridInputType, ParamGridsInputType]
+        ParamGridInputType | ParamGridsInputType
     _thresholds:
         ThresholdsInputType
     _scoring:
         ScorerInputType
     _n_jobs:
-        Union[numbers.Integral, None]
+        numbers.Integral | None
     _refit:
         RefitType
     _cv:
-        Union[None, numbers.Integral, Iterable[GenericKFoldType]]
+        None | numbers.Integral | Iterable[GenericKFoldType]
     _verbose:
         numbers.Real
     _error_score:
-        Union[numbers.Real, Literal['raise']]
+        numbers.Real | Literal['raise']
     _return_train_score:
         bool
 
