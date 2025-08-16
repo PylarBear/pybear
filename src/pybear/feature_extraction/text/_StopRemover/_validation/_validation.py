@@ -12,8 +12,6 @@ from typing import (
 )
 from .._type_aliases import XContainer
 
-import numbers
-
 from ._match_callable import _val_match_callable
 
 from ._exempt import _val_exempt
@@ -32,7 +30,7 @@ def _validation(
     _remove_empty_rows: bool,
     _exempt: Sequence[str] | None,
     _supplemental: Sequence[str] | None,
-    _n_jobs: numbers.Integral | None
+    _n_jobs: int | None
 ) -> None:
     """Centralized hub for validating parameters for `StopRemover`.
 
@@ -55,7 +53,7 @@ def _validation(
         these words will not be removed.
     _supplemental : Sequence[str] | None
         Words to be removed in addition to the stop words.
-    _n_jobs : numbers.Integral | None, default = -1
+    _n_jobs : int | None, default = -1
         The number of cores/threads to use when parallelizing the
         search for stop words in the rows of `X`. The default is to
         use processes but can be set by running `StopRemover` under a

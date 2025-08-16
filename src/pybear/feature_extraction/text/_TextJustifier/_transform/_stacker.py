@@ -18,7 +18,7 @@ import re
 
 def _stacker(
     _X: list[str],
-    _n_chars: numbers.Integral,
+    _n_chars: int,
     _sep: SepWipType,
     _line_break: LineBreakWipType,
     _backfill_sep: str
@@ -51,7 +51,7 @@ def _stacker(
         The data as processed by _splitter(). Must be a list of strings.
         Each string is an indivisible unit of text based on the given
         separators and line-breaks.
-    _n_chars : numbers.Integral
+    _n_chars : int
         The number of characters per line to target when justifying the
         text.
     _sep : SepWipType

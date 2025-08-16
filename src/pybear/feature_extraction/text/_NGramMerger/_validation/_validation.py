@@ -33,7 +33,7 @@ def _validation(
     _wrap: bool,
     _case_sensitive: bool,
     _remove_empty_rows: bool,
-    _flags: numbers.Integral | None
+    _flags: int | None
 ) -> None:
     """Centralized hub for validation.
 
@@ -63,7 +63,7 @@ def _validation(
     _remove_empty_rows : bool
         Whether to delete any empty rows that may occur during the
         merging process. A row could only become empty if `_wrap` is True.
-    _flags : numbers.Integral | None
+    _flags : int | None
         The global flags value(s) applied to the n-gram search. Must be
         None or an integer. The values of the integers are not validated
         for legitimacy, any exceptions would be raised by re.fullmatch.

@@ -13,8 +13,8 @@ from .._validation._character_frequency import _val_character_frequency
 
 
 def _merge_character_frequency(
-    _current_character_frequency: dict[str, numbers.Integral],
-    _character_frequency: dict[str, numbers.Integral]
+    _current_character_frequency: dict[str, int],
+    _character_frequency: dict[str, int]
 ) -> dict[str, int]:
     """Merge the unique first characters and counts in the current
     partial fit's character frequency dictionary with those found in
@@ -22,10 +22,10 @@ def _merge_character_frequency(
 
     Parameters
     ----------
-    _current_character_frequency : dict[str, numbers.Integral]
+    _current_character_frequency : dict[str, int]
         The unique characters and their counts found in the current
         partial fit.
-    _character_frequency : dict[str, numbers.Integral]
+    _character_frequency : dict[str, int]
         The unique characters and their counts found in all previous
         partial fits on the `TextStatistics` instance.
 

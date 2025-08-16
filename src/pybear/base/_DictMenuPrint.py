@@ -26,9 +26,9 @@ class DictMenuPrint:
         Required. A Dictionary of unit-length alpha characters as keys
         and the descriptions of their associated actions as values. Keys
         are case-sensitive.
-    disp_width : numbers.Integral, default=80
+    disp_width : int, default=80
         The maximum number of characters to display per line.
-    fixed_col_width : numbers.Integral | None, default=None
+    fixed_col_width : int | None, default=None
         Set a fixed width for each column of menu items in the display.
         DMP will determine a number of columns that causes the overall
         width of the display to be less than or equal to `disp_width`.
@@ -58,10 +58,10 @@ class DictMenuPrint:
     all_allowed_str : str
         The full set of possible options taken from the keys of
         `MENU_DICT`.
-    disp_width : numbers.Integral
+    disp_width : int
         The maximum character display width passed at instantiation or
         the default if not passed.
-    fixed_col_width : numbers.Integral
+    fixed_col_width : int
         The fixed column width within the full display width passed at
         instantiation or the default if not passed.
     MENU_DICT : dict[str, str]
@@ -91,8 +91,8 @@ class DictMenuPrint:
         self,
         MENU_DICT:dict[str, str],
         *,
-        disp_width:numbers.Integral = 80,
-        fixed_col_width:numbers.Integral | None = None,
+        disp_width:int = 80,
+        fixed_col_width:int | None = None,
         allowed:str | None = None,
         disallowed:str | None = None
     ) -> None:

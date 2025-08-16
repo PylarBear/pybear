@@ -230,7 +230,7 @@ class TextReplacer(
         bool | list[bool | None]
 
     FlagType:
-        numbers.Integral | None
+        int | None
     FlagsType:
         FlagType | list[FlagType]
 

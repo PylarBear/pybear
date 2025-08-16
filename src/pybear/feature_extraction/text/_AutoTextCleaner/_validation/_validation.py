@@ -37,7 +37,7 @@ def _validation(
     _X: XContainer,
     _global_sep: str,
     _case_sensitive: bool,
-    _global_flags: numbers.Integral | None,
+    _global_flags: int | None,
     _remove_empty_rows: bool,
     _return_dim: ReturnDimType,
     _strip: bool,
@@ -47,7 +47,7 @@ def _validation(
     _lexicon_lookup: LexiconLookupType | None,
     _remove_stops: bool,
     _ngram_merge: NGramsType | None,
-    _justify: numbers.Integral | None,
+    _justify: int | None,
     _get_statistics: GetStatisticsType | None
 ) -> None:
     """Validate the parameters for AutoTextCleaner.
@@ -65,7 +65,7 @@ def _validation(
     _case_sensitive:
         bool
     _global_flags:
-        numbers.Integral | None
+        int | None
     _remove_empty_rows:
         bool
     _return_dim:
@@ -85,7 +85,7 @@ def _validation(
     _ngram_merge:
         NGramsType | None
     _justify:
-        numbers.Integral | None
+        int | None
     _get_statistics:
         GetStatisticsType | None
 

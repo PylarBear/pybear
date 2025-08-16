@@ -14,7 +14,6 @@ from typing import (
 import re
 import os
 import glob
-import numbers
 
 import numpy as np
 
@@ -282,7 +281,7 @@ class Lexicon(TextStatistics):
         return super().lookup_string(pattern, case_sensitive=True)
 
 
-    def find_duplicates(self) -> dict[str, numbers.Integral]:
+    def find_duplicates(self) -> dict[str, int]:
         """Find any duplicates in the `Lexicon`.
 
         If any, display to screen and return as Python dictionary with
@@ -290,7 +289,7 @@ class Lexicon(TextStatistics):
 
         Returns
         -------
-        dict[str, numbers.Integral]:
+        dict[str, int]:
             Any duplicates in the pybear `Lexicon` and their frequencies.
 
         """

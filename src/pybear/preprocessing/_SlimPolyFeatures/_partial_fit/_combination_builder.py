@@ -8,17 +8,16 @@
 
 
 import itertools
-import numbers
 
 from ._num_combinations import _val_num_combinations
 
 
 
 def _combination_builder(
-    n_features_in_: numbers.Integral,
-    _min_degree: numbers.Integral,
-    _max_degree: numbers.Integral,
-    _intx_only: bool
+    n_features_in_:int,
+    _min_degree:int,
+    _max_degree:int,
+    _intx_only:bool
 ) -> list[tuple[int, ...]]:
     """Create a list containing the tuples of the column indices to be
     multiplied together for the polynomial expansion.
@@ -28,13 +27,13 @@ def _combination_builder(
 
     Parameters
     ----------
-    n_features_in_ : numbers.Integral
+    n_features_in_ : int
         The number of features in X.
-    _min_degree : numbers.Integral
+    _min_degree : int
         The minimum polynomial degree of the generated features.
         Polynomial terms with degree below `_min_degree` are not
         included in the final output array.
-    _max_degree : numbers.Integral
+    _max_degree : int
         The maximum polynomial degree of the generated features.
     _intx_only : bool
         If True, only interaction features are produced, that is,

@@ -12,18 +12,16 @@ from typing import (
     TypeAlias
 )
 
-import numbers
-
 
 
 # see _type_aliases - int subtypes for DataType, GridType
-IntDataType: TypeAlias = numbers.Integral
+IntDataType: TypeAlias = int
 
 InIntGridType: TypeAlias = Sequence[IntDataType]
 IntGridType: TypeAlias = list[IntDataType]
 
-InPointsType: TypeAlias = numbers.Integral | Sequence[numbers.Integral]
-PointsType: TypeAlias = list[numbers.Integral]
+InPointsType: TypeAlias = int | Sequence[int]
+PointsType: TypeAlias = list[int]
 
 IntTypeType: TypeAlias = Literal['soft_integer', 'hard_integer', 'fixed_integer']
 

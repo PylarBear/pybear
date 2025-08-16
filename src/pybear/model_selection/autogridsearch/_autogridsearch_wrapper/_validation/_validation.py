@@ -11,8 +11,6 @@ from .._type_aliases import (
 
 )
 
-import numbers
-
 from ._agscv_verbose import _val_agscv_verbose
 from ._max_shifts import _val_max_shifts
 from ._total_passes import _val_total_passes
@@ -23,9 +21,9 @@ from ._total_passes_is_hard import _val_total_passes_is_hard
 
 def _validation(
     _params: InParamsType,
-    _total_passes: numbers.Integral,
+    _total_passes: int,
     _total_passes_is_hard: bool,
-    _max_shifts: numbers.Integral | None,
+    _max_shifts: int | None,
     _agscv_verbose: bool
 ) -> None:
     """Centralized hub for validation.
@@ -38,11 +36,11 @@ def _validation(
     _params:
         InParamsType
     _total_passes:
-        numbers.Integral
+        int
     _total_passes_is_hard:
         bool
     _max_shifts:
-        numbers.Integral | None
+        int | None
     _agscv_verbose:
         bool
 

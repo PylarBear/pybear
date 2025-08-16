@@ -35,7 +35,7 @@ def _repr_instructions(
     _n_features_in: int,
     _feature_names_in: FeatureNamesInType | None,
     _clean_printout: bool,
-    _max_char: numbers.Integral = 99
+    _max_char: int = 99
 ) -> list[str]:
     """Display instructions generated for the current fitted state,
     subject to the current settings of the parameters.
@@ -78,7 +78,7 @@ def _repr_instructions(
         dataframe. Otherwise, None.
     _clean_printout : bool
         Truncate printout to fit on screen.
-    _max_char : numbers.Integral, default=99
+    _max_char : int, default=99
         The maximum number of characters to display per line if
         `clean_printout` is set to True. Ignored if `clean_printout` is
         False. Must be an integer in range [72, 120].

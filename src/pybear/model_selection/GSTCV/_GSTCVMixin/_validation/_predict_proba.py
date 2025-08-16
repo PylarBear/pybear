@@ -16,7 +16,7 @@ import numpy as np
 
 def _val_predict_proba(
     _predict_proba: Sequence[numbers.Real],
-    _len: numbers.Integral
+    _len: int
 ) -> None:
     """Validate `_predict_proba` is a vector-like of numbers whose
     length matches the rows in X, and 0 <= all numbers <= 1.
@@ -25,7 +25,7 @@ def _val_predict_proba(
     ----------
     _predict_proba : Sequence[numbers.Real]
         The predict proba output of the estimator.
-    _len : numbers.Integral
+    _len : int
         The number of examples in the X passed to `predict_proba`.
 
     Returns

@@ -21,7 +21,7 @@ PatternType: TypeAlias = None | re.Pattern[str] | tuple[re.Pattern[str], ...]
 
 def _val_compile_holder(
     _ch:PatternType | list[PatternType],
-    _n_rows:numbers.Integral,
+    _n_rows:int,
     _name:str = 'unnamed compile holder'
 ) -> None:
     """Validate the WIP parameter 'compile_holder'.
@@ -35,7 +35,7 @@ def _val_compile_holder(
     ----------
     _ch : PatternType | list[PatternType]
         The regex pattern(s) to search for in text data.
-    _n_rows : numbers.Integral
+    _n_rows : int
         The number of rows in the data passed to transform.
     _name : str, default = 'unnamed compile holder'
         The name of the corresponding pattern-holder param in the home

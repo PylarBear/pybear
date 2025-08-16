@@ -16,9 +16,9 @@ from .._validation._n import _val_n
 
 
 def _get_shortest_strings(
-    string_frequency: dict[str, numbers.Integral],
-    n: numbers.Integral = 10
-) -> dict[str, numbers.Integral]:
+    string_frequency: dict[str, int],
+    n: int = 10
+) -> dict[str, int]:
     """Return the shortest strings in the `string_frequency_` attribute
     as a dictionary with strings as keys and frequencies as values. If
     TS parameter `store_uniques` is False, `string_frequency` will be
@@ -26,16 +26,16 @@ def _get_shortest_strings(
 
     Parameters
     ----------
-    string_frequency : dict[str, numbers.Integral]
+    string_frequency : dict[str, int]
         The dictionary holding the unique strings seen by the fitted
         `TextStatistics` instance, and the number of occurrences of each
         string.
-    n : numbers.Integral, default = 10
+    n : int, default = 10
         The number of top shortest strings to retrieve.
 
     Returns
     -------
-    shortest_strings : dict[str, numbers.Integral]
+    shortest_strings : dict[str, int]
         The top 'n' shortest strings and their frequencies.
 
     """

@@ -57,7 +57,7 @@ ParamGridsWIPType: TypeAlias = list[ParamGridWIPType]
 ThresholdsInputType: TypeAlias = None | numbers.Real | Sequence[numbers.Real]
 ThresholdsWIPType: TypeAlias = list[float]
 
-GenericSlicerType: TypeAlias = Sequence[numbers.Integral]
+GenericSlicerType: TypeAlias = Sequence[int]
 
 GenericKFoldType: TypeAlias = tuple[GenericSlicerType, GenericSlicerType]
 
@@ -97,7 +97,7 @@ class ScorerWIPType(TypedDict):
 CVResultsType: TypeAlias = dict[str, np.ma.masked_array[Any]]
 
 
-RefitCallableType: TypeAlias = Callable[[CVResultsType], numbers.Integral]
+RefitCallableType: TypeAlias = Callable[[CVResultsType], int]
 RefitType: TypeAlias = bool | ScorerNameTypes | RefitCallableType
 
 

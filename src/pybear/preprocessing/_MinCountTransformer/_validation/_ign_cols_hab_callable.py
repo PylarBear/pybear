@@ -25,8 +25,8 @@ from ...__shared._validation._any_integer import _val_any_integer
 
 
 def _val_ign_cols_hab_callable(
-    _fxn_output: Sequence[str] | Sequence[numbers.Integral],
-    _first_fxn_output: Sequence[str] | Sequence[numbers.Integral] | None,
+    _fxn_output: Sequence[str] | Sequence[int],
+    _first_fxn_output: Sequence[str] | Sequence[int] | None,
     _name: Literal['ignore_columns', 'handle_as_bool'],
     _n_features_in: int,
     _feature_names_in: FeatureNamesInType | None
@@ -56,10 +56,10 @@ def _val_ign_cols_hab_callable(
 
     Parameters
     ----------
-    _fxn_output : Sequence[str] | Sequence[numbers.Integral]
+    _fxn_output : Sequence[str] | Sequence[int]
         The output of the callable used for `ignore_columns` or
         `handle_as_bool`.
-    _first_fxn_output : Sequence[str] | Sequence[numbers.Integral] | None
+    _first_fxn_output : Sequence[str] | Sequence[int] | None
         The output of the callable on the first call to `partial_fit` or
         `transform`. used to validate that all subsequent outputs of the
         callable equal the first.

@@ -18,7 +18,6 @@ from ._type_aliases import (
     RowSupportType
 )
 
-import numbers
 import re
 
 from ._transform._transform import _transform
@@ -147,7 +146,7 @@ class StopRemover(
         Words to be removed in addition to the stop words. If you intend
         to do a case-sensitive search then the capitalization of these
         words matters.
-    n_jobs : numbers.Integral | None, default = -1
+    n_jobs : int | None, default = -1
         The number of cores/threads to use when parallelizing the
         search for stop words in the rows of `X`. The default is to use
         processes but can be set by running `StopRemover` under a joblib
@@ -206,7 +205,7 @@ class StopRemover(
         remove_empty_rows:bool = True,
         exempt:list[str] | None = None,
         supplemental:list[str] | None = None,
-        n_jobs:numbers.Integral | None = -1
+        n_jobs:int | None = -1
     ) -> None:
         """Initialize the StopRemover instance."""
 

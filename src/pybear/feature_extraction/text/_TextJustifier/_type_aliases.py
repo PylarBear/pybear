@@ -34,7 +34,7 @@ XWipContainer: TypeAlias = list[str] | list[list[str]]
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-NCharsType: TypeAlias = numbers.Integral
+NCharsType: TypeAlias = int
 
 CoreSepBreakType: TypeAlias = \
     str | Sequence[str] | re.Pattern[str] | Sequence[re.Pattern[str]]
@@ -51,9 +51,9 @@ LineBreakWipType: TypeAlias = CoreSepBreakWipType | None
 
 CaseSensitiveType: TypeAlias = bool
 
-SepFlagsType: TypeAlias = numbers.Integral | None
+SepFlagsType: TypeAlias = int | None
 
-LineBreakFlagsType: TypeAlias = numbers.Integral | None
+LineBreakFlagsType: TypeAlias = int | None
 
 BackfillSepType: TypeAlias = str
 

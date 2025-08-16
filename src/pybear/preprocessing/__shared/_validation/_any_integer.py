@@ -42,13 +42,13 @@ def _val_any_integer(
 
     Parameters
     ----------
-    _int : numbers.Integral | Sequence[numbers.Integral]
+    _int : int | Sequence[int]
         The number being validated as an integer.
     _min : numbers.Real, default=float('-inf')
         The minimum allowed value `_int` can take.
     _max : numbers.Real, default=float('inf')
         The maximum allowed value `_int` can take.
-    _disallowed : Sequence[numbers.Integral], default=[]
+    _disallowed : Sequence[int], default=[]
         Values that `_int` is not allowed to take.
     _can_be_bool : bool, default=False
         If True, `_int` can be boolean.

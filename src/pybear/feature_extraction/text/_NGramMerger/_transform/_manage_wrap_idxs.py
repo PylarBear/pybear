@@ -14,9 +14,9 @@ import numbers
 
 def _manage_wrap_idxs(
     _first_line: Sequence[str],
-    _first_hits: Sequence[numbers.Integral],
-    _second_hits: Sequence[numbers.Integral],
-    _n_len: numbers.Integral
+    _first_hits: Sequence[int],
+    _second_hits: Sequence[int],
+    _n_len: int
 ) -> tuple[int, int]:
     """Determine which part of the end of the first line and which part
     of the start of the second line can be used to do a wrap-region
@@ -30,14 +30,14 @@ def _manage_wrap_idxs(
     ----------
     _first_line : Sequence[str]
         The active line in transform that is being searched for n-grams.
-    _first_hits : Sequence[numbers.Integral]
+    _first_hits : Sequence[int]
         The first indices of n-gram patterns that were found during the
         normal linear search of first_line.
-    _second_hits : Sequence[numbers.Integral]
+    _second_hits : Sequence[int]
         The first indices of n-gram patterns that were found during the
         normal linear search of the line in the data that is after
         first_line.
-    _n_len : numbers.Integral
+    _n_len : int
         The length of the n-gram pattern that is currently being searched
         for in transform.
 

@@ -34,7 +34,7 @@ def _special_param_conditioner(
     _replace: ReplaceType,
     _case_sensitive: CaseSensitiveType,
     _flags: FlagsType,
-    _n_rows: numbers.Integral,
+    _n_rows: int,
 ) -> WipReplaceType:
     """Standardize the `replace` parameter with (escaped!) re.compiles
     in every 'find' position and global flags applied.
@@ -58,7 +58,7 @@ def _special_param_conditioner(
         The 'case_sensitive' parameter as passed at init.
     _flags : FlagsType
         The 'flags' parameter as passed at init.
-    _n_rows : numbers.Integral
+    _n_rows : int
         The number of rows in the data passed to :meth:`transform`.
 
     Returns

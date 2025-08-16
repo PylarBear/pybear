@@ -385,7 +385,7 @@ class InterceptManager(
 
     KeepType:
         Literal['first', 'last', 'random', 'none'] | dict[str, Any]
-        | numbers.Integral | str | Callable[[XContainer], int]
+        | int | str | Callable[[XContainer], int]
 
     ConstantColumnsType:
         dict[int, Any]

@@ -14,20 +14,20 @@ from .._validation._character_frequency import _val_character_frequency
 
 
 def _print_character_frequency(
-    character_frequency: dict[str, numbers.Integral],
-    lp: numbers.Integral,
-    rp: numbers.Integral
+    character_frequency: dict[str, int],
+    lp: int,
+    rp: int
 ) -> None:
     """Print the `character_frequency_` attribute to screen.
 
     Parameters
     ----------
-    character_frequency : dict[str, numbers.Integral]
+    character_frequency : dict[str, int]
         The dictionary holding all the unique characters and their
         respective counts seen by the fitted `TextStatistics` instance.
-    lp : numbers.Integral
+    lp : int
         The left padding for the display.
-    rp : numbers.Integral
+    rp : int
         The right padding for the display.
 
     Returns

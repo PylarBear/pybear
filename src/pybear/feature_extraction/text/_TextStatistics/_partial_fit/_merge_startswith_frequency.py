@@ -13,8 +13,8 @@ from .._validation._startswith_frequency import _val_startswith_frequency
 
 
 def _merge_startswith_frequency(
-    _current_startswith_frequency: dict[str, numbers.Integral],
-    _startswith_frequency: dict[str, numbers.Integral]
+    _current_startswith_frequency: dict[str, int],
+    _startswith_frequency: dict[str, int]
 ) -> dict[str, int]:
     """Merge the unique first characters and counts in the current
     partial fit's startswith frequency dictionary with those found in
@@ -22,10 +22,10 @@ def _merge_startswith_frequency(
 
     Parameters
     ----------
-    _current_startswith_frequency : dict[str, numbers.Integral]
+    _current_startswith_frequency : dict[str, int]
         The unique first characters and their counts found in the current
         partial fit.
-    _startswith_frequency : dict[str, numbers.Integral]
+    _startswith_frequency : dict[str, int]
         The unique first characters and their counts found in all
         previous partial fits on the `TextStatistics` instance.
 

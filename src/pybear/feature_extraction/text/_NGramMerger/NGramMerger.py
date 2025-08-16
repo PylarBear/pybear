@@ -223,7 +223,7 @@ class NGramMerger(
         Whether to delete any empty rows that may occur during the n-gram
         merging process. A row could only become empty if `wrap` is True
         or the data was passed with an empty row already in it.
-    flags : numbers.Integral | None, default = None
+    flags : int | None, default = None
         The global flags value(s) applied to the n-gram search. Must be
         None or an integer. The values of the integers are not validated
         for legitimacy, any exceptions would be raised by `re.fullmatch`.
@@ -279,7 +279,7 @@ class NGramMerger(
         bool
 
     FlagsType:
-        numbers.Integral | None
+        int | None
 
     Examples
     --------

@@ -12,8 +12,6 @@ from typing import (
     TypeAlias
 )
 
-import numbers
-
 
 
 # see _type_aliases, bool subtypes of DataType, GridType, PointsType, ParamType
@@ -22,8 +20,8 @@ BoolDataType: TypeAlias = bool | None  # DataType sub
 InBoolGridType: TypeAlias = Sequence[BoolDataType]
 BoolGridType: TypeAlias = list[BoolDataType]
 
-InPointsType: TypeAlias = numbers.Integral | Sequence[numbers.Integral]
-PointsType: TypeAlias = list[numbers.Integral]
+InPointsType: TypeAlias = int | Sequence[int]
+PointsType: TypeAlias = list[int]
 
 BoolTypeType: TypeAlias = Literal['fixed_bool']
 

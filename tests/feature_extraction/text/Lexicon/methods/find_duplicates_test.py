@@ -16,11 +16,6 @@ from pybear.feature_extraction.text._Lexicon._methods._find_duplicates import \
 class TestFindDuplicates:
 
 
-    # def _find_duplicates(
-    #     string_frequency_: dict[str, numbers.Integral]
-    # ) -> dict[str, numbers.Integral]:
-
-
     @pytest.mark.parametrize('junk_sf',
         (-2.7, -1, 0, 1, 2.7, True, None, 'trash', [0,1], (1,), {1, 2}, lambda x: x)
     )

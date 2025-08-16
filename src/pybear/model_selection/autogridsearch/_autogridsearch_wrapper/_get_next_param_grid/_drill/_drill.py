@@ -9,7 +9,6 @@
 from typing import Literal
 from ..._type_aliases import LogspaceType
 
-import numbers
 import numpy as np
 
 from .._float._float import _float
@@ -30,7 +29,7 @@ def _drill(
     _grid: GridType,
     _param_value: ParamType,
     _is_logspace: LogspaceType,
-    _pass: numbers.Integral,
+    _pass: int,
     _best: DataType
 ) -> tuple[GridType, ParamType, Literal[False]]:
     """Produce the next gridsearch's `_grid` for individual parameters.
@@ -56,7 +55,7 @@ def _drill(
         the interval of the logspace. E.g., np.logspace(-5, 5, 11) would
         be represented by 1.0, and np.logspace(-20, 20, 9) would be
         represented by 5.0
-    _pass : numbers.Integral
+    _pass : int
         Zero-indexed counter of number of gridsearches performed
         inclusive of this round. If this is the second gridsearch,
         `_pass` == 1.

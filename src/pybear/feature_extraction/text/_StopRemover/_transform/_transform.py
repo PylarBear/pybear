@@ -11,8 +11,6 @@ from typing import (
 )
 import numpy.typing as npt
 
-import numbers
-
 import numpy as np
 import joblib
 
@@ -23,7 +21,7 @@ def _transform(
     _callable: Callable[[str, str], bool],
     _stop_words: list[str],
     _remove_empty_rows: bool,
-    _n_jobs: numbers.Integral | None
+    _n_jobs: int | None
 ) -> tuple[list[list[str]], npt.NDArray[bool]]:
     """Remove stop words from `X`.
 
@@ -43,8 +41,8 @@ def _transform(
     _remove_empty_rows : bool
         Whether to remove any empty rows that might result from the stop
         word removal process.
-    _n_jobs : numbers.Integral | None - the number of rows to search in
-        parallel for stop words.
+    _n_jobs : int | None - the number of rows to search in parallel for
+        stop words.
 
     Returns
     -------

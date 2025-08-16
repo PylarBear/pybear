@@ -472,7 +472,7 @@ class TextStatistics(
 
         # string_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         # this must be first
-        _current_string_frequency: dict[str, numbers.Integral] = \
+        _current_string_frequency: dict[str, int] = \
             _build_string_frequency(
                 X,
                 case_sensitive=True
@@ -491,7 +491,7 @@ class TextStatistics(
         # END string_frequency_ -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         # startswith_frequency -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        _current_startswith_frequency: dict[str, numbers.Integral] = \
+        _current_startswith_frequency: dict[str, int] = \
             _build_startswith_frequency(
                 _current_string_frequency
             )
@@ -508,7 +508,7 @@ class TextStatistics(
         # END startswith_frequency -- -- -- -- -- -- -- -- -- -- -- --
 
         # character_frequency -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        _current_character_frequency: dict[str, numbers.Integral] = \
+        _current_character_frequency: dict[str, int] = \
             _build_character_frequency(
                 _current_string_frequency
             )
@@ -652,17 +652,16 @@ class TextStatistics(
 
     def print_string_frequency(
         self,
-        n:numbers.Integral = 10
+        n:int = 10
     ) -> None:
-        """
-        Print the :attr:`string_frequency_` attribute to screen.
+        """Print the :attr:`string_frequency_` attribute to screen.
 
         Only available if `store_uniques` is True. If False, uniques
         are not available for display to screen.
 
         Parameters
         ----------
-        n : numbers.Integral, default = 10
+        n : int, default = 10
             The number of the most frequent strings to print to screen.
 
         Returns
@@ -679,7 +678,7 @@ class TextStatistics(
     # longest_strings -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     def get_longest_strings(
         self,
-        n: numbers.Integral = 10
+        n: int = 10
     ) -> dict[str, int]:
         """The longest strings seen by the `TextStatistics` instance
         during fitting.
@@ -690,7 +689,7 @@ class TextStatistics(
 
         Parameters
         ----------
-        n : numbers.Integral, default = 10
+        n : int, default = 10
             The number of the top longest strings to return.
 
         Returns
@@ -714,7 +713,7 @@ class TextStatistics(
 
     def print_longest_strings(
         self,
-        n: numbers.Integral = 10
+        n: int = 10
     ) -> None:
         """Print the longest strings in :attr:`string_frequency_` to
         screen.
@@ -724,7 +723,7 @@ class TextStatistics(
 
         Parameters
         ----------
-        n : numbers.Integral, default = 10
+        n : int, default = 10
             The number of top longest strings to print to screen.
 
         Returns
@@ -741,7 +740,7 @@ class TextStatistics(
     # shortest_strings -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     def get_shortest_strings(
         self,
-        n: numbers.Integral = 10
+        n: int = 10
     ) -> dict[str, int]:
         """The shortest strings seen by the `TextStatistics` instance
         during fitting.
@@ -752,7 +751,7 @@ class TextStatistics(
 
         Parameters
         ----------
-        n : numbers.Integral, default = 10
+        n : int, default = 10
             The number of the top shortest strings to return.
 
         Returns
@@ -776,7 +775,7 @@ class TextStatistics(
 
     def print_shortest_strings(
         self,
-        n: numbers.Integral = 10
+        n: int = 10
     ) -> None:
         """Print the shortest strings in :attr:`string_frequency_` to
         screen.
@@ -786,7 +785,7 @@ class TextStatistics(
 
         Parameters
         ----------
-        n : numbers.Integral, default = 10
+        n : int, default = 10
             The number of shortest strings to print to screen.
 
         Returns

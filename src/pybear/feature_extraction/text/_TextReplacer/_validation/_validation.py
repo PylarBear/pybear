@@ -28,28 +28,24 @@ def _validation(
     _case_sensitive: CaseSensitiveType,
     _flags: FlagsType
 ) -> None:
+    """Centralized hub for validation.
 
-    """
-    Centralized hub for validation. See the individual validation
-    modules for more details.
-
+    See the individual validation modules for more details.
 
     Parameters
     ----------
-    _X:
-        XContainer - the data.
-    _replace:
-        ReplaceType - the criteria for search and replacement.
-    _case_sensitive:
-        CaseSensitiveType - whether the search is case-sensitive.
-    _flags:
-        FlagsType - the flags for the search.
-
+    _X : XContainer
+        The data.
+    _replace : ReplaceType
+        The criteria for search and replacement.
+    _case_sensitive : CaseSensitiveType
+        Whether the search is case-sensitive.
+    _flags : FlagsType
+        The flags for the search.
 
     Returns
     -------
-    -
-        None
+    None
 
     """
 

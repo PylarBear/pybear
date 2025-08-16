@@ -24,7 +24,7 @@ PatternType: TypeAlias = FindType | tuple[FindType, ...]
 def _compile_maker(
     _pattern_holder: PatternType | list[PatternType | None],
     _order_matters: bool,
-    _n_rows: numbers.Integral,
+    _n_rows: int,
     _name:str = 'unnamed pattern holder'
 ) -> list[list[None] | list[re.Pattern[str]]]:
     """
@@ -41,8 +41,8 @@ def _compile_maker(
         redundancy are important. If not important, any redundancy can
         be eliminated with Python sets and order can change without
         consequence.
-    _n_rows : numbers.Integral - the number of rows in whatever data is
-        associated with '_pattern_holder'.
+    _n_rows : int - the number of rows in whatever data is associated
+        with '_pattern_holder'.
     _name : str, default = 'unnamed pattern holder'
         The name of the corresponding pattern-holder param in the home
         module, like 'split', 'replace', 'ngrams', etc.

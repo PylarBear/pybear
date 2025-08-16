@@ -539,7 +539,7 @@ params : ParamsType
     hyperparameters. See the 'params Parameter' section of the docs
     for a lengthy, detailed, discussion on constructing this and how it
     works.
-total_passes : numbers.Integral, default=5
+total_passes : int, default=5
     The number of grid searches to perform. The actual number of passes
     can be different from this number based on the setting for the
     `total_passes_is_hard` parameter. If `total_passes_is_hard` is True,
@@ -555,7 +555,7 @@ total_passes_is_hard : bool, default=False
     will be performed. If False, rounds in which a 'shift' takes place
     will increment the total passes, essentially causing 'shift' passes
     to be ignored against the total count of grid searches.
-max_shifts : numbers.Integral | None, default=None
+max_shifts : int | None, default=None
     The maximum number of 'shifting' searches allowed. If None, there is
     no limit to the number of shifts that `AutoGridSearch` will perform
     when trying to center search grids.

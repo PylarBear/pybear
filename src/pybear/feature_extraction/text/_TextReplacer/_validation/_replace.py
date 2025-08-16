@@ -11,35 +11,28 @@ from typing import (
 )
 from .._type_aliases import ReplaceType
 
-import numbers
 import re
 
 
 
 def _val_replace(
     _replace: ReplaceType,
-    _n_rows: numbers.Integral
+    _n_rows: int
 ) -> None:
-
-    """
-    Validate the 'replace' argument.
-
+    """Validate the 'replace' argument.
 
     Parameters
     ----------
-    _replace:
-        ReplaceType - None, a find/replace pair, a tuple of find/replace
-        pairs, or a list of those things. If a list, the number of
-        entries in the list must equal the number of rows in the data.
-    _n_rows:
-        numbers.Integral - the number of rows of text in the data.
-
+    _replace : ReplaceType
+        A find/replace pair, a tuple of find/replace pairs, or a list of
+        those things. If a list, the number of entries in the list must
+        equal the number of rows in the data.
+    _n_rows : int
+        The number of rows of text in the data.
 
     Returns
     -------
-    -
-        None
-
+    None
 
     """
 
@@ -65,8 +58,8 @@ def _val_replace(
 
         Parameters
         ----------
-        _tuple:
-            the patterns to search for and what to replace them with.
+        _tuple : tuple
+            The patterns to search for and what to replace them with.
 
         Returns
         -------

@@ -20,14 +20,6 @@ from pybear.feature_extraction.text._TextJustifier._transform._splitter \
 
 class TestStacker:
 
-    # def _stacker(
-    #     _X: list[str],
-    #     _n_chars: numbers.Integral,
-    #     _sep: re.Pattern[str] | tuple[re.Pattern[str], ...],
-    #     _line_break: None | re.Pattern[str] | tuple[re.Pattern[str], ...],
-    #     _backfill_sep: str
-    # ) -> list[str]:
-
 
     @staticmethod
     @pytest.fixture(scope='function')

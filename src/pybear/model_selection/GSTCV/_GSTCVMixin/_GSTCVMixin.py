@@ -326,10 +326,10 @@ class _GSTCVMixin(
         # self.scoring: ScorerInputType
         # self.scorer_: ScorerWIPType
         # self.multimetric_: bool
-        # self.n_jobs: numbers.Integral | None
+        # self.n_jobs: int | None
         # self.refit: RefitType
         # self._refit: RefitType
-        # self.cv: None | numbers.Integral | Iterable[GenericKFoldType]
+        # self.cv: None | int | Iterable[GenericKFoldType]
         # self._cv: int | list[GenericKFoldType]
         # self.n_splits_: int
         # self.verbose: numbers.Real
@@ -338,7 +338,7 @@ class _GSTCVMixin(
         # self.return_train_score: bool
 
         # IF GSTCV:
-        # self.pre_dispatch: Literal['all'] | str | numbers.Integral
+        # self.pre_dispatch: Literal['all'] | str | int
         # self._scheduler: SKSchedulerType (ContextManager)
 
         # IF GSTCVDask:

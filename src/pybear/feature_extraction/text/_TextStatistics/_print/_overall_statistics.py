@@ -13,8 +13,8 @@ from .._type_aliases import OverallStatisticsType
 
 def _print_overall_statistics(
     overall_statistics: OverallStatisticsType,
-    lp: numbers.Integral,
-    rp: numbers.Integral
+    lp: int,
+    rp: int
 ) -> None:
     """Print the `overall_statistics_` attribute to screen.
 
@@ -24,9 +24,9 @@ def _print_overall_statistics(
         The dictionary holding statistics about all the strings fitted
         on the `TextStatistics` instance, such as number of strings,
         average length of strings, maximum length string, etc.
-    lp : numbers.Integral
+    lp : int
         The left padding for the display.
-    rp : numbers.Integral
+    rp : int
         The right padding for the display.
 
     Returns

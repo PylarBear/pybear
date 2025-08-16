@@ -16,8 +16,8 @@ import numbers
 
 
 def _cond_cv(
-    _cv:None | numbers.Integral | Iterable[GenericKFoldType],
-    _cv_default:numbers.Integral = 5
+    _cv:None | int | Iterable[GenericKFoldType],
+    _cv_default:int = 5
 ) -> int | list[GenericKFoldType]:
     """Condition `cv`.
 
@@ -37,7 +37,7 @@ def _cond_cv(
 
     Parameters
     ----------
-    _cv : None | numbers.Integral | Iterable[GenericKFoldType]
+    _cv : None | int | Iterable[GenericKFoldType]
 
         Possible inputs for cv are:
 
@@ -55,7 +55,7 @@ def _cond_cv(
         but any validation beyond that is up to the user outside of
         `GSTCV`.
 
-    _cv_default : numbers.Integral, default=5
+    _cv_default : int, default=5
         The number of cv folds to be applied when `cv` is None.
 
     Returns

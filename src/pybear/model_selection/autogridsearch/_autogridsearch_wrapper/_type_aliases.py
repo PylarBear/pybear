@@ -40,8 +40,6 @@ from ._type_aliases_bool import (
     BoolParamType
 )
 
-import numbers
-
 
 
 DataType: TypeAlias = BoolDataType | StrDataType | IntDataType | FloatDataType
@@ -50,8 +48,8 @@ InGridType: TypeAlias = \
     InBoolGridType | InStrGridType | InIntGridType | InFloatGridType
 GridType: TypeAlias = BoolGridType | StrGridType | IntGridType | FloatGridType
 
-InPointsType: TypeAlias = numbers.Integral | Sequence[numbers.Integral]
-PointsType: TypeAlias = list[numbers.Integral]
+InPointsType: TypeAlias = int | Sequence[int]
+PointsType: TypeAlias = list[int]
 
 InParamType: TypeAlias = \
     InBoolParamType | InStrParamType | InIntParamType | InFloatParamType
@@ -69,7 +67,7 @@ ParamsType: TypeAlias = dict[
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-LogspaceType: TypeAlias = Literal[False] | numbers.Integral
+LogspaceType: TypeAlias = Literal[False] | int
 IsLogspaceType: TypeAlias = dict[str, LogspaceType]
 
 PhliteType: TypeAlias = dict[str, bool]

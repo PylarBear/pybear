@@ -19,7 +19,7 @@ from .....base._check_1D_str_sequence import check_1D_str_sequence
 def _build_string_frequency(
     STRINGS:Sequence[str],
     case_sensitive:bool = False
-) -> dict[str, numbers.Integral]:
+) -> dict[str, int]:
     """Build a dictionary of the unique strings in `STRINGS` and their
     counts.
 

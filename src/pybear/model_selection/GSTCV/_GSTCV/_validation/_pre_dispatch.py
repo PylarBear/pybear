@@ -11,12 +11,10 @@ from typing import (
     Literal,
 )
 
-import numbers
-
 
 
 def _val_pre_dispatch(
-    _pre_dispatch:Literal['all'] | str | numbers.Integral
+    _pre_dispatch:Literal['all'] | str | int
 ) -> None:
     """Validate `_pre_dispatch`.
 
@@ -25,7 +23,7 @@ def _val_pre_dispatch(
 
     Parameters
     ----------
-    _pre_dispatch : Literal['all'] | str | numbers.Integral
+    _pre_dispatch : Literal['all'] | str | int
         The number of batches (of tasks) to be pre-dispatched. See the
         joblib.Parallel docs for more information.
 

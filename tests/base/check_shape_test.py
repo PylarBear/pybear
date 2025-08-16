@@ -20,16 +20,6 @@ from pybear.base._check_shape import check_shape
 class TestCheckShape:
 
 
-    # def check_shape(
-    #     X,
-    #     min_features: numbers.Integral = 1,
-    #     max_features: numbers.Integral | None = None,
-    #     min_samples: numbers.Integral = 1,
-    #     sample_check: numbers.Integral | None = None,
-    #     allowed_dimensionality: Iterable[numbers.Integral] = (1, 2)
-    # ) -> tuple[int, ...]:
-
-
     # the validation at the top of check_shape is not tested here.
     # it is tested in _validate_data_test.
 

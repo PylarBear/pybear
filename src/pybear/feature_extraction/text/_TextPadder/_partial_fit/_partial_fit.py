@@ -8,12 +8,11 @@
 
 from .._type_aliases import XContainer
 
-import numbers
 
 
 def _partial_fit(
     _X: XContainer
-) -> numbers.Integral:
+) -> int:
     """Get the number of features in `X`.
 
     Parameters
@@ -23,7 +22,7 @@ def _partial_fit(
 
     Returns
     -------
-    n_features : numbers.Integral
+    n_features : int
         The number of features in `X`.
 
     """

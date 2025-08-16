@@ -22,15 +22,6 @@ class TestValidation:
     # the heavy lifting is handled by the submodules, which have their own
     # tests. just ensure this module works and passes good.
 
-    # def _validation(
-    #     _params: InParamsType,
-    #     _total_passes: numbers.Integral,
-    #     _total_passes_is_hard: bool,
-    #     _max_shifts: None | numbers.Integral,
-    #     _agscv_verbose: bool
-    # ) -> None:
-
-
 
     @pytest.mark.parametrize('_total_passes', (1, 3))
     @pytest.mark.parametrize('_total_passes_is_hard', (True, False))

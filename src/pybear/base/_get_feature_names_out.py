@@ -20,7 +20,7 @@ import numbers
 def get_feature_names_out(
     input_features: Sequence[str] | None,
     feature_names_in_: npt.NDArray[object] | None,
-    n_features_in_: numbers.Integral
+    n_features_in_: int
 ) -> npt.NDArray[object]:
     """Return the feature name vector for the output of a pybear
     estimator or transformer.
@@ -40,7 +40,7 @@ def get_feature_names_out(
         The names of the features as seen during fitting. Only available
         if `X` is passed to `partial_fit` or `fit` in a container that
         has a header.
-    n_features_in_ : numbers.Integral
+    n_features_in_ : int
         The number of features in `X`.
 
     Returns

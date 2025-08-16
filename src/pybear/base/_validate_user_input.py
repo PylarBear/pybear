@@ -107,7 +107,7 @@ def validate_user_str_cs(
 def validate_user_mstr(
     user_prompt:str,
     options:str,
-    max_len:numbers.Integral=2
+    max_len:int=2
 ) -> str:
     """String validation for multiple alpha character user entry that
     screens by length of entry and allowed options. Not case sensitive.
@@ -118,7 +118,7 @@ def validate_user_mstr(
         Text string displayed to the user at prompt.
     options : str
         A single text string containing the allowed characters.
-    max_len : numbers.Integral, default = 2
+    max_len : int, default = 2
         Maximum number of allowed selections.
 
     Returns

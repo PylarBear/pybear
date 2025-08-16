@@ -15,11 +15,11 @@ import numbers
 
 
 def _val_any_integer(
-    _int:numbers.Integral | Sequence[numbers.Integral],
+    _int:int | Sequence[int],
     _name:str = 'unnamed integer',
     _min:numbers.Real = float('-inf'),
     _max:numbers.Real = float('inf'),
-    _disallowed:Sequence[numbers.Integral] = [],
+    _disallowed:Sequence[int] = [],
     _can_be_bool:bool = False,
     _can_be_None:bool = False
 ) -> None:
@@ -42,13 +42,13 @@ def _val_any_integer(
 
     Parameters
     ----------
-    _int : numbers.Integral | Sequence[numbers.Integral]
+    _int : int | Sequence[int]
         Number to be validated whether it is an integer.
     _min : numbers.Real, default=float('-inf')
         The minimum allowed value '_int' can take.
     _max : numbers.Real, default=float('inf')
         The maximum allowed value '_int' can take.
-    _disallowed : Sequence[numbers.Integral], default=[]
+    _disallowed : Sequence[int], default=[]
         Values that '_int' is not allowed to take.
     _can_be_bool : bool, default=False
         If True, '_int' can be boolean.
@@ -93,7 +93,7 @@ def _val_any_integer(
 
     # helper function -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     def _helper(
-        _int:numbers.Integral | Sequence[numbers.Integral] | None,
+        _int:int | Sequence[int] | None,
     ) -> None:
 
         """Helper function for validating integers."""

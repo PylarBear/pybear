@@ -16,10 +16,10 @@ from .._validation._string_frequency import _val_string_frequency
 
 
 def _print_string_frequency(
-    string_frequency:dict[str, numbers.Integral],
-    lp:numbers.Integral,
-    rp:numbers.Integral,
-    n:numbers.Integral = 10
+    string_frequency:dict[str, int],
+    lp:int,
+    rp:int,
+    n:int = 10
 ) -> None:
     """Print the `string_frequency_` attribute to screen.
 
@@ -29,14 +29,14 @@ def _print_string_frequency(
 
     Parameters
     ----------
-    string_frequency : dict[str, numbers.Integral]
+    string_frequency : dict[str, int]
         The dictionary holding the unique strings and their respective
         counts for all strings fitted on the `TextStatistics` instance.
-    lp : numbers.Integral
+    lp : int
         The left padding for the display.
-    rp : numbers.Integral
+    rp : int
         The right padding for the display.
-    n : numbers.Integral, default = 10
+    n : int, default = 10
         The number of most frequent strings to print.
 
     Returns

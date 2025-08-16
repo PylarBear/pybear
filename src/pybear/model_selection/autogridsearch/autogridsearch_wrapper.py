@@ -109,9 +109,9 @@ def autogridsearch_wrapper(GridSearchParent):
             estimator,
             params:ParamsType,
             *,
-            total_passes:numbers.Integral = 5,
+            total_passes:int = 5,
             total_passes_is_hard:bool = False,
-            max_shifts:numbers.Integral | None = None,
+            max_shifts:int | None = None,
             agscv_verbose:bool = False,
             **parent_gscv_kwargs
         ) -> None:

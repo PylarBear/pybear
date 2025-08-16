@@ -247,14 +247,14 @@ class ColumnDeduplicator(
     atol : numbers.Real, default=1e-8
         The absolute difference tolerance for equality. Must be a
         non-boolean, non-negative, real number. See `numpy.allclose`.
-    n_jobs : numbers.Integral | None, default=None
+    n_jobs : int | None, default=None
         The number of joblib Parallel jobs to use when comparing columns.
         The default is to use processes, but can be overridden externally
         using a joblib `parallel_config` context manager. The default
         value for `n_jobs` is None, which uses the joblib default
         setting. To get maximum speed benefit, pybear recommends setting
         this to -1, which means use all processors.
-    job_size : numbers.Integral, default=50
+    job_size : int, default=50
         The number of columns to send to a joblib job. Must be an integer
         greater than or equal to 2. This allows the user to optimize CPU
         utilization for their particular circumstance. Long, thin datasets
@@ -391,8 +391,8 @@ class ColumnDeduplicator(
         equal_nan:bool = False,
         rtol:numbers.Real = 1e-5,
         atol:numbers.Real = 1e-8,
-        n_jobs:numbers.Integral | None = None,
-        job_size: numbers.Integral = 50
+        n_jobs:int | None = None,
+        job_size:int = 50
     ) -> None:
         """Initialize the `ColumnDeduplicator` instance."""
 

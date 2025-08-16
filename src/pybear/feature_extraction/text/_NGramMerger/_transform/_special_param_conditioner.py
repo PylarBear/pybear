@@ -11,8 +11,6 @@ from .._type_aliases import (
     NGramsWipType
 )
 
-import numbers
-
 from ...__shared._param_conditioner._param_conditioner import _param_conditioner
 
 
@@ -20,7 +18,7 @@ from ...__shared._param_conditioner._param_conditioner import _param_conditioner
 def _special_param_conditioner(
     _ngrams: NGramsType,
     _case_sensitive: bool,
-    _flags: numbers.Integral | None
+    _flags: int | None
 ) -> NGramsWipType:
     """Convert any literal strings in the ngrams to re.compile objects.
 
@@ -37,7 +35,7 @@ def _special_param_conditioner(
         than 2 entries. Can be None.
     _case_sensitive : bool
         Whether to do a case-sensitive search.
-    _flags : numbers.Integral | None
+    _flags : int | None
         The global flags value(s) applied to the n-gram search. Must be
         None or an integer.
 

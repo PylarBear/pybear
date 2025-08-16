@@ -217,7 +217,7 @@ class TextRemover(
         bool
 
     FlagType:
-        None | numbers.Integral
+        None | int
     FlagsType:
         FlagType | list[FlagType]
 

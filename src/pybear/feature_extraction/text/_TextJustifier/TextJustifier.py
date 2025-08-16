@@ -209,7 +209,7 @@ class TextJustifier(
 
     Parameters
     ----------
-    n_chars : numbers.Integral, default = 79
+    n_chars : int, default = 79
         The target number of characters per line when justifying the
         given text. Minimum allowed value is 1; there is no maximum
         value. Under normal expected operation with reasonable margins,
@@ -233,7 +233,7 @@ class TextJustifier(
         expression itself. Any exceptions would be raised by `re.search`.
         See the main docs for more discussion about limitations on what
         can be passed here.
-    sep_flags : numbers.Integral | None, default = None
+    sep_flags : int | None, default = None
         The flags for the `sep` parameter. THIS WILL APPLY EVEN IF YOU
         PASS LITERAL STRINGS TO `sep`. IGNORECASE flags passed to this
         will overrule `case_sensitive` for `sep`. This parameter is only
@@ -260,7 +260,7 @@ class TextJustifier(
         validity of the expression itself. Any exceptions would be
         raised by `re.search`. See the main docs for more discussion
         about limitations on what can be passed here.
-    line_break_flags : numbers.Integral | None, default = None
+    line_break_flags : int | None, default = None
         The flags for the `line_break` parameter. THIS WILL APPLY EVEN
         IF YOU PASS LITERAL STRINGS TO `line_break`. IGNORECASE flags
         passed to this will overrule `case_sensitive` for `line_break`.
@@ -308,7 +308,7 @@ class TextJustifier(
         list[str] | list[list[str]]
 
     NCharsType:
-        numbers.Integral
+        int
 
     CoreSepBreakTypes:
         str | Sequence[str] | re.Pattern[str] | Sequence[re.Pattern[str]]
@@ -332,10 +332,10 @@ class TextJustifier(
         bool
 
     SepFlagsType:
-        numbers.Integral | None
+        int | None
 
     LineBreakFlagsType:
-        numbers.Integral | None
+        int | None
 
     BackfillSepType:
         str
@@ -388,7 +388,7 @@ class TextJustifier(
     def __init__(
         self,
         *,
-        n_chars:numbers.Integral = 79,
+        n_chars:int = 79,
         sep:SepType = ' ',
         sep_flags:SepFlagsType = None,
         line_break:LineBreakType = None,
@@ -531,7 +531,7 @@ class TextJustifier(
     def _cond_helper(
         _obj: LineBreakType,
         _case_sensitive: bool,
-        _flags: numbers.Integral | None,
+        _flags: int | None,
         _name: str
     ) -> None | re.Pattern[str] | tuple[re.Pattern[str], ...]:
         """Helper for making re.compiles and putting in flags for `sep`
