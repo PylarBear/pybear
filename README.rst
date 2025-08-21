@@ -61,7 +61,7 @@ pybear
 |BMC|
 
 .. |BMC| image:: https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png
-   :target: https://www.buymeacoffee.com/<your-username>
+   :target: https://www.buymeacoffee.com/pybear
    :alt: Buy Me A Coffee
 
 .. _documentation: https://pybear.readthedocs.io/
