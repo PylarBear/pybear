@@ -58,6 +58,12 @@ pybear
    :target: https://doi.org/10.5281/zenodo.16547172
    :alt: DOI
 
+|BMC|
+
+.. |BMC| image:: https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png
+   :target: https://www.buymeacoffee.com/<your-username>
+   :alt: Buy Me A Coffee
+
 .. _documentation: https://pybear.readthedocs.io/
 
 .. |PythonVersion| replace:: >=3.10
