@@ -63,8 +63,16 @@ def _int_linspace_gap_gt_1_soft(
 
     else:
         _best = _SINGLE_GRID[_posn]
-        _left = min(_SINGLE_GRID[_posn - 1] + 1, _best - 1)
-        _right = max(_SINGLE_GRID[_posn + 1] - 1, _best + 1)
+        _left = min(
+            # _SINGLE_GRID[_posn - 1] + 1,
+            _SINGLE_GRID[_posn - 1] + (_best - _SINGLE_GRID[_posn - 1]) // 2,
+            _best - 1
+        )
+        _right = max(
+            # _SINGLE_GRID[_posn + 1] - 1,
+            _SINGLE_GRID[_posn + 1] - (_SINGLE_GRID[_posn + 1] - _best) // 2,
+            _best + 1
+        )
 
 
     # apply universal lower bound

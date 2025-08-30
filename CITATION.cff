@@ -3,6 +3,6 @@ message: "If you use this software, please cite it as below."
 authors:
   - name: "The pybear developers"
 title: "pybear"
-version: 0.2.0
+version: 0.2.2
 doi: https://doi.org/10.5281/zenodo.16547172
 url: "https://github.com/PylarBear/pybear"

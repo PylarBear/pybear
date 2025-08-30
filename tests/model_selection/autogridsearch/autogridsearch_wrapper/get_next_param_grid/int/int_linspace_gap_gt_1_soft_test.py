@@ -19,7 +19,7 @@ class TestIntLinspaceGapGT1Soft:
     # no _validation
 
 
-    # unit gap only to tests for robustness against span falling below 2
+    # unit gap only to test for robustness against span falling below 2
     @pytest.mark.parametrize('grid',
         ([1,3,5], [10,20,30], [10, 15, 25], [3,4,5])
     )
@@ -49,9 +49,9 @@ class TestIntLinspaceGapGT1Soft:
 
         elif posn == 'middle':
 
-            assert _left == min(grid[0] + 1, grid[1] - 1)
+            assert _left >= min(grid[0] + 1, grid[1] - 1)
 
-            assert _right == max(grid[-1] - 1, grid[1] + 1)
+            assert _right <= max(grid[-1] - 1, grid[1] + 1)
 
 
 

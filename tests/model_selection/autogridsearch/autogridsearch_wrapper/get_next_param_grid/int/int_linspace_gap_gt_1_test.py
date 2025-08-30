@@ -134,8 +134,8 @@ class TestIntLinspaceGap_GT_1:
                 del _gap
 
             elif _posn == 'middle':
-                assert min(_grid_out) == _SINGLE_GRID[_posn_ - 1] + 1
-                assert max(_grid_out) == _SINGLE_GRID[_posn_ + 1] - 1
+                assert min(_grid_out) >= _SINGLE_GRID[_posn_ - 1] + 1
+                assert max(_grid_out) <= _SINGLE_GRID[_posn_ + 1] - 1
 
 
         elif not _is_hard:
@@ -153,8 +153,8 @@ class TestIntLinspaceGap_GT_1:
                 del _gap
 
             elif _posn == 'middle':
-                assert min(_grid_out) == _SINGLE_GRID[_posn_ - 1] + 1
-                assert max(_grid_out) == _SINGLE_GRID[_posn_ + 1] - 1
+                assert min(_grid_out) >= _SINGLE_GRID[_posn_ - 1] + 1
+                assert max(_grid_out) <= _SINGLE_GRID[_posn_ + 1] - 1
 
 
 

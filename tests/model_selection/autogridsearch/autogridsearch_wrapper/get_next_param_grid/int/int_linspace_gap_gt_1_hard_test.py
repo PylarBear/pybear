@@ -70,9 +70,9 @@ class TestIntLinspaceGapGT1Hard:
 
         elif posn == 'middle':
 
-            assert _left == max(hard_min, min(grid[0] + 1, grid[1] - 1))
+            assert _left >= max(hard_min, min(grid[0] + 1, grid[1] - 1))
 
-            assert _right == min(hard_max, max(grid[-1] - 1, grid[1] + 1))
+            assert _right <= min(hard_max, max(grid[-1] - 1, grid[1] + 1))
 
 
 
