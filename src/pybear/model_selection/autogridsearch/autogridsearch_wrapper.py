@@ -541,7 +541,7 @@ def autogridsearch_wrapper(GridSearchParent):
                 _best_params = self.best_params_
 
                 if self.agscv_verbose:
-                    print(f"Pass {_pass + 1} best params: ", end='')
+                    print(f"Pass {_pass + 1} best params: ")
                     for k,v in _best_params.items():
                         try:
                             print(f'{k[:15]}'.ljust(20), f'{v:,.4f}')

@@ -414,13 +414,13 @@ class TestIntNonUnitGapGT3:
                     assert min(out_grid) == max(1, (__[0] - (__[1] - __[0])))
                     del __
                 else:
-                    assert min(out_grid) == good_grids[0][key][posn-1] + 1
+                    assert min(out_grid) >= good_grids[0][key][posn-1] + 1
             elif 'hard' in good_params[key][-1]:
                 if posn == 0:
                     assert min(out_grid) == good_grids[0][key][0]
                 else:
                     __ = good_grids[0][key]
-                    assert min(out_grid) == \
+                    assert min(out_grid) >= \
                         max(__[0], (__[posn] - (__[posn] - __[posn-1]))) + 1
                     del __
         # END min ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *

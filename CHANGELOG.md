@@ -12,7 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - None
 
 ### Changed
-- None
+- model_selection:
+    - autogridsearch_wrapper:
+        Adjust how soft integer space calculates next grid's points when
+        last best falls on a non-edge value.
 
 ### Deprecated
 - None
