@@ -259,7 +259,7 @@ The modules include:
 
 Related Resources
 -----------------
-pybear has a sister package called pybear_dask. A few of the pybear modules
+pybear has a sister package called pybear-dask. A few of the pybear modules
 have a corresponding twin in pybear-dask. You can pip install pybear-dask
 from PyPI in the same way as pybear. There is no Read The Docs website for
 pybear-dask, but it does have a GitHub repo.
