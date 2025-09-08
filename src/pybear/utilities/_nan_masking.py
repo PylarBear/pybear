@@ -225,11 +225,11 @@ def nan_mask_string(
     vector indicating the locations of nan-like representations in the
     data.
 
-    "nan-like representations" include, at least, pandas.NA, None (of
-    type None, not string "None"), and string representations of "nan".
-    This function does not accept scipy sparse matrices or arrays, as
-    dok and lil formats are not handled globally in the nan_mask
-    functions, and the remaining sparse objects can only contain
+    "nan-like representations" include, at least, pandas.NA, pandas.NaT,
+    None (of type None, not string "None"), and string representations
+    of "nan". This function does not accept scipy sparse matrices or
+    arrays, as dok and lil formats are not handled globally in the
+    nan_mask functions, and the remaining sparse objects can only contain
     numeric data.
 
     This function accepts Python lists, tuples, and sets, numpy arrays,
@@ -372,6 +372,8 @@ def nan_mask_string(
 
     M = np.char.replace(M, '<NA>', 'nan')
 
+    M = np.char.replace(M, 'NaT', 'nan')
+
     M = np.char.upper(M)
 
     return (M == 'NAN').astype(bool)
@@ -396,10 +398,10 @@ def nan_mask(
     matrices / arrays of all formats except dok and lil. In that case,
     a numpy boolean vector of shape identical to that of the sparse
     object's 'data' attribute is returned. "nan-like representations"
-    include, at least, np.nan, pandas.NA, None (of type None, not string
-    "None"), and string representations of "nan". This function does not
-    accept any ragged Python built-ins, numpy recarrays, or numpy masked
-    arrays.
+    include, at least, np.nan, pandas.NA, pandas.NaT, None (of type
+    None, not string "None"), and string representations of "nan".
+    This function does not accept any ragged Python built-ins, numpy
+    recarrays, or numpy masked arrays.
 
     Parameters
     ----------

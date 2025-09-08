@@ -160,7 +160,9 @@ def _get_dupls_for_combo_in_X_and_poly(
                     )
                 )
         else:
-            with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
+            with joblib.parallel_config(
+                prefer='processes', n_jobs=_n_jobs, backend='loky', max_nbytes="100M"
+            ):
                 _X_dupls = joblib.Parallel(return_as='list')(
                     joblib.delayed(_parallel_chunk_comparer)(
                         _chunk1=_columns_getter(_X, _X_idxs),
@@ -226,7 +228,9 @@ def _get_dupls_for_combo_in_X_and_poly(
                 )
             )
     else:
-        with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
+        with joblib.parallel_config(
+            prefer='processes', n_jobs=_n_jobs, backend='loky', max_nbytes="100M"
+        ):
             _poly_dupls = joblib.Parallel(return_as='list')(
                 joblib.delayed(_parallel_chunk_comparer)(
                     _chunk1=_columns_getter(_X, _poly1_idxs),
