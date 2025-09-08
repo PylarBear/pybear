@@ -79,7 +79,9 @@ def _build_poly(
     # @wrap_non_picklable_objects
     # def _poly_stacker(_columns):
     #     return ss.csc_array(_columns.prod(1).reshape((-1,1)))
-    # with joblib.parallel_config(prefer='processes', n_jobs=_n_jobs):
+    # with joblib.parallel_config(
+    #     prefer='processes', n_jobs=_n_jobs, backend='loky', max_nbytes="100M"
+    # ):
     #     POLY = joblib.Parallel(return_as='list')(
     #         joblib.delayed(_poly_stacker)(
     #             _columns_getter(_X, combo)

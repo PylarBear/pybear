@@ -12,10 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - None
 
 ### Changed
-- model_selection:
-    - autogridsearch_wrapper:
-        Adjust how soft integer space calculates next grid's points when
-        last best falls on a non-edge value.
+- model_selection.autogridsearch_wrapper:
+    Adjust how soft integer space calculates next grid's points when 
+    last best falls on a non-edge value.
+- utilities:
+    - nan_mask_string, nan_mask:
+        Add pandas.NaT to searched nan-like values.
 
 ### Deprecated
 - None
@@ -24,7 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - None
 
 ### Fixed
-- None
+- preprocessing.SlimPolyFeatures
+    Fix pickling error on "large" datasets. Set backend='loky' and 
+    max_nbytes="100M" for all usages of joblib.Parallel.
 
 ### Security
 - None
