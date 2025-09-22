@@ -10,8 +10,9 @@ import pytest
 from unittest.mock import patch
 
 import io
-import numbers
 from copy import deepcopy
+import numbers
+import re
 
 import numpy as np
 import pandas as pd
@@ -137,9 +138,13 @@ class TestTextLookup:
             ["SNORLUX", "CRUMBLE", "WAX"]
     ]
 
+    # END fixtures ** * ** * ** * ** * ** * ** * ** * ** * ** * ** * **
 
 
-    def test_accuracy(self, _kwargs, _X, _exp):
+    def test_accuracy_insitu(self, _kwargs, _X, _exp):
+
+        # all decisions about words not in Lexicon are handled manually
+        # in-situ, nothing is automatic via ALWAYS holders passed at init
 
         TestCls = TL(**_kwargs)
 
@@ -212,6 +217,110 @@ class TestTextLookup:
         assert np.array_equal(
             TestCls.SKIP_ALWAYS_,
             ['SNORLUX', 'QUACKTIVATE']
+        )
+
+
+    def test_accuracy_ALWAYS_init(self, _kwargs, _X, _exp):
+
+        # all decisions about words not in Lexicon are automatic via ALWAYS
+        # holders passed at init, nothing is handled manually in-situ
+
+        _new_kwargs = deepcopy(_kwargs)
+        _new_kwargs['SKIP_ALWAYS'] = ['SNORLUX', re.compile('QUACK.+')]
+        _new_kwargs['DELETE_ALWAYS'] = [
+            'SNIRKIFY', 'GLIMPLER', 'TORTAGLOOM', re.compile('ZONK.+'), 'GLENSHWINK',
+            'FLAPDOO', re.compile('^JUMBLY.+$', re.I), 'SMORFIC', 'FLOOBASTIC'
+        ]
+        _new_kwargs['REPLACE_ALWAYS'] = {
+            re.compile('^GLOURY$'): 'GLORY',
+            'BEAUTIFULL': 'BEAUTIFUL',
+            'AMAZIN': 'AMAZING',
+            'MAGNIFICIENT': 'MAGNIFICENT'
+        }
+        _new_kwargs['SPLIT_ALWAYS'] = {
+            'CRUMBLEWAX': ['CRUMBLE', 'WAX'],
+            re.compile('STARDUSK'): ['STAR', 'DUSK'],
+            'VALUEABLE': ['VALUE', 'ABLE'],
+            'PERSISTACE': ['PERSIST', 'ACE'],
+            'ZIGTROPE': ['ZIG', 'TROPE'],
+            'FLEXABILITY': ['FLEX', 'ABILITY'],
+            'BLOOMTRIX': ['BLOOM', 'TRIX'],
+            'TEACOMPOST': ['TEA', 'COMPOST']
+        }
+
+        TestCls = TL(**_new_kwargs)
+
+        # don't need to handle any stdins, all words not in Lexicon are
+        # covered by entries in the ALWAYS holders.
+        TestCls.partial_fit(_X)
+
+        # but because we are passing *TRIX* as a new word in SPLIT_ALWAYS
+        # and it is not in Lexicon, need to do some stdins to deal with that.
+        # *TRIX* does not hit the body of text until transform, that is
+        # why it does not need to be handled during partial_fit.
+        # Add *TRIX* to Lexicon, which will put it in TestCls.KNOWN_WORDS
+        with patch('sys.stdin', io.StringIO(f"a\n")):
+            out = TestCls.transform(_X)
+
+        for r_idx in range(len(_exp)):
+            assert np.array_equal(out[r_idx], _exp[r_idx])
+
+        nr_ = TestCls.n_rows_
+        assert isinstance(nr_, numbers.Integral)
+        assert nr_ == len(_X)
+        del nr_
+
+        rs_ = TestCls.row_support_
+        assert isinstance(rs_, np.ndarray)
+        assert all(map(isinstance, rs_, (np.bool_ for _ in rs_)))
+        assert len(rs_) == len(_X)
+        assert np.array_equal(rs_, [True] * len(_X))
+        del rs_
+
+        assert np.array_equal(
+            TestCls.LEXICON_ADDENDUM_,
+            ['TRIX']
+        )
+
+        assert TestCls.KNOWN_WORDS_[0] == 'TRIX'
+
+        # this proves that the Lexicon singleton class attribute's
+        # lexicon_ attribute is not mutated when no deepcopy and adding
+        # words to KNOWN_WORDS_ (which is just a shallow copy of lexicon_)
+        assert 'TRIX' not in TestCls.get_lexicon()
+
+        assert np.array_equal(
+            list(TestCls.SPLIT_ALWAYS_.keys()),
+            ['CRUMBLEWAX', re.compile('STARDUSK'), 'VALUEABLE', 'PERSISTACE',
+             'ZIGTROPE', 'FLEXABILITY', 'BLOOMTRIX', 'TEACOMPOST']
+        )
+
+        assert np.array_equal(
+            list(TestCls.SPLIT_ALWAYS_.values()),
+            [['CRUMBLE', 'WAX'], ['STAR', 'DUSK'], ['VALUE', 'ABLE'],
+             ['PERSIST', 'ACE'], ['ZIG', 'TROPE'], ['FLEX', 'ABILITY'],
+             ['BLOOM', 'TRIX'], ['TEA', 'COMPOST']]
+        )
+
+        assert np.array_equal(
+            TestCls.DELETE_ALWAYS_,
+            ['SNIRKIFY', 'GLIMPLER', 'TORTAGLOOM', re.compile('ZONK.+'), 'GLENSHWINK',
+             'FLAPDOO', re.compile('^JUMBLY.+$', re.I), 'SMORFIC', 'FLOOBASTIC']
+        )
+
+        assert np.array_equal(
+            list(TestCls.REPLACE_ALWAYS_.keys()),
+            [re.compile('^GLOURY$'), 'BEAUTIFULL', 'AMAZIN', 'MAGNIFICIENT']
+        )
+
+        assert np.array_equal(
+            list(TestCls.REPLACE_ALWAYS_.values()),
+            ['GLORY', 'BEAUTIFUL', 'AMAZING', 'MAGNIFICENT']
+        )
+
+        assert np.array_equal(
+            TestCls.SKIP_ALWAYS_,
+            ['SNORLUX', re.compile('QUACK.+')]
         )
 
 

@@ -128,13 +128,13 @@ class TestAttrAccessBeforeAndAfterFitAndTransform:
         _SPLIT_ALWAYS = getattr(TestCls, 'SPLIT_ALWAYS_')
         assert all(map(
             isinstance,
-            _REPLACE_ALWAYS.keys(),
-            (str for _ in _REPLACE_ALWAYS.keys())
+            _SPLIT_ALWAYS.keys(),
+            (str for _ in _SPLIT_ALWAYS.keys())
         ))
         assert all(map(
             isinstance,
-            _REPLACE_ALWAYS.values(),
-            (list for _ in _REPLACE_ALWAYS.values())
+            _SPLIT_ALWAYS.values(),
+            (list for _ in _SPLIT_ALWAYS.values())
         ))
 
         # END AFTER TRANSFORM ******************************************

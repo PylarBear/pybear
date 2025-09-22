@@ -12,10 +12,14 @@ from typing import (
 )
 import numpy.typing as npt
 
+import re
+
 import pandas as pd
 import polars as pl
 
 
+
+MatchType: TypeAlias = str | re.Pattern[str]
 
 PythonTypes: TypeAlias = Sequence[Sequence[str]]
 
