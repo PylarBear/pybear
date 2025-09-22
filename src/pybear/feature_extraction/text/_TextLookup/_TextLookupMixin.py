@@ -13,6 +13,8 @@ from typing import (
 from typing_extensions import Self
 import numpy.typing as npt
 
+import re
+
 from .._Lexicon.Lexicon import Lexicon
 
 from ....base import (
@@ -51,10 +53,10 @@ class _TextLookupMixin(
         auto_split:bool = True,
         auto_add_to_lexicon:bool = False,
         auto_delete:bool = False,
-        DELETE_ALWAYS:Sequence[str] | None = None,
-        REPLACE_ALWAYS:dict[str, str] | None = None,
-        SKIP_ALWAYS:Sequence[str] | None = None,
-        SPLIT_ALWAYS:dict[str, Sequence[str]] | None = None,
+        DELETE_ALWAYS:Sequence[str | re.Pattern[str]] | None = None,
+        REPLACE_ALWAYS:dict[str | re.Pattern[str], str] | None = None,
+        SKIP_ALWAYS:Sequence[str | re.Pattern[str]] | None = None,
+        SPLIT_ALWAYS:dict[str | re.Pattern[str], Sequence[str]] | None = None,
         remove_empty_rows:bool = False,
         verbose:bool = False
     ) -> None:
@@ -65,12 +67,12 @@ class _TextLookupMixin(
         self.auto_split: bool = auto_split
         self.auto_add_to_lexicon: bool = auto_add_to_lexicon
         self.auto_delete: bool = auto_delete
-        self.SKIP_ALWAYS: Sequence[str] = SKIP_ALWAYS
-        self.SPLIT_ALWAYS: dict[str, Sequence[str]] = SPLIT_ALWAYS
-        self.DELETE_ALWAYS: Sequence[str] = DELETE_ALWAYS
-        self.REPLACE_ALWAYS: dict[str, str] = REPLACE_ALWAYS
-        self.remove_empty_rows = remove_empty_rows
-        self.verbose = verbose
+        self.SKIP_ALWAYS = SKIP_ALWAYS
+        self.SPLIT_ALWAYS = SPLIT_ALWAYS
+        self.DELETE_ALWAYS = DELETE_ALWAYS
+        self.REPLACE_ALWAYS = REPLACE_ALWAYS
+        self.remove_empty_rows: bool = remove_empty_rows
+        self.verbose: bool = verbose
 
         # needs to get self._LEX_LOOK_DICT from the child
         if not self.update_lexicon and 'a' in self._LEX_LOOK_DICT:
@@ -115,19 +117,21 @@ class _TextLookupMixin(
         return self._row_support
 
     @property
-    def DELETE_ALWAYS_(self) -> list[str]:
+    def DELETE_ALWAYS_(self) -> list[str | re.Pattern[str]]:
         """Return the `DELETE_ALWAYS_` attribute.
 
-        A list of words that will always be deleted from the text body
-        by TL(RT), even if they are in the `Lexicon`. This list is
-        comprised of any words passed to `DELETE_ALWAYS` at instantiation
-        and any words added in-situ.
+        A list of words and/or full-word regex patterns that will always
+        be deleted from the text body by TL(RT), even if they are in the
+        `Lexicon`. This list contains any words and re.compile objects
+        passed to `DELETE_ALWAYS` at instantiation and any words added
+        in-situ.
 
         Returns
         -------
-        DELETE_ALWAYS_ : list[str]
-            A list of words that will always be deleted from the text
-            body by TL(RT), even if they are in the `Lexicon`.
+        DELETE_ALWAYS_ : list[str | re.Pattern[str]]
+            A list of words and/or full-word regex patterns in re.compile
+            objects that will always be deleted from the text body by
+            TL(RT), even if they are in the `Lexicon`.
 
         """
         return self._DELETE_ALWAYS
@@ -179,9 +183,12 @@ class _TextLookupMixin(
         return self._LEXICON_ADDENDUM
 
     @property
-    def REPLACE_ALWAYS_(self) -> dict[str, str]:
-        """A dictionary with words expected to be in the text body as
-        keys and their respective single-word replacements as values.
+    def REPLACE_ALWAYS_(self) -> dict[str | re.Pattern[str], str]:
+        """Return the `REPLACE_ALWAYS_` attribute.
+
+        A dictionary with words and/or full match regex patterns as
+        keys and their respective single-word replacement strings as
+        values.
 
         TL(RT) will replace these words even if they are in the `Lexicon`.
         This holds anything passed to `REPLACE_ALWAYS` at instantiation
@@ -193,24 +200,27 @@ class _TextLookupMixin(
 
         Returns
         -------
-        REPLACE_ALWAYS_ : dict[str, str]
-            A dictionary with words expected to be in the text body as
-            keys and their respective single-word replacements as values.
+        REPLACE_ALWAYS_ : dict[str | re.Pattern[str], str]
+            A dictionary with words and/or full match regex patterns in
+            re.compile objects as keys and their respective single-word
+            replacements as values.
 
         """
 
         return self._REPLACE_ALWAYS
 
     @property
-    def SKIP_ALWAYS_(self) -> list[str]:
-        """A list of words that are always ignored by TL(RT), even if
-        they are not in the `Lexicon`.
+    def SKIP_ALWAYS_(self) -> list[str | re.Pattern[str]]:
+        """Return the `SKIP_ALWAYS_` attribute.
 
-        This list holds any words passed to the `SKIP_ALWAYS` parameter
-        at instantiation and any words added to it when the user selects
-        'skip always' in manual mode. In manual mode, the next time
-        TL(RT) sees a word that is in this list it will not prompt the
-        user again, it will silently skip the word.
+        A list of words and/or full match regex patterns that are always
+        ignored by TL(RT), even if they are not in the `Lexicon`.
+
+        This list holds any words and re.compile objects passed to the
+        `SKIP_ALWAYS` parameter at instantiation and any words added to
+        it when the user selects 'skip always' in manual mode. In manual
+        mode, the next time TL(RT) sees a word that is in this list it
+        will not prompt the user again, it will silently skip the word.
 
         TL will only make additions to this list in auto mode if
         `skip_numbers` is True and a number is found in the training
@@ -218,18 +228,20 @@ class _TextLookupMixin(
 
         Returns
         -------
-        SKIP_ALWAYS_ : list[str]
-            A list of words that are always ignored by TL(RT), even if
-            they are not in the `Lexicon`.
+        SKIP_ALWAYS_ : list[str | re.Pattern[str]]
+            A list of words and/or full-word regex patterns in re.compile
+            objects that are always ignored by TL(RT), even if they are
+            not in the `Lexicon`.
 
         """
         return self._SKIP_ALWAYS
 
     @property
-    def SPLIT_ALWAYS_(self) -> dict[str, Sequence[str]]:
-        """A dictionary with words expected to be in the text body as
-        keys and their respective multi-word lists of replacements as
-        values.
+    def SPLIT_ALWAYS_(self) -> dict[str | re.Pattern[str], Sequence[str]]:
+        """Return the `SPLIT_ALWAYS_` attribute.
+
+        A dictionary with words and/or full-match regex patterns as keys
+        and their respective multi-word lists of replacements as values.
 
         Similar to :attr:`REPLACE_ALWAYS_`. TL(RT) will sub these words
         in even if the original word is in the `Lexicon`. This dictionary
@@ -246,10 +258,10 @@ class _TextLookupMixin(
 
         Returns
         -------
-        SPLIT_ALWAYS_ : dict[str, Sequence[str]]
-            A dictionary with words expected to be in the text body as
-            keys and their respective multi-word lists of replacements
-            as values.
+        SPLIT_ALWAYS_ : dict[str | re.Pattern[str], Sequence[str]]
+            A dictionary with words and/or full match regex patterns in
+            re.compile objects as keys and their respective multi-word
+            lists of replacements as values.
 
         """
         return self._SPLIT_ALWAYS
@@ -271,8 +283,6 @@ class _TextLookupMixin(
 
         _attrs = [
             '_n_rows', '_row_support', '_DELETE_ALWAYS', '_REPLACE_ALWAYS',
-            '_SKIP_ALWAYS', '_SPLIT_ALWAYS', '_LEXICON_ADDENDUM', '_KNOWN_WORDS',
-            '_OOV', '_n_rows', '_row_support', '_DELETE_ALWAYS', '_REPLACE_ALWAYS',
             '_SKIP_ALWAYS', '_SPLIT_ALWAYS', '_LEXICON_ADDENDUM', '_KNOWN_WORDS',
             '_OOV'
         ]

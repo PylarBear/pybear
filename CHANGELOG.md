@@ -12,7 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - None
 
 ### Changed
-- None
+- feature_extraction.text
+    - TextLookup, TextLookupRealTime:
+        Add the ability to take re.compile objects in DELETE_ALWAYS, 
+        SKIP_ALWAYS, REPLACE_ALWAYS, and SPLIT_ALWAYS init parameters.
 
 ### Deprecated
 - None

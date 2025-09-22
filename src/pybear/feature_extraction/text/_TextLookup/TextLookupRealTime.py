@@ -14,6 +14,7 @@ from typing_extensions import Self
 import numpy.typing as npt
 
 from copy import deepcopy
+import re
 
 import numpy as np
 
@@ -23,6 +24,8 @@ from ._shared._transform._auto_word_splitter import _auto_word_splitter
 from ._shared._transform._manual_word_splitter import _manual_word_splitter
 from ._shared._transform._quasi_auto_word_splitter import _quasi_auto_word_splitter
 from ._shared._transform._word_editor import _word_editor
+
+from ._shared._search_always_list import _search_always_list
 
 from ._shared._type_aliases import (
     XContainer,
@@ -95,7 +98,7 @@ class TextLookupRealTime(_TextLookupMixin):
     encounters a word that is not in the `Lexicon`, it will automatically
     delete the word from the text body and go to the next word, until
     all the words in the text are exhausted. In these cases, TLRT can
-    never proceed into manual mode. To allow TLRT enter manual mode,
+    never proceed into manual mode. To allow TLRT to go into manual mode,
     both `auto_delete` and `auto_add_to_lexicon` must be False.
 
     In manual mode, when TLRT encounters a word that is not in the
@@ -163,7 +166,7 @@ class TextLookupRealTime(_TextLookupMixin):
     characters should be removed and clear separators established. A
     pybear text wrangling workflow might look like:
     TextStripper > TextReplacer > TextSplitter > TextNormalizer >
-    TextRemover > TextLookup > StopRemover > TextJoiner > TextJustifier
+    TextRemover > TextLookupRealTime > TextJoiner > TextJustifier
 
     Every operation in TLRT is case-sensitive. Remember that the formal
     pybear `Lexicon` is majuscule; use pybear :class:`TextNormalizer` to
@@ -209,11 +212,11 @@ class TextLookupRealTime(_TextLookupMixin):
     Parameters
     ----------
     update_lexicon : bool, default = False
-        Whether to queue words that are not in the pybear `Lexicon` for
-        later addition to the `Lexicon`. This applies to both autonomous
-        and interactive modes. If False, TLRT will never put a word
-        in :attr:`LEXICON_ADDENDUM_` and will never prompt you with the
-        option.
+        Whether to queue words that are not in the pybear :class:`Lexicon`
+        for later addition to the `Lexicon`. This applies to both
+        autonomous and interactive modes. If False, TLRT will never put
+        a word in :attr:`LEXICON_ADDENDUM_` and will never prompt you
+        with the option.
     skip_numbers : bool, default = True
         When True, TLRT will try to do Python float(word) on the word
         and, if it can be cast to a float, TLRT will skip it and go to
@@ -224,15 +227,15 @@ class TextLookupRealTime(_TextLookupMixin):
         would be possible to stage them for addition to your local copy
         of the `Lexicon`.
     auto_split : bool, default = True
-        TLRT will first look if the word is in any of the holder
-        objects for special instructions, then look to see if the word
-        is in the `Lexicon`. If not, the next step otherwise would be
-        auto-add to `Lexicon`, auto-delete, or go into manual mode. This
+        TLRT will first look if the word is in any of the holder objects
+        for special instructions, then look to see if the word is in
+        the `Lexicon`. If not, the next step otherwise would be auto-add
+        to `Lexicon`, auto-delete, or go into manual mode. This
         functionality is a last-ditch effort to see if a word is an
-        erroneous compounding of 2 words that are in the `Lexicon`. if
-        `auto_split` is True, TLRT will iteratively split any word of
-        4 or more characters from after the second character to before
-        the second to last character and see if both halves are in the
+        erroneous compounding of 2 words that are in the `Lexicon`. If
+        `auto_split` is True, TLRT will iteratively split any word of 4
+        or more characters from after the second character to before the
+        second to last character and see if both halves are in the
         `Lexicon`. When/if the first match is found, TLRT will remove
         the original word, split it, and insert in the original place
         the 2 halves that were found to be in the `Lexicon`. If False,
@@ -246,41 +249,50 @@ class TextLookupRealTime(_TextLookupMixin):
         the `Lexicon`, the word will silently be staged in the
         `LEXICON_ADDENDUM_` attribute to be added to the `Lexicon` later.
     auto_delete : bool, default = False
-        If `update_lexicon` or `auto_add_to_lexicon` are True then this
-        cannot be True . When this parameter is True, TLRT operates in
-        'auto-mode', where the user will not be prompted for decisions.
-        When TLRT encounters a word that is not in the Lexicon, the word
-        will be silently deleted from the text body.
-    DELETE_ALWAYS : Sequence[str] | None, default = None
-        A list of words that will always be deleted by TLRT, even if
-        they are in the `Lexicon`. In both manual and auto modes, TLRT
-        will silently delete the word(s), no questions asked. What is
-        passed here becomes the seed for the :attr:`DELETE_ALWAYS_`
-        attribute, which may have more words added to it during run-time
-        in manual mode. Auto-mode will never add more words to this list.
-    REPLACE_ALWAYS : dict[str, str] | None, default = None
-        A dictionary with words expected to be in the text body as keys
-        and their respective single-word replacements as values. TLRT
-        will replace these words even if they are in the `Lexicon`. For
-        both auto and manual mode, TLRT will not prompt the user for
-        any more information, it will silently replace the word. What is
-        passed here becomes the seed for the :attr:`REPLACE_ALWAYS_`
-        attribute, which may have more word/replacement pairs added to
-        it during run-time in manual mode. Auto-mode will never add more
-        entries to this dictionary.
-    SKIP_ALWAYS : Sequence[str] | None, default = None
-        A list of words that will always be ignored by TLRT, even if they
-        are not in the `Lexicon`. For both auto and manual mode, TLRT
+        If `update_lexicon` is True then this cannot be set to True.
+        When this parameter is True, TLRT operates in 'auto-mode', where
+        the user will not be prompted for decisions. When TLRT encounters
+        a word that is not in the `Lexicon`, the word will be silently
+        deleted from the text body.
+    DELETE_ALWAYS : Sequence[MatchType] | None, default = None
+        A list of words and/or full-word regex patterns that will always
+        be deleted by TLRT, even if they are in the `Lexicon`. For
+        both auto and manual mode, when a word in the text body is a
+        case-sensitive match against a string literal in this list, or
+        is a full-word match against a regex pattern in this list, TLRT
         will not prompt the user for any more information, it will
-        silently skip the word. What is passed here becomes the seed
-        for the :attr:`SKIP_ALWAYS_` attribute, which may have more words
+        silently delete the word. What is passed here becomes the seed
+        for the :attr:`DELETE_ALWAYS_` attribute, which may have more
+        words added to it during run-time in manual mode. Auto-mode will
+        never add more words to this list.
+    REPLACE_ALWAYS : dict[MatchType, str] | None, default = None
+        A dictionary with words and/or full-word regex patterns as keys
+        and their respective single-word replacement strings as values.
+        For both auto and manual modes, when a word in the text body is
+        a case-sensitive match against a string literal key, or is a
+        full-word match against a regex pattern key, TLRT will not prompt
+        the user for any more information, it will silently make the
+        replacement. TLRT will replace these words even if they are in
+        the `Lexicon`. What is passed here becomes the seed for
+        the :attr:`REPLACE_ALWAYS_` attribute, which may have more
+        word/replacement pairs added to it during run-time in manual
+        mode. Auto-mode will never add more entries to this dictionary.
+    SKIP_ALWAYS : Sequence[MatchType] | None, default = None
+        A list of words and/or full-word regex patterns that will always
+        be ignored by TLRT, even if they are not in the `Lexicon`. For
+        both auto and manual mode, when a word in the text body is a
+        case-sensitive match against a string literal in this list, or
+        is a full-word match against a regex pattern in this list, TLRT
+        will not prompt the user for any more information, it will
+        silently skip the word. What is passed here becomes the seed for
+        the :attr:`SKIP_ALWAYS_` attribute, which may have more words
         added to it during run-time in manual mode. Auto-mode will never
         add more words to this list.
-    SPLIT_ALWAYS : dict[str, Sequence[str]] | None, default = None
-        A dictionary with words expected to be in the text body as keys
-        and their respective multi-word lists of replacements as values.
-        TLRT will remove the original word and insert these words into
-        the text body starting in its position even if the original
+    SPLIT_ALWAYS : dict[MatchType, Sequence[str]] | None, default = None
+        A dictionary with words and/or full-word regex patterns as keys
+        and their respective multi-word lists of replacement strings as
+        values. TLRT will remove the original word and insert these words
+        into the text body starting in its position even if the original
         word is in the `Lexicon`. For both auto and manual mode, TLRT
         will not prompt the user for any more information, it will
         silently split the word. What is passed here becomes the seed
@@ -310,6 +322,31 @@ class TextLookupRealTime(_TextLookupMixin):
 
     Notes
     -----
+    When passing regex patterns to `DELETE_ALWAYS`, `REPLACE_ALWAYS`,
+    `SKIP_ALWAYS`, and `SPLIT_ALWAYS`, the regex patterns must be
+    designed to match full words in the text body and must be passed in
+    re.compile objects. Do not pass regex patterns as string literals,
+    you will not get the correct result. String literals must also be
+    designed to match full words in the text body. You do not need to
+    escape string literals.
+    If the same literal is passed to multiple 'ALWAYS' parameters, TL
+    will detect this conflict and raise an error. If a word in the text
+    body causes a conflict between a literal and a re.compile object or
+    between two re.compile objects within the same 'ALWAYS' parameter,
+    TL will raise an error. However, TL cannot detect conflicts between
+    re.compile objects across multiple 'ALWAYS' parameters, where a
+    word in a text body could possibly be indicated for two different
+    operations, such as SKIP and DELETE. TL will not resolve the conflict
+    but will simply perform whichever operation is matched first. The
+    order of match searching within TL is SKIP_ALWAYS, DELETE_ALWAYS,
+    REPLACE_ALWAYS, and finally SPLIT_ALWAYS. It is up to the user to
+    avoid these conflict conditions with careful regex pattern design.
+
+    **Type Aliases**
+
+    MatchType:
+        str | re.Pattern[str]
+
     PythonTypes:
         Sequence[Sequence[str]]
 
@@ -362,10 +399,10 @@ class TextLookupRealTime(_TextLookupMixin):
         auto_split:bool = True,
         auto_add_to_lexicon:bool = False,
         auto_delete:bool = False,
-        DELETE_ALWAYS:Sequence[str] | None = None,
-        REPLACE_ALWAYS:dict[str, str] | None = None,
-        SKIP_ALWAYS:Sequence[str] | None = None,
-        SPLIT_ALWAYS:dict[str, Sequence[str]] | None = None,
+        DELETE_ALWAYS:Sequence[str | re.Pattern[str]] | None = None,
+        REPLACE_ALWAYS:dict[str | re.Pattern[str], str] | None = None,
+        SKIP_ALWAYS:Sequence[str | re.Pattern[str]] | None = None,
+        SPLIT_ALWAYS:dict[str | re.Pattern[str], Sequence[str]] | None = None,
         remove_empty_rows:bool = False,
         verbose:bool = False
     ) -> None:
@@ -556,6 +593,7 @@ class TextLookupRealTime(_TextLookupMixin):
 
         self._LEXICON_ADDENDUM: list[str] = \
             getattr(self, 'LEXICON_ADDENDUM_', [])
+
         self._KNOWN_WORDS: list[str] = \
             getattr(self, 'KNOWN_WORDS_', list(self.get_lexicon()))
         # END Manage attributes -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -638,40 +676,70 @@ class TextLookupRealTime(_TextLookupMixin):
 
                 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
                 # short-circuit for things already known or learned in-situ
-                if _word in self._SKIP_ALWAYS:
-                    # this may have had words in it from the user at init
+
+                if _search_always_list('SKIP_ALWAYS', self._SKIP_ALWAYS, _word):
+                    # this may have had words/re.compiles in it from the user at init
                     if self.verbose:
                         print(f'\n*** ALWAYS SKIP *{_word}* ***\n')
                     continue
 
-                if _word in self._DELETE_ALWAYS:
-                    # this may have had words in it from the user at init
+                elif _search_always_list('DELETE_ALWAYS', self._DELETE_ALWAYS, _word):
+                    # this may have had words/re.compiles in it from the user at init
                     if self.verbose:
                         print(f'\n*** ALWAYS DELETE *{_word}* ***\n')
                     X_tr[_row_idx].pop(_word_idx)
                     continue
 
-                if _word in self._REPLACE_ALWAYS:
-                    # this may have had words in it from the user at init
+                elif _search_always_list('REPLACE_ALWAYS', list(self._REPLACE_ALWAYS.keys()), _word):
+                    # this may have had words/re.compiles in it from the user at init
+                    # need to get the exact thing that matched _word out of
+                    # REPLACE_ALWAYS, to display the correct replacement.
+                    for item in self._REPLACE_ALWAYS:
+                        # check strings first, the order in _search_always_list
+                        if isinstance(item, str):
+                            if _word == item:
+                                _replacement = self._REPLACE_ALWAYS[_word]
+                                break
+                        elif isinstance(item, re.Pattern):
+                            if re.fullmatch(item, _word):
+                                _replacement = self._REPLACE_ALWAYS[item]
+                                break
+                        else:
+                            raise Exception
                     if self.verbose:
                         print(
                             f'\n*** ALWAYS REPLACE *{_word}* WITH '
-                            f'*{self._REPLACE_ALWAYS[_word]}* ***\n'
+                            f'*{_replacement}* ***\n'
                         )
                     X_tr[_row_idx] = self._split_or_replace_handler(
-                        X_tr[_row_idx], _word_idx, [self._REPLACE_ALWAYS[_word]]
+                        X_tr[_row_idx], _word_idx, [_replacement]
                     )
                     continue
 
-                if _word in self._SPLIT_ALWAYS:
-                    # this may have had words in it from the user at init
+                elif _search_always_list('SPLIT_ALWAYS', list(self._SPLIT_ALWAYS.keys()), _word):
+                    # this may have had words/re.compiles in it from the user at init
+                    # need to get the exact thing that matched _word out of
+                    # SPLIT_ALWAYS, to display the correct replacement.
+                    for item in self._SPLIT_ALWAYS:
+                        # check strings first, the order in _search_always_list
+                        if isinstance(item, str):
+                            if _word == item:
+                                _replacement = self._SPLIT_ALWAYS[_word]
+                                break
+                        elif isinstance(item, re.Pattern):
+                            if re.fullmatch(item, _word):
+                                _replacement = self._SPLIT_ALWAYS[item]
+                                break
+                        else:
+                            raise Exception
+
                     if self.verbose:
                         print(
                             f'\n*** ALWAYS SPLIT *{_word}* WITH '
-                            f'*{"*, *".join(self._SPLIT_ALWAYS[_word])}* ***\n'
+                            f'*{"*, *".join(_replacement)}* ***\n'
                         )
                     X_tr[_row_idx] = self._split_or_replace_handler(
-                        X_tr[_row_idx], _word_idx, self._SPLIT_ALWAYS[_word]
+                        X_tr[_row_idx], _word_idx, _replacement
                     )
                     continue
 

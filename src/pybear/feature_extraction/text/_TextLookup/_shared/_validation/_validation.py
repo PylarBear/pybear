@@ -8,6 +8,8 @@
 
 from typing import Sequence
 
+import re
+
 import numpy as np
 
 from ._delete_always import _val_delete_always
@@ -27,10 +29,10 @@ def _validation(
     _auto_split: bool,
     _auto_add_to_lexicon: bool,
     _auto_delete: bool,
-    _DELETE_ALWAYS: Sequence[str],
-    _REPLACE_ALWAYS:dict[str, str],
-    _SKIP_ALWAYS: Sequence[str],
-    _SPLIT_ALWAYS: dict[str, Sequence[str]],
+    _DELETE_ALWAYS: None | Sequence[str | re.Pattern[str]],
+    _REPLACE_ALWAYS: None | dict[str | re.Pattern[str], str],
+    _SKIP_ALWAYS: None | Sequence[str | re.Pattern[str]],
+    _SPLIT_ALWAYS: None | dict[str | re.Pattern[str], Sequence[str]],
     _remove_empty_rows: bool,
     _verbose: bool
 ) -> None:
@@ -40,31 +42,33 @@ def _validation(
     is handled by the individual modules. See their docs for more
     details.
 
-    Manage the interdependency of parameters.
+    Beyond the basic validation of the parameters, manage the
+    interdependency of parameters.
 
     `SKIP_ALWAYS`, `SPLIT_ALWAYS`, `DELETE_ALWAYS`, `REPLACE_ALWAYS`
-    must not have common strings (case_sensitive).
+    must not have common strings (case_sensitive). Conflict is checked
+    for any strings in these four objects, not for re.compile objects.
+    It is impossible to validate re.compile objects for conflict unless
+    you have the actual text that they will be searched against.
 
     Parameters
     ----------
     _X: XContainer
-        _update_lexicon : bool
-        _skip_numbers : bool
-        _auto_split : bool
-        _auto_add_to_lexicon : bool
-        _auto_delete : bool
-        _DELETE_ALWAYS : Sequence[str]
-        _REPLACE_ALWAYS :dict[str, str]
-        _SKIP_ALWAYS : Sequence[str]
-        _SPLIT_ALWAYS : dict[str, Sequence[str]]
-        _remove_empty_rows : bool
-        _verbose : bool
-
+    _update_lexicon : bool
+    _skip_numbers : bool
+    _auto_split : bool
+    _auto_add_to_lexicon : bool
+    _auto_delete : bool
+    _DELETE_ALWAYS : None | Sequence[str | re.Pattern[str]]
+    _REPLACE_ALWAYS : None | dict[str | re.Pattern[str], str]
+    _SKIP_ALWAYS : None | Sequence[str | re.Pattern[str]]
+    _SPLIT_ALWAYS : None | dict[str | re.Pattern[str], Sequence[str]]
+    _remove_empty_rows : bool
+    _verbose : bool
 
     Returns
     -------
     None
-
 
     """
 
@@ -113,15 +117,38 @@ def _validation(
     # SKIP_ALWAYS, SPLIT_ALWAYS, DELETE_ALWAYS, REPLACE_ALWAYS must not
     # have common strings (case_sensitive).
 
-    # DELETE_ALWAYS: Sequence[str] | None = None
-    # REPLACE_ALWAYS: dict[str, str] | None = None
-    # SKIP_ALWAYS: Sequence[str] | None = None
-    # SPLIT_ALWAYS: dict[str, Sequence[str]] | None = None
+    # DELETE_ALWAYS: None | Sequence[str | re.Pattern[str]] = None
+    # REPLACE_ALWAYS: None | dict[str | re.Pattern[str], str] = None
+    # SKIP_ALWAYS: None | Sequence[str | re.Pattern[str]] = None
+    # SPLIT_ALWAYS: None | dict[str | re.Pattern[str], Sequence[str]] = None
 
-    delete_always = list(_DELETE_ALWAYS) if _DELETE_ALWAYS else []
-    replace_always_keys = list(_REPLACE_ALWAYS.keys()) if _REPLACE_ALWAYS else []
-    skip_always = list(_SKIP_ALWAYS) if _SKIP_ALWAYS else []
-    split_always_keys = list(_SPLIT_ALWAYS.keys()) if _SPLIT_ALWAYS else []
+    # condition the containers to check for conflict between any strings
+    # create WIP objects that only have strings, remove any re.compile objects
+
+    delete_always = []
+    if _DELETE_ALWAYS:   # if what was passed is not None
+        # we know from _val_delete_always that it must contain str or re.compile
+        delete_always = [x for x in _DELETE_ALWAYS if isinstance(x, str)]
+    # but if what was passed was None, then delete_always stays []
+
+    replace_always_keys = []
+    if _REPLACE_ALWAYS:   # if what was passed is not None
+        # we know from _val_replace_always that keys must be str or re.compile
+        replace_always_keys = [x for x in _REPLACE_ALWAYS if isinstance(x, str)]
+    # but if what was passed was None, then replace_always_keys stays []
+
+    skip_always = []
+    if _SKIP_ALWAYS:   # if what was passed is not None
+        # we know from _val_skip_always that it must contain str or re.compile
+        skip_always = [x for x in _SKIP_ALWAYS if isinstance(x, str)]
+    # but if what was passed was None, then skip_always stays []
+
+    split_always_keys = []
+    if _SPLIT_ALWAYS:   # if what was passed is not None
+        # we know from _val_split_always that keys must be str or re.compile
+        split_always_keys = [x for x in _SPLIT_ALWAYS if isinstance(x, str)]
+    # but if what was passed was None, then split_always_keys stays []
+
 
     ALL = np.hstack((
         delete_always,
@@ -132,15 +159,22 @@ def _validation(
 
     if not np.array_equal(sorted(list(set(ALL))), sorted(ALL)):
 
-        _ = np.unique(ALL, return_counts=True)
-        __ = list(map(str, [k for k, v in zip(*_) if v >= 2]))
+        # if there are no duplicates among the strings in ALL, then set(ALL)==ALL
+
+        UNQS, CTS = np.unique(ALL, return_counts=True)
+
+        UNQ_CT_DICT = dict((zip(
+            list(map(str, UNQS)),
+            list(map(int, CTS))
+        )))
+
+        UNQ_CT_DICT = {k:v for k, v in UNQ_CT_DICT.items() if v >= 2}
 
         raise ValueError(
-            f"{', '.join(__)} appear more than once in the specially handled words."
+            f"{', '.join(UNQ_CT_DICT)} appear more than once in the specially "
+            f"handled words."
         )
 
-
-    del ALL
 
 
 

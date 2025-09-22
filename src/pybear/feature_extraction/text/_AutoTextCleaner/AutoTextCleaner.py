@@ -302,13 +302,13 @@ class AutoTextCleaner(
 
         auto_delete: NotRequired[bool]
 
-        DELETE_ALWAYS: NotRequired[Sequence[str] | None]
+        DELETE_ALWAYS: NotRequired[Sequence[str | re.Pattern[str]] | None]
 
-        REPLACE_ALWAYS: NotRequired[dict[str, str] | None]
+        REPLACE_ALWAYS: NotRequired[dict[str | re.Pattern[str], str] | None]
 
-        SKIP_ALWAYS: NotRequired[Sequence[str] | None]
+        SKIP_ALWAYS: NotRequired[Sequence[str | re.Pattern[str]] | None]
 
-        SPLIT_ALWAYS: NotRequired[dict[str, Sequence[str]] | None]
+        SPLIT_ALWAYS: NotRequired[dict[str | re.Pattern[str], Sequence[str]] | None]
 
         remove_empty_rows: NotRequired[bool]
 
