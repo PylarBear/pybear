@@ -91,7 +91,7 @@ class TextLookup(_TextLookupMixin):
     `Lexicon`, the user will be prompted with an interactive menu for an
     action. Choices that are always presented include: 'skip always',
     'delete always', 'replace always', and 'split always'. Conditionally,
-    if `update_lexicon`. is True, an 'add to lexicon' option is also
+    if `update_lexicon` is True, an 'add to lexicon' option is also
     presented. If you choose something from the 'always' group, the word
     goes into a 'holder' object for the selected action so that TL knows
     how to handle it during transform. TL does not have the ability to
@@ -246,7 +246,7 @@ class TextLookup(_TextLookupMixin):
     DELETE_ALWAYS : Sequence[MatchType] | None, default = None
         A list of words and/or full-word regex patterns that will always
         be deleted by TL, even if they are in the `Lexicon`. For
-        both auto and manual mode, when a word in the text body is a
+        both auto and manual modes, when a word in the text body is a
         case-sensitive match against a string literal in this list, or
         is a full-word match against a regex pattern in this list, TL
         will not prompt the user for any more information, it will
@@ -268,7 +268,7 @@ class TextLookup(_TextLookupMixin):
     SKIP_ALWAYS : Sequence[MatchType] | None, default = None
         A list of words and/or full-word regex patterns that will always
         be ignored by TL, even if they are not in the `Lexicon`. For
-        both auto and manual mode, when a word in the text body is a
+        both auto and manual modes, when a word in the text body is a
         case-sensitive match against a string literal in this list, or
         is a full-word match against a regex pattern in this list, TL
         will not prompt the user for any more information, it will
@@ -282,7 +282,7 @@ class TextLookup(_TextLookupMixin):
         and their respective multi-word lists of replacement strings as
         values. TL will remove the original word and insert these words
         into the text body starting in its position even if the original
-        word is in the `Lexicon`. For both auto and manual mode, TL
+        word is in the `Lexicon`. For both auto and manual modes, TL
         will not prompt the user for any more information, it will
         silently split the word. What is passed here becomes the seed
         for the :attr:`SPLIT_ALWAYS_` attribute, which may have more
