@@ -257,7 +257,7 @@ class TextLookupRealTime(_TextLookupMixin):
     DELETE_ALWAYS : Sequence[MatchType] | None, default = None
         A list of words and/or full-word regex patterns that will always
         be deleted by TLRT, even if they are in the `Lexicon`. For
-        both auto and manual mode, when a word in the text body is a
+        both auto and manual modes, when a word in the text body is a
         case-sensitive match against a string literal in this list, or
         is a full-word match against a regex pattern in this list, TLRT
         will not prompt the user for any more information, it will
@@ -280,7 +280,7 @@ class TextLookupRealTime(_TextLookupMixin):
     SKIP_ALWAYS : Sequence[MatchType] | None, default = None
         A list of words and/or full-word regex patterns that will always
         be ignored by TLRT, even if they are not in the `Lexicon`. For
-        both auto and manual mode, when a word in the text body is a
+        both auto and manual modes, when a word in the text body is a
         case-sensitive match against a string literal in this list, or
         is a full-word match against a regex pattern in this list, TLRT
         will not prompt the user for any more information, it will
@@ -293,7 +293,7 @@ class TextLookupRealTime(_TextLookupMixin):
         and their respective multi-word lists of replacement strings as
         values. TLRT will remove the original word and insert these words
         into the text body starting in its position even if the original
-        word is in the `Lexicon`. For both auto and manual mode, TLRT
+        word is in the `Lexicon`. For both auto and manual modes, TLRT
         will not prompt the user for any more information, it will
         silently split the word. What is passed here becomes the seed
         for the :attr:`SPLIT_ALWAYS_` attribute, which may have more
@@ -329,18 +329,19 @@ class TextLookupRealTime(_TextLookupMixin):
     you will not get the correct result. String literals must also be
     designed to match full words in the text body. You do not need to
     escape string literals.
-    If the same literal is passed to multiple 'ALWAYS' parameters, TL
+    If the same literal is passed to multiple 'ALWAYS' parameters, TLRT
     will detect this conflict and raise an error. If a word in the text
     body causes a conflict between a literal and a re.compile object or
     between two re.compile objects within the same 'ALWAYS' parameter,
-    TL will raise an error. However, TL cannot detect conflicts between
-    re.compile objects across multiple 'ALWAYS' parameters, where a
-    word in a text body could possibly be indicated for two different
-    operations, such as SKIP and DELETE. TL will not resolve the conflict
-    but will simply perform whichever operation is matched first. The
-    order of match searching within TL is SKIP_ALWAYS, DELETE_ALWAYS,
-    REPLACE_ALWAYS, and finally SPLIT_ALWAYS. It is up to the user to
-    avoid these conflict conditions with careful regex pattern design.
+    TLRT will raise an error. However, TLRT cannot detect conflicts
+    between re.compile objects across multiple 'ALWAYS' parameters,
+    where a word in a text body could possibly be indicated for two
+    different operations, such as SKIP and DELETE. TLRT will not resolve
+    the conflict but will simply perform whichever operation is matched
+    first. The order of match searching within TLRT is SKIP_ALWAYS,
+    DELETE_ALWAYS, REPLACE_ALWAYS, and finally SPLIT_ALWAYS. It is up to
+    the user to avoid these conflict conditions with careful regex
+    pattern design.
 
     **Type Aliases**
 

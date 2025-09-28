@@ -186,22 +186,23 @@ class _TextLookupMixin(
     def REPLACE_ALWAYS_(self) -> dict[str | re.Pattern[str], str]:
         """Return the `REPLACE_ALWAYS_` attribute.
 
-        A dictionary with words and/or full match regex patterns as
+        A dictionary with words and/or full-word regex patterns as
         keys and their respective single-word replacement strings as
         values.
 
-        TL(RT) will replace these words even if they are in the `Lexicon`.
-        This holds anything passed to `REPLACE_ALWAYS` at instantiation
-        and anything added to it during run-time in manual mode. In
-        manual mode, when the user selects 'replace always', the next
-        time TL(RT) sees the word it will not prompt the user for any
-        more information, it will silently replace the word. When in
-        auto mode, TL(RT) will not add any entries to this dictionary.
+        TL(RT) will replace these words even if they are in the
+        `Lexicon`. This holds any words and re.compile objects passed
+        to `REPLACE_ALWAYS` at instantiation and anything added to it
+        during run-time in manual mode. In manual mode, when the user
+        selects 'replace always', the next time TL(RT) sees the word
+        it will not prompt the user for any more information, it will
+        silently replace the word. When in auto mode, TL(RT) will not
+        add any entries to this dictionary.
 
         Returns
         -------
         REPLACE_ALWAYS_ : dict[str | re.Pattern[str], str]
-            A dictionary with words and/or full match regex patterns in
+            A dictionary with words and/or full-word regex patterns in
             re.compile objects as keys and their respective single-word
             replacements as values.
 
@@ -213,7 +214,7 @@ class _TextLookupMixin(
     def SKIP_ALWAYS_(self) -> list[str | re.Pattern[str]]:
         """Return the `SKIP_ALWAYS_` attribute.
 
-        A list of words and/or full match regex patterns that are always
+        A list of words and/or full-word regex patterns that are always
         ignored by TL(RT), even if they are not in the `Lexicon`.
 
         This list holds any words and re.compile objects passed to the
@@ -240,7 +241,7 @@ class _TextLookupMixin(
     def SPLIT_ALWAYS_(self) -> dict[str | re.Pattern[str], Sequence[str]]:
         """Return the `SPLIT_ALWAYS_` attribute.
 
-        A dictionary with words and/or full-match regex patterns as keys
+        A dictionary with words and/or full-word regex patterns as keys
         and their respective multi-word lists of replacements as values.
 
         Similar to :attr:`REPLACE_ALWAYS_`. TL(RT) will sub these words
@@ -259,7 +260,7 @@ class _TextLookupMixin(
         Returns
         -------
         SPLIT_ALWAYS_ : dict[str | re.Pattern[str], Sequence[str]]
-            A dictionary with words and/or full match regex patterns in
+            A dictionary with words and/or full-word regex patterns in
             re.compile objects as keys and their respective multi-word
             lists of replacements as values.
 
