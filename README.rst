@@ -44,7 +44,7 @@ pybear
 .. |PyPI Build Status| image:: https://github.com/PylarBear/pybear/actions/workflows/pypi-publish.yml/badge.svg
    :target: https://github.com/PylarBear/pybear/actions/workflows/pypi-publish.yml
 
-.. |Version| image:: https://img.shields.io/pypi/v/pybear
+.. |Version| image:: https://img.shields.io/pypi/v/pybear?style=flat&color=blue
    :target: https://pypi.org/project/pybear
    :alt: PyPI Version
 
