@@ -9,6 +9,8 @@ Welcome to the pybear documentation
 pybear is a scikit-learn-style Python computing library that augments data 
 analytics functionality found in popular packages like scikit-learn and xgboost.
 
+pybear currently supports Python 3.10, 3.11, 3.12, and 3.13.
+
 Check out the :ref:`installation <installation>` section for information on how 
 to install pybear. 
 
@@ -29,7 +31,7 @@ pybear runs on all actively supported versions of Python.
 pybear must seamlessly integrate into conventional Python data analytics workflows.
 The way pybear does this is by using the scikit-learn API.
 
-Every pybear estimator/transformer seeks to fulfill 4 objectives:
+Every pybear estimator/transformer seeks to fulfill 4 objectives beyond basic functionality:
 
 1) handle missing data: robust handling of all nan-like values (numpy.nan, pandas.NA, etc.)
 
