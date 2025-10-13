@@ -3,6 +3,7 @@ pybear
 
 |Tests|
 |Coverage|
+|Test Status 314|
 |Test Status 313|
 |Test Status 312|
 |Test Status 311|
@@ -13,6 +14,9 @@ pybear
 
 .. |Coverage| image:: https://raw.githubusercontent.com/PylarBear/pybear/main/.github/badges/coverage-badge.svg
    :target: https://github.com/PylarBear/pybear/actions
+
+.. |Test Status 314| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py314.yml/badge.svg
+   :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py314.yml
 
 .. |Test Status 313| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py313.yml/badge.svg
    :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py313.yml
@@ -305,8 +309,8 @@ Testing
 ~~~~~~~
 
 pybear 0.2 is tested via GitHub Actions to run on Linux, Windows, and MacOS,
-with Python versions 3.10, 3.11, 3.12, and 3.13. pybear is not tested on earlier
-versions, but some features may work.
+with Python versions 3.10, 3.11, 3.12, 3.13, and 3.14. pybear is not tested on
+earlier versions, but some features may work.
 
 If you want to test pybear yourself, you will need:
 

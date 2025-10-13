@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [X.X.X] - 20XX-XX-XX
 
 ### Added
-- None
+- Support for py3.14; update README.rst
 
 ### Changed
 - Change link to PyPI version badge in README.rst; badge is now blue
