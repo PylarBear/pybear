@@ -56,23 +56,22 @@ deep = True
 19    estimator__logistic__intercept_scaling    estimator__logistic__intercept_scaling
 20             estimator__logistic__l1_ratio             estimator__logistic__l1_ratio
 21             estimator__logistic__max_iter             estimator__logistic__max_iter
-22          estimator__logistic__multi_class          estimator__logistic__multi_class
-23               estimator__logistic__n_jobs               estimator__logistic__n_jobs
-24              estimator__logistic__penalty              estimator__logistic__penalty
-25         estimator__logistic__random_state         estimator__logistic__random_state
-26               estimator__logistic__solver               estimator__logistic__solver
-27                  estimator__logistic__tol                  estimator__logistic__tol
-28              estimator__logistic__verbose              estimator__logistic__verbose
-29           estimator__logistic__warm_start           estimator__logistic__warm_start
-30                                 estimator                                 estimator
-31                                    n_jobs                                    n_jobs
-32                                param_grid                                param_grid
-33                              pre_dispatch                                         -
-34                                     refit                                     refit
-35                        return_train_score                        return_train_score
-36                                   scoring                                   scoring
-37                                         -                                thresholds
-38                                   verbose                                   verbose
+22               estimator__logistic__n_jobs               estimator__logistic__n_jobs
+23              estimator__logistic__penalty              estimator__logistic__penalty
+24         estimator__logistic__random_state         estimator__logistic__random_state
+25               estimator__logistic__solver               estimator__logistic__solver
+26                  estimator__logistic__tol                  estimator__logistic__tol
+27              estimator__logistic__verbose              estimator__logistic__verbose
+28           estimator__logistic__warm_start           estimator__logistic__warm_start
+29                                 estimator                                 estimator
+30                                    n_jobs                                    n_jobs
+31                                param_grid                                param_grid
+32                              pre_dispatch                                         -
+33                                     refit                                     refit
+34                        return_train_score                        return_train_score
+35                                   scoring                                   scoring
+36                                         -                                thresholds
+37                                   verbose                                   verbose
 
 
 # the takeaways from sklearn get_params:
