@@ -44,7 +44,10 @@ docutils = ">=0.20"
 jupyter = "*"
 notebook = "*"
 numpydoc = "*"
-pyarrow = ">=18.0.0"
+pyarrow = [
+    {version = ">=18.0.0", python = "<3.14"},
+    {version = ">=24.0.0", python = ">=3.14"}
+]
 pydata-sphinx-theme = "*"
 sphinx = "*"
 sphinx-autobuild = "*"
