@@ -38,7 +38,10 @@ scipy = [
     {version = ">=1.15.0,<1.16.0", python = "<3.11"},  # find lower bound for py3.10
     {version = ">=1.16.1", python = ">=3.11"}
 ]
-scikit-learn = "==1.8.0"     # check starting at 1.6.0
+scikit-learn = [
+    {version = ">=1.5.2,<1.8.0", python = "<3.11"},  # find lower bound for py3.10
+    {version = ">=1.8.0", python = ">=3.11"}   # check starting at 1.6.0
+]
 typing_extensions = "==4.12.0"
 
 
