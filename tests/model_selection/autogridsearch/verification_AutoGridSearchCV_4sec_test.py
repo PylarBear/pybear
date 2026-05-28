@@ -56,7 +56,7 @@ class TestAutoGridSearch:
             'max_shifts': _max_shifts,
             'agscv_verbose': False,
             'scoring': _scorer,
-            'n_jobs': 1,     # leave a 1, confliction
+            'n_jobs': 1,     # leave at 1, confliction
             'refit': _refit,
             'cv': 4,
             'verbose': 0,
