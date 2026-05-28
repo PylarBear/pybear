@@ -64,6 +64,20 @@ def mock_estimator():
             self.param_b = param_b
 
 
+        def __sklearn_tags__(self):
+
+            # spoof output --- if we don't fudge this functionality, the
+            # alternative would be to abandon mock_estimator and pass an
+            # actual sk estimator to tests in place of mock_estimator
+            class Tags:
+                estimator_type = "transformer"
+                class InputTags:
+                    pairwise = False
+                input_tags = InputTags()
+
+            return Tags
+
+
         def partial_fit(self, X):
 
             X = np.array(X)
