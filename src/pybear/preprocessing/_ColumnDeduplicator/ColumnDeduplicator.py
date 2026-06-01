@@ -492,6 +492,38 @@ class ColumnDeduplicator(
         return self
 
 
+    def __sklearn_tags__(self):
+
+        class Tags:
+            estimator_type: str = "transformer"
+            class TargetTags:
+                required: bool = False
+            target_tags = TargetTags()
+            class TransformerTags:
+                preserves_dtype: list = []
+            transformer_tags = TransformerTags()
+            classifier_tags = None
+            regressor_tags = None
+            array_api_support: bool = False
+            no_validation: bool = False
+            non_deterministic: bool = False
+            requires_fit: bool = True
+            class InputTags:
+                one_d_array: bool = False
+                two_d_array: bool = True
+                three_d_array: bool = False
+                sparse: bool = True
+                categorical: bool = True
+                string: bool = True
+                dict: bool = False
+                positive_only: bool = False
+                allow_nan: bool = True
+                pairwise: bool = False
+            input_tags = InputTags()
+
+        return Tags
+
+
     def get_feature_names_out(
         self,
         input_features:Sequence[str] | None = None
