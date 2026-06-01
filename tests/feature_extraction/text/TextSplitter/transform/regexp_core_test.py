@@ -12,7 +12,8 @@ import re
 
 import numpy as np
 
-from pybear.feature_extraction.text._TextSplitter._regexp_core import _regexp_core
+from pybear.feature_extraction.text._TextSplitter._transform._regexp_core import \
+    _regexp_core
 
 
 

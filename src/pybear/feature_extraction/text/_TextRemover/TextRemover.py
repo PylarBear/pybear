@@ -25,8 +25,8 @@ import re
 
 import numpy as np
 
-from ._regexp_1D_core import _regexp_1D_core
-from ._validation import _validation
+from ._transform._regexp_1D_core import _regexp_1D_core
+from ._validation._validation import _validation
 
 from ..__shared._transform._map_X_to_list import _map_X_to_list
 from ..__shared._param_conditioner._param_conditioner import _param_conditioner

@@ -23,7 +23,7 @@ from pybear.base import (
     check_is_fitted
 )
 
-from ._transform import _transform
+from ._transform._transform import _transform
 
 from ..__shared._validation._1D_2D_X import _val_1D_2D_X
 from ..__shared._transform._map_X_to_list import _map_X_to_list

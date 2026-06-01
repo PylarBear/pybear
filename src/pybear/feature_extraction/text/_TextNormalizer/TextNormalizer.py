@@ -16,8 +16,8 @@ from ._type_aliases import (
     UpperType
 )
 
-from ._validation import _validation
-from ._transform import _transform
+from ._validation._validation import _validation
+from ._transform._transform import _transform
 
 from ..__shared._transform._map_X_to_list import _map_X_to_list
 

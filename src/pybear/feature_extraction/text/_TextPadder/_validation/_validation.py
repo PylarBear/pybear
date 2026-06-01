@@ -6,11 +6,11 @@
 
 
 
-from ..__shared._validation._2D_X import _val_2D_X
-from ..__shared._validation._any_integer import _val_any_integer
-from ..__shared._validation._any_string import _val_any_string
+from ...__shared._validation._2D_X import _val_2D_X
+from ...__shared._validation._any_integer import _val_any_integer
+from ...__shared._validation._any_string import _val_any_string
 
-from ._type_aliases import XContainer
+from .._type_aliases import XContainer
 
 
 

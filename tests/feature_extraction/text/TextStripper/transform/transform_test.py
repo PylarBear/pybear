@@ -10,7 +10,8 @@ import pytest
 
 import numpy as np
 
-from pybear.feature_extraction.text._TextStripper._transform import _transform
+from pybear.feature_extraction.text._TextStripper._transform._transform import \
+    _transform
 
 
 

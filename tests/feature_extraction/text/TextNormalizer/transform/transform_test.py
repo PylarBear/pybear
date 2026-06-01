@@ -10,7 +10,8 @@ import pytest
 
 import numpy as np
 
-from pybear.feature_extraction.text._TextNormalizer._transform import _transform
+from pybear.feature_extraction.text._TextNormalizer._transform._transform import \
+    _transform
 
 
 
