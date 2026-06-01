@@ -6,9 +6,6 @@ license = "BSD-3-clause"
 authors = ["Bill Sousa <WKSJR99@msn.com>"]
 maintainers = ["Bill Sousa"]
 readme = "README.rst"
-# The contents of the README file(s) are used to populate the Description field
-# of your distribution’s metadata (similar to long_description in setuptools).
-# When multiple files are specified they are concatenated with newlines.
 homepage = "https://github.com/PylarBear/pybear"
 repository = "https://github.com/PylarBear/pybear"
 #documentation
@@ -28,47 +25,36 @@ include = [
 
 [tool.poetry.dependencies]
 python = ">=3.10"
-#joblib = "==1.5.3"   # check 1.5.2
 joblib = [
     {version = "==1.3.0", python = "<3.14"},
     {version = "==1.5.3", python = "==3.14"}   # check 1.5.2
 ]
-#numpy = "==2.3.2"    # 2.2.0 works, check 2.1.2
 numpy = [
     {version = "==2.1.0", python = "<3.14"},
     {version = "==2.3.2", python = "==3.14"}
 ]
-#pandas = "==2.2.3"
 pandas = [
     {version = "==2.2.3", python = "<3.14"},
     {version = "==2.3.3", python = "==3.14"}
 ]
-#polars = "==1.19.0"
-#polars = [
-#    {version = "==1.19.0", python = "<3.14"},
-#    {version = "==1.19.0", python = "==3.14"}
-#]
-#polars-lts-cpu = "==1.19.0"   # don't forget to take this out
-polars-lts-cpu = [
+polars = [
     {version = "==1.19.0", python = "<3.14"},
     {version = "==1.19.0", python = "==3.14"}
 ]
-#psutil = "==5.7.0"
 psutil = [
     {version = "==5.7.0", python = "<3.14"},
     {version = "==5.7.0", python = "==3.14"}
 ]
 scipy = [
     {version = "==1.15.0,<1.16.0", python = "==3.10"},  # find lower bound for py3.10
-    {version = "==1.16.1", python = ">=3.11,<3.14"},
+    {version = "==1.16.1", python = ">=3.11,<=3.13"},
     {version = "==1.16.1", python = "==3.14"},
 ]
 scikit-learn = [
     {version = "==1.5.2,<1.8.0", python = "==3.10"},  # find lower bound for py3.10
-    {version = "==1.5.2", python = ">=3.11,<3.14"},   # check starting at 1.6.0
+    {version = "==1.5.2", python = ">=3.11,<=3.13"},   # check starting at 1.6.0
     {version = "==1.8.0", python = "==3.14"}   # check starting at 1.6.0
 ]
-#typing_extensions = "==4.12.0"
 typing_extensions = [
     {version = "==4.12.0", python = "<3.14"},
     {version = "==4.12.0", python = "==3.14"}
@@ -91,7 +77,6 @@ sphinx-sitemap = "*"
 
 
 [tool.poetry.group.test.dependencies]
-#pytest = "==8.0.0"    # 7.0.0 does not work. check >7.0.0,<8.0.0
 pytest = [
     {version = "==7.0.0", python = "<3.14"},
     {version = "==8.0.0", python = "==3.14"}    # 7.0.0 does not work. check >7.0.0,<8.0.0
