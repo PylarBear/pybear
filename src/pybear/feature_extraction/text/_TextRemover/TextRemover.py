@@ -10,7 +10,6 @@ from typing import (
     Any,
 )
 from typing_extensions import Self
-import numpy.typing as npt
 from ._type_aliases import (
     XContainer,
     XWipContainer,
@@ -287,7 +286,7 @@ class TextRemover(
 
 
     @property
-    def row_support_(self) -> npt.NDArray[bool]:
+    def row_support_(self) -> RowSupportType:
         """Get the `row_support_` attribute.
 
         A boolean vector indicating which rows were kept (True) or

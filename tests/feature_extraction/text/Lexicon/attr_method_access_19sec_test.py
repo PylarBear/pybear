@@ -68,6 +68,14 @@ class TestAttrAccess:
             (numbers.Real for _ in out)
         ))
 
+        # 'string_frequency_',
+        out = getattr(TestCls, 'string_frequency_')
+        assert isinstance(out, dict)
+        assert all(map(isinstance, out, (str for _ in out)))
+        assert all(map(
+            isinstance, out.values(), (numbers.Integral for _ in out)
+        ))
+
         # 'startswith_frequency_',
         out = getattr(TestCls, 'startswith_frequency_')
         assert isinstance(out, dict)
@@ -87,14 +95,6 @@ class TestAttrAccess:
             isinstance, out.values(), (numbers.Integral for _ in out)
         ))
         assert all(map(lambda x: x >= 1, out.values()))
-
-        # 'string_frequency_',
-        out = getattr(TestCls, 'string_frequency_')
-        assert isinstance(out, dict)
-        assert all(map(isinstance, out, (str for _ in out)))
-        assert all(map(
-            isinstance, out.values(), (numbers.Integral for _ in out)
-        ))
 
         # 'uniques_'
         out = getattr(TestCls, 'uniques_')
