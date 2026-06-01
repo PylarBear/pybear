@@ -13,8 +13,8 @@ import re
 import sklearn
 
 from sklearn.utils.estimator_checks import (
-    check_transformer_general,
     check_transformers_unfitted,
+    check_transformer_general,
     check_transformer_preserve_dtypes,
     check_transformer_get_feature_names_out,
     check_transformer_get_feature_names_out_pandas
@@ -59,7 +59,7 @@ class TestSKLearnCheckTransformer:
 
 
     def test_check_transformer_get_feature_names_out(self):
-        # looks for certain verbage in error if len(input_features) does not
+        # looks for certain verbiage in error if len(input_features) does not
         # match n_features_in_, and if output dtype is object
 
         if float(self.sk_version[0:3]) >= 1.6:
@@ -69,6 +69,7 @@ class TestSKLearnCheckTransformer:
             )
         else:
             err_msg = f"'MinCountTransformer' object has no attribute '_get_tags'"
+
             with pytest.raises(AttributeError, match=re.escape(err_msg)):
                 check_transformer_get_feature_names_out(
                     'MinCountTransformer',
@@ -87,13 +88,12 @@ class TestSKLearnCheckTransformer:
             )
         else:
             err_msg = f"'MinCountTransformer' object has no attribute '_get_tags'"
+
             with pytest.raises(AttributeError, match=re.escape(err_msg)):
                 check_transformer_get_feature_names_out_pandas(
                     'MinCountTransformer',
                     MinCountTransformer(count_threshold=5)
                 )
-
-
 
 
 

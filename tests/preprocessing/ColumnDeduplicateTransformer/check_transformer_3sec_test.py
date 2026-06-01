@@ -63,8 +63,7 @@ class TestSKLearnCheckTransformer:
                 CDT()
             )
         else:
-            err_msg = (f"'ColumnDeduplicator' object has no "
-                       f"attribute '_get_tags'")
+            err_msg = f"'ColumnDeduplicator' object has no attribute '_get_tags'"
 
             with pytest.raises(AttributeError, match=re.escape(err_msg)):
                 check_transformer_get_feature_names_out(
@@ -83,8 +82,7 @@ class TestSKLearnCheckTransformer:
                 CDT()
             )
         else:
-            err_msg = (f"'ColumnDeduplicator' object has no "
-                       f"attribute '_get_tags'")
+            err_msg = f"'ColumnDeduplicator' object has no attribute '_get_tags'"
 
             with pytest.raises(AttributeError, match=re.escape(err_msg)):
                 check_transformer_get_feature_names_out_pandas(
