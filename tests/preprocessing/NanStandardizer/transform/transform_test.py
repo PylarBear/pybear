@@ -212,7 +212,7 @@ class TestTransform:
             out = _transform(_X, _fill)
         elif (isinstance(_fill , str) and _dtype != 'str') \
             or (not isinstance(_fill , str) and _dtype == 'str'):
-            # there is some wack behavior in polars. sometimes it will
+            # there is some flaky behavior in polars. sometimes it will
             # cast a value of different type to a df/series and other
             # times it wont.
             try:
