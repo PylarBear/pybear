@@ -10,7 +10,7 @@ from typing import (
     Sequence,
     TypeAlias
 )
-from ._type_aliases import MaxSplitsType
+from .._type_aliases import MaxSplitsType
 
 import numbers
 import re

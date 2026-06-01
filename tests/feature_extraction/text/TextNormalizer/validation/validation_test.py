@@ -8,7 +8,8 @@
 
 import pytest
 
-from pybear.feature_extraction.text._TextNormalizer._validation import _validation
+from pybear.feature_extraction.text._TextNormalizer._validation._validation import \
+    _validation
 
 
 

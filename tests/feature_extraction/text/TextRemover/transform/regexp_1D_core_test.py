@@ -12,7 +12,7 @@ import re
 
 import numpy as np
 
-from pybear.feature_extraction.text._TextRemover._regexp_1D_core import \
+from pybear.feature_extraction.text._TextRemover._transform._regexp_1D_core import \
     _regexp_1D_core
 
 

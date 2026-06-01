@@ -19,8 +19,8 @@ from ._type_aliases import (
     FlagsType
 )
 
-from ._validation import _validation
-from ._regexp_core import _regexp_core
+from ._validation._validation import _validation
+from ._transform._regexp_core import _regexp_core
 
 from ..__shared._param_conditioner._param_conditioner import _param_conditioner
 from ..__shared._transform._map_X_to_list import _map_X_to_list

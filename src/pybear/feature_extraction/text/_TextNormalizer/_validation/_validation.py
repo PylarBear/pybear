@@ -6,13 +6,13 @@
 
 
 
-from ._type_aliases import (
+from .._type_aliases import (
     XContainer,
     UpperType
 )
 
-from ..__shared._validation._1D_2D_X import _val_1D_2D_X
-from ..__shared._validation._any_bool import _val_any_bool
+from ...__shared._validation._1D_2D_X import _val_1D_2D_X
+from ...__shared._validation._any_bool import _val_any_bool
 
 
 

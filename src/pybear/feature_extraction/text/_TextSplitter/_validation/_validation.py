@@ -6,7 +6,7 @@
 
 
 
-from ._type_aliases import (
+from .._type_aliases import (
     XContainer,
     SepsType,
     CaseSensitiveType,
@@ -16,11 +16,11 @@ from ._type_aliases import (
 
 import numbers
 
-from ..__shared._validation._1D_X import _val_1D_X
-from ..__shared._validation._any_integer import _val_any_integer
-from ..__shared._validation._pattern_holder import _val_pattern_holder
-from ..__shared._validation._case_sensitive import _val_case_sensitive
-from ..__shared._validation._flags import _val_flags
+from ...__shared._validation._1D_X import _val_1D_X
+from ...__shared._validation._any_integer import _val_any_integer
+from ...__shared._validation._pattern_holder import _val_pattern_holder
+from ...__shared._validation._case_sensitive import _val_case_sensitive
+from ...__shared._validation._flags import _val_flags
 
 
 

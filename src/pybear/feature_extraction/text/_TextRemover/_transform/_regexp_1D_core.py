@@ -7,7 +7,7 @@
 
 
 import numpy.typing as npt
-from ._type_aliases import (
+from .._type_aliases import (
     WipRemoveType,
     RowSupportType
 )
