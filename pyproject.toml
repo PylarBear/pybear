@@ -35,7 +35,7 @@ joblib = [
 numpy = [
     {version = "==1.25.2", python = "==3.10"},   # was 2.1.0, 2.02 works
 	{version = "==1.25.2", python = "==3.11"},   # was 2.1.0, 2.02 works
-	{version = "==1.25.2", python = "==3.12"},   # was 2.1.0, 2.02 works... whatever this comes out to is done
+	{version = "==1.26.0", python = "==3.12"},   # was 2.1.0, 2.02 works... whatever this comes out to is done
 	{version = "==2.1.0", python = "==3.13"},   # done
     {version = "==2.3.0", python = "==3.14"}    # was 2.3.1  keep this 2.3.1
 ]
