@@ -143,7 +143,7 @@ class TextStatistics(
     When `store_uniques` is False, however, the unique strings seen
     during fitting are not stored. In this case, the memory footprint
     of the TS instance will not grow linearly with the number of unique
-    strings seen during fitting. This enables TS to fit on practially
+    strings seen during fitting. This enables TS to fit on practically
     unlimited amounts of text data. This is ideal for situations where
     the individual strings being fit are phrases, sentences, or even
     entire books. This comes at cost, though, because some reporting
@@ -355,6 +355,38 @@ class TextStatistics(
 
     def __pybear_is_fitted__(self) -> bool:
         return hasattr(self, '_string_frequency')
+
+
+    def __sklearn_tags__(self):
+
+        class Tags:
+            estimator_type: str = "transformer"
+            class TargetTags:
+                required: bool = False
+            target_tags = TargetTags()
+            class TransformerTags:
+                preserves_dtype: list = []
+            transformer_tags = TransformerTags()
+            classifier_tags = None
+            regressor_tags = None
+            array_api_support: bool = False
+            no_validation: bool = False
+            non_deterministic: bool = False
+            requires_fit: bool = True
+            class InputTags:
+                one_d_array: bool = True
+                two_d_array: bool = True
+                three_d_array: bool = False
+                sparse: bool = False
+                categorical: bool = False
+                string: bool = True
+                dict: bool = False
+                positive_only: bool = False
+                allow_nan: bool = True
+                pairwise: bool = False
+            input_tags = InputTags()
+
+        return Tags
 
 
     def _reset(self) -> Self:

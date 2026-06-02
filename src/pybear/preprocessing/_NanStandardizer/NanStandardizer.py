@@ -164,8 +164,11 @@ class NanStandardizer(
             array_api_support: bool = False
             no_validation: bool = False
             non_deterministic: bool = False
-            requires_fit: bool = True
+            requires_fit: bool = False
             class InputTags:
+                # one_d_array must stay False to pass check_transformer_general
+                # in sklearn==1.8.0. It is sklearn's error, anticipate that it
+                # will be fixed in the future.
                 one_d_array: bool = False
                 two_d_array: bool = True
                 three_d_array: bool = False
