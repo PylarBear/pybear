@@ -42,12 +42,25 @@ class TestSKLearnCheckTransformer:
 
     def test_transformer_general(self):
 
-        # This passes when __sklearn_tags__.requires_fit == False
-        # fails if True
-        check_transformer_general(
-            'NanStandardizer',
-            NS()
-        )
+        if float(self.sk_version[0:3]) >= 1.8:
+            # This passes when __sklearn_tags__.requires_fit == False for sk1.8.0 only!
+            # fails if True
+            check_transformer_general(
+                'NanStandardizer',
+                NS()
+            )
+        else:
+            # For sk<1.8.0, what __sklearn_tags__ says doesn't matter, and this
+            # test fails for not raising.
+            err_msg = f"The transformer NanStandardizer does not raise an error " \
+                f"when the number of features in transform is different from the " \
+                f"number of features in fit."
+
+            with pytest.raises(AssertionError, match=re.escape(err_msg)):
+                check_transformer_general(
+                    'NanStandardizer',
+                    NS()
+                )
 
 
     def test_transformer_preserve_dtypes(self):
