@@ -75,11 +75,11 @@ scikit-learn = [
     {version = "==1.6.0", python = "==3.14"}  # was 1.8.0
 ]
 typing_extensions = [
-    {version = "==4.5.0", python = "==3.10"},  # was 4.12.0
-	{version = "==4.5.0", python = "==3.11"},  # was 4.12.0
-	{version = "==4.5.0", python = "==3.12"},  # was 4.12.0
-	{version = "==4.5.0", python = "==3.13"},  # was 4.12.0
-    {version = "==4.5.0", python = "==3.14"}  # was 4.12.0
+    {version = "==4.6.0", python = "==3.10"},  # was 4.12.0
+	{version = "==4.6.0", python = "==3.11"},  # was 4.12.0
+	{version = "==4.6.0", python = "==3.12"},  # was 4.12.0
+	{version = "==4.6.0", python = "==3.13"},  # was 4.12.0
+    {version = "==4.6.0", python = "==3.14"}  # was 4.12.0
 ]
 
 
@@ -107,7 +107,7 @@ pytest = [
 	{version = "==7.0.0", python = "==3.11"},  # done
 	{version = "==7.0.0", python = "==3.12"},  # done
 	{version = "==7.0.0", python = "==3.13"},  # done
-    {version = "==7.3.1", python = "==3.14"}   # 7.2.0 was working (???)
+    {version = "==7.3.2", python = "==3.14"}   # 7.2.0 was working (???)
 ]
 pytest-cov = "*"
 pytest-html = "*"
