@@ -260,10 +260,6 @@ class TextRemover(
         self.flags = flags
 
 
-    def __pybear_is_fitted__(self) -> bool:
-        return True
-
-
     @property
     def n_rows_(self) -> int:
         """Get the `n_rows_` attribute.
@@ -303,6 +299,44 @@ class TextRemover(
         """
 
         return self._row_support
+
+    # END properties ** * ** * ** * ** * ** * ** * ** * ** * ** * ** *
+
+
+    def __pybear_is_fitted__(self) -> bool:
+        return True
+
+
+    def __sklearn_tags__(self):
+
+        class Tags:
+            estimator_type: str = "transformer"
+            class TargetTags:
+                required: bool = False
+            target_tags = TargetTags()
+            class TransformerTags:
+                preserves_dtype: list = []
+            transformer_tags = TransformerTags()
+            classifier_tags = None
+            regressor_tags = None
+            array_api_support: bool = False
+            no_validation: bool = False
+            non_deterministic: bool = False
+            requires_fit: bool = False
+            class InputTags:
+                one_d_array: bool = True
+                two_d_array: bool = True
+                three_d_array: bool = False
+                sparse: bool = False
+                categorical: bool = False
+                string: bool = True
+                dict: bool = False
+                positive_only: bool = False
+                allow_nan: bool = True
+                pairwise: bool = False
+            input_tags = InputTags()
+
+        return Tags
 
 
     def get_metadata_routing(self):

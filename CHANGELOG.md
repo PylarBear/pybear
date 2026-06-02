@@ -9,10 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [X.X.X] - 20XX-XX-XX
 
 ### Added
-- Support for py3.14; update README.rst
+- Support for py3.14; add sklearn_tags for sklearn 1.8 compatibility
 
 ### Changed
-- Change link to PyPI version badge in README.rst; badge is now blue
+- None
 
 ### Deprecated
 - None

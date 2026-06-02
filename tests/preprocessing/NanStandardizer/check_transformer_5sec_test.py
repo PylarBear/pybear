@@ -13,7 +13,7 @@ import re
 import sklearn
 
 from sklearn.utils.estimator_checks import (
-    check_transformers_unfitted,
+    check_transformers_unfitted_stateless,
     check_transformer_general,
     check_transformer_preserve_dtypes,
     check_transformer_get_feature_names_out,
@@ -30,32 +30,24 @@ class TestSKLearnCheckTransformer:
     sk_version = sklearn.__version__
 
 
-    def test_transformers_unfitted(self):
-        # this tests if Exception raised when transform() without fit()
+    def test_transformers_unfitted_stateless(self):
+        # this tests if Exception not raised when transform() without fit()
 
-        # AssertionError: The unfitted transformer NanStandardizer does
-        # not raise an error when transform is called. Perhaps use
-        # check_is_fitted in transform.
-        # Fails this test because NS is always fitted.
-        with pytest.raises(AssertionError):
-            check_transformers_unfitted(
-                'NanStandardizer',
-                NS()
-            )
+        # Passes this test because NS is always fitted.
+        check_transformers_unfitted_stateless(
+            'NanStandardizer',
+            NS()
+        )
 
 
     def test_transformer_general(self):
 
-        # AssertionError: The transformer NanStandardizer does not raise
-        # an error when the number of features in transform is different
-        # from the number of features in fit.
-        # Fails this test because NS does not use base.validate_data,
-        # which mean it does not get & validate n_features_in_
-        with pytest.raises(AssertionError):
-            check_transformer_general(
-                'NanStandardizer',
-                NS()
-            )
+        # This passes when __sklearn_tags__.requires_fit == False
+        # fails if True
+        check_transformer_general(
+            'NanStandardizer',
+            NS()
+        )
 
 
     def test_transformer_preserve_dtypes(self):
