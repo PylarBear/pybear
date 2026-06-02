@@ -33,10 +33,10 @@ joblib = [
     {version = "==1.5.2", python = "==3.14"}    # was 1.5.3
 ]
 numpy = [
-    {version = "==2.1.0", python = "==3.10"},   # was 2.1.0
-	{version = "==2.1.0", python = "==3.11"},   # was 2.1.0
-	{version = "==2.1.0", python = "==3.12"},   # was 2.1.0
-	{version = "==2.1.0", python = "==3.13"},   # was 2.1.0
+    {version = "==2.0.2", python = "==3.10"},   # was 2.1.0
+	{version = "==2.0.2", python = "==3.11"},   # was 2.1.0
+	{version = "==2.0.2", python = "==3.12"},   # was 2.1.0
+	{version = "==2.0.2", python = "==3.13"},   # was 2.1.0
     {version = "==2.3.0", python = "==3.14"}    # was 2.3.1  keep this 2.3.1
 ]
 pandas = [
@@ -47,10 +47,10 @@ pandas = [
     {version = "==2.3.2", python = "==3.14"}  # was 2.3.3  keep this 2.3.3
 ]
 polars = [
-    {version = "==1.18.0", python = "==3.10"},  # was 1.19.0
-	{version = "==1.18.0", python = "==3.11"},  # was 1.19.0
-	{version = "==1.18.0", python = "==3.12"},  # was 1.19.0
-	{version = "==1.18.0", python = "==3.13"},  # was 1.19.0
+    {version = "==1.19.0", python = "==3.10"},  # was 1.19.0
+	{version = "==1.19.0", python = "==3.11"},  # was 1.19.0
+	{version = "==1.19.0", python = "==3.12"},  # was 1.19.0
+	{version = "==1.19.0", python = "==3.13"},  # was 1.19.0
     {version = "==1.18.0", python = "==3.14"}  # was 1.19.0
 ]
 psutil = [
@@ -107,7 +107,7 @@ pytest = [
 	{version = "==7.0.0", python = "==3.11"},  # was 7.0.0
 	{version = "==7.0.0", python = "==3.12"},  # was 7.0.0
 	{version = "==7.0.0", python = "==3.13"},  # was 7.0.0
-    {version = "==7.1.0", python = "==3.14"}    # was 8.0.0
+    {version = "==7.1.1", python = "==3.14"}    # was 8.0.0
 ]
 pytest-cov = "*"
 pytest-html = "*"
