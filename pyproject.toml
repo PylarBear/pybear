@@ -40,9 +40,9 @@ numpy = [
     {version = "==2.3.0", python = "==3.14"}    # was 2.3.1  keep this 2.3.1
 ]
 pandas = [
-    {version = "==2.1.1", python = "==3.10"},  # was 2.2.3, 2.2.2 works
-	{version = "==2.1.1", python = "==3.11"},  # was 2.2.3, 2.2.2 works
-	{version = "==2.1.1", python = "==3.12"},  # was 2.2.3, 2.2.2 works
+    {version = "==2.1.0", python = "==3.10"},  # was 2.2.3, 2.2.2 works
+	{version = "==2.1.0", python = "==3.11"},  # was 2.2.3, 2.2.2 works
+	{version = "==2.1.0", python = "==3.12"},  # was 2.2.3, 2.2.2 works
 	{version = "==2.2.2", python = "==3.13"},  # done
     {version = "==2.3.2", python = "==3.14"}  # was 2.3.3  keep this 2.3.3
 ]
