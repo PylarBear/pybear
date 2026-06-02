@@ -65,7 +65,7 @@ scipy = [
     {version = "==1.14.0,<1.16.0", python = "==3.11"},  # done
 	{version = "==1.14.0,<1.16.0", python = "==3.12"},  # done
 	{version = "==1.14.0,<1.16.0", python = "==3.13"},  # done
-    {version = "==1.14.0", python = "==3.14"},  # was 1.16.1
+    {version = "==1.14.1", python = "==3.14"},  # was 1.16.1
 ]
 scikit-learn = [
     {version = "==1.4.0,<1.8.0", python = "==3.10"},  # was 1.5.2
