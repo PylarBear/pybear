@@ -26,24 +26,24 @@ include = [
 [tool.poetry.dependencies]
 python = ">=3.10"
 joblib = [
-    {version = "==1.2.0", python = "==3.10"},   # was 1.3.0
+    {version = "==1.3.0", python = "==3.10"},   # done
 	{version = "==1.3.0", python = "==3.11"},   # done
 	{version = "==1.3.0", python = "==3.12"},   # done
 	{version = "==1.3.0", python = "==3.13"},   # done
-    {version = "==1.5.2", python = "==3.14"}    # was 1.5.3
+    {version = "==1.3.0", python = "==3.14"}    # was 1.5.3
 ]
 numpy = [
-    {version = "==1.26.4", python = "==3.10"},   # was 2.1.0, 2.02 works
-	{version = "==1.26.4", python = "==3.11"},   # was 2.1.0, 2.02 works
-	{version = "==1.26.4", python = "==3.12"},   # was 2.1.0, 2.02 works
-	{version = "==1.26.4", python = "==3.13"},   # was 2.1.0, 2.02 works
+    {version = "==1.26.3", python = "==3.10"},   # was 2.1.0, 2.02 works
+	{version = "==1.26.3", python = "==3.11"},   # was 2.1.0, 2.02 works
+	{version = "==1.26.3", python = "==3.12"},   # was 2.1.0, 2.02 works
+	{version = "==2.0.0", python = "==3.13"},   # was 2.1.0, 2.02 works
     {version = "==2.3.0", python = "==3.14"}    # was 2.3.1  keep this 2.3.1
 ]
 pandas = [
-    {version = "==2.2.1", python = "==3.10"},  # was 2.2.3, 2.2.2 works
-	{version = "==2.2.1", python = "==3.11"},  # was 2.2.3, 2.2.2 works
-	{version = "==2.2.1", python = "==3.12"},  # was 2.2.3, 2.2.2 works
-	{version = "==2.2.1", python = "==3.13"},  # was 2.2.3, 2.2.2 works
+    {version = "==2.2.0", python = "==3.10"},  # was 2.2.3, 2.2.2 works
+	{version = "==2.2.0", python = "==3.11"},  # was 2.2.3, 2.2.2 works
+	{version = "==2.2.0", python = "==3.12"},  # was 2.2.3, 2.2.2 works
+	{version = "==2.2.2", python = "==3.13"},  # was 2.2.3, 2.2.2 works
     {version = "==2.3.2", python = "==3.14"}  # was 2.3.3  keep this 2.3.3
 ]
 polars = [
@@ -61,25 +61,25 @@ psutil = [
     {version = "==5.7.0", python = "==3.14"}  # was 5.7.0
 ]
 scipy = [
-    {version = "==1.14.1,<1.16.0", python = "==3.10"},  # done
-    {version = "==1.14.1,<1.16.0", python = "==3.11"},  # done
-	{version = "==1.14.1,<1.16.0", python = "==3.12"},  # done
-	{version = "==1.14.1,<1.16.0", python = "==3.13"},  # done
-    {version = "==1.16.1", python = "==3.14"},  # was 1.16.1
+    {version = "==1.14.0,<1.16.0", python = "==3.10"},  # done
+    {version = "==1.14.0,<1.16.0", python = "==3.11"},  # done
+	{version = "==1.14.0,<1.16.0", python = "==3.12"},  # done
+	{version = "==1.14.0,<1.16.0", python = "==3.13"},  # done
+    {version = "==1.16.0", python = "==3.14"},  # was 1.16.1
 ]
 scikit-learn = [
-    {version = "==1.5.0,<1.8.0", python = "==3.10"},  # was 1.5.2
-    {version = "==1.5.0", python = "==3.11"},   # was 1.5.2
-	{version = "==1.5.0", python = "==3.12"},   # was 1.5.2
-	{version = "==1.5.0", python = "==3.13"},   # was 1.5.2
+    {version = "==1.4.2,<1.8.0", python = "==3.10"},  # was 1.5.2
+    {version = "==1.4.2", python = "==3.11"},   # was 1.5.2
+	{version = "==1.4.2", python = "==3.12"},   # was 1.5.2
+	{version = "==1.4.2", python = "==3.13"},   # was 1.5.2
     {version = "==1.6.0", python = "==3.14"}   # was 1.8.0
 ]
 typing_extensions = [
-    {version = "==4.10.0", python = "==3.10"},  # was 4.12.0
-	{version = "==4.10.0", python = "==3.11"},  # was 4.12.0
-	{version = "==4.10.0", python = "==3.12"},  # was 4.12.0
-	{version = "==4.10.0", python = "==3.13"},  # was 4.12.0
-    {version = "==4.10.0", python = "==3.14"}  # was 4.12.0
+    {version = "==4.9.0", python = "==3.10"},  # was 4.12.0
+	{version = "==4.9.0", python = "==3.11"},  # was 4.12.0
+	{version = "==4.9.0", python = "==3.12"},  # was 4.12.0
+	{version = "==4.9.0", python = "==3.13"},  # was 4.12.0
+    {version = "==4.9.0", python = "==3.14"}  # was 4.12.0
 ]
 
 
@@ -103,11 +103,11 @@ sphinx-sitemap = "*"
 
 [tool.poetry.group.test.dependencies]
 pytest = [
-    {version = "==7.0.0", python = "==3.10"},  # was 7.0.0
-	{version = "==7.0.0", python = "==3.11"},  # was 7.0.0
-	{version = "==7.0.0", python = "==3.12"},  # was 7.0.0
-	{version = "==7.0.0", python = "==3.13"},  # was 7.0.0
-    {version = "==7.1.2", python = "==3.14"}    # was 8.0.0
+    {version = "==6.2.5", python = "==3.10"},  # was 7.0.0
+	{version = "==6.2.5", python = "==3.11"},  # was 7.0.0
+	{version = "==6.2.5", python = "==3.12"},  # was 7.0.0
+	{version = "==6.2.5", python = "==3.13"},  # was 7.0.0
+    {version = "==7.1.3", python = "==3.14"}    # was 8.0.0
 ]
 pytest-cov = "*"
 pytest-html = "*"
