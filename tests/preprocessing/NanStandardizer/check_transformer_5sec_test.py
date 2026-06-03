@@ -42,7 +42,7 @@ class TestSKLearnCheckTransformer:
 
     def test_transformer_general(self):
 
-        if float(self.sk_version[0:3]) >= 1.8:
+        if str(self.sk_version[0:5]) == "1.7.2" or float(self.sk_version[0:3]) >= 1.8:
             # This passes when __sklearn_tags__.requires_fit == False for sk1.8.0 only!
             # fails if True
             check_transformer_general(
