@@ -61,8 +61,8 @@ psutil = [
     {version = "==7.1.2", python = "==3.14"}
 ]
 scipy = [
-    {version = "==1.11.3,<1.16.0", python = "==3.10"},  # check == 1.16.0
-    {version = "==1.11.3", python = "==3.11"},  # check == 1.16.0
+    {version = "==1.11.4,<1.16.0", python = "==3.10"},  # check == 1.16.0
+    {version = "==1.11.4", python = "==3.11"},  # check == 1.16.0
 	{version = "==1.12.0", python = "==3.12"},  # check == 1.16.0
 	{version = "==1.14.1", python = "==3.13"},  # check == 1.16.0
     {version = "==1.16.1", python = "==3.14"},  # was 1.16.1
