@@ -44,7 +44,7 @@ pandas = [
 	{version = "==1.5.0", python = "==3.11"},
 	{version = "==2.1.1", python = "==3.12"},
 	{version = "==2.2.3", python = "==3.13"},
-    {version = "==2.3.2", python = "==3.14"}  # was 2.3.3  keep this 2.3.3
+    {version = "==2.3.3", python = "==3.14"}
 ]
 polars = [
     {version = "==1.19.0", python = "==3.10"},
