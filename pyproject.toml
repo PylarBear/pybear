@@ -61,9 +61,9 @@ psutil = [
     {version = "==7.1.2", python = "==3.14"}
 ]
 scipy = [
-    {version = "==1.10.0,<1.16.0", python = "==3.10"},
-    {version = "==1.10.0", python = "==3.11"},
-	{version = "==1.11.2", python = "==3.12"},
+    {version = "==1.11.3,<1.16.0", python = "==3.10"},
+    {version = "==1.11.3", python = "==3.11"},
+	{version = "==1.11.3", python = "==3.12"},
 	{version = "==1.14.1", python = "==3.13"},
     {version = "==1.16.1", python = "==3.14"},
 ]
