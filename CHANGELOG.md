@@ -6,19 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [X.X.X] - 20XX-XX-XX
+## [0.2.4] - 2026-07-09
 
 ### Added
-- Support for py3.14; add sklearn_tags for sklearn 1.8 compatibility
+- Support for py3.14; sklearn_tags for sklearn 1.8 compatibility
 
 ### Changed
-- None
+- Update dependency floors for py3.14 support
 
 ### Deprecated
 - None
 
 ### Removed
-- None
+- Support for py3.9
 
 ### Fixed
 - None
