@@ -83,7 +83,7 @@ pybear
 
 
 
-Cool, but not frozen, packages to augment your Python data analytics experience.
+Packages that augment your Python data analytics experience.
 
 pybear is a scikit-learn-style Python computing library that augments data
 analytics functionality found in popular packages like scikit-learn and xgboost.
