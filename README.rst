@@ -70,23 +70,73 @@ pybear
 
 .. _documentation: https://pybear.readthedocs.io/
 
-.. |PythonVersion| replace:: >=3.10
-.. |JoblibVersion| replace:: >=1.3.0
-.. |NumpyVersion| replace:: >=2.1.0
-.. |PandasVersion| replace:: >=2.2.3
-.. |PolarsVersion| replace:: >=1.19.0
-.. |PsutilVersion| replace:: >=5.7.0
-.. |PytestVersion| replace:: >=7.0.0
-.. |ScipyVersion| replace:: >=1.15.0
-.. |ScikitLearnVersion| replace:: >=1.5.2
-.. |TypingExtensionsVersion| replace:: >=4.12.0
 
+.. |PythonVersion314| replace:: ==3.14
+.. |JoblibVersion314| replace:: >=1.5.2
+.. |NumpyVersion314| replace:: >=2.3.2
+.. |PandasVersion314| replace:: >=2.3.3
+.. |PolarsVersion314| replace:: >=1.19.0
+.. |PsutilVersion314| replace:: >=7.1.2
+.. |PyarrowVersion314| replace:: >=22.0.0
+.. |PytestVersion314| replace:: >=8.0.0
+.. |ScikitLearnVersion314| replace:: >=1.7.2
+.. |ScipyVersion314| replace:: >=1.16.1
+.. |TypingExtensionsVersion314| replace:: >=4.6.0
 
+.. |PythonVersion313| replace:: ==3.13
+.. |JoblibVersion313| replace:: >=1.3.0
+.. |NumpyVersion313| replace:: >=2.1.0
+.. |PandasVersion313| replace:: >=2.2.3
+.. |PolarsVersion313| replace:: >=1.19.0
+.. |PsutilVersion313| replace:: >=5.9.4
+.. |PyarrowVersion313| replace:: >=18.0.0
+.. |PytestVersion313| replace:: >=7.0.0
+.. |ScikitLearnVersion313| replace:: >=1.5.2
+.. |ScipyVersion313| replace:: >=1.14.1
+.. |TypingExtensionsVersion313| replace:: >=4.6.0
 
-Packages that augment your Python data analytics experience.
+.. |PythonVersion312| replace:: ==3.12
+.. |JoblibVersion312| replace:: >=1.3.0
+.. |NumpyVersion312| replace:: >=1.26.0
+.. |PandasVersion312| replace:: >=2.1.1
+.. |PolarsVersion312| replace:: >=1.19.0
+.. |PsutilVersion312| replace:: >=5.9.4
+.. |PyarrowVersion312| replace:: >=14.0.0
+.. |PytestVersion312| replace:: >=7.0.0
+.. |ScikitLearnVersion312| replace:: >=1.3.1
+.. |ScipyVersion312| replace:: >=1.12.0
+.. |TypingExtensionsVersion312| replace:: >=4.6.0
+
+.. |PythonVersion311| replace:: ==3.11
+.. |JoblibVersion311| replace:: >=1.3.0
+.. |NumpyVersion311| replace:: >=1.23.3
+.. |PandasVersion311| replace:: >=1.5.1
+.. |PolarsVersion311| replace:: >=1.19.0
+.. |PsutilVersion311| replace:: >=5.9.4
+.. |PyarrowVersion311| replace:: >=10.0.1
+.. |PytestVersion311| replace:: >=7.0.0
+.. |ScikitLearnVersion311| replace:: >=1.3.0
+.. |ScipyVersion311| replace:: >=1.12.0
+.. |TypingExtensionsVersion311| replace:: >=4.6.0
+
+.. |PythonVersion310| replace:: ==3.10
+.. |JoblibVersion310| replace:: >=1.3.0
+.. |NumpyVersion310| replace:: >=1.23.3, <2.3
+.. |PandasVersion310| replace:: >=1.3.4, <3.0
+.. |PolarsVersion310| replace:: >=1.19.0
+.. |PsutilVersion310| replace:: >=5.9.0
+.. |PyarrowVersion310| replace:: >=6.0.0
+.. |PytestVersion310| replace:: >=7.0.0
+.. |ScikitLearnVersion310| replace:: >=1.3.0,<1.8
+.. |ScipyVersion310| replace:: >=1.12.0,<1.16.0
+.. |TypingExtensionsVersion310| replace:: >=4.6.0
+
+Python packages that augment your data analytics experience.
 
 pybear is a scikit-learn-style Python computing library that augments data
 analytics functionality found in popular packages like scikit-learn and xgboost.
+
+Python versions 3.10, 3.11, 3.12, 3.13, and 3.14 are supported.
 
 See documentation_ for more information.
 
@@ -105,17 +155,70 @@ Installation
 Dependencies
 ~~~~~~~~~~~~
 
-pybear requires:
+pybear operating on Python 3.14 requires:
 
-- Python (|PythonVersion|)
-- joblib (|JoblibVersion|)
-- numpy (|NumPyVersion|)
-- pandas (|PandasVersion|)
-- polars (|PolarsVersion|)
-- psutil (|PsutilVersion|)
-- scikit-learn (|ScikitLearnVersion|)
-- scipy (|ScipyVersion|)
-- typing_extensions (|TypingExtensionsVersion|)
+- Python (|PythonVersion314|)
+- joblib (|JoblibVersion314|)
+- numpy (|NumPyVersion314|)
+- pandas (|PandasVersion314|)
+- polars (|PolarsVersion314|)
+- psutil (|PsutilVersion314|)
+- pyarrow (|PyarrowVersion314|)
+- scikit-learn (|ScikitLearnVersion314|)
+- scipy (|ScipyVersion314|)
+- typing_extensions (|TypingExtensionsVersion314|)
+
+pybear operating on Python 3.13 requires:
+
+- Python (|PythonVersion313|)
+- joblib (|JoblibVersion313|)
+- numpy (|NumPyVersion313|)
+- pandas (|PandasVersion313|)
+- polars (|PolarsVersion313|)
+- psutil (|PsutilVersion313|)
+- pyarrow (|PyarrowVersion313|)
+- scikit-learn (|ScikitLearnVersion313|)
+- scipy (|ScipyVersion313|)
+- typing_extensions (|TypingExtensionsVersion313|)
+
+pybear operating on Python 3.12 requires:
+
+- Python (|PythonVersion312|)
+- joblib (|JoblibVersion312|)
+- numpy (|NumPyVersion312|)
+- pandas (|PandasVersion312|)
+- polars (|PolarsVersion312|)
+- psutil (|PsutilVersion312|)
+- pyarrow (|PyarrowVersion312|)
+- scikit-learn (|ScikitLearnVersion312|)
+- scipy (|ScipyVersion312|)
+- typing_extensions (|TypingExtensionsVersion312|)
+
+pybear operating on Python 3.11 requires:
+
+- Python (|PythonVersion311|)
+- joblib (|JoblibVersion311|)
+- numpy (|NumPyVersion311|)
+- pandas (|PandasVersion311|)
+- polars (|PolarsVersion311|)
+- psutil (|PsutilVersion311|)
+- pyarrow (|PyarrowVersion311|)
+- scikit-learn (|ScikitLearnVersion311|)
+- scipy (|ScipyVersion311|)
+- typing_extensions (|TypingExtensionsVersion311|)
+
+pybear operating on Python 3.10 requires:
+
+- Python (|PythonVersion310|)
+- joblib (|JoblibVersion310|)
+- numpy (|NumPyVersion310|)
+- pandas (|PandasVersion310|)
+- polars (|PolarsVersion310|)
+- psutil (|PsutilVersion310|)
+- pyarrow (|PyarrowVersion310|)
+- scikit-learn (|ScikitLearnVersion310|)
+- scipy (|ScipyVersion310|)
+- typing_extensions (|TypingExtensionsVersion310|)
 
 User installation
 ~~~~~~~~~~~~~~~~~
@@ -124,8 +227,7 @@ Install pybear from the online PyPI package repository using ``pip``::
 
    (your-env) $ pip install pybear
 
-Conda distributions are expected to be made available sometime after release to
-PyPI.
+Conda distributions are not expected to be made available anytime soon.
 
 =======
 
@@ -309,12 +411,13 @@ Testing
 ~~~~~~~
 
 pybear 0.2 is tested via GitHub Actions to run on Linux, Windows, and MacOS,
-with Python versions 3.10, 3.11, 3.12, 3.13, and 3.14. pybear is not tested on
-earlier versions, but some features may work.
+with Python versions 3.10, 3.11, 3.12, 3.13, and 3.14. pybear is not supported
+nor test tested on earlier versions.
 
 If you want to test pybear yourself, you will need:
 
-- pytest (|PytestVersion|)
+- pytest (|PytestVersion314|) for Python version 3.14
+- pytest (|PytestVersion313|) for Python versions 3.13, 3.12, 3.11, and 3.10
 
 The tests are not available in the PyPI pip installation. You can get
 the tests by downloading the tarball from the pybear project page on
