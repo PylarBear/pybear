@@ -19,7 +19,7 @@ from pybear.utilities._nan_masking import nan_mask
 
 
 
-class TestAccuracy:
+class TestNanStandardizer:
 
 
     def test_empty_X(self):
