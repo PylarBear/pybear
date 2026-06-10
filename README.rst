@@ -145,7 +145,7 @@ Website: https://pybear.readthedocs.io/en/stable/index.html
 License
 -------
 
-BSD 3-Clause License. See `License File <https://github.com/PylarBear/pybear/blob/main/LICENSE>`__.
+BSD 3-Clause License. See `License file <https://github.com/PylarBear/pybear/blob/main/LICENSE>`__.
 
 =======
 
@@ -406,10 +406,11 @@ Contributing
 ~~~~~~~~~~~~
 
 For guidelines on how to contribute to pybear, see the 
-`CONTRIBUTING.rst File <https://github.com/PylarBear/pybear/blob/main/CONTRIBUTING.rst>`__ 
+`CONTRIBUTING.rst file <https://github.com/PylarBear/pybear/blob/main/CONTRIBUTING.rst>`__ 
 in the source code repository.
-You can also access the contributing guidelines on the pybear documentation website:
-`Contributing Webpage <https://pybear.readthedocs.io/en/stable/CONTRIBUTING.html>`__.
+You can also access the contributing guidelines on the 
+`contributing webpage <https://pybear.readthedocs.io/en/stable/CONTRIBUTING.html>`__
+of the pybear documentation website.
 
 Testing
 ~~~~~~~
