@@ -405,7 +405,8 @@ You can clone the latest source code with the command::
 Contributing
 ~~~~~~~~~~~~
 
-See the `Contributing File <https://github.com/PylarBear/pybear/blob/main/CONTRIBUTING.rst>`__ 
+For guidelines on how to contribute to pybear, see the 
+`CONTRIBUTING.rst File <https://github.com/PylarBear/pybear/blob/main/CONTRIBUTING.rst>`__ 
 in the source code repository.
 You can also access the contributing guidelines on the pybear documentation website:
 `Contributing Webpage <https://pybear.readthedocs.io/en/stable/CONTRIBUTING.html>`__.
@@ -446,7 +447,7 @@ Help and Support
 Documentation
 ~~~~~~~~~~~~~
 
-- HTML documentation: documentation_
+- HTML documentation: https://pybear.readthedocs.io/en/stable/index.html
 
 Communication
 ~~~~~~~~~~~~~
