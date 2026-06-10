@@ -128,12 +128,12 @@ pybear
 .. |PyarrowVersion310| replace:: >=6.0.0
 .. |PytestVersion310| replace:: >=7.0.0
 .. |ScikitLearnVersion310| replace:: >=1.3.0,<1.8
-.. |ScipyVersion310| replace:: >=1.12.0,<1.16.0
+.. |ScipyVersion310| replace:: >=1.12.0,<1.16
 .. |TypingExtensionsVersion310| replace:: >=4.6.0
 
 Python packages that augment your data analytics experience.
 
-pybear is a scikit-learn-style Python computing library that augments data
+pybear is a scikit-style Python computing library that augments data
 analytics functionality found in popular packages like scikit-learn and xgboost.
 
 Python versions 3.10, 3.11, 3.12, 3.13, and 3.14 are supported.
@@ -227,7 +227,7 @@ Install pybear from the online PyPI package repository using ``pip``::
 
    (your-env) $ pip install pybear
 
-Conda distributions are not expected to be made available anytime soon.
+A Conda distribution is not expected to be made available anytime soon.
 
 =======
 
@@ -366,9 +366,9 @@ The modules include:
 Related Resources
 -----------------
 pybear has a sister package called pybear-dask. A few of the pybear modules
-have a corresponding twin in pybear-dask. You can pip install pybear-dask
-from PyPI in the same way as pybear. There is no Read The Docs website for
-pybear-dask, but it does have a GitHub repo.
+have corresponding twins that use dask and they can be found in that package. 
+You can pip install pybear-dask from PyPI in the same way as pybear. There is 
+no documentation website for pybear-dask, but it does have a GitHub repo.
 
 https://github.com/PylarBear/pybear-dask/
 
@@ -392,7 +392,7 @@ Important links
 ~~~~~~~~~~~~~~~
 
 - Official source code repo: https://github.com/PylarBear/pybear
-- Download releases: https://test.pypi.org/project/pybear/ (pypi coming soon!)
+- Download releases: https://pypi.org/project/pybear/
 - Issue tracker: https://github.com/PylarBear/pybear/issues
 
 Source code
@@ -405,7 +405,10 @@ You can clone the latest source code with the command::
 Contributing
 ~~~~~~~~~~~~
 
-pybear is not ready for contributions at this time!
+See the `Contributing File <https://github.com/PylarBear/pybear/blob/main/CONTRIBUTING.rst>`__ 
+in the source code repository.
+You can also access the contributing guidelines on the pybear documentation website:
+`Contributing Webpage <https://pybear.readthedocs.io/en/stable/CONTRIBUTING.html>`__.
 
 Testing
 ~~~~~~~
@@ -443,7 +446,7 @@ Help and Support
 Documentation
 ~~~~~~~~~~~~~
 
-- HTML documentation: https://pybear.readthedocs.io/en/stable/api.html
+- HTML documentation: documentation_
 
 Communication
 ~~~~~~~~~~~~~
