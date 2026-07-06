@@ -431,6 +431,7 @@ class TestNanMaskNumeric:
         if _nan_type == 'npnan':
             X = pd_assnmt_handle(X, MASK, np.nan)
         elif _nan_type == 'strnan':
+            # pd3.0+ no longer coerces str(nan) to float(nan)
             X = pd_assnmt_handle(X, MASK, 'nan')
         elif _nan_type == 'any string':
             X = pd_assnmt_handle(X, MASK, 'any string')
@@ -441,15 +442,15 @@ class TestNanMaskNumeric:
         else:
             raise Exception
 
-        if _dim == 1:
-            X = X.iloc[:, 0].squeeze()
-            MASK = MASK[:, 0]
-            _shape = (_shape[0], )
-
         # if exception is raised by pd_assnmnt_handle because of casting
         # nan to disallowed dtype, then X is None and skip test
         if X is None:
             pytest.skip(reason=f"invalid value cast to dataframe dtype, skip test")
+
+        if _dim == 1:
+            X = X.iloc[:, 0].squeeze()
+            MASK = MASK[:, 0]
+            _shape = (_shape[0], )
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         _dtypes = [X.dtypes] if _dim == 1 else list(set(X.dtypes))
@@ -519,6 +520,7 @@ class TestNanMaskNumeric:
         if _nan_type == 'npnan':
             X = pd_assnmt_handle(X, MASK, np.nan)
         elif _nan_type == 'strnan':
+            # pd3.0+ no longer coerces str(nan) to float(nan)
             X = pd_assnmt_handle(X, MASK, 'nan')
         elif _nan_type == 'any string':
             X = pd_assnmt_handle(X, MASK, 'any string')
@@ -529,15 +531,15 @@ class TestNanMaskNumeric:
         else:
             raise Exception
 
-        if _dim == 1:
-            X = X.iloc[:, 0].squeeze()
-            MASK = MASK[:, 0]
-            _shape = (_shape[0], )
-
         # if exception is raised by pd_assnmnt_handle because of casting
         # nan to disallowed dtype, then X is None and skip test
         if X is None:
             pytest.skip(reason=f"invalid value cast to dataframe dtype, skip test")
+
+        if _dim == 1:
+            X = X.iloc[:, 0].squeeze()
+            MASK = MASK[:, 0]
+            _shape = (_shape[0], )
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         _dtypes = [X.dtypes] if _dim == 1 else list(set(X.dtypes))

@@ -191,7 +191,11 @@ def _X_factory():
         if _has_nan:
 
             if _format == 'pd':
-                _choices = [np.nan, pd.NA, None, 'nan', 'NaN', 'NAN', '<NA>']
+                if _dtype in ['flt', 'int', 'hybrid']:
+                    # pd3.0+ no longer casts str-nan to float-nan
+                    _choices = [np.nan, pd.NA, None]
+                else:
+                    _choices = [np.nan, pd.NA, None, 'nan', 'NaN', 'NAN', '<NA>']
             else:
                 if _dtype == 'flt':
                     _choices = [np.nan, None, 'nan', 'NaN', 'NAN']
