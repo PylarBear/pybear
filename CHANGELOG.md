@@ -21,7 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - None
 
 ### Fixed
-- nan_mask handling of pandas 3.0+ copy-on-write protections
+- nan_mask pandas.to_numpy(): pd3.0+ copy-on-write requires to_numpy(copy=True)
+- tests using str(nan) in pd df: pd3.0+ no longer coerces str(nan) to float
 
 ### Security
 - None

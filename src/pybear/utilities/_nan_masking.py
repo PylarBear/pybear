@@ -209,7 +209,18 @@ def nan_mask_numerical(
 
 
     try:
-        M = M.to_numpy()
+        # Because of copy-on-write protections in pandas 3.0+, must set copy=True
+        # or the subsequent 'nan' assignment will except for 'read-only'.
+        # I.e., if copy is not specified, to_numpy is a view of the og df, not a
+        # copy, and therefore an assignment to the np array would mutate the og
+        # df, which pd3.0+ does not allow. The block on mutating the df thru the
+        # view is accomplished by flagging the np array as 'read-only', which
+        # then excepts if u try to mutate. setting copy=True circumvents all this.
+        # But try to avoid deepcopies if possible.
+        if int(str(pd.__version__).split(".")[0]) >= 3:
+            M = M.to_numpy(copy=True)
+        else:
+            M = M.to_numpy()
     except:
         pass
 
