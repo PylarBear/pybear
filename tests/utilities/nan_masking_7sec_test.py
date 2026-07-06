@@ -97,10 +97,10 @@ class TestNanMaskNumeric:
             if _dim == 2:
                 pytest.skip(reason=f"cant have 2D set")
             if _trial != 'trial_3':
-                # the masks have multiple inf values and set is screwing
+                # the masks have multiple nan values and set is screwing
                 # up the count, just do the empty mask trial and
                 # see that it passes thru.
-                pytest.skip(reason=f"sets mess up the inf count")
+                pytest.skip(reason=f"sets mess up the nan count")
 
         # END skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -221,9 +221,9 @@ class TestNanMaskNumeric:
         self, _shape, truth_mask_1, truth_mask_2, _dim, _trial, _nan_type
     ):
 
-        # all inf-likes raise exception when casting into int dtypes
+        # all nan-likes raise exception when casting into int dtypes
 
-        # this is also testing an int dtype with no infs to see if
+        # this is also testing an int dtype with no nans to see if
         # nan_mask() can take int dtype (and return a mask of all Falses).
 
         X = np.random.randint(0,10, _shape)
@@ -369,7 +369,7 @@ class TestNanMaskNumeric:
         else:
             raise Exception
 
-        # get the inf mask as ss (dok & lil should raise)
+        # get the nan mask as ss (dok & lil should raise)
         if 'lil' in _format or 'dok' in _format:
             with pytest.raises(TypeError):
                 nan_mask_numerical(X_wip)
@@ -465,7 +465,7 @@ class TestNanMaskNumeric:
             # 'strnan' and 'any string' are changing dtype from float64 to object!
             assert _dtype == object
         else:
-            # for all other inf assignments, dtypes is not changed
+            # for all other nan assignments, dtypes is not changed
             assert _dtype == np.float64
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -680,7 +680,7 @@ class TestNanMaskNumeric:
 
         assert X.dtype == np.float64
 
-        # polars wont cast any infs to Int32
+        # polars wont cast any nans to Int32
         # this is raised by polars, let it raise whatever
         with pytest.raises(Exception):
             X_wip = pl.from_numpy(X).cast(pl.Int32)
@@ -810,10 +810,10 @@ class TestNanMaskString:
             if _dim == 2:
                 pytest.skip(reason=f"cant have 2D set")
             if _trial != 'trial_3':
-                # the masks have multiple inf values and set is screwing
+                # the masks have multiple nan values and set is screwing
                 # up the count, just do the empty mask trial and
                 # see that it passes thru.
-                pytest.skip(reason=f"sets mess up the inf count")
+                pytest.skip(reason=f"sets mess up the nan count")
 
         # END skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -1134,7 +1134,7 @@ class TestNanMaskString:
             assert np.array_equal(out_2, MASK)
 
 
-    # polars wont cast any infs to Object
+    # polars wont cast any nans to Object
     @pytest.mark.parametrize('_dim', (1, 2))
     @pytest.mark.parametrize('_trial', (1, 2))
     @pytest.mark.parametrize('_nan_type',
@@ -1179,7 +1179,7 @@ class TestNanMaskString:
 
         # END prepare the np array before converting to polars -- --
 
-        # polars wont cast any infs to Object
+        # polars wont cast any nans to Object
         # this is raised by polars, let it raise whatever
 
         with pytest.raises(Exception):
