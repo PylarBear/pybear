@@ -43,7 +43,6 @@ class TestNanMasking:
                 pytest.skip(reason=f'have multiple similar nans with set')
         if X_dtype == 'hybrid' and _dim == 1:
             pytest.skip(reason=f'cant have hybrid when a single vector')
-
         # END skip impossible -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
         _X = _X_factory(
@@ -93,10 +92,8 @@ class TestNanMasking:
     ):
 
         # skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- -- -- --
-
         if X_dtype == 'hybrid' and _dim == 1:
             pytest.skip(reason=f'cant have hybrid when a single vector')
-
         # END skip impossible conditions -- -- -- -- -- -- -- -- -- -- -- -- --
 
         _format_dict = {
