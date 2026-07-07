@@ -71,7 +71,11 @@ def _columns_getter(
     if isinstance(_X, np.ndarray):
         _columns = _X[:, _col_idxs]
     elif isinstance(_X, pd.DataFrame):
-        _columns = _X.iloc[:, _col_idxs].to_numpy()
+        # pd3.0+ requires copy=True because of copy-on-write protection
+        if int(str(pd.__version__).split('.')[0]) >= 3:
+            _columns = _X.iloc[:, _col_idxs].to_numpy(copy=True)
+        else:
+            _columns = _X.iloc[:, _col_idxs].to_numpy()
     elif isinstance(_X, pl.DataFrame):
         _columns = _X[:, _col_idxs].to_numpy()
     elif hasattr(_X, 'toarray'):    # scipy sparse, must be csc

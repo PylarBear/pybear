@@ -72,10 +72,21 @@ class TestRemoveIntercept:
         # convert out and the og to np for array_equal
         if isinstance(_og_X_trfm, np.ndarray):
             pass
-        elif hasattr(_og_X_trfm, 'columns'):
+        elif isinstance(_og_X_trfm, pd.DataFrame):
+            # pd3.0+ requires copy=True because of copy-on-write protection.
+            # avoid deepcopy whenever possible.
+            if int(str(pd.__version__).split('.')[0]) >= 3:
+                print(f"{type(_og_X_trfm)=}")
+                _og_X_trfm = _og_X_trfm.to_numpy(copy=True)
+                out = out.to_numpy(copy=True)
+            else:
+                _og_X_trfm = _og_X_trfm.to_numpy()
+                out = out.to_numpy()
+        elif isinstance(_og_X_trfm, pl.DataFrame):
             _og_X_trfm = _og_X_trfm.to_numpy()
             out = out.to_numpy()
         elif hasattr(_og_X_trfm, 'toarray'):
+            # scipy sparse
             _og_X_trfm = _og_X_trfm.toarray()
             out = out.toarray()
         else:

@@ -191,8 +191,8 @@ def _X_factory():
         if _has_nan:
 
             if _format == 'pd':
-                if _dtype in ['flt', 'int', 'hybrid']:
-                    # pd3.0+ no longer casts str-nan to float-nan
+                # pd3.0+ no longer coerces str(nan) to float(nan)
+                if int(str(pd.__version__).split('.')[0]) >= 3 and _dtype in ['flt', 'int']:
                     _choices = [np.nan, pd.NA, None]
                 else:
                     _choices = [np.nan, pd.NA, None, 'nan', 'NaN', 'NAN', '<NA>']

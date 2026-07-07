@@ -121,6 +121,8 @@ class TestColumnsGetter:
         if isinstance(_X_wip, np.ndarray):
             _X_ref = _X_wip
         elif hasattr(_X_wip, 'columns'):
+            # when _X_wip is pd df, this apparently isn't needing copy=True for pd3.0+
+            # it must be because there is no mutation of _X_wip after this point
             _X_ref = _X_wip.to_numpy()
         elif hasattr(_X_wip, 'toarray'):
             _X_ref = _X_wip.toarray()

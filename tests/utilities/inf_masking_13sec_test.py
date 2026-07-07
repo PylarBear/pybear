@@ -464,6 +464,7 @@ class TestInfMaskNumeric:
         elif _inf_type == '-mathinf':
             X = pd_assnmt_handle(X, MASK, -math.inf)
         elif _inf_type == 'strinf':
+            # pd3.0+ no longer coerces str(inf) to float(inf)
             X = pd_assnmt_handle(X, MASK, 'inf')
         elif _inf_type == '-strinf':
             X = pd_assnmt_handle(X, MASK, '-inf')
@@ -478,15 +479,15 @@ class TestInfMaskNumeric:
         else:
             raise Exception
 
-        if _dim == 1:
-            X = X.iloc[:, 0].squeeze()
-            MASK = MASK[:, 0]
-            _shape = (_shape[0], )
-
         # if exception is raised by pd_assnmt_handle because of casting
         # inf to disallowed dtype, then X is None and skip test
         if X is None:
             pytest.skip(reason=f"invalid value cast to dataframe dtype, skip test")
+
+        if _dim == 1:
+            X = X.iloc[:, 0].squeeze()
+            MASK = MASK[:, 0]
+            _shape = (_shape[0], )
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         _dtypes = [X.dtypes] if _dim == 1 else list(set(X.dtypes))
@@ -551,6 +552,7 @@ class TestInfMaskNumeric:
         elif _inf_type == '-mathinf':
             X = pd_assnmt_handle(X, MASK, -math.inf)
         elif _inf_type == 'strinf':
+            # pd3.0+ no longer coerces str(inf) to float(inf)
             X = pd_assnmt_handle(X, MASK, 'inf')
         elif _inf_type == '-strinf':
             X = pd_assnmt_handle(X, MASK, '-inf')
@@ -565,15 +567,15 @@ class TestInfMaskNumeric:
         else:
             raise Exception
 
-        if _dim == 1:
-            X = X.iloc[:, 0].squeeze()
-            MASK = MASK[:, 0]
-            _shape = (_shape[0], )
-
         # if exception is raised by pd_assnmt_handle because of casting
         # inf to disallowed dtype, then X is None and skip test
         if X is None:
             pytest.skip(reason=f"invalid value cast to dataframe dtype, skip test")
+
+        if _dim == 1:
+            X = X.iloc[:, 0].squeeze()
+            MASK = MASK[:, 0]
+            _shape = (_shape[0], )
 
         # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
         _dtypes = [X.dtypes] if _dim == 1 else list(set(X.dtypes))
@@ -741,16 +743,20 @@ class TestInfMaskNumeric:
             dtype=np.float64
         )
 
-        _pool = (
+        # pd3.0+ no longer coerces str(inf) to float(inf)
+        _pool = [
             np.inf,
             -np.inf,
             math.inf,
             -math.inf,
             float('inf'),
-            float('-inf'),
-            decimal.Decimal('Infinity'),
-            decimal.Decimal('-Infinity')
-        )
+            float('-inf')
+        ]
+        # append this str(inf) types if not running pd3.0+
+        if int(str(pd.__version__).split('.')[0]) < 3:
+            _pool += [decimal.Decimal('Infinity'), decimal.Decimal('-Infinity')]
+
+        _pool = tuple(_pool)
 
         # sprinkle the various inf-types into the float DF,
         # make a ref mask DF to mark the places of the inf-likes

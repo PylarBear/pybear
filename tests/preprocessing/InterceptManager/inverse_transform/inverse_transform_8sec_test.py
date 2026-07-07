@@ -182,16 +182,32 @@ class TestInverseTransform:
                 _og_col = _X_wip[:, _og_idx]
                 _out_col = out[:, _og_idx]
             elif isinstance(_X_wip, pd.DataFrame):
-                _og_col = _X_wip.iloc[:, _og_idx].to_numpy()
-                _out_col = out.iloc[:, _og_idx].to_numpy()
+                # pd3.0+ requires copy=True because of copy-on-write protection
+                # Avoid a deepcopy when possible.
+                if int(str(pd.__version__).split(".")[0]) >= 3:
+                    _og_col = _X_wip.iloc[:, _og_idx].to_numpy(copy=True)
+                    _out_col = out.iloc[:, _og_idx].to_numpy(copy=True)
+                else:
+                    _og_col = _X_wip.iloc[:, _og_idx].to_numpy()
+                    _out_col = out.iloc[:, _og_idx].to_numpy()
             elif isinstance(_X_wip, pl.DataFrame):
                 # Polars uses zero-copy conversion when possible, meaning the
                 # underlying memory is still controlled by Polars and marked
                 # as read-only. NumPy and Pandas may inherit this read-only
                 # flag, preventing modifications.
-                # THE ORDER IS IMPORTANT HERE. CONVERT TO PANDAS FIRST THEN SLICE.
-                _og_col = _X_wip.to_pandas().to_numpy()[:, _og_idx]
-                _out_col = out.to_pandas().to_numpy()[:, _og_idx]
+                # THE ORDER IS IMPORTANT HERE. CONVERT TO PANDAS FIRST,
+                # THEN NUMPY, THEN SLICE.
+                _og_col = _X_wip.to_pandas()
+                _out_col = out.to_pandas()
+                # But on top of that, pd3.0+ requires copy=True because
+                # of copy-on-write protection.
+                # Avoid a deepcopy when possible.
+                if int(str(pd.__version__).split('.')[0]) >= 3:
+                    _og_col = _og_col.to_numpy(copy=True)[:, _og_idx]
+                    _out_col = _out_col.to_numpy(copy=True)[:, _og_idx]
+                else:
+                    _og_col = _og_col.to_numpy()[:, _og_idx]
+                    _out_col = _out_col.to_numpy()[:, _og_idx]
             elif hasattr(_X_wip, 'toarray'):
                 _og_col = _X_wip[:, [_og_idx]].toarray()
                 _out_col = out[:, [_og_idx]].toarray()

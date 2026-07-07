@@ -55,7 +55,6 @@ class TestAccuracy:
         # END skip impossible combinations v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
 
 
-
         # BUILD X v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^
         _X_wip = _X_factory(
             _dupl=dupls,
