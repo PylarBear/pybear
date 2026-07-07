@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [0.2.5] - 2026-XX-XX
+## [0.2.5] - 2026-07-07
 
 ### Added
 - None
@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - nan_mask pandas.to_numpy(): pd3.0+ copy-on-write requires to_numpy(copy=True)
+- tests using to_numpy() require to_numpy(copy=True)
 - tests using str(nan) in a pd df: pd3.0+ no longer coerces str(nan) to float
 
 ### Security
