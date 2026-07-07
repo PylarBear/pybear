@@ -12,6 +12,7 @@ import uuid
 
 import numpy as np
 import pandas as pd
+from pandas import StringDtype
 import scipy.sparse as ss
 import polars as pl
 
@@ -318,11 +319,27 @@ class TestXFactory:
             elif _dtype == 'int':
                 assert all([__ in [np.int32, np.int64] for __ in out.dtypes])
             elif _dtype == 'str':
-                assert all([__ == object for __ in out.dtypes])
+                if int(str(pd.__version__).split('.')[0]) >= 3:
+                    assert all([isinstance(__, StringDtype) for __ in out.dtypes])
+                else:
+                    assert all([__ == object for __ in out.dtypes])
             elif _dtype == 'obj':
-                assert all([__ == object for __ in out.dtypes])
+                if int(str(pd.__version__).split('.')[0]) >= 3:
+                    assert all([isinstance(__, StringDtype) for __ in out.dtypes])
+                else:
+                    assert all([__ == object for __ in out.dtypes])
             elif _dtype == 'hybrid':
-                assert all([__ == object for __ in out.dtypes])
+                # In X_factory, every 3rd column is str
+                if int(str(pd.__version__).split('.')[0]) >= 3:
+                    for idx, i in enumerate(out.dtypes):
+                        if idx % 3 == 0:
+                            assert i == object
+                        elif idx % 3 == 1:
+                            assert i == object
+                        elif idx % 3 == 2:
+                            assert isinstance(i, StringDtype)
+                else:
+                    assert all([__ == object for __ in out.dtypes])
         elif _format == 'pl':
             assert isinstance(out, pl.DataFrame)
             if _dtype == 'flt':
