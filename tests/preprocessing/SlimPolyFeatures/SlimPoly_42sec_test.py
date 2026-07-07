@@ -13,6 +13,7 @@ import uuid
 
 import numpy as np
 import pandas as pd
+from pandas import StringDtype
 import polars as pl
 import scipy.sparse as ss
 
@@ -1373,7 +1374,10 @@ class TestTransform:
         if _format == 'pd':
             for __dtype in _X_wip.dtypes:
                 if '<U' in _dtype:
-                    assert __dtype == 'O'
+                    if int(str(pd.__version__).split('.')[0]) >= 3:
+                        assert isinstance(__dtype, StringDtype)
+                    else:
+                        assert __dtype == 'O'
                 else:
                     assert __dtype == _non_pl_dtype_dict[_dtype]
         elif _format == 'pl':
