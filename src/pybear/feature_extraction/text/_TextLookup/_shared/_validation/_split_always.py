@@ -61,7 +61,7 @@ def _val_split_always(
         if not isinstance(_SPLIT_ALWAYS, dict):
             raise Exception
         if len(_SPLIT_ALWAYS) == 0:
-            _addon = f"Got empty dictionary."
+            _addon = f"Got empty."
             raise UnicodeError
         for k, v in _SPLIT_ALWAYS.items():
             if not isinstance(k, (str, re.Pattern)):
