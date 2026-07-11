@@ -70,7 +70,7 @@ def mock_estimator():
             # alternative would be to abandon mock_estimator and pass an
             # actual sk estimator to tests in place of mock_estimator
             class Tags:
-                estimator_type: str = "transformer"
+                estimator_type: str = "estimator"
                 class TargetTags:
                     required: bool = False
                 target_tags = TargetTags()
@@ -80,14 +80,14 @@ def mock_estimator():
                 classifier_tags = None
                 regressor_tags = None
                 array_api_support: bool = False
-                no_validation: bool = False
+                no_validation: bool = True
                 non_deterministic: bool = False
                 requires_fit: bool = True
                 class InputTags:
-                    one_d_array: bool = True
+                    one_d_array: bool = False
                     two_d_array: bool = True
                     three_d_array: bool = False
-                    sparse: bool = True
+                    sparse: bool = False
                     categorical: bool = True
                     string: bool = True
                     dict: bool = False
@@ -116,7 +116,7 @@ def mock_estimator():
             return self
 
 
-        def fit(self, X, y):
+        def fit(self, X):
 
             X = np.array(X).astype(np.float64)
             _min_dim = min(X.shape)
@@ -141,7 +141,7 @@ def mock_estimator():
             return (self.predict_proba(X)[:-1] >= 0.5).astype(np.uint8)
 
 
-        def score(self, X, y):   # needs two args to satisify sklearn
+        def score(self, X, y):   # needs two args to satisfy sklearn
             return self._square_matrix[0].sum() / self._square_matrix.sum()
 
 

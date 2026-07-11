@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.3.0] - 2026-07-11
+
+### Added
+- None
+
+### Changed
+- Bump minor version to 0.3 for adding py3.14 and dropping py3.9
+    Should have done this at v0.2.4 when first adding py3.14
+
+### Deprecated
+- None
+
+### Removed
+- None
+
+### Fixed
+- None
+
+### Security
+- None
+
 ## [0.2.5] - 2026-07-07
 
 ### Added
