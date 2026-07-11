@@ -18,6 +18,7 @@ project = 'pybear'
 copyright = '2025, PylarBear'
 author = 'PylarBear'
 release = pybear.__version__
+language = 'en'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
