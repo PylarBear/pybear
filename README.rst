@@ -415,9 +415,9 @@ of the pybear documentation website.
 Testing
 ~~~~~~~
 
-pybear 0.2 is tested via GitHub Actions to run on Linux, Windows, and MacOS,
+pybear 0.3 is tested via GitHub Actions to run on Linux, Windows, and MacOS,
 with Python versions 3.10, 3.11, 3.12, 3.13, and 3.14. pybear is not supported
-nor test tested on earlier versions.
+nor tested on earlier versions.
 
 If you want to test pybear yourself, you will need:
 
