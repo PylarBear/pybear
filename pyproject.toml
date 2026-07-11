@@ -114,7 +114,6 @@ pytest-html = "*"
 
 
 [tool.poetry.extras]
-# Optional dependencies. They can be opted into by apps.
 
 
 [tool.poetry.scripts]
