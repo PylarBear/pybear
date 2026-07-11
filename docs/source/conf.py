@@ -18,7 +18,6 @@ project = 'pybear'
 copyright = '2025, PylarBear'
 author = 'PylarBear'
 release = pybear.__version__
-language = 'en'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -66,6 +65,6 @@ html_context = {
    "default_mode": "light"
 }
 html_meta = {"google-site-verification":"Vfm-HV9ibdA4ubmnyo7bO3KJ4LgmB48Lxp634CmYAPI"}
-html_baseurl = "https://pybear.readthedocs.io/en/stable/"
+html_baseurl = "https://pybear.readthedocs.io/"
 sitemap_url_scheme = "{lang}{version}{link}"
 
