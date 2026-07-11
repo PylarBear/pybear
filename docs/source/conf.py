@@ -66,4 +66,4 @@ html_context = {
 }
 html_meta = {"google-site-verification":"Vfm-HV9ibdA4ubmnyo7bO3KJ4LgmB48Lxp634CmYAPI"}
 html_baseurl = "https://pybear.readthedocs.io/en/stable/"
-
+sitemap_url_scheme = "{link}"
