@@ -99,7 +99,7 @@ def mock_estimator():
             return Tags
 
 
-        def partial_fit(self, X):
+        def partial_fit(self, X, y):
 
             X = np.array(X)
             _min_dim = min(X.shape)
@@ -116,7 +116,7 @@ def mock_estimator():
             return self
 
 
-        def fit(self, X):
+        def fit(self, X, y):
 
             X = np.array(X).astype(np.float64)
             _min_dim = min(X.shape)
