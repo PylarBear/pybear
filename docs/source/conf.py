@@ -6,25 +6,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import pybear
 
-###############################################################################
-import os
-import shutil
-
-# Force removal of old build artifacts to clear the stale sitemap.xml
-def clean_stale_sitemap(app, exception):
-    outdir = app.outdir
-    stale_sitemap = os.path.join(outdir, "sitemap.xml")
-    if os.path.exists(stale_sitemap):
-        try:
-            os.remove(stale_sitemap)
-            print(f"--- SUCCESS: Removed stale sitemap at {stale_sitemap} ---")
-        except Exception as e:
-            print(f"--- ERROR removing sitemap: {e} ---")
-
-def setup(app):
-    # Triggers our cleanup function right after Sphinx finishes writing files
-    app.connect('build-finished', clean_stale_sitemap)
-###############################################################################
 
 # Configuration file for the Sphinx documentation builder.
 #
@@ -60,6 +41,8 @@ autodoc_default_options = {
     "undoc-members": False,
     "show-inheritance": False,
 }
+
+language = None
 
 numpydoc_show_class_members = True
 numpydoc_class_members_toctree = True
