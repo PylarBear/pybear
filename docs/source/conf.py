@@ -28,7 +28,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'numpydoc',
-    'sphinx_sitemap'
+    # 'sphinx_sitemap'
 ]
 
 autosummary_generate = True
