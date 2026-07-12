@@ -6,7 +6,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import pybear
 
-
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
@@ -29,6 +28,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'numpydoc',
+    'sphinx_sitemap'
 ]
 
 autosummary_generate = True
@@ -40,8 +40,6 @@ autodoc_default_options = {
     "undoc-members": False,
     "show-inheritance": False,
 }
-
-language = 'en'
 
 numpydoc_show_class_members = True
 numpydoc_class_members_toctree = True
@@ -67,5 +65,5 @@ html_context = {
    "default_mode": "light"
 }
 html_meta = {"google-site-verification":"Vfm-HV9ibdA4ubmnyo7bO3KJ4LgmB48Lxp634CmYAPI"}
-html_baseurl = "https://pybear.readthedocs.io/"
+html_baseurl = "https://pybear.readthedocs.io/en/stable/"
 
