@@ -27,8 +27,8 @@ for html_file in sorted(output_dir.rglob("*.html")):
     if parts[0] == "en":
         relative = Path(*parts[1:])
 
-    # Skip excluded pages
-    if relative.name in exclude:
+    # Skip excluded pages and _static directory
+    if relative.name in exclude or "_static" in relative.parts:
         continue
 
     urls.append(f"{base_url}{relative}")
