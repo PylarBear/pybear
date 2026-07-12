@@ -29,7 +29,6 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'numpydoc',
-    # 'sphinx_sitemap'
 ]
 
 autosummary_generate = True
@@ -42,7 +41,7 @@ autodoc_default_options = {
     "show-inheritance": False,
 }
 
-language = None
+language = 'en'
 
 numpydoc_show_class_members = True
 numpydoc_class_members_toctree = True
@@ -68,6 +67,5 @@ html_context = {
    "default_mode": "light"
 }
 html_meta = {"google-site-verification":"Vfm-HV9ibdA4ubmnyo7bO3KJ4LgmB48Lxp634CmYAPI"}
-# html_baseurl = "https://pybear.readthedocs.io"
-# sitemap_url_scheme = "{link}"
+html_baseurl = "https://pybear.readthedocs.io/en/stable/"
 
