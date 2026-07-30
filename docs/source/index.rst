@@ -22,7 +22,7 @@ View on `GitHub <https://github.com/PylarBear/pybear>`_
 
 
 Mission Statement
-=================
+-----------------
 pybear seeks to add to and/or enhance existing functionality in the Python data analytics 
 ecosystem.
 
