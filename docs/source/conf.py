@@ -64,6 +64,9 @@ html_context = {
    # ...
    "default_mode": "light"
 }
-html_meta = {"google-site-verification":"Vfm-HV9ibdA4ubmnyo7bO3KJ4LgmB48Lxp634CmYAPI"}
+html_meta = {
+    "google-site-verification": "Vfm-HV9ibdA4ubmnyo7bO3KJ4LgmB48Lxp634CmYAPI",
+    "description": "pybear is a scikit-style Python computing library that augments data analytics functionality found in popular packages like scikit-learn and xgboost."
+}
 html_baseurl = "https://pybear.readthedocs.io/en/stable/"
 
