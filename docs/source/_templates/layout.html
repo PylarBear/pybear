@@ -1,5 +1,9 @@
 {% extends "!layout.html" %}
 
+<!--pydata_sphinx_theme doesn't render html_meta from conf.py into the actual
+HTML <head> section the way standard Sphinx themes do. Need to put the meta
+tags directly into layout.html using Jinja, which bypasses the theme and injects
+them directly into the HTML output.-->
 {% block extrahead %}
   {{ super() }}
   <meta name="google-site-verification" content="Vfm-HV9ibdA4ubmnyo7bO3KJ4LgmB48Lxp634CmYAPI">
