@@ -20,10 +20,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -44,6 +44,5 @@ jobs:
         poetry install
 
     - name: Run tests
-      run: |
-        poetry run pytest tests/ --doctest-modules -v --maxfail=1 --disable-warnings
+      run: poetry run pytest tests/ --doctest-modules -v --maxfail=1 --disable-warnings
       timeout-minutes: 120
