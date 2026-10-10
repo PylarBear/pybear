@@ -3,6 +3,7 @@ pybear
 
 |Tests|
 |Coverage|
+|Test Status 315|
 |Test Status 314|
 |Test Status 313|
 |Test Status 312|
@@ -14,6 +15,9 @@ pybear
 
 .. |Coverage| image:: https://raw.githubusercontent.com/PylarBear/pybear/main/.github/badges/coverage-badge.svg
    :target: https://github.com/PylarBear/pybear/actions
+
+.. |Test Status 315| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py315.yml/badge.svg
+   :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py315.yml
 
 .. |Test Status 314| image:: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py314.yml/badge.svg
    :target: https://github.com/PylarBear/pybear/actions/workflows/matrix-tests-py314.yml
@@ -70,6 +74,18 @@ pybear
 
 .. _documentation: https://pybear.readthedocs.io/
 
+
+.. |PythonVersion315| replace:: XXX
+.. |JoblibVersion315| replace:: XXX
+.. |NumpyVersion315| replace:: XXX
+.. |PandasVersion315| replace:: XXX
+.. |PolarsVersion315| replace:: XXX
+.. |PsutilVersion315| replace:: XXX
+.. |PyarrowVersion315| replace:: XXX
+.. |PytestVersion315| replace:: XXX
+.. |ScikitLearnVersion315| replace:: XXX
+.. |ScipyVersion315| replace:: XXX
+.. |TypingExtensionsVersion315| replace:: XXX
 
 .. |PythonVersion314| replace:: ==3.14
 .. |JoblibVersion314| replace:: >=1.5.2
@@ -136,7 +152,7 @@ Python packages that augment your data analytics experience.
 pybear is a scikit-style Python computing library that augments data
 analytics functionality found in popular packages like scikit-learn and xgboost.
 
-Python versions 3.10, 3.11, 3.12, 3.13, and 3.14 are supported.
+Python versions 3.10, 3.11, 3.12, 3.13, 3.14, and 3.15 are supported.
 
 See documentation_ for more information.
 
@@ -154,6 +170,19 @@ Installation
 
 Dependencies
 ~~~~~~~~~~~~
+
+pybear operating on Python 3.15 requires:
+
+- Python (|PythonVersion315|)
+- joblib (|JoblibVersion315|)
+- numpy (|NumPyVersion315|)
+- pandas (|PandasVersion315|)
+- polars (|PolarsVersion315|)
+- psutil (|PsutilVersion315|)
+- pyarrow (|PyarrowVersion315|)
+- scikit-learn (|ScikitLearnVersion315|)
+- scipy (|ScipyVersion315|)
+- typing_extensions (|TypingExtensionsVersion315|)
 
 pybear operating on Python 3.14 requires:
 
@@ -415,12 +444,13 @@ of the pybear documentation website.
 Testing
 ~~~~~~~
 
-pybear 0.3 is tested via GitHub Actions to run on Linux, Windows, and MacOS,
-with Python versions 3.10, 3.11, 3.12, 3.13, and 3.14. pybear is not supported
-nor tested on earlier versions.
+pybear 0.4 is tested via GitHub Actions to run on Linux, Windows, and MacOS,
+with Python versions 3.10, 3.11, 3.12, 3.13, 3.14 and 3.15. pybear is not
+supported nor tested on earlier versions.
 
 If you want to test pybear yourself, you will need:
 
+- pytest (|PytestVersion315|) for Python version 3.15
 - pytest (|PytestVersion314|) for Python version 3.14
 - pytest (|PytestVersion313|) for Python versions 3.13, 3.12, 3.11, and 3.10
 
