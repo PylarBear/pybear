@@ -75,17 +75,17 @@ pybear
 .. _documentation: https://pybear.readthedocs.io/
 
 
-.. |PythonVersion315| replace:: XXX
-.. |JoblibVersion315| replace:: XXX
-.. |NumpyVersion315| replace:: XXX
-.. |PandasVersion315| replace:: XXX
-.. |PolarsVersion315| replace:: XXX
-.. |PsutilVersion315| replace:: XXX
-.. |PyarrowVersion315| replace:: XXX
-.. |PytestVersion315| replace:: XXX
-.. |ScikitLearnVersion315| replace:: XXX
-.. |ScipyVersion315| replace:: XXX
-.. |TypingExtensionsVersion315| replace:: XXX
+.. |PythonVersion315| replace:: ==3.15
+.. |JoblibVersion315| replace:: >=1.5.2
+.. |NumpyVersion315| replace:: >=2.5.2
+.. |PandasVersion315| replace:: >=3.0.6
+.. |PolarsVersion315| replace:: >=1.19.0
+.. |PsutilVersion315| replace:: >=7.1.2
+.. |PyarrowVersion315| replace:: >=26.0.0
+.. |PytestVersion315| replace:: >=8.0.0
+.. |ScikitLearnVersion315| replace:: >=1.9.1
+.. |ScipyVersion315| replace:: >=1.18.1
+.. |TypingExtensionsVersion315| replace:: >=4.6.0
 
 .. |PythonVersion314| replace:: ==3.14
 .. |JoblibVersion314| replace:: >=1.5.2
@@ -125,14 +125,14 @@ pybear
 
 .. |PythonVersion311| replace:: ==3.11
 .. |JoblibVersion311| replace:: >=1.3.0
-.. |NumpyVersion311| replace:: >=1.23.3
+.. |NumpyVersion311| replace:: >=1.23.3, <2.5
 .. |PandasVersion311| replace:: >=1.5.1
 .. |PolarsVersion311| replace:: >=1.19.0
 .. |PsutilVersion311| replace:: >=5.9.4
 .. |PyarrowVersion311| replace:: >=10.0.1
 .. |PytestVersion311| replace:: >=7.0.0
 .. |ScikitLearnVersion311| replace:: >=1.3.0
-.. |ScipyVersion311| replace:: >=1.12.0
+.. |ScipyVersion311| replace:: >=1.12.0, <1.18.0
 .. |TypingExtensionsVersion311| replace:: >=4.6.0
 
 .. |PythonVersion310| replace:: ==3.10
@@ -450,8 +450,7 @@ supported nor tested on earlier versions.
 
 If you want to test pybear yourself, you will need:
 
-- pytest (|PytestVersion315|) for Python version 3.15
-- pytest (|PytestVersion314|) for Python version 3.14
+- pytest (|PytestVersion315|) for Python versions 3.15 and 3.14
 - pytest (|PytestVersion313|) for Python versions 3.13, 3.12, 3.11, and 3.10
 
 The tests are not available in the PyPI pip installation. You can get
